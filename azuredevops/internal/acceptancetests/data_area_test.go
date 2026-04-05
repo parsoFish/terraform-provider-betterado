@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccAreaDataSource_Read(t *testing.T) {
@@ -13,14 +13,14 @@ func TestAccAreaDataSource_Read(t *testing.T) {
 	config := fmt.Sprintf(`
 %s
 
-data "azuredevops_area" "root-area" {
-  project_id = azuredevops_project.project.id
+data "betterado_area" "root-area" {
+  project_id = betterado_project.project.id
 }
 
 
 `, testutils.HclProjectResource(projectName))
 
-	tfNode := "data.azuredevops_area.root-area"
+	tfNode := "data.betterado_area.root-area"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -45,15 +45,15 @@ func TestAccAreaDataSource_ReadNoChildren(t *testing.T) {
 	config := fmt.Sprintf(`
 %s
 
-data "azuredevops_area" "root-area" {
-  project_id     = azuredevops_project.project.id
+data "betterado_area" "root-area" {
+  project_id     = betterado_project.project.id
   fetch_children = false
 }
 
 
 `, testutils.HclProjectResource(projectName))
 
-	tfNode := "data.azuredevops_area.root-area"
+	tfNode := "data.betterado_area.root-area"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),

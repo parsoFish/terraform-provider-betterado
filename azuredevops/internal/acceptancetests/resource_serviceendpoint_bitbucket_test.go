@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointBitBucket_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_bitbucket"
+	resourceType := "betterado_serviceendpoint_bitbucket"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -36,7 +36,7 @@ func TestAccServiceEndpointBitBucket_complete(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_bitbucket"
+	resourceType := "betterado_serviceendpoint_bitbucket"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -66,7 +66,7 @@ func TestAccServiceEndpointBitBucket_update(t *testing.T) {
 	description := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_bitbucket"
+	resourceType := "betterado_serviceendpoint_bitbucket"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -99,7 +99,7 @@ func TestAccServiceEndpointBitBucket_update(t *testing.T) {
 func TestAccServiceEndpointBitBucket_RequiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_bitbucket"
+	resourceType := "betterado_serviceendpoint_bitbucket"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -123,8 +123,8 @@ func TestAccServiceEndpointBitBucket_RequiresImportErrorStep(t *testing.T) {
 
 func hclSvcEndpointBitBucketResourceBasic(projectName string, serviceEndpointName string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_bitbucket" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_bitbucket" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   username              = "username"
   password              = "password"
@@ -136,8 +136,8 @@ resource "azuredevops_serviceendpoint_bitbucket" "test" {
 
 func hclSvcEndpointBitBucketResourceComplete(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_bitbucket" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_bitbucket" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   description           = "%s"
   username              = "username"
@@ -150,8 +150,8 @@ resource "azuredevops_serviceendpoint_bitbucket" "test" {
 
 func hclSvcEndpointBitBucketResourceUpdate(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_bitbucket" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_bitbucket" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   description           = "%s"
   username              = "username"
@@ -166,11 +166,11 @@ func hclSvcEndpointBitBucketResourceRequiresImport(projectName string, serviceEn
 	template := hclSvcEndpointBitBucketResourceBasic(projectName, serviceEndpointName)
 	return fmt.Sprintf(`
 %s
-resource "azuredevops_serviceendpoint_bitbucket" "import" {
-  project_id            = azuredevops_serviceendpoint_bitbucket.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_bitbucket.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_bitbucket.test.description
-  username              = azuredevops_serviceendpoint_bitbucket.test.username
+resource "betterado_serviceendpoint_bitbucket" "import" {
+  project_id            = betterado_serviceendpoint_bitbucket.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_bitbucket.test.service_endpoint_name
+  description           = betterado_serviceendpoint_bitbucket.test.description
+  username              = betterado_serviceendpoint_bitbucket.test.username
   password              = "password"
 }
 `, template)

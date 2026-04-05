@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/datahelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/datahelper"
 )
 
 func TestAccLibraryPermissions_SetPermissions(t *testing.T) {
@@ -19,7 +19,7 @@ func TestAccLibraryPermissions_SetPermissions(t *testing.T) {
 		"Use":         "allow",
 		"Owner":       "allow",
 	})
-	tfNode := "azuredevops_library_permissions.permissions"
+	tfNode := "betterado_library_permissions.permissions"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -64,7 +64,7 @@ func TestAccLibraryPermissions_UpdatePermissions(t *testing.T) {
 		"Use":         "notset",
 		"Owner":       "notset",
 	})
-	tfNode := "azuredevops_library_permissions.permissions"
+	tfNode := "betterado_library_permissions.permissions"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -110,14 +110,14 @@ func hclLibraryPermissions(projectName string, permissions map[string]string) st
 
 	return fmt.Sprintf(`
 %s
-data "azuredevops_group" "tf-project-readers" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "tf-project-readers" {
+  project_id = betterado_project.project.id
   name       = "Readers"
 }
 
-resource "azuredevops_library_permissions" "permissions" {
-  project_id = azuredevops_project.project.id
-  principal  = data.azuredevops_group.tf-project-readers.id
+resource "betterado_library_permissions" "permissions" {
+  project_id = betterado_project.project.id
+  principal  = data.betterado_group.tf-project-readers.id
   permissions = {
 		%s
   }

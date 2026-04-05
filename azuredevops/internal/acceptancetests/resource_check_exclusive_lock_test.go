@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccCheckExclusiveLock_basic(t *testing.T) {
@@ -13,7 +13,7 @@ func TestAccCheckExclusiveLock_basic(t *testing.T) {
 	timeout := 43200
 	newTimeout := 21600
 
-	resourceType := "azuredevops_check_exclusive_lock"
+	resourceType := "betterado_check_exclusive_lock"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -44,9 +44,9 @@ func TestAccCheckExclusiveLock_basic(t *testing.T) {
 
 func hclCheckExclusiveLockResourceBasic(projectName string, timeout int) string {
 	checkResource := fmt.Sprintf(`
-resource "azuredevops_check_exclusive_lock" "test" {
-  project_id           = azuredevops_project.project.id
-  target_resource_id   = azuredevops_serviceendpoint_generic.test.id
+resource "betterado_check_exclusive_lock" "test" {
+  project_id           = betterado_project.project.id
+  target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
   timeout              = %d
 }`, timeout)

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointGitHub_dataSource_with_serviceEndpointID(t *testing.T) {
@@ -16,7 +16,7 @@ func TestAccServiceEndpointGitHub_dataSource_with_serviceEndpointID(t *testing.T
 		testutils.HclServiceEndpointGitHubDataSourceWithServiceEndpointID(),
 	)
 
-	tfNode := "data.azuredevops_serviceendpoint_github.serviceendpoint"
+	tfNode := "data.betterado_serviceendpoint_github.serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -40,7 +40,7 @@ func TestAccServiceEndpointGitHub_dataSource_with_serviceEndpointName_DataSource
 		testutils.HclServiceEndpointGitHubDataSourceWithServiceEndpointName(serviceEndpointGitHubName),
 	)
 
-	tfNode := "data.azuredevops_serviceendpoint_github.serviceendpoint"
+	tfNode := "data.betterado_serviceendpoint_github.serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),

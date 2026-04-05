@@ -10,12 +10,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/tfhelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/tfhelper"
 )
 
-const VariableGroupVariable = "azuredevops_variable_group_variable"
+const VariableGroupVariable = "betterado_variable_group_variable"
 
 var forEachLock = new(sync.Mutex)
 

@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccGitRepositoryFile_DataSource(t *testing.T) {
-	tfNode := "data.azuredevops_git_repository_file.test"
+	tfNode := "data.betterado_git_repository_file.test"
 
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
@@ -60,31 +60,31 @@ func TestAccGitRepositoryFile_DataSource_notExist(t *testing.T) {
 
 func hclDataRepositoryFile(projectName, repoName, branch, rfile, content, commitMessage, dfile string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%[1]s"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
 
-resource "azuredevops_git_repository_file" "test" {
-  repository_id  = azuredevops_git_repository.test.id
+resource "betterado_git_repository_file" "test" {
+  repository_id  = betterado_git_repository.test.id
   branch         = "%[3]s"
   file           = "%[4]s"
   content        = "%[5]s"
   commit_message = "%[6]s"
 }
 
-data "azuredevops_git_repository_file" "test" {
-  repository_id = azuredevops_git_repository.test.id
+data "betterado_git_repository_file" "test" {
+  repository_id = betterado_git_repository.test.id
   branch        = "%[3]s"
   file          = "%[7]s"
-  depends_on    = [azuredevops_git_repository_file.test]
+  depends_on    = [betterado_git_repository_file.test]
 }
 
 

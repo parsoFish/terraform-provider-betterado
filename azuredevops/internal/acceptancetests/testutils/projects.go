@@ -6,15 +6,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 // CheckProjectExists Given the name of an AzDO project, this will return a function that will check whether
 // or not the project (1) exists in the state and (2) exist in AzDO and (3) has the correct name
 func CheckProjectExists(expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resource, ok := s.RootModule().Resources["azuredevops_project.project"]
+		resource, ok := s.RootModule().Resources["betterado_project.project"]
 		if !ok {
 			return fmt.Errorf("Did not find a project in the TF state")
 		}
@@ -41,7 +41,7 @@ func CheckProjectDestroyed(s *terraform.State) error {
 
 	// verify that every project referenced in the state does not exist in AzDO
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_project" {
+		if resource.Type != "betterado_project" {
 			continue
 		}
 

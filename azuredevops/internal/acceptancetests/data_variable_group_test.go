@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccVariableGroupDataSource_Basic(t *testing.T) {
@@ -15,7 +15,7 @@ func TestAccVariableGroupDataSource_Basic(t *testing.T) {
 		testutils.HclVariableGroupResource(variableGroupName, true),
 		testutils.HclVariableGroupDataSource())
 
-	tfNode := "data.azuredevops_variable_group.vg"
+	tfNode := "data.betterado_variable_group.vg"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -38,7 +38,7 @@ func TestAccVariableGroupDataSource_KeyVault(t *testing.T) {
 	t.Skip("Skipping test TestAccVariableGroup_DataSourceKeyVault: azure key vault not provisioned on test infrastructure")
 	projectName := testutils.GenerateResourceName()
 	variableGroupName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_variable_group.test"
+	tfNode := "betterado_variable_group.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -59,12 +59,12 @@ func TestAccVariableGroupDataSource_KeyVault(t *testing.T) {
 
 func variableGroupKeyVault(projectName, vgName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_azurerm" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_azurerm" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "Sample AzureRM"
   description           = "Managed by Terraform"
   credentials { # TODO
@@ -76,15 +76,15 @@ resource "azuredevops_serviceendpoint_azurerm" "test" {
   azurerm_subscription_name = "Test Sub Name"
 }
 
-resource "azuredevops_variable_group" "test" {
-  project_id   = azuredevops_project.test.id
+resource "betterado_variable_group" "test" {
+  project_id   = betterado_project.test.id
   name         = "%s"
   description  = "Test Variable Group Description"
   allow_access = true
 
   key_vault {
     name                = "MY-KV"
-    service_endpoint_id = azuredevops_serviceendpoint_azurerm.test.id
+    service_endpoint_id = betterado_serviceendpoint_azurerm.test.id
   }
 
   variable {

@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointAzureServiceBus_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_azure_service_bus"
+	resourceType := "betterado_serviceendpoint_azure_service_bus"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -38,7 +38,7 @@ func TestAccServiceEndpointAzureServiceBus_complete(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_azure_service_bus"
+	resourceType := "betterado_serviceendpoint_azure_service_bus"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -66,7 +66,7 @@ func TestAccServiceEndpointAzureServiceBus_update(t *testing.T) {
 	description := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_azure_service_bus"
+	resourceType := "betterado_serviceendpoint_azure_service_bus"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -99,7 +99,7 @@ func TestAccServiceEndpointAzureServiceBus_update(t *testing.T) {
 func TestAccServiceEndpointAzureServiceBus_requiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_azure_service_bus"
+	resourceType := "betterado_serviceendpoint_azure_service_bus"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -123,12 +123,12 @@ func TestAccServiceEndpointAzureServiceBus_requiresImportErrorStep(t *testing.T)
 
 func hclSvcEndpointAzureServiceBusResourceBasic(projectName string, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_azure_service_bus" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_azure_service_bus" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   connection_string     = "connectionstring"
   queue_name            = "testqueue"
@@ -137,12 +137,12 @@ resource "azuredevops_serviceendpoint_azure_service_bus" "test" {
 
 func hclSvcEndpointAzureServiceBusResourceComplete(projectName string, serviceEndpointName string, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_azure_service_bus" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_azure_service_bus" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   description           = "%s"
   connection_string     = "connectionstring"
@@ -152,12 +152,12 @@ resource "azuredevops_serviceendpoint_azure_service_bus" "test" {
 
 func hclSvcEndpointAzureServiceBusResourceUpdate(projectName string, serviceEndpointName string, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_azure_service_bus" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_azure_service_bus" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   description           = "%s"
   connection_string     = "connectionstringupdate"
@@ -170,12 +170,12 @@ func hclSvcEndpointAzureServiceBusResourceRequiresImport(projectName string, ser
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_azure_service_bus" "import" {
-  project_id            = azuredevops_serviceendpoint_azure_service_bus.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_azure_service_bus.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_azure_service_bus.test.description
-  connection_string     = azuredevops_serviceendpoint_azure_service_bus.test.connection_string
-  queue_name            = azuredevops_serviceendpoint_azure_service_bus.test.queue_name
+resource "betterado_serviceendpoint_azure_service_bus" "import" {
+  project_id            = betterado_serviceendpoint_azure_service_bus.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_azure_service_bus.test.service_endpoint_name
+  description           = betterado_serviceendpoint_azure_service_bus.test.description
+  connection_string     = betterado_serviceendpoint_azure_service_bus.test.connection_string
+  queue_name            = betterado_serviceendpoint_azure_service_bus.test.queue_name
 }
 `, template)
 }

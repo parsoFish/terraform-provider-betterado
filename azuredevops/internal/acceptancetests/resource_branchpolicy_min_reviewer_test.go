@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccBranchPolicyMinReviewers_basic(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	node := "azuredevops_branch_policy_min_reviewers.test"
+	node := "betterado_branch_policy_min_reviewers.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
@@ -42,7 +42,7 @@ func TestAccBranchPolicyMinReviewers_basic(t *testing.T) {
 
 func TestAccBranchPolicyMinReviewers_update(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	node := "azuredevops_branch_policy_min_reviewers.test"
+	node := "betterado_branch_policy_min_reviewers.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
@@ -86,7 +86,7 @@ func TestAccBranchPolicyMinReviewers_update(t *testing.T) {
 
 func TestAccBranchPolicyMinReviewers_resetAllVote(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	node := "azuredevops_branch_policy_min_reviewers.test"
+	node := "betterado_branch_policy_min_reviewers.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
@@ -114,7 +114,7 @@ func TestAccBranchPolicyMinReviewers_resetAllVote(t *testing.T) {
 
 func TestAccBranchPolicyMinReviewers_requiresImportError(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	node := "azuredevops_branch_policy_min_reviewers.test"
+	node := "betterado_branch_policy_min_reviewers.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
@@ -140,15 +140,15 @@ func TestAccBranchPolicyMinReviewers_requiresImportError(t *testing.T) {
 
 func hclPolicyMinReviewersTemplate(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
   work_item_template = "Agile"
 }
 
-data "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 `, name)
@@ -161,8 +161,8 @@ func hclPolicyMinReviewersBasic(reviewers int, name string) string {
 
 %s
 
-resource "azuredevops_branch_policy_min_reviewers" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_branch_policy_min_reviewers" "test" {
+  project_id = betterado_project.test.id
   enabled    = true
   blocking   = true
   settings {
@@ -172,7 +172,7 @@ resource "azuredevops_branch_policy_min_reviewers" "test" {
     on_push_reset_approved_votes           = true
     on_each_iteration_require_vote         = false
     scope {
-      repository_id  = data.azuredevops_git_repository.test.id
+      repository_id  = data.betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }
@@ -186,8 +186,8 @@ func hclPolicyMinReviewersUpdate(reviewers int, name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_branch_policy_min_reviewers" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_branch_policy_min_reviewers" "test" {
+  project_id = betterado_project.test.id
   enabled    = false
   blocking   = false
   settings {
@@ -198,7 +198,7 @@ resource "azuredevops_branch_policy_min_reviewers" "test" {
     on_last_iteration_require_vote         = true
     on_each_iteration_require_vote         = true
     scope {
-      repository_id  = data.azuredevops_git_repository.test.id
+      repository_id  = data.betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }
@@ -212,8 +212,8 @@ func hclPolicyMinReviewersResetAllVote(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_branch_policy_min_reviewers" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_branch_policy_min_reviewers" "test" {
+  project_id = betterado_project.test.id
   enabled    = true
   blocking   = true
   settings {
@@ -222,7 +222,7 @@ resource "azuredevops_branch_policy_min_reviewers" "test" {
     on_push_reset_all_votes      = true
     on_push_reset_approved_votes = true
     scope {
-      repository_id  = data.azuredevops_git_repository.test.id
+      repository_id  = data.betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }
@@ -236,19 +236,19 @@ func hclPolicyMinReviewersResetRequireImportError(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_branch_policy_min_reviewers" "import" {
-  project_id = azuredevops_branch_policy_min_reviewers.test.project_id
-  enabled    = azuredevops_branch_policy_min_reviewers.test.enabled
-  blocking   = azuredevops_branch_policy_min_reviewers.test.blocking
+resource "betterado_branch_policy_min_reviewers" "import" {
+  project_id = betterado_branch_policy_min_reviewers.test.project_id
+  enabled    = betterado_branch_policy_min_reviewers.test.enabled
+  blocking   = betterado_branch_policy_min_reviewers.test.blocking
   settings {
-    reviewer_count               = azuredevops_branch_policy_min_reviewers.test.settings.0.reviewer_count
-    submitter_can_vote           = azuredevops_branch_policy_min_reviewers.test.settings.0.submitter_can_vote
-    on_push_reset_all_votes      = azuredevops_branch_policy_min_reviewers.test.settings.0.on_push_reset_all_votes
-    on_push_reset_approved_votes = azuredevops_branch_policy_min_reviewers.test.settings.0.on_push_reset_approved_votes
+    reviewer_count               = betterado_branch_policy_min_reviewers.test.settings.0.reviewer_count
+    submitter_can_vote           = betterado_branch_policy_min_reviewers.test.settings.0.submitter_can_vote
+    on_push_reset_all_votes      = betterado_branch_policy_min_reviewers.test.settings.0.on_push_reset_all_votes
+    on_push_reset_approved_votes = betterado_branch_policy_min_reviewers.test.settings.0.on_push_reset_approved_votes
     scope {
-      repository_id  = azuredevops_branch_policy_min_reviewers.test.settings.0.scope.0.repository_id
-      repository_ref = azuredevops_branch_policy_min_reviewers.test.settings.0.scope.0.repository_ref
-      match_type     = azuredevops_branch_policy_min_reviewers.test.settings.0.scope.0.match_type
+      repository_id  = betterado_branch_policy_min_reviewers.test.settings.0.scope.0.repository_id
+      repository_ref = betterado_branch_policy_min_reviewers.test.settings.0.scope.0.repository_ref
+      match_type     = betterado_branch_policy_min_reviewers.test.settings.0.scope.0.match_type
     }
   }
 }

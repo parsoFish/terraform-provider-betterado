@@ -8,16 +8,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/tfhelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/tfhelper"
 )
 
 func TestAccGitRepoBranch_fromBranch(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	branchName := testutils.GenerateResourceName()
-	resNode := "azuredevops_git_repository_branch.test"
+	resNode := "betterado_git_repository_branch.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -49,7 +49,7 @@ func TestAccGitRepoBranch_fromCommit(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	branchName := testutils.GenerateResourceName()
-	resNode := "azuredevops_git_repository_branch.test"
+	resNode := "betterado_git_repository_branch.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -116,7 +116,7 @@ func TestAccGitRepoBranch_requireImportError(t *testing.T) {
 }
 
 func hclRepositoryBranchID(state *terraform.State) (string, error) {
-	res := state.RootModule().Resources["azuredevops_git_repository_branch.test"]
+	res := state.RootModule().Resources["betterado_git_repository_branch.test"]
 	repositoryName := res.Primary.Attributes["repository_id"]
 	name := res.Primary.Attributes["name"]
 	return fmt.Sprintf("%s:%s", repositoryName, name), nil
@@ -124,9 +124,9 @@ func hclRepositoryBranchID(state *terraform.State) (string, error) {
 
 func checkRepositoryBranchExist(expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		res, ok := s.RootModule().Resources["azuredevops_git_repository_branch.test"]
+		res, ok := s.RootModule().Resources["betterado_git_repository_branch.test"]
 		if !ok {
-			return fmt.Errorf("Did not find `azuredevops_git_repository_branch` in the TF state")
+			return fmt.Errorf("Did not find `betterado_git_repository_branch` in the TF state")
 		}
 
 		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
@@ -152,7 +152,7 @@ func checkRepositoryBranchExist(expectedName string) resource.TestCheckFunc {
 
 func hclGitRepoBranchesFromBranch(projectName, gitRepoName, branchName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "description"
   visibility         = "private"
@@ -160,16 +160,16 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
 
-resource "azuredevops_git_repository_branch" "test" {
-  repository_id = azuredevops_git_repository.test.id
+resource "betterado_git_repository_branch" "test" {
+  repository_id = betterado_git_repository.test.id
   name          = "%[3]s"
   ref_branch    = "master"
 }`, projectName, gitRepoName, branchName)
@@ -177,7 +177,7 @@ resource "azuredevops_git_repository_branch" "test" {
 
 func hclGitRepoBranchesFromCommit(projectName, gitRepoName, branchName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "description"
   visibility         = "private"
@@ -185,30 +185,30 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
 
-resource "azuredevops_git_repository_branch" "from_master" {
-  repository_id = azuredevops_git_repository.test.id
+resource "betterado_git_repository_branch" "from_master" {
+  repository_id = betterado_git_repository.test.id
   name          = "testbranch-%[3]s"
   ref_branch    = "master"
 }
 
-resource "azuredevops_git_repository_branch" "test" {
-  repository_id = azuredevops_git_repository.test.id
+resource "betterado_git_repository_branch" "test" {
+  repository_id = betterado_git_repository.test.id
   name          = "%[3]s"
-  ref_commit_id = azuredevops_git_repository_branch.from_master.last_commit_id
+  ref_commit_id = betterado_git_repository_branch.from_master.last_commit_id
 }`, projectName, gitRepoName, branchName)
 }
 
 func hclGitRepoBranchInvalidRef(projectName, gitRepoName, branchName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "description"
   visibility         = "private"
@@ -216,28 +216,28 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
 
-resource "azuredevops_git_repository_branch" "from_master" {
-  repository_id = azuredevops_git_repository.test.id
+resource "betterado_git_repository_branch" "from_master" {
+  repository_id = betterado_git_repository.test.id
   name          = "testbranch-%[3]s"
   ref_branch    = "master"
 }
 
-resource "azuredevops_git_repository_branch" "from_commit_id" {
-  repository_id = azuredevops_git_repository.test.id
+resource "betterado_git_repository_branch" "from_commit_id" {
+  repository_id = betterado_git_repository.test.id
   name          = "testbranch2-%[3]s"
-  ref_commit_id = azuredevops_git_repository_branch.from_master.last_commit_id
+  ref_commit_id = betterado_git_repository_branch.from_master.last_commit_id
 }
 
-resource "azuredevops_git_repository_branch" "from_nonexistent_tag" {
-  repository_id = azuredevops_git_repository.test.id
+resource "betterado_git_repository_branch" "from_nonexistent_tag" {
+  repository_id = betterado_git_repository.test.id
   name          = "testbranch-non-existent-tag"
   ref_tag       = "0.0.0"
 }`, projectName, gitRepoName, branchName)
@@ -247,9 +247,9 @@ func hclGitRepoBranchesImportError(projectName, gitRepoName, branchName string) 
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_git_repository_branch" "import" {
-  repository_id = azuredevops_git_repository_branch.test.repository_id
-  name          = azuredevops_git_repository_branch.test.name
-  ref_branch    = azuredevops_git_repository_branch.test.ref_branch
+resource "betterado_git_repository_branch" "import" {
+  repository_id = betterado_git_repository_branch.test.repository_id
+  name          = betterado_git_repository_branch.test.name
+  ref_branch    = betterado_git_repository_branch.test.ref_branch
 }`, hclGitRepoBranchesFromBranch(projectName, gitRepoName, branchName))
 }

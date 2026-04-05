@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccAgentQueueDataSource_Basic(t *testing.T) {
@@ -12,7 +12,7 @@ func TestAccAgentQueueDataSource_Basic(t *testing.T) {
 	agentQueueName := "Azure Pipelines"
 	agentQueueData := testutils.HclAgentQueueDataSource(projectName, agentQueueName)
 
-	tfNode := "data.azuredevops_agent_queue.queue"
+	tfNode := "data.betterado_agent_queue.queue"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),

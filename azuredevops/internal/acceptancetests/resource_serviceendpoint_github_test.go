@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointGitHub_PersonalTokenBasic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_github"
+	resourceType := "betterado_serviceendpoint_github"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, &[]string{"AZDO_GITHUB_SERVICE_CONNECTION_PAT"}) },
@@ -39,7 +39,7 @@ func TestAccServiceEndpointGitHub_PersonalTokenUpdate(t *testing.T) {
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 	description := "Manage by Terraform Update"
 
-	resourceType := "azuredevops_serviceendpoint_github"
+	resourceType := "betterado_serviceendpoint_github"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, &[]string{"AZDO_GITHUB_SERVICE_CONNECTION_PAT"}) },
@@ -72,7 +72,7 @@ func TestAccServiceEndpointGitHub_OauthBasic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_github"
+	resourceType := "betterado_serviceendpoint_github"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, &[]string{"AZDO_GITHUB_SERVICE_CONNECTION_PAT"}) },
@@ -98,7 +98,7 @@ func TestAccServiceEndpointGitHub_OauthUpdate(t *testing.T) {
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 	description := "Manage by Terraform Update"
 
-	resourceType := "azuredevops_serviceendpoint_github"
+	resourceType := "betterado_serviceendpoint_github"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, &[]string{"AZDO_GITHUB_SERVICE_CONNECTION_PAT"}) },
@@ -135,7 +135,7 @@ func TestAccServiceEndpointGitHub_CreateAndUpdate(t *testing.T) {
 	serviceEndpointNameFirst := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_github"
+	resourceType := "betterado_serviceendpoint_github"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, &[]string{"AZDO_GITHUB_SERVICE_CONNECTION_PAT"}) },
@@ -176,8 +176,8 @@ func personTokenConfigBasic(projectName string, serviceEndpointName string) stri
 	projectResource := testutils.HclProjectResource(projectName)
 
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_github" "serviceendpoint" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_github" "serviceendpoint" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%[1]s"
   auth_personal {
     personal_access_token = "test_token_basic"
@@ -191,8 +191,8 @@ func personTokenConfigUpdate(projectName string, serviceEndpointName string, des
 	projectResource := testutils.HclProjectResource(projectName)
 
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_github" "serviceendpoint" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_github" "serviceendpoint" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%[1]s"
   auth_personal {
     personal_access_token = "test_token_update"
@@ -206,8 +206,8 @@ resource "azuredevops_serviceendpoint_github" "serviceendpoint" {
 func oauthConfigBasic(projectName string, serviceEndpointName string) string {
 	projectResource := testutils.HclProjectResource(projectName)
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_github" "serviceendpoint" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_github" "serviceendpoint" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%[1]s"
   auth_oauth {
     oauth_configuration_id = "xxxx-xxxx-xxxx-xxxx-xxxx"
@@ -220,8 +220,8 @@ resource "azuredevops_serviceendpoint_github" "serviceendpoint" {
 func oauthConfigUpdate(projectName string, serviceEndpointName string, description string) string {
 	projectResource := testutils.HclProjectResource(projectName)
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_github" "serviceendpoint" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_github" "serviceendpoint" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%[1]s"
   auth_oauth {
     oauth_configuration_id = "xxx-xxxx-xxxx-xxxx-xxxx"

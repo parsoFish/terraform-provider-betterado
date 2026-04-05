@@ -7,14 +7,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/feed"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccFeedRetentionPolicy_projectBasic(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_feed_retention_policy.test"
+	tfNode := "betterado_feed_retention_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -36,7 +36,7 @@ func TestAccFeedRetentionPolicy_projectBasic(t *testing.T) {
 func TestAccFeedRetentionPolicy_organizationBasic(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_feed_retention_policy.test"
+	tfNode := "betterado_feed_retention_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -57,7 +57,7 @@ func TestAccFeedRetentionPolicy_organizationBasic(t *testing.T) {
 func TestAccFeedRetentionPolicy_projectUpdate(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_feed_retention_policy.test"
+	tfNode := "betterado_feed_retention_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -87,7 +87,7 @@ func TestAccFeedRetentionPolicy_projectUpdate(t *testing.T) {
 func TestAccFeedRetentionPolicy_organizationUpdate(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_feed_retention_policy.test"
+	tfNode := "betterado_feed_retention_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -115,7 +115,7 @@ func TestAccFeedRetentionPolicy_organizationUpdate(t *testing.T) {
 func TestAccFeedRetentionPolicy_projectRequiresImport(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_feed_retention_policy.test"
+	tfNode := "betterado_feed_retention_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -145,7 +145,7 @@ func TestAccFeedRetentionPolicy_projectRequiresImport(t *testing.T) {
 func TestAccFeedRetentionPolicy_organizationRequiresImport(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_feed_retention_policy.test"
+	tfNode := "betterado_feed_retention_policy.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -173,7 +173,7 @@ func TestAccFeedRetentionPolicy_organizationRequiresImport(t *testing.T) {
 func checkFeedRetentionPolicyDestroyed(s *terraform.State) error {
 	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
 	for _, res := range s.RootModule().Resources {
-		if res.Type != "azuredevops_feed_retention_policy" {
+		if res.Type != "betterado_feed_retention_policy" {
 			continue
 		}
 		id := res.Primary.ID
@@ -194,9 +194,9 @@ func checkFeedRetentionPolicyDestroyed(s *terraform.State) error {
 
 func CheckFeedRetentionPolicyExist(expectedCountLimit int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		res, ok := s.RootModule().Resources["azuredevops_feed_retention_policy.test"]
+		res, ok := s.RootModule().Resources["betterado_feed_retention_policy.test"]
 		if !ok {
-			return fmt.Errorf("Did not find a `azuredevops_feed_retention_policy` in the TF state")
+			return fmt.Errorf("Did not find a `betterado_feed_retention_policy` in the TF state")
 		}
 
 		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
@@ -220,18 +220,18 @@ func CheckFeedRetentionPolicyExist(expectedCountLimit int) resource.TestCheckFun
 
 func hclFeedRetentionPolicyProjectBasic(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%[1]s"
 }
 
-resource "azuredevops_feed" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_feed" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_feed_retention_policy" "test" {
-  project_id                                = azuredevops_project.test.id
-  feed_id                                   = azuredevops_feed.test.id
+resource "betterado_feed_retention_policy" "test" {
+  project_id                                = betterado_project.test.id
+  feed_id                                   = betterado_feed.test.id
   count_limit                               = 20
   days_to_keep_recently_downloaded_packages = 30
 }
@@ -240,12 +240,12 @@ resource "azuredevops_feed_retention_policy" "test" {
 
 func hclFeedRetentionPolicyOrganizationBasic(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_feed" "test" {
+resource "betterado_feed" "test" {
   name = "%s"
 }
 
-resource "azuredevops_feed_retention_policy" "test" {
-  feed_id                                   = azuredevops_feed.test.id
+resource "betterado_feed_retention_policy" "test" {
+  feed_id                                   = betterado_feed.test.id
   count_limit                               = 20
   days_to_keep_recently_downloaded_packages = 30
 }
@@ -254,18 +254,18 @@ resource "azuredevops_feed_retention_policy" "test" {
 
 func hclFeedRetentionPolicyProjectUpdate(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%[1]s"
 }
 
-resource "azuredevops_feed" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_feed" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_feed_retention_policy" "test" {
-  project_id                                = azuredevops_project.test.id
-  feed_id                                   = azuredevops_feed.test.id
+resource "betterado_feed_retention_policy" "test" {
+  project_id                                = betterado_project.test.id
+  feed_id                                   = betterado_feed.test.id
   count_limit                               = 21
   days_to_keep_recently_downloaded_packages = 31
 }
@@ -274,12 +274,12 @@ resource "azuredevops_feed_retention_policy" "test" {
 
 func hclFeedRetentionPolicyOrganizationUpdate(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_feed" "test" {
+resource "betterado_feed" "test" {
   name = "%s"
 }
 
-resource "azuredevops_feed_retention_policy" "test" {
-  feed_id                                   = azuredevops_feed.test.id
+resource "betterado_feed_retention_policy" "test" {
+  feed_id                                   = betterado_feed.test.id
   count_limit                               = 21
   days_to_keep_recently_downloaded_packages = 31
 }
@@ -290,11 +290,11 @@ func hclFeedRetentionPolicyProjectImport(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_feed_retention_policy" "import" {
-  feed_id                                   = azuredevops_feed.test.id
-  project_id                                = azuredevops_project.test.id
-  count_limit                               = azuredevops_feed_retention_policy.test.count_limit
-  days_to_keep_recently_downloaded_packages = azuredevops_feed_retention_policy.test.days_to_keep_recently_downloaded_packages
+resource "betterado_feed_retention_policy" "import" {
+  feed_id                                   = betterado_feed.test.id
+  project_id                                = betterado_project.test.id
+  count_limit                               = betterado_feed_retention_policy.test.count_limit
+  days_to_keep_recently_downloaded_packages = betterado_feed_retention_policy.test.days_to_keep_recently_downloaded_packages
 }
 `, hclFeedRetentionPolicyProjectBasic(name))
 }
@@ -303,10 +303,10 @@ func hclFeedRetentionPolicyOrganizationImport(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_feed_retention_policy" "import" {
-  feed_id                                   = azuredevops_feed.test.id
-  count_limit                               = azuredevops_feed_retention_policy.test.count_limit
-  days_to_keep_recently_downloaded_packages = azuredevops_feed_retention_policy.test.days_to_keep_recently_downloaded_packages
+resource "betterado_feed_retention_policy" "import" {
+  feed_id                                   = betterado_feed.test.id
+  count_limit                               = betterado_feed_retention_policy.test.count_limit
+  days_to_keep_recently_downloaded_packages = betterado_feed_retention_policy.test.days_to_keep_recently_downloaded_packages
 }
 `, hclFeedRetentionPolicyOrganizationBasic(name))
 }

@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointGitHubEnterprise_personalTokenBasic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_github_enterprise"
+	resourceType := "betterado_serviceendpoint_github_enterprise"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		Providers:    testutils.GetProviders(),
@@ -39,7 +39,7 @@ func TestAccServiceEndpointGitHubEnterprise_personalTokenUpdate(t *testing.T) {
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 	description := "Manage by Terraform Update"
 
-	resourceType := "azuredevops_serviceendpoint_github_enterprise"
+	resourceType := "betterado_serviceendpoint_github_enterprise"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		Providers:    testutils.GetProviders(),
@@ -73,7 +73,7 @@ func TestAccServiceEndpointGitHubEnterprise_oauthBasic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_github_enterprise"
+	resourceType := "betterado_serviceendpoint_github_enterprise"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -99,7 +99,7 @@ func TestAccServiceEndpointGitHubEnterprise_oauthUpdate(t *testing.T) {
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 	description := "Manage by Terraform Update"
 
-	resourceType := "azuredevops_serviceendpoint_github_enterprise"
+	resourceType := "betterado_serviceendpoint_github_enterprise"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -136,7 +136,7 @@ func TestAccServiceEndpointGitHubEnterprise_createAndUpdate(t *testing.T) {
 	serviceEndpointNameFirst := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_github_enterprise"
+	resourceType := "betterado_serviceendpoint_github_enterprise"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		Providers:    testutils.GetProviders(),
@@ -178,8 +178,8 @@ func hclGithubEnterprisePersonTokenConfigBasic(projectName string, serviceEndpoi
 	projectResource := testutils.HclProjectResource(projectName)
 
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_github_enterprise" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_github_enterprise" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%[1]s"
   url                   = "https://github.contoso.com"
   auth_personal {
@@ -194,8 +194,8 @@ func hclGithubEnterprisePersonTokenConfigUpdate(projectName string, serviceEndpo
 	projectResource := testutils.HclProjectResource(projectName)
 
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_github_enterprise" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_github_enterprise" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%[1]s"
   url                   = "https://github.contoso.com"
   auth_personal {
@@ -210,8 +210,8 @@ resource "azuredevops_serviceendpoint_github_enterprise" "test" {
 func hclGithubEnterpriseOauthBasic(projectName string, serviceEndpointName string) string {
 	projectResource := testutils.HclProjectResource(projectName)
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_github_enterprise" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_github_enterprise" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%[1]s"
   auth_oauth {
     oauth_configuration_id = "00000000-0000-0000-0000-000000000000"
@@ -224,8 +224,8 @@ resource "azuredevops_serviceendpoint_github_enterprise" "test" {
 func hclGithubEnterpriseOauthUpdate(projectName string, serviceEndpointName string, description string) string {
 	projectResource := testutils.HclProjectResource(projectName)
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_github_enterprise" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_github_enterprise" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%[1]s"
   auth_oauth {
     oauth_configuration_id = "00000000-0000-0000-0000-000000000000"

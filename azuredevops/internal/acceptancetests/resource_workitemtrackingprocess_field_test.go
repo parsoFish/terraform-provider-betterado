@@ -6,14 +6,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWorkitemtrackingprocessField_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
 	fieldName := generateFieldName()
-	tfNode := "azuredevops_workitemtrackingprocess_field.test"
+	tfNode := "betterado_workitemtrackingprocess_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -39,7 +39,7 @@ func TestAccWorkitemtrackingprocessField_Identity(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
 	fieldName := generateFieldName()
-	tfNode := "azuredevops_workitemtrackingprocess_field.test"
+	tfNode := "betterado_workitemtrackingprocess_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -65,7 +65,7 @@ func TestAccWorkitemtrackingprocessField_Integer(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
 	fieldName := generateFieldName()
-	tfNode := "azuredevops_workitemtrackingprocess_field.test"
+	tfNode := "betterado_workitemtrackingprocess_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -91,7 +91,7 @@ func TestAccWorkitemtrackingprocessField_Update(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
 	fieldName := generateFieldName()
-	tfNode := "azuredevops_workitemtrackingprocess_field.test"
+	tfNode := "betterado_workitemtrackingprocess_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -132,10 +132,10 @@ func basicField(workItemTypeName string, processName string, fieldName string) s
 
 %s
 
-resource "azuredevops_workitemtrackingprocess_field" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.id
-  field_id          = azuredevops_workitemtracking_field.test.id
+resource "betterado_workitemtrackingprocess_field" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.id
+  field_id          = betterado_workitemtracking_field.test.id
 }
 `, testProcessAndWit, testField)
 }
@@ -148,10 +148,10 @@ func updatedField(workItemTypeName string, processName string, fieldName string)
 
 %s
 
-resource "azuredevops_workitemtrackingprocess_field" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.id
-  field_id          = azuredevops_workitemtracking_field.test.id
+resource "betterado_workitemtrackingprocess_field" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.id
+  field_id          = betterado_workitemtracking_field.test.id
   read_only         = true
   required          = true
   default_value     = "default"
@@ -164,16 +164,16 @@ func identityField(workItemTypeName string, processName string, fieldName string
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtracking_field" "test" {
+resource "betterado_workitemtracking_field" "test" {
   name           = "%s"
   reference_name = "Custom.%s"
   type           = "identity"
 }
 
-resource "azuredevops_workitemtrackingprocess_field" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.id
-  field_id          = azuredevops_workitemtracking_field.test.id
+resource "betterado_workitemtrackingprocess_field" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.id
+  field_id          = betterado_workitemtracking_field.test.id
   allow_groups      = true
 }
 `, testProcessAndWit, fieldName, fieldName)
@@ -184,16 +184,16 @@ func integerField(workItemTypeName string, processName string, fieldName string)
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtracking_field" "test" {
+resource "betterado_workitemtracking_field" "test" {
   name           = "%s"
   reference_name = "Custom.%s"
   type           = "integer"
 }
 
-resource "azuredevops_workitemtrackingprocess_field" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.id
-  field_id          = azuredevops_workitemtracking_field.test.id
+resource "betterado_workitemtrackingprocess_field" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.id
+  field_id          = betterado_workitemtracking_field.test.id
   default_value     = "42"
   required          = true
 }

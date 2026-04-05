@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/datahelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/datahelper"
 )
 
 func TestAccBuildDefinitionPermissions_SetPermissions(t *testing.T) {
@@ -17,7 +17,7 @@ func TestAccBuildDefinitionPermissions_SetPermissions(t *testing.T) {
 		"RetainIndefinitely": "Deny",
 		"DeleteBuilds":       "Deny",
 	})
-	tfNodeRoot := "azuredevops_build_definition_permissions.permissions"
+	tfNodeRoot := "betterado_build_definition_permissions.permissions"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -56,7 +56,7 @@ func TestAccBuildDefinitionPermissions_UpdatePermissions(t *testing.T) {
 		"RetainIndefinitely": "Deny",
 		"DeleteBuilds":       "Deny",
 	})
-	tfNodeRoot := "azuredevops_build_definition_permissions.permissions"
+	tfNodeRoot := "betterado_build_definition_permissions.permissions"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -105,16 +105,16 @@ func hclBuildDefinitionPermissions(projectName string, path string, permissions 
 	return fmt.Sprintf(`
 %s
 
-data "azuredevops_group" "tf-project-readers" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "tf-project-readers" {
+  project_id = betterado_project.project.id
   name       = "Readers"
 }
 
-resource "azuredevops_build_definition_permissions" "permissions" {
-  project_id = azuredevops_project.project.id
-  principal  = data.azuredevops_group.tf-project-readers.id
+resource "betterado_build_definition_permissions" "permissions" {
+  project_id = betterado_project.project.id
+  principal  = data.betterado_group.tf-project-readers.id
 
-  build_definition_id = azuredevops_build_definition.build.id
+  build_definition_id = betterado_build_definition.build.id
 
   permissions = {
 		%s

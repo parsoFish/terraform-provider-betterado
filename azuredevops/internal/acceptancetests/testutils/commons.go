@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 // initialized once, so it can be shared by each acceptance test

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 // Verifies that the following sequence of events occurrs without error:
@@ -22,7 +22,7 @@ func TestAccAgentPoolsDataSource_Basic(t *testing.T) {
 	agentPoolsData := testutils.HclAgentPoolsDataSource()
 	createAgentPools := fmt.Sprintf("%s\n%s", createAgent1, createAgent2)
 
-	tfNode := "data.azuredevops_agent_pools.pools"
+	tfNode := "data.betterado_agent_pools.pools"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },

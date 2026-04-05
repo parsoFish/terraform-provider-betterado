@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/serviceendpoint"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccServiceEndpointKubernetes_azureSubscription(t *testing.T) {
@@ -25,7 +25,7 @@ func TestAccServiceEndpointKubernetes_azureSubscription(t *testing.T) {
 	serviceEndpointNameFirst := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	tfSvcEpNode := "azuredevops_serviceendpoint_kubernetes.test"
+	tfSvcEpNode := "betterado_serviceendpoint_kubernetes.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, &[]string{
@@ -69,7 +69,7 @@ func TestAccServiceEndpointKubernetes_serviceAccount(t *testing.T) {
 	serviceEndpointNameFirst := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	tfSvcEpNode := "azuredevops_serviceendpoint_kubernetes.test"
+	tfSvcEpNode := "betterado_serviceendpoint_kubernetes.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -104,7 +104,7 @@ func TestAccServiceEndpointKubernetes_kubeConfig(t *testing.T) {
 	serviceEndpointNameFirst := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	tfSvcEpNode := "azuredevops_serviceendpoint_kubernetes.test"
+	tfSvcEpNode := "betterado_serviceendpoint_kubernetes.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -135,7 +135,7 @@ func TestAccServiceEndpointKubernetes_kubeConfig(t *testing.T) {
 
 func checkSvcEndpointKubernetesExists(expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		serviceEndpointDef, ok := s.RootModule().Resources["azuredevops_serviceendpoint_kubernetes.test"]
+		serviceEndpointDef, ok := s.RootModule().Resources["betterado_serviceendpoint_kubernetes.test"]
 		if !ok {
 			return fmt.Errorf("Did not find a service endpoint in the TF state")
 		}
@@ -155,7 +155,7 @@ func checkSvcEndpointKubernetesExists(expectedName string) resource.TestCheckFun
 
 func checkSvcEndpointKubernetesDestroyed(s *terraform.State) error {
 	for _, res := range s.RootModule().Resources {
-		if res.Type != "azuredevops_serviceendpoint_kubernetes" {
+		if res.Type != "betterado_serviceendpoint_kubernetes" {
 			continue
 		}
 
@@ -183,12 +183,12 @@ func getServiceEndpointKubernetesFromResource(resource *terraform.ResourceState)
 
 func hclServiceEndpointKubernetesAzureSubscriptionResource(projectName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_kubernetes" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_kubernetes" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   authorization_type    = "AzureSubscription"
   apiserver_url         = "%s"
@@ -213,12 +213,12 @@ resource "azuredevops_serviceendpoint_kubernetes" "test" {
 
 func hclServiceEndpointKubernetesServiceAccount(projectName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_kubernetes" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_kubernetes" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   apiserver_url         = "https://sample-kubernetes-cluster.hcp.westeurope.azmk8s.io"
   authorization_type    = "ServiceAccount"
@@ -233,12 +233,12 @@ resource "azuredevops_serviceendpoint_kubernetes" "test" {
 
 func hclServiceEndpointKubernetesKubeConfig(projectName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_kubernetes" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_kubernetes" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   apiserver_url         = "https://sample-kubernetes-cluster.hcp.westeurope.azmk8s.io"
   authorization_type    = "Kubeconfig"

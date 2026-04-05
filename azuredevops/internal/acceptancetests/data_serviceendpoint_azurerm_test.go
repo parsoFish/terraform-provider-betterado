@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointAzureRM_dataSource_with_serviceEndpointID(t *testing.T) {
@@ -24,7 +24,7 @@ func TestAccServiceEndpointAzureRM_dataSource_with_serviceEndpointID(t *testing.
 		testutils.HclServiceEndpointAzureRMDataSourceWithServiceEndpointID(),
 	)
 
-	tfNode := "data.azuredevops_serviceendpoint_azurerm.serviceendpointrm"
+	tfNode := "data.betterado_serviceendpoint_azurerm.serviceendpointrm"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -52,7 +52,7 @@ func TestAccServiceEndpointAzureRM_dataSource_with_serviceEndpointName(t *testin
 		testutils.HclServiceEndpointAzureRMDataSourceWithServiceEndpointName(serviceEndpointAzureRMName),
 	)
 
-	tfNode := "data.azuredevops_serviceendpoint_azurerm.serviceendpointrm"
+	tfNode := "data.betterado_serviceendpoint_azurerm.serviceendpointrm"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -75,7 +75,7 @@ func TestAccServiceEndpointAzureRM_dataSource_with_WorkloadIdentityFederation(t 
 	serviceprincipalid := uuid.New().String()
 	serviceEndpointAuthenticationScheme := "WorkloadIdentityFederation"
 
-	azureDevOpsOrgName := "terraform-provider-azuredevops"
+	azureDevOpsOrgName := "terraform-provider-betterado"
 
 	if os.Getenv("AZDO_ORG_SERVICE_URL") != "" {
 		azureDevOpsOrgUrl, err := url.Parse(os.Getenv("AZDO_ORG_SERVICE_URL"))
@@ -90,7 +90,7 @@ func TestAccServiceEndpointAzureRM_dataSource_with_WorkloadIdentityFederation(t 
 		testutils.HclServiceEndpointAzureRMDataSourceWithServiceEndpointName(serviceEndpointAzureRMName),
 	)
 
-	tfNode := "data.azuredevops_serviceendpoint_azurerm.serviceendpointrm"
+	tfNode := "data.betterado_serviceendpoint_azurerm.serviceendpointrm"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),

@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccWorkitemtrackingprocessInheritedPage_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_inherited_page.test"
+	tfNode := "betterado_workitemtrackingprocess_inherited_page.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -44,7 +44,7 @@ func TestAccWorkitemtrackingprocessInheritedPage_Basic(t *testing.T) {
 func TestAccWorkitemtrackingprocessInheritedPage_Update(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_inherited_page.test"
+	tfNode := "betterado_workitemtrackingprocess_inherited_page.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -82,7 +82,7 @@ func TestAccWorkitemtrackingprocessInheritedPage_Update(t *testing.T) {
 func TestAccWorkitemtrackingprocessInheritedPage_Revert(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_inherited_page.test"
+	tfNode := "betterado_workitemtrackingprocess_inherited_page.test"
 	var pageId string
 	var processId string
 	var witRefName string
@@ -139,10 +139,10 @@ func basicInheritedPage(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_inherited_page" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
-  page_id           = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].id
+resource "betterado_workitemtrackingprocess_inherited_page" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
+  page_id           = betterado_workitemtrackingprocess_workitemtype.test.pages[0].id
   label             = "Custom label"
 }
 `, workItemType)
@@ -153,10 +153,10 @@ func updatedInheritedPage(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_inherited_page" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
-  page_id           = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].id
+resource "betterado_workitemtrackingprocess_inherited_page" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
+  page_id           = betterado_workitemtrackingprocess_workitemtype.test.pages[0].id
   label             = "Updated label"
 }
 `, workItemType)

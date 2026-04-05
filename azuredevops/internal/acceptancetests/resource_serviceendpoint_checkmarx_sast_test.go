@@ -5,18 +5,18 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointCheckMarxSAST_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	tfSvcEpNode := "azuredevops_serviceendpoint_checkmarx_sast.test"
+	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_sast.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("azuredevops_serviceendpoint_checkmarx_sast"),
+		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_sast"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxSASTResourceBasic(projectName, serviceEndpointName),
@@ -34,11 +34,11 @@ func TestAccServiceEndpointCheckMarxSAST_complete(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := "Managed by Terraform"
 
-	tfSvcEpNode := "azuredevops_serviceendpoint_checkmarx_sast.test"
+	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_sast.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("azuredevops_serviceendpoint_checkmarx_sast"),
+		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_sast"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxSASTResourceComplete(projectName, serviceEndpointName, description),
@@ -61,11 +61,11 @@ func TestAccServiceEndpointCheckMarxSAST_update(t *testing.T) {
 	description := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName() + "update"
 
-	tfSvcEpNode := "azuredevops_serviceendpoint_checkmarx_sast.test"
+	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_sast.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("azuredevops_serviceendpoint_checkmarx_sast"),
+		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_sast"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxSASTResourceBasic(projectName, serviceEndpointNameFirst),
@@ -94,12 +94,12 @@ func TestAccServiceEndpointCheckMarxSAST_update(t *testing.T) {
 func TestAccServiceEndpointCheckMarxSAST_requiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	tfSvcEpNode := "azuredevops_serviceendpoint_checkmarx_sast.test"
+	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_sast.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("azuredevops_serviceendpoint_checkmarx_sast"),
+		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_sast"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxSASTResourceBasic(projectName, serviceEndpointName),
@@ -117,12 +117,12 @@ func TestAccServiceEndpointCheckMarxSAST_requiresImportErrorStep(t *testing.T) {
 
 func hclSvcEndpointCheckMarxSASTResourceBasic(projectName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_checkmarx_sast" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_checkmarx_sast" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "https://server.com"
   username              = "username"
@@ -132,12 +132,12 @@ resource "azuredevops_serviceendpoint_checkmarx_sast" "test" {
 
 func hclSvcEndpointCheckMarxSASTResourceComplete(projectName, serviceEndpointName, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_checkmarx_sast" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_checkmarx_sast" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "https://server.com"
   username              = "username"
@@ -150,12 +150,12 @@ resource "azuredevops_serviceendpoint_checkmarx_sast" "test" {
 
 func hclSvcEndpointCheckMarxSASTResourceUpdate(projectName, serviceEndpointName, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_checkmarx_sast" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_checkmarx_sast" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "https://server.com/update"
   username              = "usernameupdate"
@@ -171,13 +171,13 @@ func hclSvcEndpointCheckMarxSASTResourceRequiresImport(projectName, serviceEndpo
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_checkmarx_sast" "import" {
-  project_id            = azuredevops_serviceendpoint_checkmarx_sast.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_checkmarx_sast.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_checkmarx_sast.test.description
-  server_url            = azuredevops_serviceendpoint_checkmarx_sast.test.server_url
-  username              = azuredevops_serviceendpoint_checkmarx_sast.test.username
-  password              = azuredevops_serviceendpoint_checkmarx_sast.test.password
+resource "betterado_serviceendpoint_checkmarx_sast" "import" {
+  project_id            = betterado_serviceendpoint_checkmarx_sast.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_checkmarx_sast.test.service_endpoint_name
+  description           = betterado_serviceendpoint_checkmarx_sast.test.description
+  server_url            = betterado_serviceendpoint_checkmarx_sast.test.server_url
+  username              = betterado_serviceendpoint_checkmarx_sast.test.username
+  password              = betterado_serviceendpoint_checkmarx_sast.test.password
 }
 `, template)
 }

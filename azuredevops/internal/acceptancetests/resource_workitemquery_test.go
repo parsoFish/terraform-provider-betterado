@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 // Query directly under area (Shared Queries)
@@ -16,7 +16,7 @@ func TestAccWorkItemQuery_UnderArea(t *testing.T) {
 
 	config := hclWorkItemQueryResource(projectName, queryName, wiql)
 
-	res := "azuredevops_workitemquery.query"
+	res := "betterado_workitemquery.query"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -41,8 +41,8 @@ func TestAccWorkItemQuery_UnderFolder(t *testing.T) {
 
 	config := hclWorkItemQueryUnderFolderResource(projectName, folderName, queryName, wiql)
 
-	folderRes := "azuredevops_workitemquery_folder.folder"
-	queryRes := "azuredevops_workitemquery.query"
+	folderRes := "betterado_workitemquery_folder.folder"
+	queryRes := "betterado_workitemquery.query"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -71,7 +71,7 @@ func TestAccWorkItemQuery_Update(t *testing.T) {
 	configCreate := hclWorkItemQueryResource(projectName, initialName, initialWiql)
 	configUpdate := hclWorkItemQueryResource(projectName, updatedName, updatedWiql)
 
-	res := "azuredevops_workitemquery.query"
+	res := "betterado_workitemquery.query"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -101,8 +101,8 @@ func TestAccWorkItemQuery_Update(t *testing.T) {
 
 func hclWorkItemQueryResource(projectName, queryName, wiql string) string {
 	return fmt.Sprintf(`%s
-resource "azuredevops_workitemquery" "query" {
-  project_id = azuredevops_project.project.id
+resource "betterado_workitemquery" "query" {
+  project_id = betterado_project.project.id
   name       = %q
   area       = "My Queries"
   wiql       = %q
@@ -112,16 +112,16 @@ resource "azuredevops_workitemquery" "query" {
 
 func hclWorkItemQueryUnderFolderResource(projectName, folderName, queryName, wiql string) string {
 	return fmt.Sprintf(`%s
-resource "azuredevops_workitemquery_folder" "folder" {
-  project_id = azuredevops_project.project.id
+resource "betterado_workitemquery_folder" "folder" {
+  project_id = betterado_project.project.id
   name       = %q
   area       = "My Queries"
 }
 
-resource "azuredevops_workitemquery" "query" {
-  project_id = azuredevops_project.project.id
+resource "betterado_workitemquery" "query" {
+  project_id = betterado_project.project.id
   name       = %q
-  parent_id  = azuredevops_workitemquery_folder.folder.id
+  parent_id  = betterado_workitemquery_folder.folder.id
   wiql       = %q
 }
 `, testutils.HclProjectResource(projectName), folderName, queryName, wiql)

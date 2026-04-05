@@ -9,16 +9,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/dashboard"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 func TestAccDashboard_project_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_dashboard.test"
+	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -47,7 +47,7 @@ func TestAccDashboard_project_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_dashboard.test"
+	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -91,7 +91,7 @@ func TestAccDashboard_project_complete(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_dashboard.test"
+	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -120,7 +120,7 @@ func TestAccDashboard_team_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_dashboard.test"
+	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -149,7 +149,7 @@ func TestAccDashboard_team_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_dashboard.test"
+	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -197,7 +197,7 @@ func TestAccDashboard_team_complete(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_dashboard.test"
+	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -229,7 +229,7 @@ func TestAccDashboard_team_requireImportError(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_dashboard.test"
+	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -258,7 +258,7 @@ func checkDashboardDestroyed(s *terraform.State) error {
 
 	// verify that every project referenced in the state does not exist in AzDO
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_dashboard" {
+		if resource.Type != "betterado_dashboard" {
 			continue
 		}
 
@@ -286,9 +286,9 @@ func checkDashboardDestroyed(s *terraform.State) error {
 
 func checkDashboardExist(expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		res, ok := s.RootModule().Resources["azuredevops_dashboard.test"]
+		res, ok := s.RootModule().Resources["betterado_dashboard.test"]
 		if !ok {
-			return fmt.Errorf("Did not find a `azuredevops_dashboard` in the Terraform state")
+			return fmt.Errorf("Did not find a `betterado_dashboard` in the Terraform state")
 		}
 
 		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
@@ -335,12 +335,12 @@ func importDashboardId(resourceType string) resource.ImportStateIdFunc {
 
 func hclDashboardProjectBasic(projectName, name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_dashboard" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_dashboard" "test" {
+  project_id = betterado_project.test.id
   name       = "%s"
 }
 `, projectName, name)
@@ -348,12 +348,12 @@ resource "azuredevops_dashboard" "test" {
 
 func hclDashboardProjectUpdate(projectName, name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_dashboard" "test" {
-  project_id       = azuredevops_project.test.id
+resource "betterado_dashboard" "test" {
+  project_id       = betterado_project.test.id
   name             = "%supdate"
   description      = "description"
   refresh_interval = 5
@@ -363,12 +363,12 @@ resource "azuredevops_dashboard" "test" {
 
 func hclDashboardProjectComplete(projectName, name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_dashboard" "test" {
-  project_id       = azuredevops_project.test.id
+resource "betterado_dashboard" "test" {
+  project_id       = betterado_project.test.id
   name             = "%s"
   description      = "description"
   refresh_interval = 5
@@ -378,38 +378,38 @@ resource "azuredevops_dashboard" "test" {
 
 func hclDashboardTeamBasic(projectName, name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%[1]s"
 }
 
-resource "azuredevops_team" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_team" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s dashboard"
 }
 
-resource "azuredevops_dashboard" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_dashboard" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
-  team_id    = azuredevops_team.test.id
+  team_id    = betterado_team.test.id
 }
 `, projectName, name)
 }
 
 func hclDashboardTeamUpdate(projectName, name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%[1]s"
 }
 
-resource "azuredevops_team" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_team" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s dashboard"
 }
 
-resource "azuredevops_dashboard" "test" {
-  project_id       = azuredevops_project.test.id
+resource "betterado_dashboard" "test" {
+  project_id       = betterado_project.test.id
   name             = "%[2]supdate"
-  team_id          = azuredevops_team.test.id
+  team_id          = betterado_team.test.id
   description      = "description"
   refresh_interval = 5
 }
@@ -418,19 +418,19 @@ resource "azuredevops_dashboard" "test" {
 
 func hclDashboardTeamComplete(projectName, name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%[1]s"
 }
 
-resource "azuredevops_team" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_team" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s dashboard"
 }
 
-resource "azuredevops_dashboard" "test" {
-  project_id       = azuredevops_project.test.id
+resource "betterado_dashboard" "test" {
+  project_id       = betterado_project.test.id
   name             = "%[2]s"
-  team_id          = azuredevops_team.test.id
+  team_id          = betterado_team.test.id
   description      = "description"
   refresh_interval = 5
 }
@@ -441,10 +441,10 @@ func hclDashboardTeamRequireImport(projectName, name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_dashboard" "import" {
-  project_id = azuredevops_dashboard.test.project_id
-  name       = azuredevops_dashboard.test.name
-  team_id    = azuredevops_dashboard.test.team_id
+resource "betterado_dashboard" "import" {
+  project_id = betterado_dashboard.test.project_id
+  name       = betterado_dashboard.test.name
+  team_id    = betterado_dashboard.test.team_id
 }
 `, hclDashboardTeamBasic(projectName, name))
 }

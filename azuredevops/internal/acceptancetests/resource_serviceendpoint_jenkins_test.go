@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointJenkins_basic_usernamepassword(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_jenkins"
+	resourceType := "betterado_serviceendpoint_jenkins"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -36,7 +36,7 @@ func TestAccServiceEndpointJenkins_complete_usernamepassword(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := t.Name()
 
-	resourceType := "azuredevops_serviceendpoint_jenkins"
+	resourceType := "betterado_serviceendpoint_jenkins"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -66,7 +66,7 @@ func TestAccServiceEndpointJenkins_update_usernamepassword(t *testing.T) {
 	description := t.Name()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_jenkins"
+	resourceType := "betterado_serviceendpoint_jenkins"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -99,7 +99,7 @@ func TestAccServiceEndpointJenkins_update_usernamepassword(t *testing.T) {
 func TestAccServiceEndpointJenkins_RequiresImportErrorStepUsernamePassword(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_jenkins"
+	resourceType := "betterado_serviceendpoint_jenkins"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -123,8 +123,8 @@ func TestAccServiceEndpointJenkins_RequiresImportErrorStepUsernamePassword(t *te
 
 func hclSvcEndpointJenkinsResourceBasicUsernamePassword(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_jenkins" "test" {
-  project_id             = azuredevops_project.project.id
+resource "betterado_serviceendpoint_jenkins" "test" {
+  project_id             = betterado_project.project.id
   service_endpoint_name  = "%s"
   username               = "u"
   password               = "redacted"
@@ -139,8 +139,8 @@ resource "azuredevops_serviceendpoint_jenkins" "test" {
 
 func hclSvcEndpointJenkinsResourceCompleteUsernamePassword(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_jenkins" "test" {
-  project_id             = azuredevops_project.project.id
+resource "betterado_serviceendpoint_jenkins" "test" {
+  project_id             = betterado_project.project.id
   service_endpoint_name  = "%s"
   description            = "%s"
   username               = "u"
@@ -155,8 +155,8 @@ resource "azuredevops_serviceendpoint_jenkins" "test" {
 
 func hclSvcEndpointJenkinsResourceUpdateUsernamePassword(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_jenkins" "test" {
-  project_id             = azuredevops_project.project.id
+resource "betterado_serviceendpoint_jenkins" "test" {
+  project_id             = betterado_project.project.id
   service_endpoint_name  = "%s"
   description            = "%s"
   username               = "u2"
@@ -173,11 +173,11 @@ func hclSvcEndpointJenkinsResourceRequiresImportUsernamePassword(projectName str
 	template := hclSvcEndpointJenkinsResourceBasicUsernamePassword(projectName, serviceEndpointName, description)
 	return fmt.Sprintf(`
 %s
-resource "azuredevops_serviceendpoint_jenkins" "import" {
-  project_id             = azuredevops_serviceendpoint_jenkins.test.project_id
-  service_endpoint_name  = azuredevops_serviceendpoint_jenkins.test.service_endpoint_name
-  description            = azuredevops_serviceendpoint_jenkins.test.description
-  url                    = azuredevops_serviceendpoint_jenkins.test.url
+resource "betterado_serviceendpoint_jenkins" "import" {
+  project_id             = betterado_serviceendpoint_jenkins.test.project_id
+  service_endpoint_name  = betterado_serviceendpoint_jenkins.test.service_endpoint_name
+  description            = betterado_serviceendpoint_jenkins.test.description
+  url                    = betterado_serviceendpoint_jenkins.test.url
   accept_untrusted_certs = false
   username               = "u"
   password               = "redacted"

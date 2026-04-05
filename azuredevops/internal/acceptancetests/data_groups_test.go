@@ -6,14 +6,14 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 // Validates that a configuration containing a project group lookup is able to read the resource correctly.
 // Because this is a data source, there are no resources to inspect in AzDO
 func TestAccGroupsDataSource_Read_Project(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tfNode := "data.azuredevops_groups.groups"
+	tfNode := "data.betterado_groups.groups"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
@@ -31,7 +31,7 @@ func TestAccGroupsDataSource_Read_Project(t *testing.T) {
 }
 
 func TestAccGroupsDataSource_Read_NoProject(t *testing.T) {
-	tfNode := "data.azuredevops_groups.groups"
+	tfNode := "data.betterado_groups.groups"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
@@ -57,11 +57,11 @@ func TestAccGroupsDataSource_ProjectID_FiltersOutCollectionGroups(t *testing.T) 
 			{
 				Config: hclGroupsDataProjectScopedConfig(projectName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("azuredevops_group.collection_readers", "descriptor"),
-					resource.TestCheckResourceAttrSet("data.azuredevops_groups.project_groups", "groups.#"),
+					resource.TestCheckResourceAttrSet("betterado_group.collection_readers", "descriptor"),
+					resource.TestCheckResourceAttrSet("data.betterado_groups.project_groups", "groups.#"),
 					testAccCheckCollectionGroupNotInProjectGroups(
-						"data.azuredevops_groups.project_groups",
-						"azuredevops_group.collection_readers",
+						"data.betterado_groups.project_groups",
+						"betterado_group.collection_readers",
 					),
 				),
 			},
@@ -71,7 +71,7 @@ func TestAccGroupsDataSource_ProjectID_FiltersOutCollectionGroups(t *testing.T) 
 
 func hclGroupsDataSourceBasic(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name               = "%[1]s"
   description        = "description"
   visibility         = "private"
@@ -79,43 +79,43 @@ resource "azuredevops_project" "project" {
   work_item_template = "Agile"
 }
 
-data "azuredevops_groups" "groups" {
-  project_id = azuredevops_project.project.id
+data "betterado_groups" "groups" {
+  project_id = betterado_project.project.id
 }
 `, projectName)
 }
 
 func hclGroupsDataSourceAllGroups() string {
-	return `data "azuredevops_groups" "groups" {}`
+	return `data "betterado_groups" "groups" {}`
 }
 
 func hclGroupsDataProjectScopedConfig(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_group" "collection_readers" {
+resource "betterado_group" "collection_readers" {
   display_name = "Readers"
 }
 
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name       = "%s"
-  depends_on = [azuredevops_group.collection_readers]
+  depends_on = [betterado_group.collection_readers]
 }
 
-data "azuredevops_group" "project_admins" {
+data "betterado_group" "project_admins" {
   name       = "Project Administrators"
-  project_id = azuredevops_project.test.id
+  project_id = betterado_project.test.id
 }
 
-resource "azuredevops_group_membership" "make_collection_visible" {
+resource "betterado_group_membership" "make_collection_visible" {
   mode  = "add"
-  group = data.azuredevops_group.project_admins.descriptor
+  group = data.betterado_group.project_admins.descriptor
   members = [
-    azuredevops_group.collection_readers.descriptor
+    betterado_group.collection_readers.descriptor
   ]
 }
 
-data "azuredevops_groups" "project_groups" {
-  project_id = azuredevops_project.test.id
-  depends_on = [azuredevops_group_membership.make_collection_visible]
+data "betterado_groups" "project_groups" {
+  project_id = betterado_project.test.id
+  depends_on = [betterado_group_membership.make_collection_visible]
 }
 `, projectName)
 }

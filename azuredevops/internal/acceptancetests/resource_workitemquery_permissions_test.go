@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/datahelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/datahelper"
 )
 
 func TestAccWorkItemQueryPermissions_SetProjectPermissions(t *testing.T) {
@@ -19,7 +19,7 @@ func TestAccWorkItemQueryPermissions_SetProjectPermissions(t *testing.T) {
 	}
 	config := hclWorkItemQueryPermissions(projectName, "", permissions)
 
-	tfNode := "azuredevops_workitemquery_permissions.wiq-permissions"
+	tfNode := "betterado_workitemquery_permissions.wiq-permissions"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -54,7 +54,7 @@ func TestAccWorkItemQueryPermissions_UpdateProjectPermissions(t *testing.T) {
 		"ManagePermissions": "Deny",
 	})
 
-	tfNode := "azuredevops_workitemquery_permissions.wiq-permissions"
+	tfNode := "betterado_workitemquery_permissions.wiq-permissions"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -97,7 +97,7 @@ func TestAccWorkItemQueryPermissions_SetSharedQueriesPermissions(t *testing.T) {
 	}
 	config := hclWorkItemQueryPermissions(projectName, "/", permissions)
 
-	tfNode := "azuredevops_workitemquery_permissions.wiq-permissions"
+	tfNode := "betterado_workitemquery_permissions.wiq-permissions"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -128,7 +128,7 @@ func TestAccWorkItemQueryPermissions_SetInvalidFolderPermissions(t *testing.T) {
 	}
 	config := hclWorkItemQueryPermissions(projectName, "/invalid", permissions)
 
-	tfNode := "azuredevops_workitemquery_permissions.wiq-permissions"
+	tfNode := "betterado_workitemquery_permissions.wiq-permissions"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -161,14 +161,14 @@ func hclWorkItemQueryPermissions(projectName string, path string, permissions ma
 	return fmt.Sprintf(`
 %s
 
-data "azuredevops_group" "project-administrators" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "project-administrators" {
+  project_id = betterado_project.project.id
   name       = "Project administrators"
 }
 
-resource "azuredevops_workitemquery_permissions" "wiq-permissions" {
-  project_id = azuredevops_project.project.id
-  principal  = data.azuredevops_group.project-administrators.id
+resource "betterado_workitemquery_permissions" "wiq-permissions" {
+  project_id = betterado_project.project.id
+  principal  = data.betterado_group.project-administrators.id
 	%s
   permissions = {
 		%s

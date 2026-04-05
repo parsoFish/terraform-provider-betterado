@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccIdentityGroupDataSource(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	groupName := "Contributors"
-	tfNode := "data.azuredevops_identity_group.test"
+	tfNode := "data.betterado_identity_group.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -31,7 +31,7 @@ func TestAccIdentityGroupDataSource(t *testing.T) {
 func hclIdentityGroupConfig(groupName string, projectName string) string {
 	combinedGroupName := fmt.Sprintf("[%s]\\\\%s", projectName, groupName)
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name               = "%s"
   description        = "description"
   visibility         = "private"
@@ -39,8 +39,8 @@ resource "azuredevops_project" "project" {
   work_item_template = "Agile"
 }
 
-data "azuredevops_identity_group" "test" {
+data "betterado_identity_group" "test" {
   name       = "%s"
-  project_id = azuredevops_project.project.id
+  project_id = betterado_project.project.id
 }`, projectName, combinedGroupName)
 }

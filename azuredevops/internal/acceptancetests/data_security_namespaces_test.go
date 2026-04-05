@@ -7,11 +7,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccDataSecurityNamespaces_basic(t *testing.T) {
-	tfNode := "data.azuredevops_security_namespaces.test"
+	tfNode := "data.betterado_security_namespaces.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -41,6 +41,6 @@ func TestAccDataSecurityNamespaces_basic(t *testing.T) {
 
 func hclDataSecurityNamespaces_basic() string {
 	return `
-data "azuredevops_security_namespaces" "test" {}
+data "betterado_security_namespaces" "test" {}
 `
 }

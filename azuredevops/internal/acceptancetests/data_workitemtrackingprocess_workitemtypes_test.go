@@ -5,16 +5,16 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWorkitemtrackingprocessWorkItemTypes_DataSource_List(t *testing.T) {
 	workItemTypeName1 := testutils.GenerateWorkItemTypeName()
 	workItemTypeName2 := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfDataNode := "data.azuredevops_workitemtrackingprocess_workitemtypes.test"
-	tfResourceNode1 := "azuredevops_workitemtrackingprocess_workitemtype.test1"
-	tfResourceNode2 := "azuredevops_workitemtrackingprocess_workitemtype.test2"
+	tfDataNode := "data.betterado_workitemtrackingprocess_workitemtypes.test"
+	tfResourceNode1 := "betterado_workitemtrackingprocess_workitemtype.test1"
+	tfResourceNode2 := "betterado_workitemtrackingprocess_workitemtype.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -49,23 +49,23 @@ func hclDataSourceWorkItemTypes(workItemTypeName1 string, workItemTypeName2 stri
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test1" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test1" {
   name        = "%s"
-  process_id  = azuredevops_workitemtrackingprocess_process.test.id
+  process_id  = betterado_workitemtrackingprocess_process.test.id
   description = "Test work item type 1"
 }
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test2" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test2" {
   name        = "%s"
-  process_id  = azuredevops_workitemtrackingprocess_process.test.id
+  process_id  = betterado_workitemtrackingprocess_process.test.id
   description = "Test work item type 2"
 }
 
-data "azuredevops_workitemtrackingprocess_workitemtypes" "test" {
-  process_id = azuredevops_workitemtrackingprocess_process.test.id
+data "betterado_workitemtrackingprocess_workitemtypes" "test" {
+  process_id = betterado_workitemtrackingprocess_process.test.id
   depends_on = [
-    azuredevops_workitemtrackingprocess_workitemtype.test1,
-    azuredevops_workitemtrackingprocess_workitemtype.test2
+    betterado_workitemtrackingprocess_workitemtype.test1,
+    betterado_workitemtrackingprocess_workitemtype.test2
   ]
 }
 `, process, workItemTypeName1, workItemTypeName2)

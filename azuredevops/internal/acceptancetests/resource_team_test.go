@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccTeam_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	teamName := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_team.test"
+	tfNode := "betterado_team.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -35,7 +35,7 @@ func TestAccTeam_update(t *testing.T) {
 	teamName2 := testutils.GenerateResourceName()
 	teamDescription2 := "@@descriptionUpdate"
 
-	tfNode := "azuredevops_team.test"
+	tfNode := "betterado_team.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -67,7 +67,7 @@ func TestAccTeam_update(t *testing.T) {
 func TestAccTeam_membersUpdate(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	teamName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_team.test"
+	tfNode := "betterado_team.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -102,7 +102,7 @@ func TestAccTeam_administratorsUpdate(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	teamName := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_team.test"
+	tfNode := "betterado_team.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -138,7 +138,7 @@ func TestAccTeam_complete(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	teamName := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_team.test"
+	tfNode := "betterado_team.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -159,12 +159,12 @@ func TestAccTeam_complete(t *testing.T) {
 
 func hclTeamBasic(projectName, teamName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_team" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_team" "test" {
+  project_id = betterado_project.test.id
   name       = "%s"
 }
 `, projectName, teamName)
@@ -172,12 +172,12 @@ resource "azuredevops_team" "test" {
 
 func hclTeamUpdate(projectName, teamName, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_team" "test" {
-  project_id  = azuredevops_project.test.id
+resource "betterado_team" "test" {
+  project_id  = betterado_project.test.id
   name        = "%s"
   description = "%s"
 }
@@ -186,22 +186,22 @@ resource "azuredevops_team" "test" {
 
 func hclTeamMembersBasic(projectName, teamName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-data "azuredevops_group" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test" {
+  project_id = betterado_project.test.id
   name       = "Contributors"
 }
 
-resource "azuredevops_team" "test" {
-  project_id  = azuredevops_project.test.id
+resource "betterado_team" "test" {
+  project_id  = betterado_project.test.id
   name        = "%s"
   description = "Test sTeam"
 
   members = [
-    data.azuredevops_group.test.descriptor
+    data.betterado_group.test.descriptor
   ]
 }
 `, projectName, teamName)
@@ -209,28 +209,28 @@ resource "azuredevops_team" "test" {
 
 func hclTeamMembersUpdate(projectName, teamName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-data "azuredevops_group" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test" {
+  project_id = betterado_project.test.id
   name       = "Contributors"
 }
 
-data "azuredevops_group" "test2" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test2" {
+  project_id = betterado_project.test.id
   name       = "Readers"
 }
 
-resource "azuredevops_team" "test" {
-  project_id  = azuredevops_project.test.id
+resource "betterado_team" "test" {
+  project_id  = betterado_project.test.id
   name        = "%s"
   description = "Test sTeam"
 
   members = [
-    data.azuredevops_group.test.descriptor,
-    data.azuredevops_group.test2.descriptor
+    data.betterado_group.test.descriptor,
+    data.betterado_group.test2.descriptor
   ]
 }
 `, projectName, teamName)
@@ -238,22 +238,22 @@ resource "azuredevops_team" "test" {
 
 func hclTeamAdministratorsBasic(projectName, teamName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-data "azuredevops_group" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test" {
+  project_id = betterado_project.test.id
   name       = "Contributors"
 }
 
-resource "azuredevops_team" "test" {
-  project_id  = azuredevops_project.test.id
+resource "betterado_team" "test" {
+  project_id  = betterado_project.test.id
   name        = "%s"
   description = "Test sTeam"
 
   administrators = [
-    data.azuredevops_group.test.descriptor
+    data.betterado_group.test.descriptor
   ]
 }
 `, projectName, teamName)
@@ -261,28 +261,28 @@ resource "azuredevops_team" "test" {
 
 func hclTeamAdministratorsUpdate(projectName, teamName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-data "azuredevops_group" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test" {
+  project_id = betterado_project.test.id
   name       = "Contributors"
 }
 
-data "azuredevops_group" "test2" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test2" {
+  project_id = betterado_project.test.id
   name       = "Readers"
 }
 
-resource "azuredevops_team" "test" {
-  project_id  = azuredevops_project.test.id
+resource "betterado_team" "test" {
+  project_id  = betterado_project.test.id
   name        = "%s"
   description = "Test sTeam"
 
   administrators = [
-    data.azuredevops_group.test.descriptor,
-    data.azuredevops_group.test2.descriptor
+    data.betterado_group.test.descriptor,
+    data.betterado_group.test2.descriptor
   ]
 }
 `, projectName, teamName)
@@ -290,31 +290,31 @@ resource "azuredevops_team" "test" {
 
 func hclTeamComplete(projectName, teamName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-data "azuredevops_group" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test" {
+  project_id = betterado_project.test.id
   name       = "Contributors"
 }
 
-data "azuredevops_group" "test2" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test2" {
+  project_id = betterado_project.test.id
   name       = "Readers"
 }
 
-resource "azuredevops_team" "test" {
-  project_id  = azuredevops_project.test.id
+resource "betterado_team" "test" {
+  project_id  = betterado_project.test.id
   name        = "%s"
   description = "Test sTeam"
 
   administrators = [
-    data.azuredevops_group.test.descriptor,
+    data.betterado_group.test.descriptor,
   ]
 
   members = [
-    data.azuredevops_group.test2.descriptor
+    data.betterado_group.test2.descriptor
   ]
 }`, projectName, teamName)
 }

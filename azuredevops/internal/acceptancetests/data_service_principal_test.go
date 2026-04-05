@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 // Validates that a configuration containing a project group lookup is able to read the resource correctly.
@@ -17,7 +17,7 @@ func TestAccServicePrincipalDataSource_Read_HappyPath(t *testing.T) {
 	}
 	servicePrincipalObjectId := os.Getenv("AZDO_TEST_AAD_SERVICE_PRINCIPAL_OBJECT_ID")
 
-	tfBuildDefNode := "data.azuredevops_service_principal.test"
+	tfBuildDefNode := "data.betterado_service_principal.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -38,7 +38,7 @@ func TestAccServicePrincipalDataSource_Read_HappyPath(t *testing.T) {
 func hclServicePrincipalDataBasic(servicePrincipalObjectId string) string {
 	return fmt.Sprintf(`
 %s
-data "azuredevops_service_principal" "test" {
-  display_name = azuredevops_service_principal_entitlement.test.display_name
+data "betterado_service_principal" "test" {
+  display_name = betterado_service_principal_entitlement.test.display_name
 }`, testutils.HclServicePrincipleEntitlementResource(servicePrincipalObjectId))
 }

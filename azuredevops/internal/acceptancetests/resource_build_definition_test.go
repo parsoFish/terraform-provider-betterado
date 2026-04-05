@@ -10,14 +10,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccBuildDefinition_basic(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfBuildDefNode := "azuredevops_build_definition.test"
+	tfBuildDefNode := "betterado_build_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -49,7 +49,7 @@ func TestAccBuildDefinition_pathUpdate(t *testing.T) {
 	pathFirst := `\\` + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 	pathSecond := `\\` + name + `\\` + acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum)
 
-	tfBuildDefNode := "azuredevops_build_definition.test"
+	tfBuildDefNode := "betterado_build_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -89,7 +89,7 @@ func TestAccBuildDefinition_pathUpdate(t *testing.T) {
 // Verifies a build for with variables can create and update, including secret variables
 func TestAccBuildDefinition_withVariables(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	tfNode := "azuredevops_build_definition.test"
+	tfNode := "betterado_build_definition.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -109,7 +109,7 @@ func TestAccBuildDefinition_withVariables(t *testing.T) {
 
 func TestAccBuildDefinition_schedules(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	tfNode := "azuredevops_build_definition.test"
+	tfNode := "betterado_build_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -133,7 +133,7 @@ func TestAccBuildDefinition_schedules(t *testing.T) {
 
 func TestAccBuildDefinition_buildCompletionTrigger(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	tfNode := "azuredevops_build_definition.test"
+	tfNode := "betterado_build_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -156,7 +156,7 @@ func TestAccBuildDefinition_buildCompletionTrigger(t *testing.T) {
 func TestAccBuildDefinition_otherGitRepositoryAgentJob_basic(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfBuildDefNode := "azuredevops_build_definition.test"
+	tfBuildDefNode := "betterado_build_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -190,7 +190,7 @@ func TestAccBuildDefinition_otherGitRepositoryAgentJob_basic(t *testing.T) {
 func TestAccBuildDefinition_otherGitRepositoryAgentJob_multiConfiguration(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfBuildDefNode := "azuredevops_build_definition.test"
+	tfBuildDefNode := "betterado_build_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -230,7 +230,7 @@ func TestAccBuildDefinition_otherGitRepositoryAgentJob_multiConfiguration(t *tes
 func TestAccBuildDefinition_otherGitRepositoryAgentJob_multiAgent(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfBuildDefNode := "azuredevops_build_definition.test"
+	tfBuildDefNode := "betterado_build_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -268,7 +268,7 @@ func TestAccBuildDefinition_otherGitRepositoryAgentJob_multiAgent(t *testing.T) 
 func TestAccBuildDefinition_otherGitRepositoryAgentJob_update(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfBuildDefNode := "azuredevops_build_definition.test"
+	tfBuildDefNode := "betterado_build_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -357,7 +357,7 @@ func TestAccBuildDefinition_otherGitRepositoryAgentJob_update(t *testing.T) {
 func TestAccBuildDefinition_otherGitRepositoryAgentJob_complete(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfBuildDefNode := "azuredevops_build_definition.test"
+	tfBuildDefNode := "betterado_build_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -406,7 +406,7 @@ func TestAccBuildDefinition_otherGitRepositoryAgentJob_complete(t *testing.T) {
 func TestAccBuildDefinition_otherGitRepositoryAgentlessJob_basic(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfBuildDefNode := "azuredevops_build_definition.test"
+	tfBuildDefNode := "betterado_build_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -440,7 +440,7 @@ func TestAccBuildDefinition_otherGitRepositoryAgentlessJob_basic(t *testing.T) {
 
 func TestAccBuildDefinition_otherGitRepositoryAgentlessJob_multiConfiguration(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	tfBuildDefNode := "azuredevops_build_definition.test"
+	tfBuildDefNode := "betterado_build_definition.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -478,7 +478,7 @@ func TestAccBuildDefinition_otherGitRepositoryAgentlessJob_multiConfiguration(t 
 func TestAccBuildDefinition_otherGitRepositoryAgentlessJob_update(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfBuildDefNode := "azuredevops_build_definition.test"
+	tfBuildDefNode := "betterado_build_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -539,7 +539,7 @@ func TestAccBuildDefinition_otherGitRepositoryAgentlessJob_update(t *testing.T) 
 func TestAccBuildDefinition_otherGitRepositoryAgentlessJob_complete(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfBuildDefNode := "azuredevops_build_definition.test"
+	tfBuildDefNode := "betterado_build_definition.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -614,7 +614,7 @@ func checkForVariableValues(tfNode string, expectedVals ...string) resource.Test
 
 func checkBuildDefinitionExists(expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		buildDef, ok := s.RootModule().Resources["azuredevops_build_definition.test"]
+		buildDef, ok := s.RootModule().Resources["betterado_build_definition.test"]
 		if !ok {
 			return fmt.Errorf("Did not find a build definition in the TF state")
 		}
@@ -636,7 +636,7 @@ func checkBuildDefinitionExists(expectedName string) resource.TestCheckFunc {
 // *after* terraform destroys the resource but *before* the state is wiped clean.
 func checkBuildDefinitionDestroyed(s *terraform.State) error {
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_build_definition" {
+		if resource.Type != "betterado_build_definition" {
 			continue
 		}
 
@@ -667,7 +667,7 @@ func getBuildDefinitionFromResource(resource *terraform.ResourceState) (*build.B
 func hclBuildDefinitionTemplate(name string) string {
 	return fmt.Sprintf(`
 
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -675,8 +675,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "acc-%[1]s"
   initialization {
     init_type = "Clean"
@@ -689,8 +689,8 @@ func hclBuildDefinitionPath(name, path string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   path       = "%[3]s"
 
@@ -710,8 +710,8 @@ resource "azuredevops_build_definition" "test" {
 
   repository {
     repo_type   = "TfsGit"
-    repo_id     = azuredevops_git_repository.test.id
-    branch_name = azuredevops_git_repository.test.default_branch
+    repo_id     = betterado_git_repository.test.id
+    branch_name = betterado_git_repository.test.default_branch
     yml_path    = "azure-pipelines.yml"
   }
 }
@@ -723,13 +723,13 @@ func hclBuildDefinitionVariable(name, varVal, secretVarVal string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   repository {
     repo_type   = "TfsGit"
-    repo_id     = azuredevops_git_repository.test.id
-    branch_name = azuredevops_git_repository.test.default_branch
+    repo_id     = betterado_git_repository.test.id
+    branch_name = betterado_git_repository.test.default_branch
     yml_path    = "azure-pipelines.yml"
   }
 
@@ -751,8 +751,8 @@ func hclBuildDefinitionSchedules(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   path       = "\\ExampleFolder"
 
@@ -784,8 +784,8 @@ resource "azuredevops_build_definition" "test" {
 
   repository {
     repo_type   = "TfsGit"
-    repo_id     = azuredevops_git_repository.test.id
-    branch_name = azuredevops_git_repository.test.default_branch
+    repo_id     = betterado_git_repository.test.id
+    branch_name = betterado_git_repository.test.default_branch
     yml_path    = "azure-pipelines.yml"
   }
 }
@@ -797,27 +797,27 @@ func hclBuildDefinitionBuildCompletionTrigger(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_build_definition" "build_trigger" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "build_trigger" {
+  project_id = betterado_project.test.id
   name       = "trigger%[2]s"
   path       = "\\ExampleFolder"
 
 
   repository {
     repo_type   = "TfsGit"
-    repo_id     = azuredevops_git_repository.test.id
-    branch_name = azuredevops_git_repository.test.default_branch
+    repo_id     = betterado_git_repository.test.id
+    branch_name = betterado_git_repository.test.default_branch
     yml_path    = "azure-pipelines.yml"
   }
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   path       = "\\ExampleFolder"
 
   build_completion_trigger {
-    build_definition_id = azuredevops_build_definition.build_trigger.id
+    build_definition_id = betterado_build_definition.build_trigger.id
     branch_filter {
       include = ["main"]
       exclude = ["test", "regression"]
@@ -825,8 +825,8 @@ resource "azuredevops_build_definition" "test" {
   }
   repository {
     repo_type   = "TfsGit"
-    repo_id     = azuredevops_git_repository.test.id
-    branch_name = azuredevops_git_repository.test.default_branch
+    repo_id     = betterado_git_repository.test.id
+    branch_name = betterado_git_repository.test.default_branch
     yml_path    = "azure-pipelines.yml"
   }
 }
@@ -838,16 +838,16 @@ func hclBuildDefinitionOtherGitRepositoryAgentJobBasic(name, path string) string
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_generic_git" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_generic_git" "test" {
+  project_id            = betterado_project.test.id
   repository_url        = "https://dev.azure.com/org/project/_git/test"
   username              = "username"
   password              = "password"
   service_endpoint_name = "Generic Git"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   path       = "%[3]s"
 
@@ -869,10 +869,10 @@ resource "azuredevops_build_definition" "test" {
 
   repository {
     repo_type             = "Git"
-    repo_id               = azuredevops_serviceendpoint_generic_git.test.repository_url
+    repo_id               = betterado_serviceendpoint_generic_git.test.repository_url
     branch_name           = "refs/heads/main"
-    url                   = azuredevops_serviceendpoint_generic_git.test.repository_url
-    service_connection_id = azuredevops_serviceendpoint_generic_git.test.id
+    url                   = betterado_serviceendpoint_generic_git.test.repository_url
+    service_connection_id = betterado_serviceendpoint_generic_git.test.id
   }
 
   jobs {
@@ -895,16 +895,16 @@ func hclBuildDefinitionOtherGitRepositoryAgentJobMultiConfiguration(name, path s
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_generic_git" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_generic_git" "test" {
+  project_id            = betterado_project.test.id
   repository_url        = "https://dev.azure.com/org/project/_git/test"
   username              = "username"
   password              = "password"
   service_endpoint_name = "Generic Git"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   path       = "%[3]s"
 
@@ -924,10 +924,10 @@ resource "azuredevops_build_definition" "test" {
 
   repository {
     repo_type             = "Git"
-    repo_id               = azuredevops_serviceendpoint_generic_git.test.repository_url
+    repo_id               = betterado_serviceendpoint_generic_git.test.repository_url
     branch_name           = "refs/heads/main"
-    url                   = azuredevops_serviceendpoint_generic_git.test.repository_url
-    service_connection_id = azuredevops_serviceendpoint_generic_git.test.id
+    url                   = betterado_serviceendpoint_generic_git.test.repository_url
+    service_connection_id = betterado_serviceendpoint_generic_git.test.id
   }
 
   agent_specification = "windows-latest"
@@ -956,16 +956,16 @@ func hclBuildDefinitionOtherGitRepositoryAgentJobMultiAgent(name, path string) s
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_generic_git" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_generic_git" "test" {
+  project_id            = betterado_project.test.id
   repository_url        = "https://dev.azure.com/org/project/_git/test"
   username              = "username"
   password              = "password"
   service_endpoint_name = "Generic Git"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   path       = "%[3]s"
 
@@ -985,10 +985,10 @@ resource "azuredevops_build_definition" "test" {
 
   repository {
     repo_type             = "Git"
-    repo_id               = azuredevops_serviceendpoint_generic_git.test.repository_url
+    repo_id               = betterado_serviceendpoint_generic_git.test.repository_url
     branch_name           = "refs/heads/main"
-    url                   = azuredevops_serviceendpoint_generic_git.test.repository_url
-    service_connection_id = azuredevops_serviceendpoint_generic_git.test.id
+    url                   = betterado_serviceendpoint_generic_git.test.repository_url
+    service_connection_id = betterado_serviceendpoint_generic_git.test.id
   }
 
   agent_specification = "windows-latest"
@@ -1016,16 +1016,16 @@ func hclBuildDefinitionOtherGitRepositoryAgentJobComplete(name, path string) str
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_generic_git" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_generic_git" "test" {
+  project_id            = betterado_project.test.id
   repository_url        = "https://dev.azure.com/org/project/_git/test"
   username              = "username"
   password              = "password"
   service_endpoint_name = "Generic Git"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   path       = "%[3]s"
 
@@ -1045,10 +1045,10 @@ resource "azuredevops_build_definition" "test" {
 
   repository {
     repo_type             = "Git"
-    repo_id               = azuredevops_serviceendpoint_generic_git.test.repository_url
+    repo_id               = betterado_serviceendpoint_generic_git.test.repository_url
     branch_name           = "refs/heads/main"
-    url                   = azuredevops_serviceendpoint_generic_git.test.repository_url
-    service_connection_id = azuredevops_serviceendpoint_generic_git.test.id
+    url                   = betterado_serviceendpoint_generic_git.test.repository_url
+    service_connection_id = betterado_serviceendpoint_generic_git.test.id
   }
 
   agent_specification = "windows-latest"
@@ -1117,16 +1117,16 @@ func hclBuildDefinitionOtherGitRepositoryAgentlessJobBasic(name, path string) st
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_generic_git" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_generic_git" "test" {
+  project_id            = betterado_project.test.id
   repository_url        = "https://dev.azure.com/org/project/_git/test"
   username              = "username"
   password              = "password"
   service_endpoint_name = "Generic Git"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   path       = "%[3]s"
 
@@ -1146,10 +1146,10 @@ resource "azuredevops_build_definition" "test" {
 
   repository {
     repo_type             = "Git"
-    repo_id               = azuredevops_serviceendpoint_generic_git.test.repository_url
+    repo_id               = betterado_serviceendpoint_generic_git.test.repository_url
     branch_name           = "refs/heads/main"
-    url                   = azuredevops_serviceendpoint_generic_git.test.repository_url
-    service_connection_id = azuredevops_serviceendpoint_generic_git.test.id
+    url                   = betterado_serviceendpoint_generic_git.test.repository_url
+    service_connection_id = betterado_serviceendpoint_generic_git.test.id
   }
 
   agent_specification = "windows-latest"
@@ -1174,16 +1174,16 @@ func hclBuildDefinitionOtherGitRepositoryAgentlessJobMultiConfiguration(name, pa
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_generic_git" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_generic_git" "test" {
+  project_id            = betterado_project.test.id
   repository_url        = "https://dev.azure.com/org/project/_git/test"
   username              = "username"
   password              = "password"
   service_endpoint_name = "Generic Git"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   path       = "%[3]s"
 
@@ -1203,10 +1203,10 @@ resource "azuredevops_build_definition" "test" {
 
   repository {
     repo_type             = "Git"
-    repo_id               = azuredevops_serviceendpoint_generic_git.test.repository_url
+    repo_id               = betterado_serviceendpoint_generic_git.test.repository_url
     branch_name           = "refs/heads/main"
-    url                   = azuredevops_serviceendpoint_generic_git.test.repository_url
-    service_connection_id = azuredevops_serviceendpoint_generic_git.test.id
+    url                   = betterado_serviceendpoint_generic_git.test.repository_url
+    service_connection_id = betterado_serviceendpoint_generic_git.test.id
   }
 
   agent_specification = "windows-latest"
@@ -1233,16 +1233,16 @@ func hclBuildDefinitionOtherGitRepositoryAgentlessJobComplete(name, path string)
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_generic_git" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_generic_git" "test" {
+  project_id            = betterado_project.test.id
   repository_url        = "https://dev.azure.com/org/project/_git/test"
   username              = "username"
   password              = "password"
   service_endpoint_name = "Generic Git"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   path       = "%[3]s"
 
@@ -1262,10 +1262,10 @@ resource "azuredevops_build_definition" "test" {
 
   repository {
     repo_type             = "Git"
-    repo_id               = azuredevops_serviceendpoint_generic_git.test.repository_url
+    repo_id               = betterado_serviceendpoint_generic_git.test.repository_url
     branch_name           = "refs/heads/main"
-    url                   = azuredevops_serviceendpoint_generic_git.test.repository_url
-    service_connection_id = azuredevops_serviceendpoint_generic_git.test.id
+    url                   = betterado_serviceendpoint_generic_git.test.repository_url
+    service_connection_id = betterado_serviceendpoint_generic_git.test.id
   }
 
   agent_specification = "windows-latest"

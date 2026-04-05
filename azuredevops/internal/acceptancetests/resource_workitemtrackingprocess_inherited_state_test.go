@@ -11,13 +11,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccWorkitemtrackingprocessInheritedState_Basic(t *testing.T) {
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_inherited_state.test"
+	tfNode := "betterado_workitemtrackingprocess_inherited_state.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -42,7 +42,7 @@ func TestAccWorkitemtrackingprocessInheritedState_Basic(t *testing.T) {
 
 func TestAccWorkitemtrackingprocessInheritedState_Update(t *testing.T) {
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_inherited_state.test"
+	tfNode := "betterado_workitemtrackingprocess_inherited_state.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -79,7 +79,7 @@ func TestAccWorkitemtrackingprocessInheritedState_Update(t *testing.T) {
 
 func TestAccWorkitemtrackingprocessInheritedState_RemoveFromState(t *testing.T) {
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_inherited_state.test"
+	tfNode := "betterado_workitemtrackingprocess_inherited_state.test"
 
 	var stateId string
 	var processId string
@@ -129,20 +129,20 @@ func TestAccWorkitemtrackingprocessInheritedState_RemoveFromState(t *testing.T) 
 
 func inheritedStateConfig(processName string, visible bool) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
 }
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
-  process_id                      = azuredevops_workitemtrackingprocess_process.test.id
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
+  process_id                      = betterado_workitemtrackingprocess_process.test.id
   name                            = "Bug"
   parent_work_item_reference_name = "Microsoft.VSTS.WorkItemTypes.Bug"
 }
 
-resource "azuredevops_workitemtrackingprocess_inherited_state" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+resource "betterado_workitemtrackingprocess_inherited_state" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   name              = "New"
   visible           = %t
 }
@@ -151,13 +151,13 @@ resource "azuredevops_workitemtrackingprocess_inherited_state" "test" {
 
 func removedInheritedState(processName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
 }
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
-  process_id                      = azuredevops_workitemtrackingprocess_process.test.id
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
+  process_id                      = betterado_workitemtrackingprocess_process.test.id
   name                            = "Bug"
   parent_work_item_reference_name = "Microsoft.VSTS.WorkItemTypes.Bug"
 }

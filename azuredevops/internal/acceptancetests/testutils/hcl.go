@@ -7,8 +7,8 @@ import (
 
 func getGitRepoResource(gitRepoName string, initType string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_git_repository" "repository" {
-	project_id      = azuredevops_project.project.id
+resource "betterado_git_repository" "repository" {
+	project_id      = betterado_project.project.id
 	name            = "%s"
 	initialization {
 		init_type = "%s"
@@ -27,9 +27,9 @@ func HclGitRepoResource(projectName string, gitRepoName string, initType string)
 // HclForkedGitRepoResource HCL describing an AzDO GIT repository resource
 func HclForkedGitRepoResource(projectName string, gitRepoName string, gitForkedRepoName string, initType string, forkedInitType string) string {
 	azureGitRepoResource := fmt.Sprintf(`
-	resource "azuredevops_git_repository" "gitforkedrepo" {
-		project_id      		= azuredevops_project.project.id
-		parent_repository_id    = azuredevops_git_repository.repository.id
+	resource "betterado_git_repository" "gitforkedrepo" {
+		project_id      		= betterado_project.project.id
+		parent_repository_id    = betterado_git_repository.repository.id
 		name            		= "%s"
 		initialization {
 			init_type = "%s"
@@ -42,8 +42,8 @@ func HclForkedGitRepoResource(projectName string, gitRepoName string, gitForkedR
 // HclGitRepoFileResource HCl describing a file in an AzDO GIT repository
 func HclGitRepoFileResource(projectName, gitRepoName, initType, branch, file, content string) string {
 	gitRepoFileResource := fmt.Sprintf(`
-	resource "azuredevops_git_repository_file" "file" {
-		repository_id = azuredevops_git_repository.repository.id
+	resource "betterado_git_repository_file" "file" {
+		repository_id = betterado_git_repository.repository.id
 		file          = "%s"
 		content       = "%s"
 		branch        = "%s"
@@ -58,7 +58,7 @@ func HclProjectResource(projectName string) string {
 		return ""
 	}
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
 	name       = "%[1]s"
 	description        = "%[1]s-description"
 	visibility         = "private"
@@ -73,7 +73,7 @@ func HclServicePrincipleEntitlementResource(servicePrincipalObjectId string) str
 		panic("Parameter: servicePrincipalObjectId cannot be empty")
 	}
 	return fmt.Sprintf(`
-resource "azuredevops_service_principal_entitlement" "test" {
+resource "betterado_service_principal_entitlement" "test" {
 	origin_id = "%[1]s"
 	origin	  = "aad"
 }`, servicePrincipalObjectId)
@@ -82,7 +82,7 @@ resource "azuredevops_service_principal_entitlement" "test" {
 // HclSecurityroleDefinitionsDataSource HCL describing a data source for securityrole definitions
 func HclSecurityroleDefinitionsDataSource() string {
 	return `
-data "azuredevops_securityrole_definitions" "definitions-list" {
+data "betterado_securityrole_definitions" "definitions-list" {
 	scope = "distributedtask.environmentreferencerole"
 }`
 }
@@ -90,8 +90,8 @@ data "azuredevops_securityrole_definitions" "definitions-list" {
 // HclServiceEndpointGitHubResource HCL describing an AzDO service endpoint
 func HclServiceEndpointGitHubResource(projectName string, serviceEndpointName string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_github" "serviceendpoint" {
-	project_id             = azuredevops_project.project.id
+resource "betterado_serviceendpoint_github" "serviceendpoint" {
+	project_id             = betterado_project.project.id
 	service_endpoint_name  = "%s"
 	auth_personal {
 	}
@@ -104,27 +104,27 @@ resource "azuredevops_serviceendpoint_github" "serviceendpoint" {
 // HclServiceEndpointGitHubDataSourceWithServiceEndpointID HCL describing a data source for an AzDO service endpoint
 func HclServiceEndpointGitHubDataSourceWithServiceEndpointID() string {
 	return `
-data "azuredevops_serviceendpoint_github" "serviceendpoint" {
-  project_id = azuredevops_project.project.id
-  service_endpoint_id         = azuredevops_serviceendpoint_github.serviceendpoint.id
+data "betterado_serviceendpoint_github" "serviceendpoint" {
+  project_id = betterado_project.project.id
+  service_endpoint_id         = betterado_serviceendpoint_github.serviceendpoint.id
 }`
 }
 
 // HclServiceEndpointGitHubDataSourceWithServiceEndpointName HCL describing a data source for an AzDO service endpoint
 func HclServiceEndpointGitHubDataSourceWithServiceEndpointName(serviceEndpointName string) string {
 	return fmt.Sprintf(`
-data "azuredevops_serviceendpoint_github" "serviceendpoint" {
-  project_id            = azuredevops_project.project.id
+data "betterado_serviceendpoint_github" "serviceendpoint" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
-  depends_on            = [azuredevops_serviceendpoint_github.serviceendpoint]
+  depends_on            = [betterado_serviceendpoint_github.serviceendpoint]
 }
 `, serviceEndpointName)
 }
 
 func HclServiceEndpointGitHubEnterpriseResource(projectName string, serviceEndpointName string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_github_enterprise" "serviceendpoint" {
-	project_id             = azuredevops_project.project.id
+resource "betterado_serviceendpoint_github_enterprise" "serviceendpoint" {
+	project_id             = betterado_project.project.id
 	service_endpoint_name  = "%s"
 	url                    = "https://github.contoso.com"
 	auth_personal {
@@ -139,8 +139,8 @@ resource "azuredevops_serviceendpoint_github_enterprise" "serviceendpoint" {
 // HclServiceEndpointRunPipelineResource HCL describing an AzDO service endpoint
 func HclServiceEndpointRunPipelineResourceSimple(serviceEndpointName string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_runpipeline" "serviceendpoint" {
-  project_id             = azuredevops_project.project.id
+resource "betterado_serviceendpoint_runpipeline" "serviceendpoint" {
+  project_id             = betterado_project.project.id
   organization_name      = "example"
   service_endpoint_name  = "%[1]s"
 	auth_personal {
@@ -152,8 +152,8 @@ resource "azuredevops_serviceendpoint_runpipeline" "serviceendpoint" {
 
 func HclServiceEndpointRunPipelineResource(serviceEndpointName string, accessToken string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_runpipeline" "serviceendpoint" {
-  project_id             = azuredevops_project.project.id
+resource "betterado_serviceendpoint_runpipeline" "serviceendpoint" {
+  project_id             = betterado_project.project.id
   organization_name      = "example"
   service_endpoint_name  = "%[1]s"
   auth_personal {
@@ -168,11 +168,11 @@ resource "azuredevops_serviceendpoint_runpipeline" "serviceendpoint" {
 // HclServiceEndpointDockerRegistryResource HCL describing an AzDO service endpoint
 func HclServiceEndpointDockerRegistryResource(projectName string, serviceEndpointName string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_dockerregistry" "serviceendpoint" {
+resource "betterado_serviceendpoint_dockerregistry" "serviceendpoint" {
 	docker_email           = "test@email.com"
 	docker_username        = "testuser"
 	docker_password        = "secret"
-	project_id             = azuredevops_project.project.id
+	project_id             = betterado_project.project.id
 	service_endpoint_name  = "%s"
 
 }`, serviceEndpointName)
@@ -184,19 +184,19 @@ resource "azuredevops_serviceendpoint_dockerregistry" "serviceendpoint" {
 // HclServiceEndpointAzureRMDataSourceWithServiceEndpointID HCL describing a data source for an AzDO service endpoint
 func HclServiceEndpointAzureRMDataSourceWithServiceEndpointID() string {
 	return `
-data "azuredevops_serviceendpoint_azurerm" "serviceendpointrm" {
-  project_id = azuredevops_project.project.id
-  service_endpoint_id         = azuredevops_serviceendpoint_azurerm.serviceendpointrm.id
+data "betterado_serviceendpoint_azurerm" "serviceendpointrm" {
+  project_id = betterado_project.project.id
+  service_endpoint_id         = betterado_serviceendpoint_azurerm.serviceendpointrm.id
 }`
 }
 
 // HclServiceEndpointAzureRMDataSourceWithServiceEndpointName HCL describing a data source for an AzDO service endpoint
 func HclServiceEndpointAzureRMDataSourceWithServiceEndpointName(serviceEndpointName string) string {
 	return fmt.Sprintf(`
-data "azuredevops_serviceendpoint_azurerm" "serviceendpointrm" {
-  project_id            = azuredevops_project.project.id
+data "betterado_serviceendpoint_azurerm" "serviceendpointrm" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
-  depends_on            = [azuredevops_serviceendpoint_azurerm.serviceendpointrm]
+  depends_on            = [betterado_serviceendpoint_azurerm.serviceendpointrm]
 }
 `, serviceEndpointName)
 }
@@ -204,8 +204,8 @@ data "azuredevops_serviceendpoint_azurerm" "serviceendpointrm" {
 // HclServiceEndpointAzureRMResource HCL describing an AzDO service endpoint
 func HclServiceEndpointAzureRMResource(projectName string, serviceEndpointName string, serviceprincipalid string, serviceprincipalkey string, serviceEndpointAuthenticationScheme string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_azurerm" "serviceendpointrm" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_azurerm" "serviceendpointrm" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   credentials {
     serviceprincipalid  = "%s"
@@ -224,8 +224,8 @@ resource "azuredevops_serviceendpoint_azurerm" "serviceendpointrm" {
 
 func HclServiceEndpointAzureRMResourceWithValidate(projectName string, serviceEndpointName string, serviceprincipalid string, serviceprincipalkey string, serviceEndpointAuthenticationScheme string, validate bool) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_azurerm" "serviceendpointrm" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_azurerm" "serviceendpointrm" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   credentials {
     serviceprincipalid  = "%s"
@@ -248,8 +248,8 @@ resource "azuredevops_serviceendpoint_azurerm" "serviceendpointrm" {
 // HclServiceEndpointAzureRMResource HCL describing an AzDO service endpoint
 func HclServiceEndpointAzureRMNoKeyResource(projectName string, serviceEndpointName string, serviceprincipalid string, serviceEndpointAuthenticationScheme string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_azurerm" "serviceendpointrm" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_azurerm" "serviceendpointrm" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   credentials {
     serviceprincipalid  = "%s"
@@ -268,8 +268,8 @@ resource "azuredevops_serviceendpoint_azurerm" "serviceendpointrm" {
 // HclServiceEndpointAzureRMResourceMG HCL describing an AzDO service endpoint
 func HclServiceEndpointAzureRMResourceWithMG(projectName string, serviceEndpointName string, serviceprincipalid string, serviceprincipalkey string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_azurerm" "serviceendpointrm" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_azurerm" "serviceendpointrm" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   credentials {
     serviceprincipalid  = "%s"
@@ -289,8 +289,8 @@ resource "azuredevops_serviceendpoint_azurerm" "serviceendpointrm" {
 // HclServiceEndpointAzureRMAutomaticResourceWithProject HCL describing an AzDO service endpoint
 func HclServiceEndpointAzureRMAutomaticResourceWithProject(projectName string, serviceEndpointName string, serviceEndpointAuthenticationScheme string, subscriptionId string, subscriptionName string, tenantId string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_azurerm" "serviceendpointrm" {
-  project_id                             = azuredevops_project.project.id
+resource "betterado_serviceendpoint_azurerm" "serviceendpointrm" {
+  project_id                             = betterado_project.project.id
   service_endpoint_name                  = "%s"
   azurerm_spn_tenantid                   = "%s"
   azurerm_subscription_id                = "%s"
@@ -309,8 +309,8 @@ func HclServiceEndpointServiceFabricResource(projectName string, serviceEndpoint
 	switch authorizationType {
 	case "Certificate":
 		serviceEndpointResource = fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_servicefabric" "serviceendpoint" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_servicefabric" "serviceendpoint" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   cluster_endpoint      = "tcp://test"
   certificate {
@@ -322,8 +322,8 @@ resource "azuredevops_serviceendpoint_servicefabric" "serviceendpoint" {
 }`, serviceEndpointName)
 	case "UsernamePassword":
 		serviceEndpointResource = fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_servicefabric" "serviceendpoint" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_servicefabric" "serviceendpoint" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   cluster_endpoint      = "tcp://test"
   azure_active_directory {
@@ -335,8 +335,8 @@ resource "azuredevops_serviceendpoint_servicefabric" "serviceendpoint" {
 }`, serviceEndpointName)
 	case "None":
 		serviceEndpointResource = fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_servicefabric" "serviceendpoint" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_servicefabric" "serviceendpoint" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   cluster_endpoint      = "tcp://test"
   none {
@@ -352,8 +352,8 @@ resource "azuredevops_serviceendpoint_servicefabric" "serviceendpoint" {
 // HclServiceEndpointGenericResource HCL describing an AzDO service endpoint
 func HclServiceEndpointGenericResource(projectName string, serviceEndpointName string, serverUrl string, username string, password string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_generic" "test" {
-	project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_generic" "test" {
+	project_id            = betterado_project.project.id
 	service_endpoint_name = "%s"
 	description           = "test"
 	server_url            = "%s"
@@ -368,8 +368,8 @@ resource "azuredevops_serviceendpoint_generic" "test" {
 // HclVariableGroupResource HCL describing an AzDO group
 func HclVariableGroupResource(variableGroupName string, allowAccess bool) string {
 	return fmt.Sprintf(`
-resource "azuredevops_variable_group" "vg" {
-	project_id  = azuredevops_project.project.id
+resource "betterado_variable_group" "vg" {
+	project_id  = betterado_project.project.id
 	name        = "%s"
 	description = "A sample variable group."
 	allow_access = %t
@@ -393,14 +393,14 @@ resource "azuredevops_variable_group" "vg" {
 // HclVariableGroupResourceKeyVault HCL describing an AzDO variable group with key vault
 func HclVariableGroupResourceKeyVault(variableGroupName string, allowAccess bool, keyVaultName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_variable_group" "vg" {
-	project_id  = azuredevops_project.project.id
+resource "betterado_variable_group" "vg" {
+	project_id  = betterado_project.project.id
 	name        = "%s"
 	description = "A sample variable group."
 	allow_access = %t
 	key_vault {
         name = "%s"
-        service_endpoint_id  = azuredevops_serviceendpoint_azurerm.serviceendpointrm.id
+        service_endpoint_id  = betterado_serviceendpoint_azurerm.serviceendpointrm.id
     }
 	variable {
 		name = "key1"
@@ -411,16 +411,16 @@ resource "azuredevops_variable_group" "vg" {
 // HclVariableGroupDataSource HCL describing a data source for an AzDO Variable Group
 func HclVariableGroupDataSource() string {
 	return `
-data "azuredevops_variable_group" "vg" {
-	project_id  = azuredevops_project.project.id
-	name        = azuredevops_variable_group.vg.name
+data "betterado_variable_group" "vg" {
+	project_id  = betterado_project.project.id
+	name        = betterado_variable_group.vg.name
 }`
 }
 
 // HclAgentPoolResource HCL describing an AzDO Agent Pool
 func HclAgentPoolResource(poolName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_agent_pool" "pool" {
+resource "betterado_agent_pool" "pool" {
 	name           = "%s"
 	auto_provision = false
 	auto_update    = false
@@ -431,7 +431,7 @@ resource "azuredevops_agent_pool" "pool" {
 // HclAgentPoolResourceAppendPoolNameToResourceName HCL describing an AzDO Agent Pool with agent pool name appended to resource name
 func HclAgentPoolResourceAppendPoolNameToResourceName(poolName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_agent_pool" "pool_%[1]s" {
+resource "betterado_agent_pool" "pool_%[1]s" {
 	name           = "%[1]s"
 	auto_provision = false
 	auto_update    = false
@@ -442,15 +442,15 @@ resource "azuredevops_agent_pool" "pool_%[1]s" {
 // HclAgentPoolDataSource HCL describing a data source for an AzDO Agent Pool
 func HclAgentPoolDataSource() string {
 	return `
-data "azuredevops_agent_pool" "pool" {
-	name = azuredevops_agent_pool.pool.name
+data "betterado_agent_pool" "pool" {
+	name = betterado_agent_pool.pool.name
 }`
 }
 
 // HclAgentPoolsDataSource HCL describing a data source for an AzDO Agent Pools
 func HclAgentPoolsDataSource() string {
 	return `
-data "azuredevops_agent_pools" "pools" {
+data "betterado_agent_pools" "pools" {
 }`
 }
 
@@ -459,8 +459,8 @@ func HclAgentQueueDataSource(projectName, queueName string) string {
 	return fmt.Sprintf(`
 %s
 
-data "azuredevops_agent_queue" "queue" {
-	project_id = azuredevops_project.project.id
+data "betterado_agent_queue" "queue" {
+	project_id = betterado_project.project.id
 	name = "%s"
 }`, HclProjectResource(projectName), queueName)
 }
@@ -469,13 +469,13 @@ data "azuredevops_agent_queue" "queue" {
 func HclAgentQueueResource(projectName, poolName string) string {
 	poolHCL := HclAgentPoolResource(poolName)
 	queueHCL := fmt.Sprintf(`
-resource "azuredevops_project" "p" {
+resource "betterado_project" "p" {
 	name = "%s"
 }
 
-resource "azuredevops_agent_queue" "q" {
-	project_id    = azuredevops_project.p.id
-	agent_pool_id = azuredevops_agent_pool.pool.id
+resource "betterado_agent_queue" "q" {
+	project_id    = betterado_project.p.id
+	agent_pool_id = betterado_agent_pool.pool.id
 }`, projectName)
 
 	return fmt.Sprintf("%s\n%s", poolHCL, queueHCL)
@@ -514,7 +514,7 @@ func HclBuildDefinitionResourceTfsGit(projectName string, gitRepoName string, bu
 		buildDefinitionName,
 		buildPath,
 		"TfsGit",
-		"${azuredevops_git_repository.repository.id}",
+		"${betterado_git_repository.repository.id}",
 		"refs/heads/master",
 		"path/to/yaml",
 		"")
@@ -535,8 +535,8 @@ func HclBuildDefinitionResource(
 	serviceConnectionID string,
 ) string {
 	return fmt.Sprintf(`
-	resource "azuredevops_build_definition" "build" {
-		project_id      = azuredevops_project.project.id
+	resource "betterado_build_definition" "build" {
+		project_id      = betterado_project.project.id
 		name            = "%s"
 		agent_pool_name = "Azure Pipelines"
 		path			= "%s"
@@ -554,9 +554,9 @@ func HclBuildDefinitionResource(
 // HclBuildDefinitionDataSource HCL describing a data source for an AzDO Variable Group
 func HclBuildDefinitionDataSource(path string) string {
 	return fmt.Sprintf(`
-data "azuredevops_build_definition" "build" {
-	project_id  = azuredevops_project.project.id
-	name        = azuredevops_build_definition.build.name
+data "betterado_build_definition" "build" {
+	project_id  = betterado_project.project.id
+	name        = betterado_build_definition.build.name
 	path        = "%s"
 }`, path)
 }
@@ -582,13 +582,13 @@ func HclBuildDefinitionResourceWithProject(
 // HclBuildDefinitionWithVariables A build definition with variables
 func HclBuildDefinitionWithVariables(varValue, secretVarValue, name string) string {
 	buildDefinitionResource := fmt.Sprintf(`
-	resource "azuredevops_build_definition" "build" {
-		project_id = azuredevops_project.project.id
+	resource "betterado_build_definition" "build" {
+		project_id = betterado_project.project.id
 		name       = "%s"
 		repository {
 			repo_type   = "TfsGit"
-			repo_id     = azuredevops_git_repository.repository.id
-			branch_name = azuredevops_git_repository.repository.default_branch
+			repo_id     = betterado_git_repository.repository.id
+			branch_name = betterado_git_repository.repository.default_branch
 			yml_path    = "azure-pipelines.yml"
 		}
 
@@ -611,8 +611,8 @@ func HclBuildDefinitionWithVariables(varValue, secretVarValue, name string) stri
 // HclResourceAuthorization HCL describing a resource authorization
 func HclResourceAuthorization(resourceID string, authorized bool) string {
 	return fmt.Sprintf(`
-resource "azuredevops_resource_authorization" "auth" {
-	project_id  = azuredevops_project.project.id
+resource "betterado_resource_authorization" "auth" {
+	project_id  = betterado_project.project.id
 	resource_id = %s
 	authorized  = %t
 	type = "endpoint"
@@ -622,8 +622,8 @@ resource "azuredevops_resource_authorization" "auth" {
 // HclDefinitionResourceAuthorization HCL describing a resource authorization
 func HclDefinitionResourceAuthorization(resourceID, definitionID, resourceType string, authorized bool) string {
 	return fmt.Sprintf(`
-resource "azuredevops_resource_authorization" "auth" {
-	project_id  = azuredevops_project.project.id
+resource "betterado_resource_authorization" "auth" {
+	project_id  = betterado_project.project.id
 	resource_id = %s
 	definition_id = %s
 	type = "%s"
@@ -637,14 +637,14 @@ func HclProjectPermissions(projectName string) string {
 	return fmt.Sprintf(`
 %s
 
-data "azuredevops_group" "tf-project-readers" {
-	project_id = azuredevops_project.project.id
+data "betterado_group" "tf-project-readers" {
+	project_id = betterado_project.project.id
 	name       = "Readers"
 }
 
-resource "azuredevops_project_permissions" "project-permissions" {
-	project_id  = azuredevops_project.project.id
-	principal   = data.azuredevops_group.tf-project-readers.id
+resource "betterado_project_permissions" "project-permissions" {
+	project_id  = betterado_project.project.id
+	principal   = data.betterado_group.tf-project-readers.id
 	permissions = {
 	  DELETE              = "Deny"
 	  EDIT_BUILD_STATUS   = "NotSet"
@@ -663,8 +663,8 @@ func HclBuildFolder(projectName string, path string, description string) string 
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_build_folder" "test_folder" {
-	project_id  = azuredevops_project.project.id
+resource "betterado_build_folder" "test_folder" {
+	project_id  = betterado_project.project.id
 	path        = "%s"
 	description = "%s"
 }
@@ -678,8 +678,8 @@ func HclTeamConfiguration(projectName string, teamName string, teamDescription s
 		teamResource = fmt.Sprintf(`
 %s
 
-resource "azuredevops_team" "team" {
-	project_id = azuredevops_project.project.id
+resource "betterado_team" "team" {
+	project_id = betterado_project.project.id
 	name = "%s"
 	description = "%s"
 `, projectResource, teamName, teamDescription)
@@ -687,8 +687,8 @@ resource "azuredevops_team" "team" {
 		teamResource = fmt.Sprintf(`
 %s
 
-resource "azuredevops_team" "team" {
-	project_id = azuredevops_project.project.id
+resource "betterado_team" "team" {
+	project_id = betterado_project.project.id
 	name = "%s"
 `, projectResource, teamName)
 	}
@@ -719,8 +719,8 @@ resource "azuredevops_team" "team" {
 
 func getEnvironmentResource(environmentName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_environment" "environment" {
-	project_id = azuredevops_project.project.id
+resource "betterado_environment" "environment" {
+	project_id = betterado_project.project.id
 	name       = "%s"
 }`, environmentName)
 }
@@ -739,8 +739,8 @@ func HclServicehookStorageQeueuePipelinesResourceWithStageEvent(projectName, acc
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_servicehook_storage_queue_pipelines" "test" {
-  project_id   = azuredevops_project.project.id
+resource "betterado_servicehook_storage_queue_pipelines" "test" {
+  project_id   = betterado_project.project.id
   account_name = "teststorageacc"
   account_key  = "%s"
   queue_name   = "%s"
@@ -757,8 +757,8 @@ func HclServicehookStorageQeueuePipelinesResourceWithoutEventConfig(projectName,
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_servicehook_storage_queue_pipelines" "test" {
-  project_id   = azuredevops_project.project.id
+resource "betterado_servicehook_storage_queue_pipelines" "test" {
+  project_id   = betterado_project.project.id
   account_name = "teststorageacc"
   account_key  = "%s"
   queue_name   = "%s"

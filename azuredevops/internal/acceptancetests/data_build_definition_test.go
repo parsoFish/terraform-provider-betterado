@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccBuildDefinition_DataSource(t *testing.T) {
@@ -14,7 +14,7 @@ func TestAccBuildDefinition_DataSource(t *testing.T) {
 		testutils.HclBuildDefinitionWithVariables("foo1", "bar1", buildDefinitionName),
 		testutils.HclBuildDefinitionDataSource(`\\`)) // `\\` is the default value for the path
 
-	tfNode := "data.azuredevops_build_definition.build"
+	tfNode := "data.betterado_build_definition.build"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -36,7 +36,7 @@ func TestAccBuildDefinition_with_path_DataSource(t *testing.T) {
 		testutils.HclBuildDefinitionResourceGitHub(name, name, "\\some\\path"),
 		testutils.HclBuildDefinitionDataSource(`\\some\\path`))
 
-	tfNode := "data.azuredevops_build_definition.build"
+	tfNode := "data.betterado_build_definition.build"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),

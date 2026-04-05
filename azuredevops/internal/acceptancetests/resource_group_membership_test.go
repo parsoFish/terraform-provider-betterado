@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccGroupMembership_overwrite(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_group_membership.test"
+	tfNode := "betterado_group_membership.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
@@ -40,17 +40,17 @@ func TestAccGroupMembership_overwrite(t *testing.T) {
 
 func overwriteEmpty(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "acctest-%[1]s"
 }
 
-resource "azuredevops_group" "test" {
+resource "betterado_group" "test" {
   display_name = "acctest-%[1]s"
-  scope        = azuredevops_project.test.id
+  scope        = betterado_project.test.id
 }
 
-resource "azuredevops_group_membership" "test" {
-  group   = azuredevops_group.test.id
+resource "betterado_group_membership" "test" {
+  group   = betterado_group.test.id
   mode    = "overwrite"
   members = []
 }
@@ -59,24 +59,24 @@ resource "azuredevops_group_membership" "test" {
 
 func overwriteWithMember(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "acctest-%[1]s"
 }
 
-resource "azuredevops_group" "test" {
+resource "betterado_group" "test" {
   display_name = "acctest-%[1]s"
-  scope        = azuredevops_project.test.id
+  scope        = betterado_project.test.id
 }
 
-resource "azuredevops_group" "member" {
+resource "betterado_group" "member" {
   display_name = "acctest-member-%[1]s"
-  scope        = azuredevops_project.test.id
+  scope        = betterado_project.test.id
 }
 
-resource "azuredevops_group_membership" "test" {
-  group   = azuredevops_group.test.id
+resource "betterado_group_membership" "test" {
+  group   = betterado_group.test.id
   mode    = "overwrite"
-  members = [azuredevops_group.member.id]
+  members = [betterado_group.member.id]
 }
 `, name)
 }

@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointVisualStudioMarketplace_basicToken(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_visualstudiomarketplace"
+	resourceType := "betterado_serviceendpoint_visualstudiomarketplace"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -37,7 +37,7 @@ func TestAccServiceEndpointVisualStudioMarketplace_basicUsernamePassword(t *test
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_visualstudiomarketplace"
+	resourceType := "betterado_serviceendpoint_visualstudiomarketplace"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -65,7 +65,7 @@ func TestAccServiceEndpointVisualStudioMarketplace_update(t *testing.T) {
 	description := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_visualstudiomarketplace"
+	resourceType := "betterado_serviceendpoint_visualstudiomarketplace"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -98,7 +98,7 @@ func TestAccServiceEndpointVisualStudioMarketplace_update(t *testing.T) {
 func TestAccServiceEndpointVisualStudioMarketplace_requiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_visualstudiomarketplace"
+	resourceType := "betterado_serviceendpoint_visualstudiomarketplace"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -122,12 +122,12 @@ func TestAccServiceEndpointVisualStudioMarketplace_requiresImportErrorStep(t *te
 
 func hclSvcEndpointVisualStudioMarketplaceResourceBasicToken(projectName string, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_visualstudiomarketplace" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_visualstudiomarketplace" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   url                   = "https://marketplace.com"
   authentication_token {
@@ -138,12 +138,12 @@ resource "azuredevops_serviceendpoint_visualstudiomarketplace" "test" {
 
 func hclSvcEndpointVisualStudioMarketplaceResourceBasicUsernamePasword(projectName string, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_visualstudiomarketplace" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_visualstudiomarketplace" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   url                   = "https://marketplace.com"
   authentication_basic {
@@ -155,12 +155,12 @@ resource "azuredevops_serviceendpoint_visualstudiomarketplace" "test" {
 
 func hclSvcEndpointVisualStudioMarketplaceResourceUpdate(projectName string, serviceEndpointName string, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_visualstudiomarketplace" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_visualstudiomarketplace" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   description           = "%s"
   url                   = "https://marketplace.com/update"
@@ -175,13 +175,13 @@ func hclSvcEndpointVisualStudioMarketplaceResourceRequiresImport(projectName str
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_visualstudiomarketplace" "import" {
-  project_id            = azuredevops_serviceendpoint_visualstudiomarketplace.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_visualstudiomarketplace.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_visualstudiomarketplace.test.description
-  url                   = azuredevops_serviceendpoint_visualstudiomarketplace.test.url
+resource "betterado_serviceendpoint_visualstudiomarketplace" "import" {
+  project_id            = betterado_serviceendpoint_visualstudiomarketplace.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_visualstudiomarketplace.test.service_endpoint_name
+  description           = betterado_serviceendpoint_visualstudiomarketplace.test.description
+  url                   = betterado_serviceendpoint_visualstudiomarketplace.test.url
   authentication_token {
-    token = azuredevops_serviceendpoint_visualstudiomarketplace.test.authentication_token.0.token
+    token = betterado_serviceendpoint_visualstudiomarketplace.test.authentication_token.0.token
   }
 }
 `, template)

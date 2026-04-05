@@ -7,10 +7,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 func TestAccGroupResource_basic(t *testing.T) {
@@ -26,13 +26,13 @@ func TestAccGroupResource_basic(t *testing.T) {
 				Config: hclGroupBasic(projectName, groupName),
 				Check: resource.ComposeTestCheckFunc(
 					checkGroupExists(groupName),
-					resource.TestCheckResourceAttrSet("azuredevops_group.test", "scope"),
-					resource.TestCheckResourceAttrSet("azuredevops_group.test", "group_id"),
-					resource.TestCheckResourceAttr("azuredevops_group.test", "display_name", groupName),
+					resource.TestCheckResourceAttrSet("betterado_group.test", "scope"),
+					resource.TestCheckResourceAttrSet("betterado_group.test", "group_id"),
+					resource.TestCheckResourceAttr("betterado_group.test", "display_name", groupName),
 				),
 			},
 			{
-				ResourceName:      "azuredevops_group.test",
+				ResourceName:      "betterado_group.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -54,13 +54,13 @@ func TestAccGroupResource_update(t *testing.T) {
 				Config: hclGroupBasic(projectName, groupName),
 				Check: resource.ComposeTestCheckFunc(
 					checkGroupExists(groupName),
-					resource.TestCheckResourceAttrSet("azuredevops_group.test", "scope"),
-					resource.TestCheckResourceAttrSet("azuredevops_group.test", "group_id"),
-					resource.TestCheckResourceAttr("azuredevops_group.test", "display_name", groupName),
+					resource.TestCheckResourceAttrSet("betterado_group.test", "scope"),
+					resource.TestCheckResourceAttrSet("betterado_group.test", "group_id"),
+					resource.TestCheckResourceAttr("betterado_group.test", "display_name", groupName),
 				),
 			},
 			{
-				ResourceName:      "azuredevops_group.test",
+				ResourceName:      "betterado_group.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -68,13 +68,13 @@ func TestAccGroupResource_update(t *testing.T) {
 				Config: hclGroupBasic(projectName, groupNameUpdate),
 				Check: resource.ComposeTestCheckFunc(
 					checkGroupExists(groupNameUpdate),
-					resource.TestCheckResourceAttrSet("azuredevops_group.test", "scope"),
-					resource.TestCheckResourceAttrSet("azuredevops_group.test", "group_id"),
-					resource.TestCheckResourceAttr("azuredevops_group.test", "display_name", groupNameUpdate),
+					resource.TestCheckResourceAttrSet("betterado_group.test", "scope"),
+					resource.TestCheckResourceAttrSet("betterado_group.test", "group_id"),
+					resource.TestCheckResourceAttr("betterado_group.test", "display_name", groupNameUpdate),
 				),
 			},
 			{
-				ResourceName:      "azuredevops_group.test",
+				ResourceName:      "betterado_group.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -95,14 +95,14 @@ func TestAccGroupResource_updateMembers(t *testing.T) {
 				Config: hclGroupMembers(projectName, groupName),
 				Check: resource.ComposeTestCheckFunc(
 					checkGroupExists(groupName),
-					resource.TestCheckResourceAttrSet("azuredevops_group.test", "scope"),
-					resource.TestCheckResourceAttrSet("azuredevops_group.test", "group_id"),
-					resource.TestCheckResourceAttr("azuredevops_group.test", "display_name", groupName),
-					resource.TestCheckResourceAttr("azuredevops_group.test", "members.#", "1"),
+					resource.TestCheckResourceAttrSet("betterado_group.test", "scope"),
+					resource.TestCheckResourceAttrSet("betterado_group.test", "group_id"),
+					resource.TestCheckResourceAttr("betterado_group.test", "display_name", groupName),
+					resource.TestCheckResourceAttr("betterado_group.test", "members.#", "1"),
 				),
 			},
 			{
-				ResourceName:      "azuredevops_group.test",
+				ResourceName:      "betterado_group.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -110,14 +110,14 @@ func TestAccGroupResource_updateMembers(t *testing.T) {
 				Config: hclGroupMembersUpdate(projectName, groupName),
 				Check: resource.ComposeTestCheckFunc(
 					checkGroupExists(groupName),
-					resource.TestCheckResourceAttrSet("azuredevops_group.test", "scope"),
-					resource.TestCheckResourceAttrSet("azuredevops_group.test", "group_id"),
-					resource.TestCheckResourceAttr("azuredevops_group.test", "display_name", groupName),
-					resource.TestCheckResourceAttr("azuredevops_group.test", "members.#", "2"),
+					resource.TestCheckResourceAttrSet("betterado_group.test", "scope"),
+					resource.TestCheckResourceAttrSet("betterado_group.test", "group_id"),
+					resource.TestCheckResourceAttr("betterado_group.test", "display_name", groupName),
+					resource.TestCheckResourceAttr("betterado_group.test", "members.#", "2"),
 				),
 			},
 			{
-				ResourceName:      "azuredevops_group.test",
+				ResourceName:      "betterado_group.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -138,13 +138,13 @@ func TestAccGroupResource_complete(t *testing.T) {
 				Config: hclGroupComplete(projectName, groupName),
 				Check: resource.ComposeTestCheckFunc(
 					checkGroupExists(groupName),
-					resource.TestCheckResourceAttrSet("azuredevops_group.test", "scope"),
-					resource.TestCheckResourceAttrSet("azuredevops_group.test", "group_id"),
-					resource.TestCheckResourceAttr("azuredevops_group.test", "display_name", groupName),
+					resource.TestCheckResourceAttrSet("betterado_group.test", "scope"),
+					resource.TestCheckResourceAttrSet("betterado_group.test", "group_id"),
+					resource.TestCheckResourceAttr("betterado_group.test", "display_name", groupName),
 				),
 			},
 			{
-				ResourceName:      "azuredevops_group.test",
+				ResourceName:      "betterado_group.test",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -154,7 +154,7 @@ func TestAccGroupResource_complete(t *testing.T) {
 
 func checkGroupExists(expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		varGroup, ok := s.RootModule().Resources["azuredevops_group.test"]
+		varGroup, ok := s.RootModule().Resources["betterado_group.test"]
 		if !ok {
 			return fmt.Errorf("Did not find a group resource in the TF state")
 		}
@@ -183,7 +183,7 @@ func checkGroupDestroyed(s *terraform.State) error {
 
 	// verify that every project referenced in the state does not exist in AzDO
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_group" {
+		if resource.Type != "betterado_group" {
 			continue
 		}
 
@@ -205,7 +205,7 @@ func checkGroupDestroyed(s *terraform.State) error {
 
 func hclGroupBasic(projectName, groupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -213,15 +213,15 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_group" "test" {
-  scope        = azuredevops_project.test.id
+resource "betterado_group" "test" {
+  scope        = betterado_project.test.id
   display_name = "%[2]s"
 }`, projectName, groupName)
 }
 
 func hclGroupComplete(projectName, groupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -229,30 +229,30 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-data "azuredevops_group" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test" {
+  project_id = betterado_project.test.id
   name       = "Readers"
 }
 
-data "azuredevops_group" "test2" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test2" {
+  project_id = betterado_project.test.id
   name       = "Contributors"
 }
 
-resource "azuredevops_group" "test" {
-  scope        = azuredevops_project.test.id
+resource "betterado_group" "test" {
+  scope        = betterado_project.test.id
   display_name = "%[2]s"
   description  = "managed by Terraform"
   members = [
-    data.azuredevops_group.test.descriptor,
-    data.azuredevops_group.test2.descriptor,
+    data.betterado_group.test.descriptor,
+    data.betterado_group.test2.descriptor,
   ]
 }`, projectName, groupName)
 }
 
 func hclGroupMembers(projectName, groupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -260,23 +260,23 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-data "azuredevops_group" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test" {
+  project_id = betterado_project.test.id
   name       = "Readers"
 }
 
-resource "azuredevops_group" "test" {
-  scope        = azuredevops_project.test.id
+resource "betterado_group" "test" {
+  scope        = betterado_project.test.id
   display_name = "%[2]s"
   members = [
-    data.azuredevops_group.test.descriptor,
+    data.betterado_group.test.descriptor,
   ]
 }`, projectName, groupName)
 }
 
 func hclGroupMembersUpdate(projectName, groupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -284,22 +284,22 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-data "azuredevops_group" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test" {
+  project_id = betterado_project.test.id
   name       = "Readers"
 }
 
-data "azuredevops_group" "test2" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "test2" {
+  project_id = betterado_project.test.id
   name       = "Contributors"
 }
 
-resource "azuredevops_group" "test" {
-  scope        = azuredevops_project.test.id
+resource "betterado_group" "test" {
+  scope        = betterado_project.test.id
   display_name = "%[2]s"
   members = [
-    data.azuredevops_group.test.descriptor,
-    data.azuredevops_group.test2.descriptor,
+    data.betterado_group.test.descriptor,
+    data.betterado_group.test2.descriptor,
   ]
 }`, projectName, groupName)
 }

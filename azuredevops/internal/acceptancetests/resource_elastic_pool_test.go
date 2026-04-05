@@ -10,13 +10,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/elastic"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccElasticPool_basic(t *testing.T) {
 	poolName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_elastic_pool.test"
+	tfNode := "betterado_elastic_pool.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -45,7 +45,7 @@ func TestAccElasticPool_basic(t *testing.T) {
 
 func TestAccElasticPool_update(t *testing.T) {
 	poolName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_elastic_pool.test"
+	tfNode := "betterado_elastic_pool.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -90,7 +90,7 @@ func TestAccElasticPool_update(t *testing.T) {
 
 func TestAccElasticPool_requiresImportErrorStep(t *testing.T) {
 	poolName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_elastic_pool.test"
+	tfNode := "betterado_elastic_pool.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
@@ -121,7 +121,7 @@ func checkElasticPoolDestroyed(s *terraform.State) error {
 	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
 
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_elastic_pool" {
+		if resource.Type != "betterado_elastic_pool" {
 			continue
 		}
 
@@ -144,7 +144,7 @@ func requiresElasticPoolImportError(resourceName string) *regexp.Regexp {
 
 func hclElasticPoolTemplate(name, spnId, spnSecret, tenantId, subId, subName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -152,8 +152,8 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-resource "azuredevops_serviceendpoint_azurerm" "test" {
-  project_id                             = azuredevops_project.test.id
+resource "betterado_serviceendpoint_azurerm" "test" {
+  project_id                             = betterado_project.test.id
   service_endpoint_name                  = "%[1]s"
   description                            = "Managed by Terraform"
   service_endpoint_authentication_scheme = "ServicePrincipal"
@@ -175,10 +175,10 @@ func hclElasticPoolBasic(name, spnId, spnSecret, tenantId, subId, subName, vmssI
 
 %[1]s
 
-resource "azuredevops_elastic_pool" "test" {
+resource "betterado_elastic_pool" "test" {
   name                   = "%[2]s"
-  service_endpoint_id    = azuredevops_serviceendpoint_azurerm.test.id
-  service_endpoint_scope = azuredevops_project.test.id
+  service_endpoint_id    = betterado_serviceendpoint_azurerm.test.id
+  service_endpoint_scope = betterado_project.test.id
   desired_idle           = 3
   max_capacity           = 3
   azure_resource_id      = "%[3]s"
@@ -191,11 +191,11 @@ func hclElasticPoolUpdate(name, spnId, spnSecret, tenantId, subId, subName, vmss
 
 %[1]s
 
-resource "azuredevops_elastic_pool" "test" {
+resource "betterado_elastic_pool" "test" {
   name = "%[2]s"
 
-  service_endpoint_id    = azuredevops_serviceendpoint_azurerm.test.id
-  service_endpoint_scope = azuredevops_project.test.id
+  service_endpoint_id    = betterado_serviceendpoint_azurerm.test.id
+  service_endpoint_scope = betterado_project.test.id
   desired_idle           = 3
   max_capacity           = 3
 
@@ -215,17 +215,17 @@ func hclElasticPoolResourceRequiresImport(name, spnId, spnSecret, tenantId, subI
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_elastic_pool" "import" {
-  name                   = azuredevops_elastic_pool.test.name
-  service_endpoint_id    = azuredevops_elastic_pool.test.service_endpoint_id
-  service_endpoint_scope = azuredevops_elastic_pool.test.service_endpoint_scope
-  desired_idle           = azuredevops_elastic_pool.test.desired_idle
-  max_capacity           = azuredevops_elastic_pool.test.max_capacity
-  recycle_after_each_use = azuredevops_elastic_pool.test.recycle_after_each_use
-  agent_interactive_ui   = azuredevops_elastic_pool.test.agent_interactive_ui
-  time_to_live_minutes   = azuredevops_elastic_pool.test.time_to_live_minutes
-  auto_provision         = azuredevops_elastic_pool.test.auto_provision
-  auto_update            = azuredevops_elastic_pool.test.auto_update
-  azure_resource_id      = azuredevops_elastic_pool.test.azure_resource_id
+resource "betterado_elastic_pool" "import" {
+  name                   = betterado_elastic_pool.test.name
+  service_endpoint_id    = betterado_elastic_pool.test.service_endpoint_id
+  service_endpoint_scope = betterado_elastic_pool.test.service_endpoint_scope
+  desired_idle           = betterado_elastic_pool.test.desired_idle
+  max_capacity           = betterado_elastic_pool.test.max_capacity
+  recycle_after_each_use = betterado_elastic_pool.test.recycle_after_each_use
+  agent_interactive_ui   = betterado_elastic_pool.test.agent_interactive_ui
+  time_to_live_minutes   = betterado_elastic_pool.test.time_to_live_minutes
+  auto_provision         = betterado_elastic_pool.test.auto_provision
+  auto_update            = betterado_elastic_pool.test.auto_update
+  azure_resource_id      = betterado_elastic_pool.test.azure_resource_id
 }`, hclElasticPoolBasic(name, spnId, spnSecret, tenantId, subId, subName, vmssId))
 }

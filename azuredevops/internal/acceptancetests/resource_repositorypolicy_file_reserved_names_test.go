@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccRepositoryPolicyReservedNames(t *testing.T) {
@@ -22,7 +22,7 @@ func TestAccRepositoryPolicyReservedNames(t *testing.T) {
 }
 
 func testAccRepoPolicyReservedNamesBasic(t *testing.T) {
-	reservedNameTfNode := "azuredevops_repository_policy_reserved_names.test"
+	reservedNameTfNode := "betterado_repository_policy_reserved_names.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -46,7 +46,7 @@ func testAccRepoPolicyReservedNamesBasic(t *testing.T) {
 }
 
 func testAccRepoPolicyReservedNamesUpdate(t *testing.T) {
-	reservedNameTfNode := "azuredevops_repository_policy_reserved_names.test"
+	reservedNameTfNode := "betterado_repository_policy_reserved_names.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -75,7 +75,7 @@ func testAccRepoPolicyReservedNamesUpdate(t *testing.T) {
 }
 
 func testAccProjectPolicyReservedNamesBasic(t *testing.T) {
-	reservedNameTfNode := "azuredevops_repository_policy_reserved_names.test"
+	reservedNameTfNode := "betterado_repository_policy_reserved_names.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -99,7 +99,7 @@ func testAccProjectPolicyReservedNamesBasic(t *testing.T) {
 }
 
 func testAccProjectPolicyReservedNamesUpdate(t *testing.T) {
-	reservedNameTfNode := "azuredevops_repository_policy_reserved_names.test"
+	reservedNameTfNode := "betterado_repository_policy_reserved_names.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -129,7 +129,7 @@ func testAccProjectPolicyReservedNamesUpdate(t *testing.T) {
 
 func hclPolicyReservedNamesResourceTemplate(projectName string, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%s"
   description        = "Test Project Description"
   visibility         = "private"
@@ -137,8 +137,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%s"
   initialization {
     init_type = "Clean"
@@ -152,11 +152,11 @@ func hclRepoPolicyReservedNamesBasic(projectName string, repoName string) string
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_reserved_names" "test" {
-  project_id     = azuredevops_project.test.id
+resource "betterado_repository_policy_reserved_names" "test" {
+  project_id     = betterado_project.test.id
   enabled        = true
   blocking       = true
-  repository_ids = [azuredevops_git_repository.test.id]
+  repository_ids = [betterado_git_repository.test.id]
 }`, projectAndRepo)
 }
 
@@ -165,11 +165,11 @@ func hclRepoPolicyReservedNamesUpdate(projectName string, repoName string) strin
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_reserved_names" "test" {
-  project_id     = azuredevops_project.test.id
+resource "betterado_repository_policy_reserved_names" "test" {
+  project_id     = betterado_project.test.id
   enabled        = false
   blocking       = true
-  repository_ids = [azuredevops_git_repository.test.id]
+  repository_ids = [betterado_git_repository.test.id]
 }`, projectAndRepo)
 }
 
@@ -178,11 +178,11 @@ func hclProjectPolicyReservedNamesBasic(projectName string, repoName string) str
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_reserved_names" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_repository_policy_reserved_names" "test" {
+  project_id = betterado_project.test.id
   enabled    = true
   blocking   = true
-  depends_on = [azuredevops_git_repository.test]
+  depends_on = [betterado_git_repository.test]
 }`, projectAndRepo)
 }
 
@@ -191,10 +191,10 @@ func hclProjectPolicyReservedNamesUpdate(projectName string, repoName string) st
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_reserved_names" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_repository_policy_reserved_names" "test" {
+  project_id = betterado_project.test.id
   enabled    = false
   blocking   = true
-  depends_on = [azuredevops_git_repository.test]
+  depends_on = [betterado_git_repository.test]
 }`, projectAndRepo)
 }

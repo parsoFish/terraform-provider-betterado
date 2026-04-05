@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccRepositoryPolicyPathLength(t *testing.T) {
@@ -22,7 +22,7 @@ func TestAccRepositoryPolicyPathLength(t *testing.T) {
 }
 
 func testAccRepoPolicyPathLengthBasic(t *testing.T) {
-	pathLengthTfNode := "azuredevops_repository_policy_max_path_length.test"
+	pathLengthTfNode := "betterado_repository_policy_max_path_length.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -47,7 +47,7 @@ func testAccRepoPolicyPathLengthBasic(t *testing.T) {
 }
 
 func testAccRepoPolicyPathLengthUpdate(t *testing.T) {
-	pathLengthTfNode := "azuredevops_repository_policy_max_path_length.test"
+	pathLengthTfNode := "betterado_repository_policy_max_path_length.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -77,7 +77,7 @@ func testAccRepoPolicyPathLengthUpdate(t *testing.T) {
 }
 
 func testAccProjectPolicyPathLengthBasic(t *testing.T) {
-	pathLengthTfNode := "azuredevops_repository_policy_max_path_length.test"
+	pathLengthTfNode := "betterado_repository_policy_max_path_length.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -102,7 +102,7 @@ func testAccProjectPolicyPathLengthBasic(t *testing.T) {
 }
 
 func testAccProjectPolicyPathLengthUpdate(t *testing.T) {
-	pathLengthTfNode := "azuredevops_repository_policy_max_path_length.test"
+	pathLengthTfNode := "betterado_repository_policy_max_path_length.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -133,7 +133,7 @@ func testAccProjectPolicyPathLengthUpdate(t *testing.T) {
 
 func hclPolicyPathLengthResourceTemplate(projectName string, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%s"
   description        = "Test Project Description"
   visibility         = "private"
@@ -141,8 +141,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%s"
   initialization {
     init_type = "Clean"
@@ -156,12 +156,12 @@ func hclRepoPolicyPathLengthBasic(projectName string, repoName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_max_path_length" "test" {
-  project_id      = azuredevops_project.test.id
+resource "betterado_repository_policy_max_path_length" "test" {
+  project_id      = betterado_project.test.id
   enabled         = true
   blocking        = true
   max_path_length = 500
-  repository_ids  = [azuredevops_git_repository.test.id]
+  repository_ids  = [betterado_git_repository.test.id]
 }`, projectAndRepo)
 }
 
@@ -170,12 +170,12 @@ func hclRepoPolicyPathLengthUpdate(projectName string, repoName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_max_path_length" "test" {
-  project_id      = azuredevops_project.test.id
+resource "betterado_repository_policy_max_path_length" "test" {
+  project_id      = betterado_project.test.id
   enabled         = true
   blocking        = true
   max_path_length = 1000
-  repository_ids  = [azuredevops_git_repository.test.id]
+  repository_ids  = [betterado_git_repository.test.id]
 }`, projectAndRepo)
 }
 
@@ -184,12 +184,12 @@ func hclProjectPolicyPathLengthBasic(projectName string, repoName string) string
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_max_path_length" "test" {
-  project_id      = azuredevops_project.test.id
+resource "betterado_repository_policy_max_path_length" "test" {
+  project_id      = betterado_project.test.id
   enabled         = true
   blocking        = true
   max_path_length = 500
-  depends_on      = [azuredevops_git_repository.test]
+  depends_on      = [betterado_git_repository.test]
 }`, projectAndRepo)
 }
 
@@ -198,11 +198,11 @@ func hclProjectPolicyPathLengthUpdate(projectName string, repoName string) strin
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_max_path_length" "test" {
-  project_id      = azuredevops_project.test.id
+resource "betterado_repository_policy_max_path_length" "test" {
+  project_id      = betterado_project.test.id
   enabled         = true
   blocking        = true
   max_path_length = 1000
-  depends_on      = [azuredevops_git_repository.test]
+  depends_on      = [betterado_git_repository.test]
 }`, projectAndRepo)
 }

@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/datahelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/datahelper"
 )
 
 func TestAccVariableGroupPermissions_SetPermissions(t *testing.T) {
@@ -20,7 +20,7 @@ func TestAccVariableGroupPermissions_SetPermissions(t *testing.T) {
 		"Use":         "allow",
 		"Owner":       "allow",
 	})
-	tfNode := "azuredevops_variable_group_permissions.permissions"
+	tfNode := "betterado_variable_group_permissions.permissions"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -66,7 +66,7 @@ func TestAccVariableGroupPermissions_UpdatePermissions(t *testing.T) {
 		"Use":         "notset",
 		"Owner":       "notset",
 	})
-	tfNode := "azuredevops_variable_group_permissions.permissions"
+	tfNode := "betterado_variable_group_permissions.permissions"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -115,8 +115,8 @@ func hclVariableGroupPermissions(projectName string, variableGroupName string, p
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_variable_group" "example" {
-  project_id   = azuredevops_project.project.id
+resource "betterado_variable_group" "example" {
+  project_id   = betterado_project.project.id
   name         = "%s"
   description  = "Test Description"
   allow_access = true
@@ -127,15 +127,15 @@ resource "azuredevops_variable_group" "example" {
   }
 }
 
-data "azuredevops_group" "tf-project-readers" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "tf-project-readers" {
+  project_id = betterado_project.project.id
   name       = "Readers"
 }
 
-resource "azuredevops_variable_group_permissions" "permissions" {
-  project_id        = azuredevops_project.project.id
-  variable_group_id = azuredevops_variable_group.example.id
-  principal         = data.azuredevops_group.tf-project-readers.id
+resource "betterado_variable_group_permissions" "permissions" {
+  project_id        = betterado_project.project.id
+  variable_group_id = betterado_variable_group.example.id
+  principal         = data.betterado_group.tf-project-readers.id
   permissions = {
 		%s
   }

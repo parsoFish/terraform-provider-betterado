@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointGcpTerraform_Basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_gcp_terraform"
+	resourceType := "betterado_serviceendpoint_gcp_terraform"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -43,7 +43,7 @@ func TestAccServiceEndpointGcpTerraform_Complete(t *testing.T) {
 	tokenUri := "tokenUri"
 	projectId := "projectId"
 
-	resourceType := "azuredevops_serviceendpoint_gcp_terraform"
+	resourceType := "betterado_serviceendpoint_gcp_terraform"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -78,7 +78,7 @@ func TestAccServiceEndpointGcpTerraform_update(t *testing.T) {
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 	tokenUri := "tokenUri"
 
-	resourceType := "azuredevops_serviceendpoint_gcp_terraform"
+	resourceType := "betterado_serviceendpoint_gcp_terraform"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -110,7 +110,7 @@ func TestAccServiceEndpointGcpTerraform_requiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_gcp_terraform"
+	resourceType := "betterado_serviceendpoint_gcp_terraform"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -139,8 +139,8 @@ func hclSvcEndpointGcpTerraformResource(projectName string, serviceEndpointName 
 
 func hclSvcEndpointGcpTerraformResourceUpdate(projectName string, serviceEndpointName string, description string, tokenUri string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_gcp_terraform" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_gcp_terraform" "test" {
+  project_id            = betterado_project.project.id
   private_key           = "secretkey"
   token_uri             = "%s"
   service_endpoint_name = "%s"
@@ -154,8 +154,8 @@ resource "azuredevops_serviceendpoint_gcp_terraform" "test" {
 
 func hclSvcEndpointGcpTerraformResourceComplete(projectName string, serviceEndpointName string, description string, clientEmail string, scope string, tokenUri string, projectId string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_gcp_terraform" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_gcp_terraform" "test" {
+  project_id            = betterado_project.project.id
   private_key           = "secretkey"
   token_uri             = "%s"
   service_endpoint_name = "%s"
@@ -174,13 +174,13 @@ func hclSvcEndpointGcpTerraformResourceRequiresImport(projectName string, servic
 	template := hclSvcEndpointGcpTerraformResource(projectName, serviceEndpointName)
 	return fmt.Sprintf(`
 	%s
-resource "azuredevops_serviceendpoint_gcp_terraform" "import" {
-  project_id            = azuredevops_serviceendpoint_gcp_terraform.test.project_id
+resource "betterado_serviceendpoint_gcp_terraform" "import" {
+  project_id            = betterado_serviceendpoint_gcp_terraform.test.project_id
   private_key           = "secretkey"
-  service_endpoint_name = azuredevops_serviceendpoint_gcp_terraform.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_gcp_terraform.test.description
-  gcp_project_id        = azuredevops_serviceendpoint_gcp_terraform.test.gcp_project_id
-  token_uri             = azuredevops_serviceendpoint_gcp_terraform.test.token_uri
+  service_endpoint_name = betterado_serviceendpoint_gcp_terraform.test.service_endpoint_name
+  description           = betterado_serviceendpoint_gcp_terraform.test.description
+  gcp_project_id        = betterado_serviceendpoint_gcp_terraform.test.gcp_project_id
+  token_uri             = betterado_serviceendpoint_gcp_terraform.test.token_uri
 }
 	`, template)
 }

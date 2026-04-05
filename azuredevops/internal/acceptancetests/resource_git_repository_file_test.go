@@ -11,14 +11,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccGitRepoFile_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
-	tfRepoFileNode := "azuredevops_git_repository_file.test"
+	tfRepoFileNode := "betterado_git_repository_file.test"
 
 	branch := "refs/heads/master"
 	file := "foo.txt"
@@ -51,7 +51,7 @@ func TestAccGitRepoFile_basic(t *testing.T) {
 func TestAccGitRepoFile_complete(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
-	tfRepoFileNode := "azuredevops_git_repository_file.test"
+	tfRepoFileNode := "betterado_git_repository_file.test"
 
 	branch := "refs/heads/master"
 	file := "foo.txt"
@@ -84,7 +84,7 @@ func TestAccGitRepoFile_complete(t *testing.T) {
 func TestAccGitRepoFile_authorEmailPolicy(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
-	tfRepoFileNode := "azuredevops_git_repository_file.test"
+	tfRepoFileNode := "betterado_git_repository_file.test"
 
 	branch := "refs/heads/master"
 	file := "foo.txt"
@@ -117,7 +117,7 @@ func TestAccGitRepoFile_authorEmailPolicy(t *testing.T) {
 func TestAccGitRepoFile_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
-	tfRepoFileNode := "azuredevops_git_repository_file.test"
+	tfRepoFileNode := "betterado_git_repository_file.test"
 
 	branch := "refs/heads/master"
 	file := "foo.txt"
@@ -200,7 +200,7 @@ func checkGitRepoFileNotExists(fileName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
 
-		repo, ok := s.RootModule().Resources["azuredevops_git_repository.test"]
+		repo, ok := s.RootModule().Resources["betterado_git_repository.test"]
 		if !ok {
 			return fmt.Errorf("Did not find a repo definition in the TF state")
 		}
@@ -222,7 +222,7 @@ func checkGitRepoFileContent(expectedContent string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
 
-		gitFile, ok := s.RootModule().Resources["azuredevops_git_repository_file.test"]
+		gitFile, ok := s.RootModule().Resources["betterado_git_repository_file.test"]
 		if !ok {
 			return fmt.Errorf("Did not find a repo definition in the TF state")
 		}
@@ -256,7 +256,7 @@ func checkGitRepoFileContent(expectedContent string) resource.TestCheckFunc {
 
 func hclGitRepositoryFileBasic(name, repoName, branch, file, content string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "description"
   visibility         = "private"
@@ -264,16 +264,16 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
 
-resource "azuredevops_git_repository_file" "test" {
-  repository_id = azuredevops_git_repository.test.id
+resource "betterado_git_repository_file" "test" {
+  repository_id = betterado_git_repository.test.id
   branch        = "%[3]s"
   file          = "%[4]s"
   content       = "%[5]s"
@@ -283,7 +283,7 @@ resource "azuredevops_git_repository_file" "test" {
 
 func hclGitRepositoryFileComplete(name, repoName, branch, file, content string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "description"
   visibility         = "private"
@@ -291,16 +291,16 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
 
-resource "azuredevops_git_repository_file" "test" {
-  repository_id   = azuredevops_git_repository.test.id
+resource "betterado_git_repository_file" "test" {
+  repository_id   = betterado_git_repository.test.id
   branch          = "%[3]s"
   file            = "%[4]s"
   content         = "%[5]s"
@@ -314,7 +314,7 @@ resource "azuredevops_git_repository_file" "test" {
 
 func hclGitRepositoryFileAuthorEmailPolicy(name, repoName, branch, file, content string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "description"
   visibility         = "private"
@@ -322,24 +322,24 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
 
-resource "azuredevops_repository_policy_author_email_pattern" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_repository_policy_author_email_pattern" "test" {
+  project_id            = betterado_project.test.id
   enabled               = true
   blocking              = true
   author_email_patterns = ["auhtor@test.com"]
-  repository_ids        = [azuredevops_git_repository.test.id]
+  repository_ids        = [betterado_git_repository.test.id]
 }
 
-resource "azuredevops_git_repository_file" "test" {
-  repository_id   = azuredevops_git_repository.test.id
+resource "betterado_git_repository_file" "test" {
+  repository_id   = betterado_git_repository.test.id
   branch          = "%[3]s"
   file            = "%[4]s"
   content         = "%[5]s"
@@ -347,14 +347,14 @@ resource "azuredevops_git_repository_file" "test" {
   author_email    = "auhtor@test.com"
   committer_name  = "comitter"
   committer_email = "committer@test.com"
-  depends_on      = [azuredevops_repository_policy_author_email_pattern.test]
+  depends_on      = [betterado_repository_policy_author_email_pattern.test]
 }
 `, name, repoName, branch, file, content)
 }
 
 func hclGitRepositoryFileWithoutFile(name, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "description"
   visibility         = "private"
@@ -362,8 +362,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"

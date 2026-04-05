@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccUser_dataSource(t *testing.T) {
 	userName := "foo@email.com"
-	tfNode := "data.azuredevops_user.test"
+	tfNode := "data.betterado_user.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -33,13 +33,13 @@ func TestAccUser_dataSource(t *testing.T) {
 
 func hclDataUserBasic(uname string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_user_entitlement" "test" {
+resource "betterado_user_entitlement" "test" {
   principal_name       = "%[1]s"
   account_license_type = "basic"
 }
 
-data "azuredevops_user" "test" {
-  descriptor = azuredevops_user_entitlement.test.descriptor
-  depends_on = [azuredevops_user_entitlement.test]
+data "betterado_user" "test" {
+  descriptor = betterado_user_entitlement.test.descriptor
+  depends_on = [betterado_user_entitlement.test]
 }`, uname)
 }

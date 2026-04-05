@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccRepositoryPolicyFilePathPatterns(t *testing.T) {
@@ -22,7 +22,7 @@ func TestAccRepositoryPolicyFilePathPatterns(t *testing.T) {
 }
 
 func testAccRepositoryPolicyFilePathPatternsRepoPolicyBasic(t *testing.T) {
-	authorEmailTfNode := "azuredevops_repository_policy_file_path_pattern.test"
+	authorEmailTfNode := "betterado_repository_policy_file_path_pattern.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -47,7 +47,7 @@ func testAccRepositoryPolicyFilePathPatternsRepoPolicyBasic(t *testing.T) {
 }
 
 func testAccRepositoryPolicyFilePathPatternsRepoPolicyUpdate(t *testing.T) {
-	authorEmailTfNode := "azuredevops_repository_policy_file_path_pattern.test"
+	authorEmailTfNode := "betterado_repository_policy_file_path_pattern.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -78,7 +78,7 @@ func testAccRepositoryPolicyFilePathPatternsRepoPolicyUpdate(t *testing.T) {
 }
 
 func testAccRepositoryPolicyFilePathPatternsProjectPolicyBasic(t *testing.T) {
-	authorEmailTfNode := "azuredevops_repository_policy_file_path_pattern.test"
+	authorEmailTfNode := "betterado_repository_policy_file_path_pattern.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -103,7 +103,7 @@ func testAccRepositoryPolicyFilePathPatternsProjectPolicyBasic(t *testing.T) {
 }
 
 func testAccRepositoryPolicyFilePathPatternsProjectPolicyUpdate(t *testing.T) {
-	authorEmailTfNode := "azuredevops_repository_policy_file_path_pattern.test"
+	authorEmailTfNode := "betterado_repository_policy_file_path_pattern.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -135,7 +135,7 @@ func testAccRepositoryPolicyFilePathPatternsProjectPolicyUpdate(t *testing.T) {
 
 func hclRepoPolicyFilePathPatternsResourceTemplate(projectName string, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%s"
   description        = "Test Project Description"
   visibility         = "private"
@@ -143,8 +143,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%s"
   initialization {
     init_type = "Clean"
@@ -158,12 +158,12 @@ func hclRepoPolicyFilePathPatternsResourceRepoPolicyBasic(projectName string, re
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_file_path_pattern" "test" {
-  project_id        = azuredevops_project.test.id
+resource "betterado_repository_policy_file_path_pattern" "test" {
+  project_id        = betterado_project.test.id
   enabled           = true
   blocking          = true
   filepath_patterns = ["*.go"]
-  repository_ids    = [azuredevops_git_repository.test.id]
+  repository_ids    = [betterado_git_repository.test.id]
 }`, projectAndRepo)
 }
 
@@ -172,12 +172,12 @@ func hclRepoPolicyFilePathPatternsResourceRepoPolicyUpdate(projectName string, r
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_file_path_pattern" "test" {
-  project_id        = azuredevops_project.test.id
+resource "betterado_repository_policy_file_path_pattern" "test" {
+  project_id        = betterado_project.test.id
   enabled           = true
   blocking          = true
   filepath_patterns = ["*.go", "/home/test/*.ts"]
-  repository_ids    = [azuredevops_git_repository.test.id]
+  repository_ids    = [betterado_git_repository.test.id]
 }`, projectAndRepo)
 }
 
@@ -186,12 +186,12 @@ func hclRepoPolicyFilePathPatternsResourceProjectPolicyBasic(projectName string,
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_file_path_pattern" "test" {
-  project_id        = azuredevops_project.test.id
+resource "betterado_repository_policy_file_path_pattern" "test" {
+  project_id        = betterado_project.test.id
   enabled           = true
   blocking          = true
   filepath_patterns = ["*.go"]
-  depends_on        = [azuredevops_git_repository.test]
+  depends_on        = [betterado_git_repository.test]
 }`, projectAndRepo)
 }
 
@@ -200,11 +200,11 @@ func hclRepoPolicyFilePathPatternsResourceProjectPolicyUpdate(projectName string
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_file_path_pattern" "test" {
-  project_id        = azuredevops_project.test.id
+resource "betterado_repository_policy_file_path_pattern" "test" {
+  project_id        = betterado_project.test.id
   enabled           = true
   blocking          = true
   filepath_patterns = ["*.go", "/home/test/*.ts"]
-  depends_on        = [azuredevops_git_repository.test]
+  depends_on        = [betterado_git_repository.test]
 }`, projectAndRepo)
 }

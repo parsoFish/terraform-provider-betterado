@@ -8,14 +8,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/feed"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccFeedPermission_basic(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_feed_permission.test"
+	tfNode := "betterado_feed_permission.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -36,7 +36,7 @@ func TestAccFeedPermission_basic(t *testing.T) {
 func TestAccFeedPermission_importErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_feed_permission.test"
+	tfNode := "betterado_feed_permission.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -67,7 +67,7 @@ func feedPermissionRequiresImportError() *regexp.Regexp {
 func checkFeedPermissionDestroyed(s *terraform.State) error {
 	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
 	for _, res := range s.RootModule().Resources {
-		if res.Type != "azuredevops_feed_permission" {
+		if res.Type != "betterado_feed_permission" {
 			continue
 		}
 		id := res.Primary.Attributes["feed_id"]
@@ -88,9 +88,9 @@ func checkFeedPermissionDestroyed(s *terraform.State) error {
 
 func CheckFeedPermissionExist() resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		res, ok := s.RootModule().Resources["azuredevops_feed_permission.test"]
+		res, ok := s.RootModule().Resources["betterado_feed_permission.test"]
 		if !ok {
-			return fmt.Errorf("Did not find a `azuredevops_feed_permission` in the TF state")
+			return fmt.Errorf("Did not find a `betterado_feed_permission` in the TF state")
 		}
 
 		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
@@ -111,7 +111,7 @@ func CheckFeedPermissionExist() resource.TestCheckFunc {
 
 func hclFeedPermissionBasic(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -119,21 +119,21 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_feed" "test" {
+resource "betterado_feed" "test" {
   name       = "%[1]s"
-  project_id = azuredevops_project.test.id
+  project_id = betterado_project.test.id
 }
 
-resource "azuredevops_group" "test" {
-  scope        = azuredevops_project.test.id
+resource "betterado_group" "test" {
+  scope        = betterado_project.test.id
   display_name = "%[1]s"
 }
 
-resource "azuredevops_feed_permission" "test" {
-  feed_id             = azuredevops_feed.test.id
-  project_id          = azuredevops_project.test.id
+resource "betterado_feed_permission" "test" {
+  feed_id             = betterado_feed.test.id
+  project_id          = betterado_project.test.id
   role                = "reader"
-  identity_descriptor = azuredevops_group.test.descriptor
+  identity_descriptor = betterado_group.test.descriptor
 }
 `, name)
 }
@@ -142,11 +142,11 @@ func hclFeedPermissionImport(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_feed_permission" "import" {
-  feed_id             = azuredevops_feed_permission.test.feed_id
-  project_id          = azuredevops_feed_permission.test.project_id
+resource "betterado_feed_permission" "import" {
+  feed_id             = betterado_feed_permission.test.feed_id
+  project_id          = betterado_feed_permission.test.project_id
   role                = "reader"
-  identity_descriptor = azuredevops_feed_permission.test.identity_descriptor
+  identity_descriptor = betterado_feed_permission.test.identity_descriptor
 }
 `, hclFeedPermissionBasic(name))
 }

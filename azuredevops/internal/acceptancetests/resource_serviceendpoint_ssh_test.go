@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointSSH_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_ssh"
+	resourceType := "betterado_serviceendpoint_ssh"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -36,7 +36,7 @@ func TestAccServiceEndpointSSH_complete(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_ssh"
+	resourceType := "betterado_serviceendpoint_ssh"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -68,7 +68,7 @@ func TestAccServiceEndpointSSH_update(t *testing.T) {
 	description := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_ssh"
+	resourceType := "betterado_serviceendpoint_ssh"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -101,7 +101,7 @@ func TestAccServiceEndpointSSH_update(t *testing.T) {
 func TestAccServiceEndpointSSH_RequiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_ssh"
+	resourceType := "betterado_serviceendpoint_ssh"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -125,7 +125,7 @@ func TestAccServiceEndpointSSH_RequiresImportErrorStep(t *testing.T) {
 
 func hclSvcEndpointSSHResourceBasic(projectName string, serviceEndpointName string, host string, username string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -133,8 +133,8 @@ resource "azuredevops_project" "project" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_ssh" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_ssh" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%[2]s"
   host                  = "%[3]s"
   username              = "%[4]s"
@@ -144,7 +144,7 @@ resource "azuredevops_serviceendpoint_ssh" "test" {
 
 func hclSvcEndpointSSHResourceComplete(projectName string, serviceEndpointName string, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -152,8 +152,8 @@ resource "azuredevops_project" "project" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_ssh" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_ssh" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%[2]s"
   host                  = "1.2.3.4"
   port                  = 22
@@ -167,7 +167,7 @@ resource "azuredevops_serviceendpoint_ssh" "test" {
 
 func hclSvcEndpointSSHResourceUpdate(projectName string, serviceEndpointName string, host string, port int, username string, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -175,8 +175,8 @@ resource "azuredevops_project" "project" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_ssh" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_ssh" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%[2]s"
   host                  = "%[3]s"
   port                  = "%[4]d"
@@ -193,12 +193,12 @@ func hclSvcEndpointSSHResourceRequiresImport(projectName string, serviceEndpoint
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_ssh" "import" {
-  project_id            = azuredevops_serviceendpoint_ssh.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_ssh.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_ssh.test.description
-  host                  = azuredevops_serviceendpoint_ssh.test.host
-  username              = azuredevops_serviceendpoint_ssh.test.username
+resource "betterado_serviceendpoint_ssh" "import" {
+  project_id            = betterado_serviceendpoint_ssh.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_ssh.test.service_endpoint_name
+  description           = betterado_serviceendpoint_ssh.test.description
+  host                  = betterado_serviceendpoint_ssh.test.host
+  username              = betterado_serviceendpoint_ssh.test.username
 }
 `, template)
 }

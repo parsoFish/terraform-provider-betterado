@@ -10,16 +10,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/memberentitlementmanagement"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 )
 
 func TestAccUserEntitlement_Create(t *testing.T) {
 	if os.Getenv("AZDO_TEST_AAD_USER_EMAIL") == "" {
 		t.Skip("Skip test due to `AZDO_TEST_AAD_USER_EMAIL` not set")
 	}
-	tfNode := "azuredevops_user_entitlement.user"
+	tfNode := "betterado_user_entitlement.user"
 	principalName := os.Getenv("AZDO_TEST_AAD_USER_EMAIL")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_USER_EMAIL"}) },
@@ -41,7 +41,7 @@ func TestAccUserEntitlement_Create(t *testing.T) {
 // or not the userEntitlement (1) exists in the state and (2) exist in AzDO and (3) has the correct name
 func checkUserEntitlementExists(expectedPrincipalName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resource, ok := s.RootModule().Resources["azuredevops_user_entitlement.user"]
+		resource, ok := s.RootModule().Resources["betterado_user_entitlement.user"]
 		if !ok {
 			return fmt.Errorf("Did not find a UserEntitlement in the TF state")
 		}
@@ -74,7 +74,7 @@ func checkUserEntitlementDestroyed(s *terraform.State) error {
 
 	// verify that every users referenced in the state does not exist in AzDO
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_user_entitlement" {
+		if resource.Type != "betterado_user_entitlement" {
 			continue
 		}
 
@@ -103,7 +103,7 @@ func checkUserEntitlementDestroyed(s *terraform.State) error {
 
 func hclUserEntitlementResource(principalName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_user_entitlement" "user" {
+resource "betterado_user_entitlement" "user" {
   principal_name       = "%s"
   account_license_type = "express"
 }`, principalName)

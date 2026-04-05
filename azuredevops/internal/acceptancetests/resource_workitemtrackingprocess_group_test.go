@@ -6,13 +6,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWorkitemtrackingprocessGroup_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_group.test"
+	tfNode := "betterado_workitemtrackingprocess_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -45,7 +45,7 @@ func TestAccWorkitemtrackingprocessGroup_Basic(t *testing.T) {
 func TestAccWorkitemtrackingprocessGroup_Update(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_group.test"
+	tfNode := "betterado_workitemtrackingprocess_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -97,7 +97,7 @@ func TestAccWorkitemtrackingprocessGroup_Update(t *testing.T) {
 func TestAccWorkitemtrackingprocessGroup_Move(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_group.test"
+	tfNode := "betterado_workitemtrackingprocess_group.test"
 
 	var originalSectionId string
 
@@ -162,7 +162,7 @@ func TestAccWorkitemtrackingprocessGroup_Move(t *testing.T) {
 func TestAccWorkitemtrackingprocessGroup_WithMultipleControlTypes(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_group.test"
+	tfNode := "betterado_workitemtrackingprocess_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -251,11 +251,11 @@ func basicGroup(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_group" "test" {
-  process_id                    = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_reference_name = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
-  page_id                       = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].id
-  section_id                    = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].id
+resource "betterado_workitemtrackingprocess_group" "test" {
+  process_id                    = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_reference_name = betterado_workitemtrackingprocess_workitemtype.test.reference_name
+  page_id                       = betterado_workitemtrackingprocess_workitemtype.test.pages[0].id
+  section_id                    = betterado_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].id
   label                         = "Test Group"
 }
 `, workItemType)
@@ -266,11 +266,11 @@ func updatedGroup(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_group" "test" {
-  process_id                    = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_reference_name = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
-  page_id                       = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].id
-  section_id                    = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].id
+resource "betterado_workitemtrackingprocess_group" "test" {
+  process_id                    = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_reference_name = betterado_workitemtrackingprocess_workitemtype.test.reference_name
+  page_id                       = betterado_workitemtrackingprocess_workitemtype.test.pages[0].id
+  section_id                    = betterado_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].id
   label                         = "Updated Group"
   visible                       = false
 }
@@ -282,11 +282,11 @@ func movedGroup(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_group" "test" {
-  process_id                    = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_reference_name = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
-  page_id                       = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].id
-  section_id                    = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].sections[1].id
+resource "betterado_workitemtrackingprocess_group" "test" {
+  process_id                    = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_reference_name = betterado_workitemtrackingprocess_workitemtype.test.reference_name
+  page_id                       = betterado_workitemtrackingprocess_workitemtype.test.pages[0].id
+  section_id                    = betterado_workitemtrackingprocess_workitemtype.test.pages[0].sections[1].id
   label                         = "Test Group"
 }
 `, workItemType)
@@ -297,17 +297,17 @@ func groupWithMultipleControlTypes(workItemTypeName string, processName string) 
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_extension" "test" {
+resource "betterado_extension" "test" {
   publisher_id = "ms-devlabs"
   extension_id = "vsts-extensions-multivalue-control"
 }
 
-resource "azuredevops_workitemtrackingprocess_group" "test" {
-  depends_on                    = [azuredevops_extension.test]
-  process_id                    = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_reference_name = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
-  page_id                       = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].id
-  section_id                    = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].id
+resource "betterado_workitemtrackingprocess_group" "test" {
+  depends_on                    = [betterado_extension.test]
+  process_id                    = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_reference_name = betterado_workitemtrackingprocess_workitemtype.test.reference_name
+  page_id                       = betterado_workitemtrackingprocess_workitemtype.test.pages[0].id
+  section_id                    = betterado_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].id
   label                         = "All Control Types Group"
 
   # HtmlFieldControl - for rich text HTML fields

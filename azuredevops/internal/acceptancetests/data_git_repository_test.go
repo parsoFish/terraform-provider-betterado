@@ -6,12 +6,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccGitRepository_DataSource(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	tfNode := "data.azuredevops_git_repository.repository"
+	tfNode := "data.betterado_git_repository.repository"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testutils.PreCheck(t, nil) },
 		Providers:                 testutils.GetProviders(),
@@ -46,12 +46,12 @@ func TestAccGitRepository_DataSource_notExist(t *testing.T) {
 
 func hclDataRepository(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%[1]s"
 }
 
-data "azuredevops_git_repository" "repository" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "repository" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 `, projectName)
@@ -59,12 +59,12 @@ data "azuredevops_git_repository" "repository" {
 
 func hclDataRepositoryNotExist(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%[1]s"
 }
 
-data "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "notExist"
 }
 `, name)

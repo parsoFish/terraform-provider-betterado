@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/datahelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/datahelper"
 )
 
 func TestAccServiceEndpointPermissions_SetPermissions(t *testing.T) {
@@ -28,8 +28,8 @@ func TestAccServiceEndpointPermissions_SetPermissions(t *testing.T) {
 			"ViewEndpoint":      "allow",
 		},
 	})
-	tfNodeRoot := "azuredevops_serviceendpoint_permissions.root-permissions"
-	tfNodeServiceEndpoint := "azuredevops_serviceendpoint_permissions.serviceendpoint-permissions"
+	tfNodeRoot := "betterado_serviceendpoint_permissions.root-permissions"
+	tfNodeServiceEndpoint := "betterado_serviceendpoint_permissions.serviceendpoint-permissions"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -99,8 +99,8 @@ func TestAccServiceEndpointPermissions_UpdatePermissions(t *testing.T) {
 			"ViewEndpoint":      "allow",
 		},
 	})
-	tfNodeRoot := "azuredevops_serviceendpoint_permissions.root-permissions"
-	tfNodeServiceEndpoint := "azuredevops_serviceendpoint_permissions.serviceendpoint-permissions"
+	tfNodeRoot := "betterado_serviceendpoint_permissions.root-permissions"
+	tfNodeServiceEndpoint := "betterado_serviceendpoint_permissions.serviceendpoint-permissions"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -166,31 +166,31 @@ func hclServiceEndpointPermissions(projectName string, serviceEndpointName strin
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_dockerregistry" "serviceendpoint" {
+resource "betterado_serviceendpoint_dockerregistry" "serviceendpoint" {
   docker_email          = "test@email.com"
   docker_username       = "testuser"
   docker_password       = "secret"
-  project_id            = azuredevops_project.project.id
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
 }
 
-data "azuredevops_group" "tf-project-readers" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "tf-project-readers" {
+  project_id = betterado_project.project.id
   name       = "Readers"
 }
 
-resource "azuredevops_serviceendpoint_permissions" "root-permissions" {
-  project_id = azuredevops_project.project.id
-  principal  = data.azuredevops_group.tf-project-readers.id
+resource "betterado_serviceendpoint_permissions" "root-permissions" {
+  project_id = betterado_project.project.id
+  principal  = data.betterado_group.tf-project-readers.id
   permissions = {
 		%s
   }
 }
 
-resource "azuredevops_serviceendpoint_permissions" "serviceendpoint-permissions" {
-  project_id         = azuredevops_project.project.id
-  principal          = data.azuredevops_group.tf-project-readers.id
-  serviceendpoint_id = azuredevops_serviceendpoint_dockerregistry.serviceendpoint.id
+resource "betterado_serviceendpoint_permissions" "serviceendpoint-permissions" {
+  project_id         = betterado_project.project.id
+  principal          = data.betterado_group.tf-project-readers.id
+  serviceendpoint_id = betterado_serviceendpoint_dockerregistry.serviceendpoint.id
   permissions = {
 		%s
   }

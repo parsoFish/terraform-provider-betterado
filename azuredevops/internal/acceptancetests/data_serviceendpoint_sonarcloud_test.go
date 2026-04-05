@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointSonarCloud_dataSource(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "data.azuredevops_serviceendpoint_sonarcloud.test"
+	tfNode := "data.betterado_serviceendpoint_sonarcloud.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -29,23 +29,23 @@ func TestAccServiceEndpointSonarCloud_dataSource(t *testing.T) {
 
 func hclServiceEndpointSonarCloudDataSource(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_sonarcloud" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_sonarcloud" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%[1]s"
   token                 = "0000000000000000000000000000000000000000"
   description           = "Managed by Terraform"
 }
 
-data "azuredevops_serviceendpoint_sonarcloud" "test" {
-  project_id            = azuredevops_project.test.id
-  service_endpoint_name = azuredevops_serviceendpoint_sonarcloud.test.service_endpoint_name
+data "betterado_serviceendpoint_sonarcloud" "test" {
+  project_id            = betterado_project.test.id
+  service_endpoint_name = betterado_serviceendpoint_sonarcloud.test.service_endpoint_name
 }
 `, name)
 }

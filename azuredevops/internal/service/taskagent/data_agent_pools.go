@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 // DataAgentPools schema and implementation for agent pools data source
@@ -57,7 +57,7 @@ func dataSourceAgentPoolsRead(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return fmt.Errorf("finding agent pools. Error: %v", err)
 	}
-	log.Printf("[TRACE] plugin.terraform-provider-azuredevops: Read [%d] agent pools from current organization", len(*agentPools))
+	log.Printf("[TRACE] plugin.terraform-provider-betterado: Read [%d] agent pools from current organization", len(*agentPools))
 
 	err = d.Set("agent_pools", flattenAgentPoolReferences(agentPools))
 	if err != nil {

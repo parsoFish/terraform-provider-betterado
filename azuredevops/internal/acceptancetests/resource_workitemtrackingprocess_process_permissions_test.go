@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWorkitemtrackingprocessProcessPermissions_SetPermissions_InheritedProcess(t *testing.T) {
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_process_permissions.test"
+	tfNode := "betterado_workitemtrackingprocess_process_permissions.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -30,7 +30,7 @@ func TestAccWorkitemtrackingprocessProcessPermissions_SetPermissions_InheritedPr
 }
 
 func TestAccWorkitemtrackingprocessProcessPermissions_SetPermissions_SystemProcess(t *testing.T) {
-	tfNode := "azuredevops_workitemtrackingprocess_process_permissions.test"
+	tfNode := "betterado_workitemtrackingprocess_process_permissions.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -50,18 +50,18 @@ func TestAccWorkitemtrackingprocessProcessPermissions_SetPermissions_SystemProce
 
 func hclInheritedProcessPermissions(processName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
 }
 
-data "azuredevops_group" "project-collection-administrators" {
+data "betterado_group" "project-collection-administrators" {
   name = "Project Collection Administrators"
 }
 
-resource "azuredevops_workitemtrackingprocess_process_permissions" "test" {
-  process_id = azuredevops_workitemtrackingprocess_process.test.id
-  principal  = data.azuredevops_group.project-collection-administrators.id
+resource "betterado_workitemtrackingprocess_process_permissions" "test" {
+  process_id = betterado_workitemtrackingprocess_process.test.id
+  principal  = data.betterado_group.project-collection-administrators.id
   permissions = {
     "Edit"                         = "Allow"
     "Delete"                       = "Deny"
@@ -73,13 +73,13 @@ resource "azuredevops_workitemtrackingprocess_process_permissions" "test" {
 
 func hclSystemProcessPermissions() string {
 	return fmt.Sprintf(`
-data "azuredevops_group" "project-collection-administrators" {
+data "betterado_group" "project-collection-administrators" {
   name = "Project Collection Administrators"
 }
 
-resource "azuredevops_workitemtrackingprocess_process_permissions" "test" {
+resource "betterado_workitemtrackingprocess_process_permissions" "test" {
   process_id = "%s"
-  principal  = data.azuredevops_group.project-collection-administrators.id
+  principal  = data.betterado_group.project-collection-administrators.id
   permissions = {
     "Create" = "Allow"
   }

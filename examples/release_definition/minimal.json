@@ -1,0 +1,50 @@
+{
+  "name": "test-release-definition",
+  "description": "Minimal release definition for API testing",
+  "releaseNameFormat": "Release-$(rev:r)",
+  "environments": [
+    {
+      "name": "Dev",
+      "rank": 1,
+      "preDeployApprovals": {
+        "approvals": [
+          {
+            "rank": 1,
+            "isAutomated": true,
+            "isNotificationOn": false
+          }
+        ]
+      },
+      "postDeployApprovals": {
+        "approvals": [
+          {
+            "rank": 1,
+            "isAutomated": true,
+            "isNotificationOn": false
+          }
+        ]
+      },
+      "deployPhases": [
+        {
+          "deploymentInput": {
+            "queueId": 1,
+            "agentSpecification": null
+          },
+          "rank": 1,
+          "phaseType": "agentBasedDeployment",
+          "name": "Agent job",
+          "workflowTasks": []
+        }
+      ],
+      "retentionPolicy": {
+        "daysToKeep": 30,
+        "releasesToKeep": 3,
+        "retainBuild": true
+      }
+    }
+  ],
+  "artifacts": [],
+  "triggers": [],
+  "variables": {},
+  "tags": []
+}

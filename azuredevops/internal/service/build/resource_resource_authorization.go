@@ -8,10 +8,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/suppress"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/suppress"
 )
 
 const msgErrorAuthorizationNoLongerExists = "[WARN] The authorization with ID '%s' no longer exists. Setting Id to empty \n"
@@ -24,7 +24,7 @@ func ResourceResourceAuthorization() *schema.Resource {
 		Update: resourceResourceAuthorizationUpdate,
 		Delete: resourceResourceAuthorizationDelete,
 
-		DeprecationMessage: "This resource will be deprecated and removed in the future. Please use `azuredevops_pipeline_authorization` instead.",
+		DeprecationMessage: "This resource will be deprecated and removed in the future. Please use `betterado_pipeline_authorization` instead.",
 
 		Schema: map[string]*schema.Schema{
 			"project_id": {

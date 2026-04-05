@@ -6,13 +6,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWorkItem_basic(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitem.test"
+	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -45,7 +45,7 @@ func TestAccWorkItem_titleUpdate(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
 	workItemTitleUpdated := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitem.test"
+	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -84,7 +84,7 @@ func TestAccWorkItem_titleUpdate(t *testing.T) {
 func TestAccWorkItem_tagUpdate(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitem.test"
+	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -135,7 +135,7 @@ func TestAccWorkItem_tagUpdate(t *testing.T) {
 func TestAccWorkItem_parent(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitem.test"
+	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -166,7 +166,7 @@ func TestAccWorkItem_parent(t *testing.T) {
 func TestAccWorkItem_parentUpdate(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitem.test"
+	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -214,7 +214,7 @@ func TestAccWorkItem_parentUpdate(t *testing.T) {
 func TestAccWorkItem_parentDelete(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitem.test"
+	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -263,7 +263,7 @@ func TestAccWorkItem_parentDelete(t *testing.T) {
 func TestAccWorkItem_additionalFieldsJson(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitem.test"
+	tfNode := "betterado_workitem.test"
 	storyPoints := 5.00
 	risk := "3 - Low"
 	acceptanceCriteria := testutils.GenerateResourceName()
@@ -352,7 +352,7 @@ func TestAccWorkItem_additionalFieldsJson(t *testing.T) {
 func TestAccWorkItem_description(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitem.test"
+	tfNode := "betterado_workitem.test"
 	description := testutils.GenerateResourceName()
 	descriptionUpdate := testutils.GenerateResourceName()
 	descriptionEmpty := ""
@@ -430,7 +430,7 @@ func TestAccWorkItem_description(t *testing.T) {
 
 func workItemTemplate(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -444,9 +444,9 @@ func workItemBasic(projectName string, title string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitem" "test" {
+resource "betterado_workitem" "test" {
   title      = "%s"
-  project_id = azuredevops_project.project.id
+  project_id = betterado_project.project.id
   type       = "Issue"
 }
 `, template, title)
@@ -457,9 +457,9 @@ func workItemTagUpdate(projectName string, title string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitem" "test" {
+resource "betterado_workitem" "test" {
   title      = "%s"
-  project_id = azuredevops_project.project.id
+  project_id = betterado_project.project.id
   type       = "Issue"
   state      = "Active"
   tags       = ["tag1", "tag2"]
@@ -472,17 +472,17 @@ func workItemParent(projectName string, title string) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azuredevops_workitem" "parent" {
+resource "betterado_workitem" "parent" {
   title      = "%[2]s Parent"
-  project_id = azuredevops_project.project.id
+  project_id = betterado_project.project.id
   type       = "Issue"
 }
 
-resource "azuredevops_workitem" "test" {
+resource "betterado_workitem" "test" {
   title      = "%[2]s"
-  project_id = azuredevops_project.project.id
+  project_id = betterado_project.project.id
   type       = "Issue"
-  parent_id  = azuredevops_workitem.parent.id
+  parent_id  = betterado_workitem.parent.id
 }
 `, template, title)
 }
@@ -492,15 +492,15 @@ func workItemParentDelete(projectName string, title string) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azuredevops_workitem" "parent" {
+resource "betterado_workitem" "parent" {
   title      = "%[2]s Parent"
-  project_id = azuredevops_project.project.id
+  project_id = betterado_project.project.id
   type       = "Issue"
 }
 
-resource "azuredevops_workitem" "test" {
+resource "betterado_workitem" "test" {
   title      = "%[2]s"
-  project_id = azuredevops_project.project.id
+  project_id = betterado_project.project.id
   type       = "Issue"
 }
 `, template, title)
@@ -511,23 +511,23 @@ func workItemParentUpdate(projectName string, title string) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azuredevops_workitem" "parent" {
+resource "betterado_workitem" "parent" {
   title      = "%[2]s Parent"
-  project_id = azuredevops_project.project.id
+  project_id = betterado_project.project.id
   type       = "Issue"
 }
 
-resource "azuredevops_workitem" "parent2" {
+resource "betterado_workitem" "parent2" {
   title      = "%[2]s Parent2"
-  project_id = azuredevops_project.project.id
+  project_id = betterado_project.project.id
   type       = "Issue"
 }
 
-resource "azuredevops_workitem" "test" {
-  project_id = azuredevops_project.project.id
+resource "betterado_workitem" "test" {
+  project_id = betterado_project.project.id
   title      = "%[2]s"
   type       = "Issue"
-  parent_id  = azuredevops_workitem.parent2.id
+  parent_id  = betterado_workitem.parent2.id
 }
 `, template, title)
 }
@@ -537,9 +537,9 @@ func workItemDescription(projectName string, title string, itemType string, desc
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitem" "test" {
+resource "betterado_workitem" "test" {
   title       = "%s"
-  project_id  = azuredevops_project.project.id
+  project_id  = betterado_project.project.id
   type        = "%s"
   description = "%s"
 }
@@ -551,9 +551,9 @@ func workItemDescriptionNone(projectName string, title string, itemType string) 
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitem" "test" {
+resource "betterado_workitem" "test" {
   title      = "%s"
-  project_id = azuredevops_project.project.id
+  project_id = betterado_project.project.id
   type       = "%s"
 }
 `, template, title, itemType)
@@ -564,9 +564,9 @@ func workItemAdditionalFields(projectName string, title string, jsonString strin
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitem" "test" {
+resource "betterado_workitem" "test" {
   title                  = "%s"
-  project_id             = azuredevops_project.project.id
+  project_id             = betterado_project.project.id
   type                   = "User Story"
   additional_fields_json = jsonencode(%s)
 }

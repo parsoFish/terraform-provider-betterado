@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccProviderAuth(t *testing.T) {
@@ -25,7 +25,7 @@ func TestAccProviderAuth(t *testing.T) {
 
 func providerAuthConfig() string {
 	return `
-data "azuredevops_projects" "test" {
+data "betterado_projects" "test" {
   name  = "Test Project"
   state = "wellFormed"
 }`

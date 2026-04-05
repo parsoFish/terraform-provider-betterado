@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccResourceAuthorization_CRUD(t *testing.T) {
@@ -13,10 +13,10 @@ func TestAccResourceAuthorization_CRUD(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 
 	serviceEndpointHCL := testutils.HclServiceEndpointGitHubResource(projectName, serviceEndpointName)
-	authedHCL := testutils.HclResourceAuthorization("azuredevops_serviceendpoint_github.serviceendpoint.id", true)
-	unAuthedHCL := testutils.HclResourceAuthorization("azuredevops_serviceendpoint_github.serviceendpoint.id", false)
+	authedHCL := testutils.HclResourceAuthorization("betterado_serviceendpoint_github.serviceendpoint.id", true)
+	unAuthedHCL := testutils.HclResourceAuthorization("betterado_serviceendpoint_github.serviceendpoint.id", false)
 
-	tfAuthNode := "azuredevops_resource_authorization.auth"
+	tfAuthNode := "betterado_resource_authorization.auth"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, &[]string{"AZDO_GITHUB_SERVICE_CONNECTION_PAT"})
@@ -50,10 +50,10 @@ func TestAccResourceAuthorization_Definition_CRUD(t *testing.T) {
 
 	buildDefinitionDHCL := testutils.HclBuildDefinitionResourceTfsGit(projectName, repositoryName, buildDefinitionName, `\`)
 	variableGroupHCL := testutils.HclVariableGroupResource(variableGroupName, true)
-	authedHCL := testutils.HclDefinitionResourceAuthorization("azuredevops_variable_group.vg.id", "azuredevops_build_definition.build.id", "variablegroup", true)
-	unAuthedHCL := testutils.HclDefinitionResourceAuthorization("azuredevops_variable_group.vg.id", "azuredevops_build_definition.build.id", "variablegroup", false)
+	authedHCL := testutils.HclDefinitionResourceAuthorization("betterado_variable_group.vg.id", "betterado_build_definition.build.id", "variablegroup", true)
+	unAuthedHCL := testutils.HclDefinitionResourceAuthorization("betterado_variable_group.vg.id", "betterado_build_definition.build.id", "variablegroup", false)
 
-	tfAuthNode := "azuredevops_resource_authorization.auth"
+	tfAuthNode := "betterado_resource_authorization.auth"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),

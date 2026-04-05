@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 // TestAccSecurityPermissions_ProjectNamespace tests setting permissions on the Project namespace
 func TestAccSecurityPermissions_ProjectNamespace(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_security_permissions.test"
+	tfNode := "betterado_security_permissions.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -39,7 +39,7 @@ func TestAccSecurityPermissions_ProjectNamespace(t *testing.T) {
 // TestAccSecurityPermissions_ProjectNamespaceUpdate tests updating permissions
 func TestAccSecurityPermissions_ProjectNamespaceUpdate(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_security_permissions.test"
+	tfNode := "betterado_security_permissions.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -75,7 +75,7 @@ func TestAccSecurityPermissions_ProjectNamespaceUpdate(t *testing.T) {
 func TestAccSecurityPermissions_GitRepositoryNamespace(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_security_permissions.test"
+	tfNode := "betterado_security_permissions.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -103,7 +103,7 @@ func TestAccSecurityPermissions_GitRepositoryNamespace(t *testing.T) {
 // TestAccSecurityPermissions_WithReplace tests the replace functionality
 func TestAccSecurityPermissions_WithReplace(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_security_permissions.test"
+	tfNode := "betterado_security_permissions.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -133,7 +133,7 @@ func TestAccSecurityPermissions_WithReplace(t *testing.T) {
 // TestAccSecurityPermissions_BuildNamespace tests Build definition permissions
 func TestAccSecurityPermissions_BuildNamespace(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_security_permissions.test"
+	tfNode := "betterado_security_permissions.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -160,8 +160,8 @@ func TestAccSecurityPermissions_BuildNamespace(t *testing.T) {
 // TestAccSecurityPermissions_MultiplePermissionSets tests managing multiple permission sets
 func TestAccSecurityPermissions_MultiplePermissionSets(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tfNode1 := "azuredevops_security_permissions.test1"
-	tfNode2 := "azuredevops_security_permissions.test2"
+	tfNode1 := "betterado_security_permissions.test1"
+	tfNode2 := "betterado_security_permissions.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -196,30 +196,30 @@ func TestAccSecurityPermissions_MultiplePermissionSets(t *testing.T) {
 
 func hclSecurityPermissionsProjectNamespace(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name = "%s"
 }
 
-data "azuredevops_security_namespace" "project" {
+data "betterado_security_namespace" "project" {
   name = "Project"
 }
 
-data "azuredevops_security_namespace_token" "project" {
+data "betterado_security_namespace_token" "project" {
   namespace_name = "Project"
   identifiers = {
-    project_id = azuredevops_project.project.id
+    project_id = betterado_project.project.id
   }
 }
 
-data "azuredevops_identity_group" "test" {
-  project_id = azuredevops_project.project.id
-  name       = "[${azuredevops_project.project.name}]\\Readers"
+data "betterado_identity_group" "test" {
+  project_id = betterado_project.project.id
+  name       = "[${betterado_project.project.name}]\\Readers"
 }
 
-resource "azuredevops_security_permissions" "test" {
-  namespace_id = data.azuredevops_security_namespace.project.id
-  token        = data.azuredevops_security_namespace_token.project.token
-  principal    = data.azuredevops_identity_group.test.subject_descriptor
+resource "betterado_security_permissions" "test" {
+  namespace_id = data.betterado_security_namespace.project.id
+  token        = data.betterado_security_namespace_token.project.token
+  principal    = data.betterado_identity_group.test.subject_descriptor
   permissions = {
     GENERIC_READ  = "allow"
     GENERIC_WRITE = "deny"
@@ -232,30 +232,30 @@ resource "azuredevops_security_permissions" "test" {
 
 func hclSecurityPermissionsProjectNamespaceUpdated(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name = "%s"
 }
 
-data "azuredevops_security_namespace" "project" {
+data "betterado_security_namespace" "project" {
   name = "Project"
 }
 
-data "azuredevops_security_namespace_token" "project" {
+data "betterado_security_namespace_token" "project" {
   namespace_name = "Project"
   identifiers = {
-    project_id = azuredevops_project.project.id
+    project_id = betterado_project.project.id
   }
 }
 
-data "azuredevops_identity_group" "test" {
-  project_id = azuredevops_project.project.id
-  name       = "[${azuredevops_project.project.name}]\\Readers"
+data "betterado_identity_group" "test" {
+  project_id = betterado_project.project.id
+  name       = "[${betterado_project.project.name}]\\Readers"
 }
 
-resource "azuredevops_security_permissions" "test" {
-  namespace_id = data.azuredevops_security_namespace.project.id
-  token        = data.azuredevops_security_namespace_token.project.token
-  principal    = data.azuredevops_identity_group.test.subject_descriptor
+resource "betterado_security_permissions" "test" {
+  namespace_id = data.betterado_security_namespace.project.id
+  token        = data.betterado_security_namespace_token.project.token
+  principal    = data.betterado_identity_group.test.subject_descriptor
   permissions = {
     GENERIC_READ      = "allow"
     GENERIC_WRITE     = "allow"
@@ -269,39 +269,39 @@ resource "azuredevops_security_permissions" "test" {
 
 func hclSecurityPermissionsGitRepoNamespace(projectName, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name = "%s"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.project.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.project.id
   name       = "%s"
   initialization {
     init_type = "Clean"
   }
 }
 
-data "azuredevops_security_namespace" "git_repo" {
+data "betterado_security_namespace" "git_repo" {
   name = "Git Repositories"
 }
 
-data "azuredevops_security_namespace_token" "git_repo" {
+data "betterado_security_namespace_token" "git_repo" {
   namespace_name = "Git Repositories"
   identifiers = {
-    project_id    = azuredevops_project.project.id
-    repository_id = azuredevops_git_repository.test.id
+    project_id    = betterado_project.project.id
+    repository_id = betterado_git_repository.test.id
   }
 }
 
-data "azuredevops_identity_group" "test" {
-  project_id = azuredevops_project.project.id
-  name       = "[${azuredevops_project.project.name}]\\Contributors"
+data "betterado_identity_group" "test" {
+  project_id = betterado_project.project.id
+  name       = "[${betterado_project.project.name}]\\Contributors"
 }
 
-resource "azuredevops_security_permissions" "test" {
-  namespace_id = data.azuredevops_security_namespace.git_repo.id
-  token        = data.azuredevops_security_namespace_token.git_repo.token
-  principal    = data.azuredevops_identity_group.test.subject_descriptor
+resource "betterado_security_permissions" "test" {
+  namespace_id = data.betterado_security_namespace.git_repo.id
+  token        = data.betterado_security_namespace_token.git_repo.token
+  principal    = data.betterado_identity_group.test.subject_descriptor
   permissions = {
     GenericRead       = "allow"
     GenericContribute = "allow"
@@ -315,30 +315,30 @@ resource "azuredevops_security_permissions" "test" {
 
 func hclSecurityPermissionsWithReplace(projectName string, replace bool) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name = "%s"
 }
 
-data "azuredevops_security_namespace" "project" {
+data "betterado_security_namespace" "project" {
   name = "Project"
 }
 
-data "azuredevops_security_namespace_token" "project" {
+data "betterado_security_namespace_token" "project" {
   namespace_name = "Project"
   identifiers = {
-    project_id = azuredevops_project.project.id
+    project_id = betterado_project.project.id
   }
 }
 
-data "azuredevops_identity_group" "test" {
-  project_id = azuredevops_project.project.id
-  name       = "[${azuredevops_project.project.name}]\\Readers"
+data "betterado_identity_group" "test" {
+  project_id = betterado_project.project.id
+  name       = "[${betterado_project.project.name}]\\Readers"
 }
 
-resource "azuredevops_security_permissions" "test" {
-  namespace_id = data.azuredevops_security_namespace.project.id
-  token        = data.azuredevops_security_namespace_token.project.token
-  principal    = data.azuredevops_identity_group.test.subject_descriptor
+resource "betterado_security_permissions" "test" {
+  namespace_id = data.betterado_security_namespace.project.id
+  token        = data.betterado_security_namespace_token.project.token
+  principal    = data.betterado_identity_group.test.subject_descriptor
   permissions = {
     GENERIC_READ  = "allow"
     GENERIC_WRITE = "deny"
@@ -350,30 +350,30 @@ resource "azuredevops_security_permissions" "test" {
 
 func hclSecurityPermissionsBuildNamespace(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name = "%s"
 }
 
-data "azuredevops_security_namespace" "Build" {
+data "betterado_security_namespace" "Build" {
   name = "Build"
 }
 
-data "azuredevops_security_namespace_token" "build" {
+data "betterado_security_namespace_token" "build" {
   namespace_name = "Build"
   identifiers = {
-    project_id = azuredevops_project.project.id
+    project_id = betterado_project.project.id
   }
 }
 
-data "azuredevops_identity_group" "test" {
-  project_id = azuredevops_project.project.id
-  name       = "[${azuredevops_project.project.name}]\\Readers"
+data "betterado_identity_group" "test" {
+  project_id = betterado_project.project.id
+  name       = "[${betterado_project.project.name}]\\Readers"
 }
 
-resource "azuredevops_security_permissions" "test" {
-  namespace_id = data.azuredevops_security_namespace.Build.id
-  token        = data.azuredevops_security_namespace_token.build.token
-  principal    = data.azuredevops_identity_group.test.subject_descriptor
+resource "betterado_security_permissions" "test" {
+  namespace_id = data.betterado_security_namespace.Build.id
+  token        = data.betterado_security_namespace_token.build.token
+  principal    = data.betterado_identity_group.test.subject_descriptor
   permissions = {
     ViewBuilds       = "allow"
     EditBuildQuality = "deny"
@@ -386,35 +386,35 @@ resource "azuredevops_security_permissions" "test" {
 
 func hclSecurityPermissionsMultipleSets(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name = "%s"
 }
 
-data "azuredevops_security_namespace" "project" {
+data "betterado_security_namespace" "project" {
   name = "Project"
 }
 
-data "azuredevops_security_namespace_token" "project" {
+data "betterado_security_namespace_token" "project" {
   namespace_name = "Project"
   identifiers = {
-    project_id = azuredevops_project.project.id
+    project_id = betterado_project.project.id
   }
 }
 
-data "azuredevops_identity_group" "readers" {
-  project_id = azuredevops_project.project.id
-  name       = "[${azuredevops_project.project.name}]\\Readers"
+data "betterado_identity_group" "readers" {
+  project_id = betterado_project.project.id
+  name       = "[${betterado_project.project.name}]\\Readers"
 }
 
-data "azuredevops_identity_group" "contributors" {
-  project_id = azuredevops_project.project.id
-  name       = "[${azuredevops_project.project.name}]\\Contributors"
+data "betterado_identity_group" "contributors" {
+  project_id = betterado_project.project.id
+  name       = "[${betterado_project.project.name}]\\Contributors"
 }
 
-resource "azuredevops_security_permissions" "test1" {
-  namespace_id = data.azuredevops_security_namespace.project.id
-  token        = data.azuredevops_security_namespace_token.project.token
-  principal    = data.azuredevops_identity_group.readers.subject_descriptor
+resource "betterado_security_permissions" "test1" {
+  namespace_id = data.betterado_security_namespace.project.id
+  token        = data.betterado_security_namespace_token.project.token
+  principal    = data.betterado_identity_group.readers.subject_descriptor
   permissions = {
     GENERIC_READ  = "allow"
     GENERIC_WRITE = "deny"
@@ -422,10 +422,10 @@ resource "azuredevops_security_permissions" "test1" {
   replace = false
 }
 
-resource "azuredevops_security_permissions" "test2" {
-  namespace_id = data.azuredevops_security_namespace.project.id
-  token        = data.azuredevops_security_namespace_token.project.token
-  principal    = data.azuredevops_identity_group.contributors.subject_descriptor
+resource "betterado_security_permissions" "test2" {
+  namespace_id = data.betterado_security_namespace.project.id
+  token        = data.betterado_security_namespace_token.project.token
+  principal    = data.betterado_identity_group.contributors.subject_descriptor
   permissions = {
     GENERIC_READ  = "allow"
     GENERIC_WRITE = "allow"

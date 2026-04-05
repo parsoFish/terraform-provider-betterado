@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 )
 
 // CheckProcessDestroyed verifies that all processes referenced in the state are destroyed. This will be invoked
@@ -21,7 +21,7 @@ func CheckProcessDestroyed(s *terraform.State) error {
 
 	// verify that every process referenced in the state does not exist in AzDO
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_workitemtrackingprocess_process" {
+		if resource.Type != "betterado_workitemtrackingprocess_process" {
 			continue
 		}
 

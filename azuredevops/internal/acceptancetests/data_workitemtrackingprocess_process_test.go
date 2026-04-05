@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWorkitemtrackingprocessProcess_DataSource_Get(t *testing.T) {
-	tfNode := "data.azuredevops_workitemtrackingprocess_process.agile"
+	tfNode := "data.betterado_workitemtrackingprocess_process.agile"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -26,7 +26,7 @@ func TestAccWorkitemtrackingprocessProcess_DataSource_Get(t *testing.T) {
 
 func hclDataSourceAgileSystemProcess() string {
 	return fmt.Sprintf(`
-data "azuredevops_workitemtrackingprocess_process" "agile" {
+data "betterado_workitemtrackingprocess_process" "agile" {
   id = "%s"
 }
 `, agileSystemProcessTypeId)

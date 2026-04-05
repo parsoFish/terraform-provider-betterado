@@ -206,7 +206,7 @@ func TestEncodeUtf16HexString_EdgeCases(t *testing.T) {
 func TestEncodeDecodeUtf16HexString_RoundTrip(t *testing.T) {
 	testStrings := []string{
 		"Hello World",
-		"terraform-provider-azuredevops",
+		"terraform-provider-betterado",
 		"refs/heads/feature/test-branch",
 		"aBcDeFgHiJkLmNoPqRsTuVwXyZ",
 		"0123456789",

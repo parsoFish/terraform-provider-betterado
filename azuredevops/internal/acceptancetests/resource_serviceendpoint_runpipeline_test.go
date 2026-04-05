@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointRunPipeline_Defaults(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_runpipeline"
+	resourceType := "betterado_serviceendpoint_runpipeline"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, &[]string{"AZDO_PERSONAL_ACCESS_TOKEN"}) },
@@ -36,7 +36,7 @@ func TestAccServiceEndpointRunPipeline_PersonalTokenBasic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_runpipeline"
+	resourceType := "betterado_serviceendpoint_runpipeline"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, &[]string{"AZDO_PERSONAL_ACCESS_TOKEN"}) },
@@ -66,7 +66,7 @@ func TestAccServiceEndpointRunPipeline_PersonalTokenUpdate(t *testing.T) {
 	description := "Manage by Terraform Update"
 	organization := "example"
 
-	resourceType := "azuredevops_serviceendpoint_runpipeline"
+	resourceType := "betterado_serviceendpoint_runpipeline"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, &[]string{"AZDO_PERSONAL_ACCESS_TOKEN"}) },

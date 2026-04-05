@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccProjectPipelineSettings_Enabled(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_project_pipeline_settings.test"
+	tfNode := "betterado_project_pipeline_settings.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -49,7 +49,7 @@ func TestAccProjectPipelineSettings_Enabled(t *testing.T) {
 
 func hclProjectPipelineSettings(projectName string, enforceJobAuthScope, enforceReferencedRepoScopedToken, enforceSettableVar, publishPipelineMetadata, statusBadgesArePrivate, enforceJobAuthScopeForReleases bool) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%s"
   description        = "description"
   visibility         = "private"
@@ -57,8 +57,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_project_pipeline_settings" "test" {
-  project_id                           = azuredevops_project.test.id
+resource "betterado_project_pipeline_settings" "test" {
+  project_id                           = betterado_project.test.id
   enforce_job_scope                    = %t
   enforce_referenced_repo_scoped_token = %t
   enforce_settable_var                 = %t

@@ -6,13 +6,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccCheckApproval_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_check_approval"
+	resourceType := "betterado_check_approval"
 	tfCheckNode := resourceType + ".test"
 	principalName := os.Getenv("AZDO_TEST_AAD_USER_EMAIL")
 
@@ -37,7 +37,7 @@ func TestAccCheckApproval_basic(t *testing.T) {
 func TestAccCheckApproval_complete(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_check_approval"
+	resourceType := "betterado_check_approval"
 	tfCheckNode := resourceType + ".test"
 	principalName := os.Getenv("AZDO_TEST_AAD_USER_EMAIL")
 	azdoGroupName := testutils.GenerateResourceName()
@@ -63,7 +63,7 @@ func TestAccCheckApproval_complete(t *testing.T) {
 func TestAccCheckApproval_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_check_approval"
+	resourceType := "betterado_check_approval"
 	tfCheckNode := resourceType + ".test"
 	principalName := os.Getenv("AZDO_TEST_AAD_USER_EMAIL")
 	azdoGroupName := testutils.GenerateResourceName()
@@ -94,18 +94,18 @@ func TestAccCheckApproval_update(t *testing.T) {
 
 func hclCheckApprovalResourceBasic(projectName string, principalName string) string {
 	checkResource := fmt.Sprintf(`
-data "azuredevops_users" "test" {
+data "betterado_users" "test" {
   principal_name = "%s"
 }
 
-resource "azuredevops_check_approval" "test" {
-  project_id           = azuredevops_project.project.id
-  target_resource_id   = azuredevops_serviceendpoint_generic.test.id
+resource "betterado_check_approval" "test" {
+  project_id           = betterado_project.project.id
+  target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
 
   requester_can_approve = false
   approvers = [
-    one(data.azuredevops_users.test.users).id,
+    one(data.betterado_users.test.users).id,
   ]
 }
 `, principalName)
@@ -116,23 +116,23 @@ resource "azuredevops_check_approval" "test" {
 
 func hclCheckApprovalResourceComplete(projectName string, principalName string, azdoGroupName string) string {
 	checkResource := fmt.Sprintf(`
-data "azuredevops_users" "test" {
+data "betterado_users" "test" {
   principal_name = "%s"
 }
 
-resource "azuredevops_group" "test" {
+resource "betterado_group" "test" {
   display_name = "%s"
 }
 
-resource "azuredevops_check_approval" "test" {
-  project_id           = azuredevops_project.project.id
-  target_resource_id   = azuredevops_serviceendpoint_generic.test.id
+resource "betterado_check_approval" "test" {
+  project_id           = betterado_project.project.id
+  target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
 
   requester_can_approve = true
   approvers = [
-    one(data.azuredevops_users.test.users).id,
-    azuredevops_group.test.origin_id,
+    one(data.betterado_users.test.users).id,
+    betterado_group.test.origin_id,
   ]
 
   timeout = 40000

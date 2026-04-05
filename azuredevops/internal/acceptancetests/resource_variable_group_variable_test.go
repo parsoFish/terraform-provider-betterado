@@ -7,15 +7,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	taskagentsvc "github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/service/taskagent"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	taskagentsvc "github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 )
 
 func TestAccVariableGroupVariable_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	vgName := testutils.GenerateResourceName()
-	node := "azuredevops_variable_group_variable.test"
+	node := "betterado_variable_group_variable.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -51,7 +51,7 @@ func TestAccVariableGroupVariable_basic(t *testing.T) {
 func TestAccVariableGroupVariable_secret(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	vgName := testutils.GenerateResourceName()
-	node := "azuredevops_variable_group_variable.test"
+	node := "betterado_variable_group_variable.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -88,7 +88,7 @@ func TestAccVariableGroupVariable_secret(t *testing.T) {
 
 func checkVariableGroupVariableDestroyed(s *terraform.State) error {
 	for _, res := range s.RootModule().Resources {
-		if res.Type != "azuredevops_variable_group_variable" {
+		if res.Type != "betterado_variable_group_variable" {
 			continue
 		}
 
@@ -153,7 +153,7 @@ func TestAccVariableGroupVariable_ForEach_ConcurrentCreate(t *testing.T) {
 	var nodes []string
 
 	for i := 0; i < 20; i++ {
-		nodes = append(nodes, fmt.Sprintf(`azuredevops_variable_group_variable.test.%d`, i))
+		nodes = append(nodes, fmt.Sprintf(`betterado_variable_group_variable.test.%d`, i))
 	}
 
 	var checks []resource.TestCheckFunc
@@ -177,11 +177,11 @@ func TestAccVariableGroupVariable_ForEach_ConcurrentCreate(t *testing.T) {
 
 func hclVariableGroupVariableBasic(projectName, variableGroupName, val string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
-resource "azuredevops_variable_group" "test" {
-  project_id   = azuredevops_project.test.id
+resource "betterado_variable_group" "test" {
+  project_id   = betterado_project.test.id
   name         = "%s"
   description  = "test description"
   allow_access = false
@@ -198,9 +198,9 @@ resource "azuredevops_variable_group" "test" {
     ignore_changes = [variable]
   }
 }
-resource "azuredevops_variable_group_variable" "test" {
-  project_id        = azuredevops_project.test.id
-  variable_group_id = azuredevops_variable_group.test.id
+resource "betterado_variable_group_variable" "test" {
+  project_id        = betterado_project.test.id
+  variable_group_id = betterado_variable_group.test.id
   name              = "test-key"
   value             = "%s"
 }
@@ -209,11 +209,11 @@ resource "azuredevops_variable_group_variable" "test" {
 
 func hclVariableGroupVariableSecret(projectName, variableGroupName, val string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
-resource "azuredevops_variable_group" "test" {
-  project_id   = azuredevops_project.test.id
+resource "betterado_variable_group" "test" {
+  project_id   = betterado_project.test.id
   name         = "%s"
   description  = "test description"
   allow_access = false
@@ -230,9 +230,9 @@ resource "azuredevops_variable_group" "test" {
     ignore_changes = [variable]
   }
 }
-resource "azuredevops_variable_group_variable" "test" {
-  project_id        = azuredevops_project.test.id
-  variable_group_id = azuredevops_variable_group.test.id
+resource "betterado_variable_group_variable" "test" {
+  project_id        = betterado_project.test.id
+  variable_group_id = betterado_variable_group.test.id
   name              = "test-key"
   secret_value      = "%s"
 }
@@ -241,12 +241,12 @@ resource "azuredevops_variable_group_variable" "test" {
 
 func hclVariableGroupVariableForEach(projectName, variableGroupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_variable_group" "test" {
-  project_id   = azuredevops_project.test.id
+resource "betterado_variable_group" "test" {
+  project_id   = betterado_project.test.id
   name         = "%s"
   description  = "test description"
   allow_access = false
@@ -260,10 +260,10 @@ resource "azuredevops_variable_group" "test" {
   }
 }
 
-resource "azuredevops_variable_group_variable" "test" {
+resource "betterado_variable_group_variable" "test" {
   count             = 20
-  project_id        = azuredevops_project.test.id
-  variable_group_id = azuredevops_variable_group.test.id
+  project_id        = betterado_project.test.id
+  variable_group_id = betterado_variable_group.test.id
   name              = "key${count.index}"
   value             = "val${count.index}"
 }

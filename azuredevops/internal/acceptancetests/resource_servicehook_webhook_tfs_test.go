@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/servicehooks"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 // HclServicehookWebhookTfsResourceWithGitPushEvent creates a HCL representation of a basic TFS webhook for git push events
@@ -21,8 +21,8 @@ func HclServicehookWebhookTfsResourceWithGitPushEvent(projectName, url string) s
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_servicehook_webhook_tfs" "test" {
-  project_id = azuredevops_project.project.id
+resource "betterado_servicehook_webhook_tfs" "test" {
+  project_id = betterado_project.project.id
   url        = "%s"
 
   git_push {
@@ -38,8 +38,8 @@ func HclServicehookWebhookTfsResourceWithWorkItemCreatedEvent(projectName, url s
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_servicehook_webhook_tfs" "test" {
-  project_id = azuredevops_project.project.id
+resource "betterado_servicehook_webhook_tfs" "test" {
+  project_id = betterado_project.project.id
   url        = "%s"
 
   work_item_created {
@@ -56,8 +56,8 @@ func HclServicehookWebhookTfsResourceWithHeadersAndAuth(projectName, url string)
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_servicehook_webhook_tfs" "test" {
-  project_id = azuredevops_project.project.id
+resource "betterado_servicehook_webhook_tfs" "test" {
+  project_id = betterado_project.project.id
   url        = "%s"
 
   git_push {}
@@ -79,8 +79,8 @@ func HclServicehookWebhookTfsResourceWithResourceDetails(projectName, url string
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_servicehook_webhook_tfs" "test" {
-  project_id = azuredevops_project.project.id
+resource "betterado_servicehook_webhook_tfs" "test" {
+  project_id = betterado_project.project.id
   url        = "%s"
 
   git_push {}
@@ -98,8 +98,8 @@ func HclServicehookWebhookTfsResourceWithResourceVersion(projectName, url, resou
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_servicehook_webhook_tfs" "test" {
-  project_id       = azuredevops_project.project.id
+resource "betterado_servicehook_webhook_tfs" "test" {
+  project_id       = betterado_project.project.id
   url              = "%s"
   resource_version = "%s"
 
@@ -112,7 +112,7 @@ func TestAccServicehookWebhookTfs_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	url := "https://example.com/webhook"
 
-	resourceType := "azuredevops_servicehook_webhook_tfs"
+	resourceType := "betterado_servicehook_webhook_tfs"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -141,7 +141,7 @@ func TestAccServicehookWebhookTfs_Update(t *testing.T) {
 	url1 := "https://example.com/webhook"
 	url2 := "https://example.org/webhook2"
 
-	resourceType := "azuredevops_servicehook_webhook_tfs"
+	resourceType := "betterado_servicehook_webhook_tfs"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -176,7 +176,7 @@ func TestAccServicehookWebhookTfs_ChangeEventType(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	url := "https://example.com/webhook"
 
-	resourceType := "azuredevops_servicehook_webhook_tfs"
+	resourceType := "betterado_servicehook_webhook_tfs"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -210,7 +210,7 @@ func TestAccServicehookWebhookTfs_WithHeaders(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	url := "https://example.com/webhook"
 
-	resourceType := "azuredevops_servicehook_webhook_tfs"
+	resourceType := "betterado_servicehook_webhook_tfs"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -261,7 +261,7 @@ func TestAccServicehookWebhookTfs_WithResourceDetails(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	url := "https://example.com/webhook"
 
-	resourceType := "azuredevops_servicehook_webhook_tfs"
+	resourceType := "betterado_servicehook_webhook_tfs"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -292,7 +292,7 @@ func TestAccServicehookWebhookTfs_WithResourceVersion(t *testing.T) {
 	url := "https://example.com/webhook"
 	resourceVersion := "7.1"
 
-	resourceType := "azuredevops_servicehook_webhook_tfs"
+	resourceType := "betterado_servicehook_webhook_tfs"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -320,7 +320,7 @@ func CheckServicehookWebhookTfsDestroyed(s *terraform.State) error {
 	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
 
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_servicehook_webhook_tfs" {
+		if resource.Type != "betterado_servicehook_webhook_tfs" {
 			continue
 		}
 

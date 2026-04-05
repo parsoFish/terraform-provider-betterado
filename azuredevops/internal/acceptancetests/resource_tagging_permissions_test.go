@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/datahelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/datahelper"
 )
 
 func TestAccTaggingPermissions_SetPermissions(t *testing.T) {
@@ -19,7 +19,7 @@ func TestAccTaggingPermissions_SetPermissions(t *testing.T) {
 			"Delete":    "Deny",
 		},
 	})
-	tfNodeRoot := "azuredevops_tagging_permissions.acctest"
+	tfNodeRoot := "betterado_tagging_permissions.acctest"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -62,7 +62,7 @@ func TestAccTaggingPermissions_UpdatePermissions(t *testing.T) {
 			"Delete":    "Allow",
 		},
 	})
-	tfNodeRoot := "azuredevops_tagging_permissions.acctest"
+	tfNodeRoot := "betterado_tagging_permissions.acctest"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -110,14 +110,14 @@ func hclTaggingPermissions(projectName string, permissions map[string]map[string
 	return fmt.Sprintf(`
 %s
 
-data "azuredevops_group" "tf-project-readers" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "tf-project-readers" {
+  project_id = betterado_project.project.id
   name       = "Readers"
 }
 
-resource "azuredevops_tagging_permissions" "acctest" {
-  project_id = azuredevops_project.project.id
-  principal  = data.azuredevops_group.tf-project-readers.id
+resource "betterado_tagging_permissions" "acctest" {
+  project_id = betterado_project.project.id
+  principal  = data.betterado_group.tf-project-readers.id
   permissions = {
 		%s
   }

@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointIncomingWebhook_Basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_incomingwebhook"
+	resourceType := "betterado_serviceendpoint_incomingwebhook"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -40,7 +40,7 @@ func TestAccServiceEndpointIncomingWebhook_Complete(t *testing.T) {
 	secret := "hsdhj23r8/3aefh1!"
 	httpHeader := "X-Header-Test"
 
-	resourceType := "azuredevops_serviceendpoint_incomingwebhook"
+	resourceType := "betterado_serviceendpoint_incomingwebhook"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -71,7 +71,7 @@ func TestAccServiceEndpointIncomingWebhook_update(t *testing.T) {
 	description := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_incomingwebhook"
+	resourceType := "betterado_serviceendpoint_incomingwebhook"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -102,7 +102,7 @@ func TestAccServiceEndpointIncomingWebhook_requiresImportErrorStep(t *testing.T)
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_incomingwebhook"
+	resourceType := "betterado_serviceendpoint_incomingwebhook"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -131,8 +131,8 @@ func hclSvcEndpointIncomingWebhookResource(projectName string, serviceEndpointNa
 
 func hclSvcEndpointIncomingWebhookResourceUpdate(projectName string, webhookName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_incomingwebhook" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_incomingwebhook" "test" {
+  project_id            = betterado_project.project.id
   webhook_name          = "%s"
   secret                = "secret1!"
   http_header           = "X-Header"
@@ -146,8 +146,8 @@ resource "azuredevops_serviceendpoint_incomingwebhook" "test" {
 
 func hclSvcEndpointIncomingWebhookResourceComplete(projectName string, serviceEndpointName string, webhookName string, secret string, httpHeader string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_incomingwebhook" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_incomingwebhook" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   webhook_name          = "%s"
   secret                = "%s"
@@ -163,13 +163,13 @@ func hclSvcEndpointIncomingWebhookResourceRequiresImport(projectName string, ser
 	template := hclSvcEndpointIncomingWebhookResource(projectName, serviceEndpointName)
 	return fmt.Sprintf(`
 	%s
-resource "azuredevops_serviceendpoint_incomingwebhook" "import" {
-  project_id            = azuredevops_serviceendpoint_incomingwebhook.test.project_id
+resource "betterado_serviceendpoint_incomingwebhook" "import" {
+  project_id            = betterado_serviceendpoint_incomingwebhook.test.project_id
   webhook_name          = "test_webhook_name"
   secret                = "hsdhj23r8/3aefh1!"
   http_header           = "X-Header-Test"
-  service_endpoint_name = azuredevops_serviceendpoint_incomingwebhook.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_incomingwebhook.test.description
+  service_endpoint_name = betterado_serviceendpoint_incomingwebhook.test.service_endpoint_name
+  description           = betterado_serviceendpoint_incomingwebhook.test.description
 }
 	`, template)
 }

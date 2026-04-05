@@ -7,9 +7,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/tfhelper"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/utils/sdk/securityroles"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/tfhelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/securityroles"
 )
 
 func DataSecurityRoleDefinitions() *schema.Resource {

@@ -6,11 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccPipelineAuthorization_allPipeline_queue(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -29,7 +29,7 @@ func TestAccPipelineAuthorization_allPipeline_queue(t *testing.T) {
 }
 
 func TestAccPipelineAuthorization_pipeline_queue(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -48,7 +48,7 @@ func TestAccPipelineAuthorization_pipeline_queue(t *testing.T) {
 }
 
 func TestAccPipelineAuthorization_multiPipeline_queue(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -67,7 +67,7 @@ func TestAccPipelineAuthorization_multiPipeline_queue(t *testing.T) {
 }
 
 func TestAccPipelineAuthorization_allPipelineWithPipeline_queue(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -86,7 +86,7 @@ func TestAccPipelineAuthorization_allPipelineWithPipeline_queue(t *testing.T) {
 }
 
 func TestAccPipelineAuthorization_allPipeline_environment(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -105,7 +105,7 @@ func TestAccPipelineAuthorization_allPipeline_environment(t *testing.T) {
 }
 
 func TestAccPipelineAuthorization_pipeline_environment(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -124,7 +124,7 @@ func TestAccPipelineAuthorization_pipeline_environment(t *testing.T) {
 }
 
 func TestAccPipelineAuthorization_allPipeline_variableGroup(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -143,7 +143,7 @@ func TestAccPipelineAuthorization_allPipeline_variableGroup(t *testing.T) {
 }
 
 func TestAccPipelineAuthorization_pipeline_variableGroup(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -162,7 +162,7 @@ func TestAccPipelineAuthorization_pipeline_variableGroup(t *testing.T) {
 }
 
 func TestAccPipelineAuthorization_allPipeline_endpoint(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -181,7 +181,7 @@ func TestAccPipelineAuthorization_allPipeline_endpoint(t *testing.T) {
 }
 
 func TestAccPipelineAuthorization_pipeline_endpoint(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -200,7 +200,7 @@ func TestAccPipelineAuthorization_pipeline_endpoint(t *testing.T) {
 }
 
 func TestAccPipelineAuthorization_allPipeline_repository(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -219,7 +219,7 @@ func TestAccPipelineAuthorization_allPipeline_repository(t *testing.T) {
 }
 
 func TestAccPipelineAuthorization_pipeline_repository(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -238,7 +238,7 @@ func TestAccPipelineAuthorization_pipeline_repository(t *testing.T) {
 }
 
 func TestAccPipelineAuthorization_pipeline_cross_project_repository(t *testing.T) {
-	node := "azuredevops_pipeline_authorization.test"
+	node := "betterado_pipeline_authorization.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
@@ -276,7 +276,7 @@ func TestAccPipelineAuthorization_pipeline_cross_project_repository(t *testing.T
 
 func TestAccPipelineAuthorization_queue_import(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	resourceName := "azuredevops_pipeline_authorization.import_test"
+	resourceName := "betterado_pipeline_authorization.import_test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
@@ -314,7 +314,7 @@ func TestAccPipelineAuthorization_queue_import(t *testing.T) {
 
 func hclAllPipelineAuthQueue(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -322,20 +322,20 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-resource "azuredevops_agent_pool" "test" {
+resource "betterado_agent_pool" "test" {
   name           = "%[1]s"
   auto_provision = false
   auto_update    = false
 }
 
-resource "azuredevops_agent_queue" "test" {
-  project_id    = azuredevops_project.test.id
-  agent_pool_id = azuredevops_agent_pool.test.id
+resource "betterado_agent_queue" "test" {
+  project_id    = betterado_project.test.id
+  agent_pool_id = betterado_agent_pool.test.id
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.test.id
-  resource_id = azuredevops_agent_queue.test.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.test.id
+  resource_id = betterado_agent_queue.test.id
   type        = "queue"
 }
 `, name)
@@ -343,7 +343,7 @@ resource "azuredevops_pipeline_authorization" "test" {
 
 func hclPipelineAuthQueue(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -351,37 +351,37 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-resource "azuredevops_agent_pool" "test" {
+resource "betterado_agent_pool" "test" {
   name           = "%[1]s"
   auto_provision = false
   auto_update    = false
 }
 
-resource "azuredevops_agent_queue" "test" {
-  project_id    = azuredevops_project.test.id
-  agent_pool_id = azuredevops_agent_pool.test.id
+resource "betterado_agent_queue" "test" {
+  project_id    = betterado_project.test.id
+  agent_pool_id = betterado_agent_pool.test.id
 }
 
-data "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 
   repository {
     repo_type = "TfsGit"
-    repo_id   = data.azuredevops_git_repository.test.id
+    repo_id   = data.betterado_git_repository.test.id
     yml_path  = "azure-pipelines.yml"
   }
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.test.id
-  resource_id = azuredevops_agent_queue.test.id
-  pipeline_id = azuredevops_build_definition.test.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.test.id
+  resource_id = betterado_agent_queue.test.id
+  pipeline_id = betterado_build_definition.test.id
   type        = "queue"
 }
 `, name)
@@ -389,7 +389,7 @@ resource "azuredevops_pipeline_authorization" "test" {
 
 func hclMultiPipelineAuthQueue(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -397,55 +397,55 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-resource "azuredevops_agent_pool" "test" {
+resource "betterado_agent_pool" "test" {
   name           = "%[1]s"
   auto_provision = false
   auto_update    = false
 }
 
-resource "azuredevops_agent_queue" "test" {
-  project_id    = azuredevops_project.test.id
-  agent_pool_id = azuredevops_agent_pool.test.id
+resource "betterado_agent_queue" "test" {
+  project_id    = betterado_project.test.id
+  agent_pool_id = betterado_agent_pool.test.id
 }
 
-data "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 
   repository {
     repo_type = "TfsGit"
-    repo_id   = data.azuredevops_git_repository.test.id
+    repo_id   = data.betterado_git_repository.test.id
     yml_path  = "azure-pipelines.yml"
   }
 }
 
-resource "azuredevops_build_definition" "test2" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test2" {
+  project_id = betterado_project.test.id
   name       = "%[1]s2"
 
   repository {
     repo_type = "TfsGit"
-    repo_id   = data.azuredevops_git_repository.test.id
+    repo_id   = data.betterado_git_repository.test.id
     yml_path  = "azure-pipelines.yml"
   }
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.test.id
-  resource_id = azuredevops_agent_queue.test.id
-  pipeline_id = azuredevops_build_definition.test.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.test.id
+  resource_id = betterado_agent_queue.test.id
+  pipeline_id = betterado_build_definition.test.id
   type        = "queue"
 }
 
-resource "azuredevops_pipeline_authorization" "test2" {
-  project_id  = azuredevops_project.test.id
-  resource_id = azuredevops_agent_queue.test.id
-  pipeline_id = azuredevops_build_definition.test2.id
+resource "betterado_pipeline_authorization" "test2" {
+  project_id  = betterado_project.test.id
+  resource_id = betterado_agent_queue.test.id
+  pipeline_id = betterado_build_definition.test2.id
   type        = "queue"
 }
 `, name)
@@ -454,7 +454,7 @@ resource "azuredevops_pipeline_authorization" "test2" {
 func hclAllPipelineWithPipoelineAuthQueue(name string) string {
 	{
 		return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -462,43 +462,43 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-resource "azuredevops_agent_pool" "test" {
+resource "betterado_agent_pool" "test" {
   name           = "%[1]s"
   auto_provision = false
   auto_update    = false
 }
 
-resource "azuredevops_agent_queue" "test" {
-  project_id    = azuredevops_project.test.id
-  agent_pool_id = azuredevops_agent_pool.test.id
+resource "betterado_agent_queue" "test" {
+  project_id    = betterado_project.test.id
+  agent_pool_id = betterado_agent_pool.test.id
 }
 
-data "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 
   repository {
     repo_type = "TfsGit"
-    repo_id   = data.azuredevops_git_repository.test.id
+    repo_id   = data.betterado_git_repository.test.id
     yml_path  = "azure-pipelines.yml"
   }
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.test.id
-  resource_id = azuredevops_agent_queue.test.id
-  pipeline_id = azuredevops_build_definition.test.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.test.id
+  resource_id = betterado_agent_queue.test.id
+  pipeline_id = betterado_build_definition.test.id
   type        = "queue"
 }
 
-resource "azuredevops_pipeline_authorization" "test_all" {
-  project_id  = azuredevops_project.test.id
-  resource_id = azuredevops_agent_queue.test.id
+resource "betterado_pipeline_authorization" "test_all" {
+  project_id  = betterado_project.test.id
+  resource_id = betterado_agent_queue.test.id
   type        = "queue"
 }
 
@@ -508,7 +508,7 @@ resource "azuredevops_pipeline_authorization" "test_all" {
 
 func hclAllPipelineAuthEnvironment(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -516,14 +516,14 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-resource "azuredevops_environment" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_environment" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.test.id
-  resource_id = azuredevops_environment.test.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.test.id
+  resource_id = betterado_environment.test.id
   type        = "environment"
 }
 `, name)
@@ -531,7 +531,7 @@ resource "azuredevops_pipeline_authorization" "test" {
 
 func hclPipelineAuthEnvironment(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -539,39 +539,39 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-resource "azuredevops_environment" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_environment" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-data "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 
   repository {
     repo_type = "TfsGit"
-    repo_id   = data.azuredevops_git_repository.test.id
+    repo_id   = data.betterado_git_repository.test.id
     yml_path  = "azure-pipelines.yml"
   }
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.test.id
-  resource_id = azuredevops_environment.test.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.test.id
+  resource_id = betterado_environment.test.id
   type        = "environment"
-  pipeline_id = azuredevops_build_definition.test.id
+  pipeline_id = betterado_build_definition.test.id
 }
 `, name)
 }
 
 func hclAllPipelineAuthVariableGroup(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -579,8 +579,8 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-resource "azuredevops_variable_group" "test" {
-  project_id   = azuredevops_project.test.id
+resource "betterado_variable_group" "test" {
+  project_id   = betterado_project.test.id
   name         = "%[1]s"
   allow_access = true
 
@@ -590,9 +590,9 @@ resource "azuredevops_variable_group" "test" {
   }
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.test.id
-  resource_id = azuredevops_variable_group.test.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.test.id
+  resource_id = betterado_variable_group.test.id
   type        = "variablegroup"
 }
 `, name)
@@ -600,7 +600,7 @@ resource "azuredevops_pipeline_authorization" "test" {
 
 func hclPipelineAuthVariableGroup(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -608,8 +608,8 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-resource "azuredevops_variable_group" "test" {
-  project_id   = azuredevops_project.test.id
+resource "betterado_variable_group" "test" {
+  project_id   = betterado_project.test.id
   name         = "%[1]s"
   allow_access = true
 
@@ -619,34 +619,34 @@ resource "azuredevops_variable_group" "test" {
   }
 }
 
-data "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 
   repository {
     repo_type = "TfsGit"
-    repo_id   = data.azuredevops_git_repository.test.id
+    repo_id   = data.betterado_git_repository.test.id
     yml_path  = "azure-pipelines.yml"
   }
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.test.id
-  resource_id = azuredevops_variable_group.test.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.test.id
+  resource_id = betterado_variable_group.test.id
   type        = "variablegroup"
-  pipeline_id = azuredevops_build_definition.test.id
+  pipeline_id = betterado_build_definition.test.id
 }
 `, name)
 }
 
 func hclAllPipelineAuthEndpoint(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -654,8 +654,8 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-resource "azuredevops_serviceendpoint_github" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_github" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%[1]s"
 
   auth_personal {
@@ -663,9 +663,9 @@ resource "azuredevops_serviceendpoint_github" "test" {
   }
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.test.id
-  resource_id = azuredevops_serviceendpoint_github.test.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.test.id
+  resource_id = betterado_serviceendpoint_github.test.id
   type        = "endpoint"
 }
 `, name)
@@ -673,7 +673,7 @@ resource "azuredevops_pipeline_authorization" "test" {
 
 func hclPipelineAuthEndpoint(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -681,8 +681,8 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-resource "azuredevops_serviceendpoint_github" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_github" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%[1]s"
 
   auth_personal {
@@ -690,34 +690,34 @@ resource "azuredevops_serviceendpoint_github" "test" {
   }
 }
 
-data "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 
   repository {
     repo_type = "TfsGit"
-    repo_id   = data.azuredevops_git_repository.test.id
+    repo_id   = data.betterado_git_repository.test.id
     yml_path  = "azure-pipelines.yml"
   }
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.test.id
-  resource_id = azuredevops_serviceendpoint_github.test.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.test.id
+  resource_id = betterado_serviceendpoint_github.test.id
   type        = "endpoint"
-  pipeline_id = azuredevops_build_definition.test.id
+  pipeline_id = betterado_build_definition.test.id
 }
 `, name)
 }
 
 func hclAllPipelineAuthRepository(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -725,14 +725,14 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-data "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.test.id
-  resource_id = data.azuredevops_git_repository.test.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.test.id
+  resource_id = data.betterado_git_repository.test.id
   type        = "repository"
 }
 `, name)
@@ -740,7 +740,7 @@ resource "azuredevops_pipeline_authorization" "test" {
 
 func hclPipelineAuthRepository(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -748,26 +748,26 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-data "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 
   repository {
     repo_type = "TfsGit"
-    repo_id   = data.azuredevops_git_repository.test.id
+    repo_id   = data.betterado_git_repository.test.id
     yml_path  = "azure-pipelines.yml"
   }
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.test.id
-  resource_id = data.azuredevops_git_repository.test.id
-  pipeline_id = azuredevops_build_definition.test.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.test.id
+  resource_id = data.betterado_git_repository.test.id
+  pipeline_id = betterado_build_definition.test.id
   type        = "repository"
 }
 `, name)
@@ -775,7 +775,7 @@ resource "azuredevops_pipeline_authorization" "test" {
 
 func hclPipelineAuthCrossProjectRepository(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
@@ -783,7 +783,7 @@ resource "azuredevops_project" "test" {
   description        = "Managed by Terraform"
 }
 
-resource "azuredevops_project" "remote_repo" {
+resource "betterado_project" "remote_repo" {
   name               = "%[1]s2"
   visibility         = "private"
   version_control    = "Git"
@@ -791,53 +791,53 @@ resource "azuredevops_project" "remote_repo" {
   description        = "Managed by Terraform"
 }
 
-data "azuredevops_git_repository" "remote_repo" {
-  project_id = azuredevops_project.remote_repo.id
-  name       = azuredevops_project.remote_repo.name
+data "betterado_git_repository" "remote_repo" {
+  project_id = betterado_project.remote_repo.id
+  name       = betterado_project.remote_repo.name
 }
 
-data "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 
   repository {
     repo_type = "TfsGit"
-    repo_id   = data.azuredevops_git_repository.test.id
+    repo_id   = data.betterado_git_repository.test.id
     yml_path  = "azure-pipelines.yml"
   }
 }
 
-resource "azuredevops_pipeline_authorization" "test" {
-  project_id  = azuredevops_project.remote_repo.id
-  resource_id = data.azuredevops_git_repository.remote_repo.id
+resource "betterado_pipeline_authorization" "test" {
+  project_id  = betterado_project.remote_repo.id
+  resource_id = data.betterado_git_repository.remote_repo.id
   type        = "repository"
 
-  pipeline_id         = azuredevops_build_definition.test.id
-  pipeline_project_id = azuredevops_project.test.id
+  pipeline_id         = betterado_build_definition.test.id
+  pipeline_project_id = betterado_project.test.id
 }
 `, name)
 }
 
 func hclPipelineAuthorizationQueueConfig(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = %q
 }
 
-data "azuredevops_agent_queue" "default" {
-  project_id = azuredevops_project.test.id
+data "betterado_agent_queue" "default" {
+  project_id = betterado_project.test.id
   name       = "Default"
 }
 
-resource "azuredevops_pipeline_authorization" "import_test" {
-  project_id  = azuredevops_project.test.id
+resource "betterado_pipeline_authorization" "import_test" {
+  project_id  = betterado_project.test.id
   type        = "queue"
-  resource_id = data.azuredevops_agent_queue.default.id
+  resource_id = data.betterado_agent_queue.default.id
 }
 `, projectName)
 }

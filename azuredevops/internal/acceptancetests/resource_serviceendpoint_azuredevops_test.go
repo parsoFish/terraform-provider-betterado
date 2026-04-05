@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointAzureDevOps_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_azuredevops"
+	resourceType := "betterado_serviceendpoint_azuredevops"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -36,7 +36,7 @@ func TestAccServiceEndpointAzureDevOps_complete(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_azuredevops"
+	resourceType := "betterado_serviceendpoint_azuredevops"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -67,7 +67,7 @@ func TestAccServiceEndpointAzureDevOps_update(t *testing.T) {
 	orgUrl := "https://dev.azure.com/testorganization"
 	releaseApiUrl := "https://vsrm.dev.azure.com/testorganization"
 
-	resourceType := "azuredevops_serviceendpoint_azuredevops"
+	resourceType := "betterado_serviceendpoint_azuredevops"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -99,7 +99,7 @@ func TestAccServiceEndpointAzureDevOps_update(t *testing.T) {
 func TestAccServiceEndpointAzureDevOps_RequiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_azuredevops"
+	resourceType := "betterado_serviceendpoint_azuredevops"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -123,8 +123,8 @@ func TestAccServiceEndpointAzureDevOps_RequiresImportErrorStep(t *testing.T) {
 
 func hclSvcEndpointAzureDevOpsResourceBasic(projectName string, serviceEndpointName string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_azuredevops" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_azuredevops" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   personal_access_token = "0000000000000000000000000000000000000000000000000000"
 }`, serviceEndpointName)
@@ -135,8 +135,8 @@ resource "azuredevops_serviceendpoint_azuredevops" "test" {
 
 func hclSvcEndpointAzureDevOpsResourceComplete(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_azuredevops" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_azuredevops" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   description           = "%s"
   org_url               = "https://dev.azure.com/myorganization"
@@ -150,8 +150,8 @@ resource "azuredevops_serviceendpoint_azuredevops" "test" {
 
 func hclSvcEndpointAzureDevOpsResourceUpdate(projectName string, serviceEndpointName string, orgUrl string, releaseApiUrl string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_azuredevops" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_azuredevops" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   description           = "%s"
   org_url               = "%s"
@@ -167,13 +167,13 @@ func hclSvcEndpointAzureDevOpsResourceRequiresImport(projectName string, service
 	template := hclSvcEndpointAzureDevOpsResourceBasic(projectName, serviceEndpointName)
 	return fmt.Sprintf(`
 %s
-resource "azuredevops_serviceendpoint_azuredevops" "import" {
-  project_id            = azuredevops_serviceendpoint_azuredevops.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_azuredevops.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_azuredevops.test.description
-  org_url               = azuredevops_serviceendpoint_azuredevops.test.org_url
-  release_api_url       = azuredevops_serviceendpoint_azuredevops.test.release_api_url
-  personal_access_token = azuredevops_serviceendpoint_azuredevops.test.personal_access_token
+resource "betterado_serviceendpoint_azuredevops" "import" {
+  project_id            = betterado_serviceendpoint_azuredevops.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_azuredevops.test.service_endpoint_name
+  description           = betterado_serviceendpoint_azuredevops.test.description
+  org_url               = betterado_serviceendpoint_azuredevops.test.org_url
+  release_api_url       = betterado_serviceendpoint_azuredevops.test.release_api_url
+  personal_access_token = betterado_serviceendpoint_azuredevops.test.personal_access_token
 }
 `, template)
 }

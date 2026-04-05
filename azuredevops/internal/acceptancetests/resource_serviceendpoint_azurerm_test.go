@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 // validates that an apply followed by another apply (i.e., resource update) will be reflected in AzDO and the
@@ -26,7 +26,7 @@ func TestAccServiceEndpointAzureRm_CreateAndUpdate(t *testing.T) {
 	serviceprincipalkeySecond := uuid.New().String()
 	serviceEndpointAuthenticationScheme := "ServicePrincipal"
 
-	resourceType := "azuredevops_serviceendpoint_azurerm"
+	resourceType := "betterado_serviceendpoint_azurerm"
 	tfSvcEpNode := resourceType + ".serviceendpointrm"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -73,7 +73,7 @@ func TestAccServiceEndpointAzureRm_CreateAndUpdate_WithValidate(t *testing.T) {
 	validateFirst := false
 	validateSecond := true
 
-	resourceType := "azuredevops_serviceendpoint_azurerm"
+	resourceType := "betterado_serviceendpoint_azurerm"
 	tfSvcEpNode := resourceType + ".serviceendpointrm"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -109,7 +109,7 @@ func TestAccServiceEndpointAzureRm_Create_WithValidate(t *testing.T) {
 	serviceEndpointAuthenticationScheme := "ServicePrincipal"
 	validate := true
 
-	resourceType := "azuredevops_serviceendpoint_azurerm"
+	resourceType := "betterado_serviceendpoint_azurerm"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -129,7 +129,7 @@ func TestAccServiceEndpointAzureRm_MgmtGrpCreateAndUpdate(t *testing.T) {
 	serviceprincipalid := uuid.New().String()
 	serviceprincipalkey := uuid.New().String()
 
-	resourceType := "azuredevops_serviceendpoint_azurerm"
+	resourceType := "betterado_serviceendpoint_azurerm"
 	tfSvcEpNode := resourceType + ".serviceendpointrm"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -162,7 +162,7 @@ func TestAccServiceEndpointAzureRm_AutomaticCreateAndUpdate(t *testing.T) {
 	subscriptionName := os.Getenv("TEST_ARM_SUBSCRIPTION_NAME")
 	tenantId := os.Getenv("TEST_ARM_TENANT_ID")
 
-	resourceType := "azuredevops_serviceendpoint_azurerm"
+	resourceType := "betterado_serviceendpoint_azurerm"
 	tfSvcEpNode := resourceType + ".serviceendpointrm"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -214,7 +214,7 @@ func TestAccServiceEndpointAzureRm_WorkloadFederation_Manual_CreateAndUpdate(t *
 	serviceprincipalidSecond := uuid.New().String()
 	serviceEndpointAuthenticationScheme := "WorkloadIdentityFederation"
 
-	azureDevOpsOrgName := "terraform-provider-azuredevops"
+	azureDevOpsOrgName := "terraform-provider-betterado"
 
 	if os.Getenv("AZDO_ORG_SERVICE_URL") != "" {
 		azureDevOpsOrgUrl, err := url.Parse(os.Getenv("AZDO_ORG_SERVICE_URL"))
@@ -224,7 +224,7 @@ func TestAccServiceEndpointAzureRm_WorkloadFederation_Manual_CreateAndUpdate(t *
 		azureDevOpsOrgName = path.Base(azureDevOpsOrgUrl.Path)
 	}
 
-	resourceType := "azuredevops_serviceendpoint_azurerm"
+	resourceType := "betterado_serviceendpoint_azurerm"
 	tfSvcEpNode := resourceType + ".serviceendpointrm"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -275,7 +275,7 @@ func TestAccServiceEndpointAzureRm_WorkloadFederation_Automatic_CreateAndUpdate(
 	subscriptionName := os.Getenv("TEST_ARM_SUBSCRIPTION_NAME")
 	tenantId := os.Getenv("TEST_ARM_TENANT_ID")
 
-	resourceType := "azuredevops_serviceendpoint_azurerm"
+	resourceType := "betterado_serviceendpoint_azurerm"
 	tfSvcEpNode := resourceType + ".serviceendpointrm"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -326,7 +326,7 @@ func TestAccServiceEndpointAzureRm_ManagedServiceIdentity_CreateAndUpdate(t *tes
 	subscriptionId := "3b0fee91-c36d-4d70-b1e9-fc4b9d608c3d"
 	subscriptionName := "Microsoft Azure DEMO"
 
-	resourceType := "azuredevops_serviceendpoint_azurerm"
+	resourceType := "betterado_serviceendpoint_azurerm"
 	tfSvcEpNode := resourceType + ".serviceendpointrm"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -364,11 +364,11 @@ func TestAccServiceEndpointAzureRm_azureStack(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_serviceendpoint_azurerm.test"
+	tfNode := "betterado_serviceendpoint_azurerm.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("azuredevops_serviceendpoint_azurerm"),
+		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_azurerm"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclAzureRMServiceEndpointEnvironmentAzureStack(projectName, serviceEndpointName),
@@ -395,12 +395,12 @@ func TestAccServiceEndpointAzureRm_azureStack(t *testing.T) {
 
 func hclAzureRMServiceEndpointEnvironmentAzureStack(projectName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_azurerm" "test" {
-  project_id                = azuredevops_project.test.id
+resource "betterado_serviceendpoint_azurerm" "test" {
+  project_id                = betterado_project.test.id
   service_endpoint_name     = "%s"
   environment               = "AzureStack"
   server_url                = "https://www.azuredevops.com"

@@ -11,16 +11,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 func TestAccGitRepository_withDefaultBranch(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
-	tfRepoNode := "azuredevops_git_repository.test"
+	tfRepoNode := "betterado_git_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -47,7 +47,7 @@ func TestAccGitRepository_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoNameFirst := testutils.GenerateResourceName()
 	gitRepoNameSecond := testutils.GenerateResourceName()
-	tfRepoNode := "azuredevops_git_repository.test"
+	tfRepoNode := "betterado_git_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -89,7 +89,7 @@ func TestAccGitRepository_update(t *testing.T) {
 func TestAccGitRepository_disabled(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
-	tfRepoNode := "azuredevops_git_repository.test"
+	tfRepoNode := "betterado_git_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -122,7 +122,7 @@ func TestAccGitRepository_disabledCannotUpdate(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	gitRepoNameUpdate := gitRepoName + "update"
-	tfRepoNode := "azuredevops_git_repository.test"
+	tfRepoNode := "betterado_git_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -180,7 +180,7 @@ func TestAccGitRepository_importGitRepository(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 
-	tfRepoNode := "azuredevops_git_repository.test"
+	tfRepoNode := "betterado_git_repository.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -206,7 +206,7 @@ func TestAccGitRepository_import_by_name(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 
-	tfRepoNode := "azuredevops_git_repository.test"
+	tfRepoNode := "betterado_git_repository.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -247,7 +247,7 @@ func TestAccGitRepository_import_by_name(t *testing.T) {
 func TestAccGitRepository_initializationClean(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
-	tfRepoNode := "azuredevops_git_repository.test"
+	tfRepoNode := "betterado_git_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -271,7 +271,7 @@ func TestAccGitRepository_initializationClean(t *testing.T) {
 func TestAccGitRepository_uninitialized(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
-	tfRepoNode := "azuredevops_git_repository.test"
+	tfRepoNode := "betterado_git_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -295,8 +295,8 @@ func TestAccGitRepository_forkBranchNotEmpty(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	gitForkedRepoName := testutils.GenerateResourceName()
-	tfRepoNode := "azuredevops_git_repository.test"
-	tfForkedRepoNode := "azuredevops_git_repository.fork"
+	tfRepoNode := "betterado_git_repository.test"
+	tfForkedRepoNode := "betterado_git_repository.fork"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -328,8 +328,8 @@ func TestAccGitRepository_privateImportServiceEndpointBranchNotEmpty(t *testing.
 	gitImportRepoName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	tfRepoNode := "azuredevops_git_repository.test"
-	tfImportRepoNode := "azuredevops_git_repository.import"
+	tfRepoNode := "betterado_git_repository.test"
+	tfImportRepoNode := "betterado_git_repository.import"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -367,8 +367,8 @@ func TestAccGitRepository_privateUserNamePasswordImportBranchNotEmpty(t *testing
 	gitImportRepoName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	tfRepoNode := "azuredevops_git_repository.test"
-	tfImportRepoNode := "azuredevops_git_repository.import"
+	tfRepoNode := "betterado_git_repository.test"
+	tfImportRepoNode := "betterado_git_repository.import"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -401,7 +401,7 @@ func checkGitRepoExists(expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
 
-		gitRepo, ok := s.RootModule().Resources["azuredevops_git_repository.test"]
+		gitRepo, ok := s.RootModule().Resources["betterado_git_repository.test"]
 		if !ok {
 			return fmt.Errorf("Did not find a repo definition in the TF state")
 		}
@@ -427,7 +427,7 @@ func checkGitRepoDestroyed(s *terraform.State) error {
 
 	// verify that every repository referenced in the state does not exist in AzDO
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_git_repository" {
+		if resource.Type != "betterado_git_repository" {
 			continue
 		}
 
@@ -478,12 +478,12 @@ func readGitRepo(clients *client.AggregatedClient, repoID string, projectID stri
 
 func hclGitRepositoryBasic(projectName, repoName, initType string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%s"
   initialization {
     init_type = "%s"
@@ -494,12 +494,12 @@ resource "azuredevops_git_repository" "test" {
 
 func hclGitRepositoryWithDefaultBranch(projectName, repoName, initType string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id     = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id     = betterado_project.test.id
   name           = "%s"
   default_branch = "refs/heads/main"
   initialization {
@@ -511,12 +511,12 @@ resource "azuredevops_git_repository" "test" {
 
 func hclGitRepositoryDisable(projectName, repoName string, disabled bool) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%s"
   disabled   = %t
   initialization {
@@ -528,12 +528,12 @@ resource "azuredevops_git_repository" "test" {
 
 func hclGitRepositoryIncorrectInitialization(projectName, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%s"
 }
 `, projectName, repoName)
@@ -541,17 +541,17 @@ resource "azuredevops_git_repository" "test" {
 
 func hclGitRepositoryImport(projectName, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%s"
   initialization {
     init_type   = "Import"
     source_type = "Git"
-    source_url  = "https://github.com/microsoft/terraform-provider-azuredevops.git"
+    source_url  = "https://github.com/parsoFish/terraform-provider-betterado.git"
   }
 }
 `, projectName, repoName)
@@ -562,9 +562,9 @@ func hclGitRepositoryForkBranchNotEmpty(projectName, repoName, forkRepoName stri
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_git_repository" "fork" {
-  project_id           = azuredevops_project.test.id
-  parent_repository_id = azuredevops_git_repository.test.id
+resource "betterado_git_repository" "fork" {
+  project_id           = betterado_project.test.id
+  parent_repository_id = betterado_git_repository.test.id
   name                 = "%s"
   initialization {
     init_type = "Fork"
@@ -577,20 +577,20 @@ func hclGitRepositoryImportPrivateServiceEndpoint(projectName, repoName, importR
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_generic_git" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_generic_git" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
-  repository_url        = azuredevops_git_repository.test.remote_url
+  repository_url        = betterado_git_repository.test.remote_url
 }
 
-resource "azuredevops_git_repository" "import" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "import" {
+  project_id = betterado_project.test.id
   name       = "%s"
   initialization {
     init_type             = "Import"
     source_type           = "Git"
-    source_url            = azuredevops_git_repository.test.remote_url
-    service_connection_id = azuredevops_serviceendpoint_generic_git.test.id
+    source_url            = betterado_git_repository.test.remote_url
+    service_connection_id = betterado_serviceendpoint_generic_git.test.id
   }
 }
 `, repoInit, serviceEndpointName, importRepoName)
@@ -601,13 +601,13 @@ func hclGitRepositoryImportPrivateUserNamePassword(projectName, repoName, import
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_git_repository" "import" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "import" {
+  project_id = betterado_project.test.id
   name       = "%s"
   initialization {
     init_type   = "Import"
     source_type = "Git"
-    source_url  = azuredevops_git_repository.test.remote_url
+    source_url  = betterado_git_repository.test.remote_url
     username    = "%s"
     password    = "%s"
   }

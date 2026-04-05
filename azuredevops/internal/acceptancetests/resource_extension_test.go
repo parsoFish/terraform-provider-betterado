@@ -9,14 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/extensionmanagement"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccExtension_basic(t *testing.T) {
 	publisherId := "ms-securitydevops"
 	extensionId := "microsoft-security-devops-azdevops"
-	tfNode := "azuredevops_extension.test"
+	tfNode := "betterado_extension.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -45,7 +45,7 @@ func TestAccExtension_basic(t *testing.T) {
 func TestAccExtension_complete(t *testing.T) {
 	publisherId := "ms-securitydevops"
 	extensionId := "microsoft-security-devops-azdevops"
-	tfNode := "azuredevops_extension.test"
+	tfNode := "betterado_extension.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -77,7 +77,7 @@ func TestAccExtension_complete(t *testing.T) {
 func TestAccExtension_update(t *testing.T) {
 	publisherId := "ms-securitydevops"
 	extensionId := "microsoft-security-devops-azdevops"
-	tfNode := "azuredevops_extension.test"
+	tfNode := "betterado_extension.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -144,7 +144,7 @@ func TestAccExtension_update(t *testing.T) {
 func TestAccExtension_requireImportError(t *testing.T) {
 	publisherId := "ms-securitydevops"
 	extensionId := "microsoft-security-devops-azdevops"
-	tfNode := "azuredevops_extension.test"
+	tfNode := "betterado_extension.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -180,7 +180,7 @@ func TestAccExtension_requireImportError(t *testing.T) {
 func checkExtensionDestroyed(s *terraform.State) error {
 	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
 	for _, res := range s.RootModule().Resources {
-		if res.Type != "azuredevops_extension" {
+		if res.Type != "betterado_extension" {
 			continue
 		}
 		ids := strings.Split(res.Primary.ID, "/")
@@ -199,9 +199,9 @@ func checkExtensionDestroyed(s *terraform.State) error {
 
 func checkExtensionExist(expectedExtensionId string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		res, ok := s.RootModule().Resources["azuredevops_extension.test"]
+		res, ok := s.RootModule().Resources["betterado_extension.test"]
 		if !ok {
-			return fmt.Errorf("Did not find `azuredevops_extension` in the TF state")
+			return fmt.Errorf("Did not find `betterado_extension` in the TF state")
 		}
 
 		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
@@ -229,7 +229,7 @@ func requiresExtensionImportError(publisherId, extensionId string) *regexp.Regex
 
 func hclExtensionBasic(publisherId, extensionId string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_extension" "test" {
+resource "betterado_extension" "test" {
   publisher_id = "%s"
   extension_id = "%s"
 }`, publisherId, extensionId)
@@ -237,7 +237,7 @@ resource "azuredevops_extension" "test" {
 
 func hclExtensionComplete(publisherId, extensionId string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_extension" "test" {
+resource "betterado_extension" "test" {
   publisher_id = "%s"
   extension_id = "%s"
   disabled     = false
@@ -246,7 +246,7 @@ resource "azuredevops_extension" "test" {
 
 func hclExtensionUpdate(publisherId, extensionId string, disabled bool) string {
 	return fmt.Sprintf(`
-resource "azuredevops_extension" "test" {
+resource "betterado_extension" "test" {
   publisher_id = "%s"
   extension_id = "%s"
   disabled     = %t
@@ -257,8 +257,8 @@ func hclExtensionImportError(publisherId, extensionId string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_extension" "import" {
-  publisher_id = azuredevops_extension.test.publisher_id
-  extension_id = azuredevops_extension.test.extension_id
+resource "betterado_extension" "import" {
+  publisher_id = betterado_extension.test.publisher_id
+  extension_id = betterado_extension.test.extension_id
 }`, hclExtensionBasic(publisherId, extensionId))
 }

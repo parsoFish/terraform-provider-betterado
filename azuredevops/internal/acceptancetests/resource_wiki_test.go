@@ -8,16 +8,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/wiki"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 func TestAccWikiResource_projectWiki(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 
-	tf := "azuredevops_wiki.test"
-	resourceType := "azuredevops_wiki"
+	tf := "betterado_wiki.test"
+	resourceType := "betterado_wiki"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -42,8 +42,8 @@ func TestAccWikiResource_projectWiki(t *testing.T) {
 func TestAccWikiResource_codeWiki(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 
-	tf := "azuredevops_wiki.test"
-	resourceType := "azuredevops_wiki"
+	tf := "betterado_wiki.test"
+	resourceType := "betterado_wiki"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -71,8 +71,8 @@ func TestAccWikiResource_codeWiki(t *testing.T) {
 
 func TestAccWikiResource_importErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tf := "azuredevops_wiki.test"
-	resourceType := "azuredevops_wiki"
+	tf := "betterado_wiki.test"
+	resourceType := "betterado_wiki"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -81,9 +81,9 @@ func TestAccWikiResource_importErrorStep(t *testing.T) {
 			{
 				Config: hclWikiResourceProjectWiki(projectName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("azuredevops_wiki.test", "project_id"),
-					resource.TestCheckResourceAttrSet("azuredevops_wiki.test", "type"),
-					resource.TestCheckResourceAttrSet("azuredevops_wiki.test", "name"),
+					resource.TestCheckResourceAttrSet("betterado_wiki.test", "project_id"),
+					resource.TestCheckResourceAttrSet("betterado_wiki.test", "type"),
+					resource.TestCheckResourceAttrSet("betterado_wiki.test", "name"),
 				),
 			},
 			{
@@ -124,15 +124,15 @@ func wikiRequiresImportError() *regexp.Regexp {
 
 func hclWikiResourceProjectWiki(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
   work_item_template = "Agile"
 }
 
-resource "azuredevops_wiki" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_wiki" "test" {
+  project_id = betterado_project.test.id
   name       = "projectWikiRepo"
   type       = "projectWiki"
 }
@@ -141,24 +141,24 @@ resource "azuredevops_wiki" "test" {
 
 func hclWikiResourceCodeWiki(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "Repo"
   initialization {
     init_type = "Clean"
   }
 }
 
-resource "azuredevops_wiki" "test" {
-  project_id    = azuredevops_project.test.id
-  repository_id = azuredevops_git_repository.test.id
+resource "betterado_wiki" "test" {
+  project_id    = betterado_project.test.id
+  repository_id = betterado_git_repository.test.id
   name          = "codeWikiRepo"
   version       = "master"
   type          = "codeWiki"
@@ -170,10 +170,10 @@ func hclWikiResourceRequiresImport(projectName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_wiki" "import" {
-  project_id = azuredevops_wiki.test.project_id
-  name       = azuredevops_wiki.test.name
-  type       = azuredevops_wiki.test.type
+resource "betterado_wiki" "import" {
+  project_id = betterado_wiki.test.project_id
+  name       = betterado_wiki.test.name
+  type       = betterado_wiki.test.type
 }
 `, hclWikiResourceProjectWiki(projectName))
 }

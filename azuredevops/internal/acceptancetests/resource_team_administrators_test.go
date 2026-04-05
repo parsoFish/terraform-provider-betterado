@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccTeamAdministrators_CreateAndUpdate(t *testing.T) {
@@ -17,16 +17,16 @@ func TestAccTeamAdministrators_CreateAndUpdate(t *testing.T) {
 
 %s
 
-data "azuredevops_group" "builtin_project_contributors" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "builtin_project_contributors" {
+  project_id = betterado_project.project.id
   name       = "Contributors"
 }
 
-resource "azuredevops_team_administrators" "team_administrators" {
-  project_id = azuredevops_team.team.project_id
-  team_id    = azuredevops_team.team.id
+resource "betterado_team_administrators" "team_administrators" {
+  project_id = betterado_team.team.project_id
+  team_id    = betterado_team.team.id
   administrators = [
-    data.azuredevops_group.builtin_project_contributors.descriptor
+    data.betterado_group.builtin_project_contributors.descriptor
   ]
 }
 
@@ -40,29 +40,29 @@ resource "azuredevops_team_administrators" "team_administrators" {
 
 %s
 
-data "azuredevops_group" "builtin_project_contributors" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "builtin_project_contributors" {
+  project_id = betterado_project.project.id
   name       = "Contributors"
 }
 
-data "azuredevops_group" "builtin_project_readers" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "builtin_project_readers" {
+  project_id = betterado_project.project.id
   name       = "Readers"
 }
 
-resource "azuredevops_team_administrators" "team_administrators" {
-  project_id = azuredevops_team.team.project_id
-  team_id    = azuredevops_team.team.id
+resource "betterado_team_administrators" "team_administrators" {
+  project_id = betterado_team.team.project_id
+  team_id    = betterado_team.team.id
   administrators = [
-    data.azuredevops_group.builtin_project_contributors.descriptor,
-    data.azuredevops_group.builtin_project_readers.descriptor
+    data.betterado_group.builtin_project_contributors.descriptor,
+    data.betterado_group.builtin_project_readers.descriptor
   ]
 }
 
 
 		`, testutils.HclTeamConfiguration(projectName, teamName, "", nil, nil))
 
-	tfNode := "azuredevops_team_administrators.team_administrators"
+	tfNode := "betterado_team_administrators.team_administrators"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -97,17 +97,17 @@ func TestAccTeamAdministrators_CreateAndUpdate_Overwrite(t *testing.T) {
 
 %s
 
-data "azuredevops_group" "builtin_project_contributors" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "builtin_project_contributors" {
+  project_id = betterado_project.project.id
   name       = "Contributors"
 }
 
-resource "azuredevops_team_administrators" "team_administrators" {
-  project_id = azuredevops_team.team.project_id
-  team_id    = azuredevops_team.team.id
+resource "betterado_team_administrators" "team_administrators" {
+  project_id = betterado_team.team.project_id
+  team_id    = betterado_team.team.id
   mode       = "overwrite"
   administrators = [
-    data.azuredevops_group.builtin_project_contributors.descriptor
+    data.betterado_group.builtin_project_contributors.descriptor
   ]
 }
 
@@ -121,30 +121,30 @@ resource "azuredevops_team_administrators" "team_administrators" {
 
 %s
 
-data "azuredevops_group" "builtin_project_contributors" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "builtin_project_contributors" {
+  project_id = betterado_project.project.id
   name       = "Contributors"
 }
 
-data "azuredevops_group" "builtin_project_readers" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "builtin_project_readers" {
+  project_id = betterado_project.project.id
   name       = "Readers"
 }
 
-resource "azuredevops_team_administrators" "team_administrators" {
-  project_id = azuredevops_team.team.project_id
-  team_id    = azuredevops_team.team.id
+resource "betterado_team_administrators" "team_administrators" {
+  project_id = betterado_team.team.project_id
+  team_id    = betterado_team.team.id
   mode       = "overwrite"
   administrators = [
-    data.azuredevops_group.builtin_project_contributors.descriptor,
-    data.azuredevops_group.builtin_project_readers.descriptor
+    data.betterado_group.builtin_project_contributors.descriptor,
+    data.betterado_group.builtin_project_readers.descriptor
   ]
 }
 
 
 		`, testutils.HclTeamConfiguration(projectName, teamName, "", nil, nil))
 
-	tfNode := "azuredevops_team_administrators.team_administrators"
+	tfNode := "betterado_team_administrators.team_administrators"
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),

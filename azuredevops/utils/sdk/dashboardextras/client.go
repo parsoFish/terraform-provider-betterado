@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/dashboard"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils"
 )
 
 var ResourceAreaId, _ = uuid.Parse("31c84e0a-3ece-48fd-a29d-100849af99ba") //nolint:errcheck

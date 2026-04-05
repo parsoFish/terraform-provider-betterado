@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointOpenshift_authorizationBasic_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_openshift"
+	resourceType := "betterado_serviceendpoint_openshift"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -46,7 +46,7 @@ func TestAccServiceEndpointOpenshift_authorizationBasic_complete(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_openshift"
+	resourceType := "betterado_serviceendpoint_openshift"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -80,7 +80,7 @@ func TestAccServiceEndpointOpenshift_authorizationBasic_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_openshift"
+	resourceType := "betterado_serviceendpoint_openshift"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -152,7 +152,7 @@ func TestAccServiceEndpointOpenshift_authorizationToken_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_openshift"
+	resourceType := "betterado_serviceendpoint_openshift"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -185,7 +185,7 @@ func TestAccServiceEndpointOpenshift_authorizationToken_complete(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_openshift"
+	resourceType := "betterado_serviceendpoint_openshift"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -220,7 +220,7 @@ func TestAccServiceEndpointOpenshift_authorizationToken_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_openshift"
+	resourceType := "betterado_serviceendpoint_openshift"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -291,7 +291,7 @@ func TestAccServiceEndpointOpenshift_authorizationNone_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_openshift"
+	resourceType := "betterado_serviceendpoint_openshift"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -325,7 +325,7 @@ func TestAccServiceEndpointOpenshift_authorizationNone_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_openshift"
+	resourceType := "betterado_serviceendpoint_openshift"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -396,7 +396,7 @@ func TestAccServiceEndpointOpenshift_requireImportError(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_openshift"
+	resourceType := "betterado_serviceendpoint_openshift"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -419,12 +419,12 @@ func TestAccServiceEndpointOpenshift_requireImportError(t *testing.T) {
 
 func hclServiceConnectionOpenshiftAuthorizationBasic(projectName, seName, url string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_openshift" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_openshift" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "%s"
   auth_basic {
@@ -436,12 +436,12 @@ resource "azuredevops_serviceendpoint_openshift" "test" {
 
 func hclServiceConnectionOpenshiftAuthorizationBasicComplete(projectName, seName, url, authFile string, untrustedCert bool) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_openshift" "test" {
-  project_id                 = azuredevops_project.test.id
+resource "betterado_serviceendpoint_openshift" "test" {
+  project_id                 = betterado_project.test.id
   service_endpoint_name      = "%s"
   server_url                 = "%s"
   certificate_authority_file = "%s"
@@ -455,12 +455,12 @@ resource "azuredevops_serviceendpoint_openshift" "test" {
 
 func hclServiceConnectionOpenshiftAuthorizationTokenBasic(projectName, seName, url string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_openshift" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_openshift" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "%s"
   auth_token {
@@ -471,12 +471,12 @@ resource "azuredevops_serviceendpoint_openshift" "test" {
 
 func hclServiceConnectionOpenshiftAuthorizationTokenComplete(projectName, seName, url, authFile string, untrustedCert bool) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_openshift" "test" {
-  project_id                 = azuredevops_project.test.id
+resource "betterado_serviceendpoint_openshift" "test" {
+  project_id                 = betterado_project.test.id
   service_endpoint_name      = "%s"
   server_url                 = "%s"
   certificate_authority_file = "%s"
@@ -489,12 +489,12 @@ resource "azuredevops_serviceendpoint_openshift" "test" {
 
 func hclServiceConnectionOpenshiftAuthorizationNoneBasic(projectName, seName, url string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_openshift" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_openshift" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "%s"
   auth_none {
@@ -505,12 +505,12 @@ resource "azuredevops_serviceendpoint_openshift" "test" {
 
 func hclServiceConnectionOpenshiftAuthorizationNoneUpdate(projectName, seName, url string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_openshift" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_openshift" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "%s"
   auth_none {
@@ -523,13 +523,13 @@ func hclServiceConnectionOpenshiftRequireImport(projectName, seName, url string)
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_openshift" "import" {
-  project_id            = azuredevops_serviceendpoint_openshift.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_openshift.test.service_endpoint_name
-  server_url            = azuredevops_serviceendpoint_openshift.test.server_url
+resource "betterado_serviceendpoint_openshift" "import" {
+  project_id            = betterado_serviceendpoint_openshift.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_openshift.test.service_endpoint_name
+  server_url            = betterado_serviceendpoint_openshift.test.server_url
   auth_basic {
-    username = tolist(azuredevops_serviceendpoint_openshift.test.auth_basic)[0].username
-    password = tolist(azuredevops_serviceendpoint_openshift.test.auth_basic)[0].password
+    username = tolist(betterado_serviceendpoint_openshift.test.auth_basic)[0].username
+    password = tolist(betterado_serviceendpoint_openshift.test.auth_basic)[0].password
   }
 }`, hclServiceConnectionOpenshiftAuthorizationBasic(projectName, seName, url))
 }

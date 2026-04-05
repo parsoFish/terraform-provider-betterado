@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointDockerRegistry_data_withName(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "data.azuredevops_serviceendpoint_dockerregistry"
+	resourceType := "data.betterado_serviceendpoint_dockerregistry"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -37,7 +37,7 @@ func TestAccServiceEndpointDockerRegistry_data_withID(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "data.azuredevops_serviceendpoint_dockerregistry"
+	resourceType := "data.betterado_serviceendpoint_dockerregistry"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -60,42 +60,42 @@ func TestAccServiceEndpointDockerRegistry_data_withID(t *testing.T) {
 
 func hclDataServiceConnectionDockerRegistryWithName(projectName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_dockerregistry" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_dockerregistry" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   docker_email          = "test@email.com"
   docker_username       = "testuser"
   docker_password       = "secret"
 }
 
-data "azuredevops_serviceendpoint_dockerregistry" "test" {
-  project_id            = azuredevops_project.test.id
-  service_endpoint_name = azuredevops_serviceendpoint_dockerregistry.test.service_endpoint_name
+data "betterado_serviceendpoint_dockerregistry" "test" {
+  project_id            = betterado_project.test.id
+  service_endpoint_name = betterado_serviceendpoint_dockerregistry.test.service_endpoint_name
 }
 `, projectName, serviceEndpointName)
 }
 
 func hclDataServiceConnectionDockerRegistryWithID(projectName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_dockerregistry" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_dockerregistry" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   docker_email          = "test@email.com"
   docker_username       = "testuser"
   docker_password       = "secret"
 }
 
-data "azuredevops_serviceendpoint_dockerregistry" "test" {
-  project_id          = azuredevops_project.test.id
-  service_endpoint_id = azuredevops_serviceendpoint_dockerregistry.test.id
+data "betterado_serviceendpoint_dockerregistry" "test" {
+  project_id          = betterado_project.test.id
+  service_endpoint_id = betterado_serviceendpoint_dockerregistry.test.id
 }
 `, projectName, serviceEndpointName)
 }

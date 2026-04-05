@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/datahelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/datahelper"
 )
 
 func TestAccAreaPermissions_SetPermissions(t *testing.T) {
@@ -19,7 +19,7 @@ func TestAccAreaPermissions_SetPermissions(t *testing.T) {
 			"WORK_ITEM_WRITE": "Deny",
 		},
 	})
-	tfNodeRoot := "azuredevops_area_permissions.root-permissions"
+	tfNodeRoot := "betterado_area_permissions.root-permissions"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -62,7 +62,7 @@ func TestAccAreaPermissions_UpdatePermissions(t *testing.T) {
 			"WORK_ITEM_WRITE": "Deny",
 		},
 	})
-	tfNodeRoot := "azuredevops_area_permissions.root-permissions"
+	tfNodeRoot := "betterado_area_permissions.root-permissions"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -110,14 +110,14 @@ func hclAreaPermissions(projectName string, permissions map[string]map[string]st
 	return fmt.Sprintf(`
 %s
 
-data "azuredevops_group" "tf-project-readers" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "tf-project-readers" {
+  project_id = betterado_project.project.id
   name       = "Readers"
 }
 
-resource "azuredevops_area_permissions" "root-permissions" {
-  project_id = azuredevops_project.project.id
-  principal  = data.azuredevops_group.tf-project-readers.id
+resource "betterado_area_permissions" "root-permissions" {
+  project_id = betterado_project.project.id
+  principal  = data.betterado_group.tf-project-readers.id
   permissions = {
 		%s
   }

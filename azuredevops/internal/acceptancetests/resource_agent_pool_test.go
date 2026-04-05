@@ -9,13 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccAgentPool_basic(t *testing.T) {
 	poolName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_agent_pool.test"
+	tfNode := "betterado_agent_pool.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -42,7 +42,7 @@ func TestAccAgentPool_basic(t *testing.T) {
 
 func TestAccAgentPool_update(t *testing.T) {
 	poolName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_agent_pool.test"
+	tfNode := "betterado_agent_pool.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -83,7 +83,7 @@ func TestAccAgentPool_update(t *testing.T) {
 
 func TestAccAgentPool_requiresImportErrorStep(t *testing.T) {
 	poolName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_agent_pool.test"
+	tfNode := "betterado_agent_pool.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -112,7 +112,7 @@ func checkAgentPoolDestroyed(s *terraform.State) error {
 
 	// verify that every agent pool referenced in the state does not exist in AzDO
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_agent_pool" {
+		if resource.Type != "betterado_agent_pool" {
 			continue
 		}
 
@@ -137,7 +137,7 @@ func requiresImportError(resourceName string) *regexp.Regexp {
 
 func hclAgentPoolBasic(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_agent_pool" "test" {
+resource "betterado_agent_pool" "test" {
   name           = "%s"
   auto_provision = false
   auto_update    = false
@@ -147,7 +147,7 @@ resource "azuredevops_agent_pool" "test" {
 
 func hclAgentPoolUpdate(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_agent_pool" "test" {
+resource "betterado_agent_pool" "test" {
   name           = "%s"
   auto_provision = true
   auto_update    = true
@@ -159,10 +159,10 @@ func hclAgentPoolResourceRequiresImport(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_agent_pool" "import" {
-  name           = azuredevops_agent_pool.test.name
-  auto_provision = azuredevops_agent_pool.test.auto_provision
-  auto_update    = azuredevops_agent_pool.test.auto_update
-  pool_type      = azuredevops_agent_pool.test.pool_type
+resource "betterado_agent_pool" "import" {
+  name           = betterado_agent_pool.test.name
+  auto_provision = betterado_agent_pool.test.auto_provision
+  auto_update    = betterado_agent_pool.test.auto_update
+  pool_type      = betterado_agent_pool.test.pool_type
 }`, hclAgentPoolBasic(name))
 }

@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointGenericGit_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_generic_git"
+	resourceType := "betterado_serviceendpoint_generic_git"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -38,7 +38,7 @@ func TestAccServiceEndpointGenericGit_complete(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_generic_git"
+	resourceType := "betterado_serviceendpoint_generic_git"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -69,7 +69,7 @@ func TestAccServiceEndpointGenericGit_update(t *testing.T) {
 	description := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_generic_git"
+	resourceType := "betterado_serviceendpoint_generic_git"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -105,7 +105,7 @@ func TestAccServiceEndpointGenericGit_update(t *testing.T) {
 func TestAccServiceEndpointGenericGit_RequiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_generic_git"
+	resourceType := "betterado_serviceendpoint_generic_git"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -129,8 +129,8 @@ func TestAccServiceEndpointGenericGit_RequiresImportErrorStep(t *testing.T) {
 
 func hclSvcEndpointGenericGitResourceBasic(projectName string, serviceEndpointName string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_generic_git" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_generic_git" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   repository_url        = "https://dev.azure.com/org/project/_git/repository"
 }`, serviceEndpointName)
@@ -141,8 +141,8 @@ resource "azuredevops_serviceendpoint_generic_git" "test" {
 
 func hclSvcEndpointGenericGitResourceComplete(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_generic_git" "test" {
-  project_id              = azuredevops_project.project.id
+resource "betterado_serviceendpoint_generic_git" "test" {
+  project_id              = betterado_project.project.id
   service_endpoint_name   = "%s"
   description             = "%s"
   repository_url          = "https://dev.azure.com/org/project/_git/repository"
@@ -157,8 +157,8 @@ resource "azuredevops_serviceendpoint_generic_git" "test" {
 
 func hclSvcEndpointGenericGitResourceUpdate(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_generic_git" "test" {
-  project_id              = azuredevops_project.project.id
+resource "betterado_serviceendpoint_generic_git" "test" {
+  project_id              = betterado_project.project.id
   service_endpoint_name   = "%s"
   description             = "%s"
   repository_url          = "https://dev.azure.com/org/project/_git/repository"
@@ -175,12 +175,12 @@ func hclSvcEndpointGenericGitResourceRequiresImport(projectName string, serviceE
 	template := hclSvcEndpointGenericGitResourceBasic(projectName, serviceEndpointName)
 	return fmt.Sprintf(`
 %s
-resource "azuredevops_serviceendpoint_generic_git" "import" {
-  project_id            = azuredevops_serviceendpoint_generic_git.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_generic_git.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_generic_git.test.description
-  repository_url        = azuredevops_serviceendpoint_generic_git.test.repository_url
-  username              = azuredevops_serviceendpoint_generic_git.test.username
+resource "betterado_serviceendpoint_generic_git" "import" {
+  project_id            = betterado_serviceendpoint_generic_git.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_generic_git.test.service_endpoint_name
+  description           = betterado_serviceendpoint_generic_git.test.description
+  repository_url        = betterado_serviceendpoint_generic_git.test.repository_url
+  username              = betterado_serviceendpoint_generic_git.test.username
   password              = "password"
 }
 `, template)

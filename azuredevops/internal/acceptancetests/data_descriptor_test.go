@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccDescriptorDatasource_user(t *testing.T) {
 	name := testutils.GenerateResourceName() + "@contoso.com"
-	tfNode := "data.azuredevops_descriptor.test"
+	tfNode := "data.betterado_descriptor.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testutils.PreCheck(t, nil) },
 		ProviderFactories:         testutils.GetProviderFactories(),
@@ -28,7 +28,7 @@ func TestAccDescriptorDatasource_user(t *testing.T) {
 
 func TestAccDescriptorDatasource_project(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	tfNode := "data.azuredevops_descriptor.test"
+	tfNode := "data.betterado_descriptor.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testutils.PreCheck(t, nil) },
 		ProviderFactories:         testutils.GetProviderFactories(),
@@ -47,7 +47,7 @@ func TestAccDescriptorDatasource_project(t *testing.T) {
 func TestAccDescriptorDatasource_group(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	groupName := testutils.GenerateResourceName()
-	tfNode := "data.azuredevops_descriptor.test"
+	tfNode := "data.betterado_descriptor.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testutils.PreCheck(t, nil) },
 		ProviderFactories:         testutils.GetProviderFactories(),
@@ -65,39 +65,39 @@ func TestAccDescriptorDatasource_group(t *testing.T) {
 
 func hclDescriptorDataSourceUser(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_user_entitlement" "test" {
+resource "betterado_user_entitlement" "test" {
   principal_name       = "%s"
   account_license_type = "express"
 }
 
-data "azuredevops_descriptor" "test" {
-  storage_key = azuredevops_user_entitlement.test.id
+data "betterado_descriptor" "test" {
+  storage_key = betterado_user_entitlement.test.id
 }`, name)
 }
 
 func hclDescriptorDataSourceProject(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-data "azuredevops_descriptor" "test" {
-  storage_key = azuredevops_project.test.id
+data "betterado_descriptor" "test" {
+  storage_key = betterado_project.test.id
 }`, projectName)
 }
 
 func hclDescriptorDataSourceGroup(projectName, groupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_group" "test" {
-  scope        = azuredevops_project.test.id
+resource "betterado_group" "test" {
+  scope        = betterado_project.test.id
   display_name = "%s"
 }
 
-data "azuredevops_descriptor" "test" {
-  storage_key = azuredevops_project.test.id
+data "betterado_descriptor" "test" {
+  storage_key = betterado_project.test.id
 }`, projectName, groupName)
 }

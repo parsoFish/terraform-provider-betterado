@@ -9,13 +9,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWorkitemtrackingprocessRule_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_rule.test"
+	tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -41,7 +41,7 @@ func TestAccWorkitemtrackingprocessRule_Basic(t *testing.T) {
 func TestAccWorkitemtrackingprocessRule_Update(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_rule.test"
+	tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -93,7 +93,7 @@ func TestAccWorkitemtrackingprocessRule_ConditionTypes(t *testing.T) {
 		t.Run(tc.conditionType, func(t *testing.T) {
 			workItemTypeName := testutils.GenerateWorkItemTypeName()
 			processName := testutils.GenerateResourceName()
-			tfNode := "azuredevops_workitemtrackingprocess_rule.test"
+			tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -129,7 +129,7 @@ func TestAccWorkitemtrackingprocessRule_ConditionGroupMembership(t *testing.T) {
 			workItemTypeName := testutils.GenerateWorkItemTypeName()
 			processName := testutils.GenerateResourceName()
 			groupName := testutils.GenerateResourceName()
-			tfNode := "azuredevops_workitemtrackingprocess_rule.test"
+			tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -178,7 +178,7 @@ func TestAccWorkitemtrackingprocessRule_ActionTypes(t *testing.T) {
 		t.Run(tc.actionType, func(t *testing.T) {
 			workItemTypeName := testutils.GenerateWorkItemTypeName()
 			processName := testutils.GenerateResourceName()
-			tfNode := "azuredevops_workitemtrackingprocess_rule.test"
+			tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -208,7 +208,7 @@ func TestAccWorkitemtrackingprocessRule_HideTargetField(t *testing.T) {
 	processName := testutils.GenerateResourceName()
 	groupName := testutils.GenerateResourceName()
 	fieldName := generateFieldName()
-	tfNode := "azuredevops_workitemtrackingprocess_rule.test"
+	tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -234,7 +234,7 @@ func TestAccWorkitemtrackingprocessRule_HideTargetField(t *testing.T) {
 func TestAccWorkitemtrackingprocessRule_DisallowValue(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_rule.test"
+	tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -262,9 +262,9 @@ func updatedRule(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_rule" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+resource "betterado_workitemtrackingprocess_rule" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   name              = "Updated Rule"
   is_enabled        = false
 
@@ -287,9 +287,9 @@ func multipleConditionsRule(workItemTypeName string, processName string) string 
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_rule" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+resource "betterado_workitemtrackingprocess_rule" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   name              = "Multiple Conditions Rule"
 
   condition {
@@ -327,18 +327,18 @@ func ruleWithGroupMembershipCondition(workItemTypeName, processName, _, groupNam
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_group_entitlement" "test" {
+resource "betterado_group_entitlement" "test" {
   display_name = "%s"
 }
 
-resource "azuredevops_workitemtrackingprocess_rule" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+resource "betterado_workitemtrackingprocess_rule" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   name              = "Test %s Rule"
 
   condition {
     condition_type = "%s"
-    value          = azuredevops_group_entitlement.test.id
+    value          = betterado_group_entitlement.test.id
   }
 
   action {
@@ -364,9 +364,9 @@ func ruleWithConditionType(workItemTypeName, processName, conditionType, field, 
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_rule" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+resource "betterado_workitemtrackingprocess_rule" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   name              = "Test %s Rule"
 
   condition {
@@ -388,35 +388,35 @@ func ruleWithHideTargetField(workItemTypeName, processName, _, groupName, fieldN
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_group_entitlement" "test" {
+resource "betterado_group_entitlement" "test" {
   display_name = "%s"
 }
 
-resource "azuredevops_workitemtracking_field" "test" {
+resource "betterado_workitemtracking_field" "test" {
   name           = "%s"
   reference_name = "Custom.%s"
   type           = "string"
 }
 
-resource "azuredevops_workitemtrackingprocess_field" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.id
-  field_id          = azuredevops_workitemtracking_field.test.id
+resource "betterado_workitemtrackingprocess_field" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.id
+  field_id          = betterado_workitemtracking_field.test.id
 }
 
-resource "azuredevops_workitemtrackingprocess_rule" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+resource "betterado_workitemtrackingprocess_rule" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   name              = "Test hideTargetField Rule"
 
   condition {
     condition_type = "whenCurrentUserIsNotMemberOfGroup"
-    value          = azuredevops_group_entitlement.test.id
+    value          = betterado_group_entitlement.test.id
   }
 
   action {
     action_type  = "hideTargetField"
-    target_field = azuredevops_workitemtrackingprocess_field.test.field_id
+    target_field = betterado_workitemtrackingprocess_field.test.field_id
   }
 }
 `, workItemType, groupName, fieldName, fieldName)
@@ -427,9 +427,9 @@ func ruleWithDisallowValue(workItemTypeName, processName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_rule" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+resource "betterado_workitemtrackingprocess_rule" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   name              = "Test disallowValue Rule"
 
   condition {
@@ -458,9 +458,9 @@ func ruleWithActionType(workItemTypeName, processName, actionType, targetField, 
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_rule" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+resource "betterado_workitemtrackingprocess_rule" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   name              = "Test %s Rule"
 
   condition {

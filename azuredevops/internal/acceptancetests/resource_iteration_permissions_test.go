@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/datahelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/datahelper"
 )
 
 func TestAccIterationPermissions_SetPermissions(t *testing.T) {
@@ -23,8 +23,8 @@ func TestAccIterationPermissions_SetPermissions(t *testing.T) {
 			"DELETE":          "Allow",
 		},
 	})
-	tfNodeRoot := "azuredevops_iteration_permissions.root-permissions"
-	tfNodeIteration := "azuredevops_iteration_permissions.iteration-permissions"
+	tfNodeRoot := "betterado_iteration_permissions.root-permissions"
+	tfNodeIteration := "betterado_iteration_permissions.iteration-permissions"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -81,8 +81,8 @@ func TestAccIterationPermissions_UpdatePermissions(t *testing.T) {
 			"DELETE":          "NotSet",
 		},
 	})
-	tfNodeRoot := "azuredevops_iteration_permissions.root-permissions"
-	tfNodeIteration := "azuredevops_iteration_permissions.iteration-permissions"
+	tfNodeRoot := "betterado_iteration_permissions.root-permissions"
+	tfNodeIteration := "betterado_iteration_permissions.iteration-permissions"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -140,22 +140,22 @@ func hclIterationPermissions(projectName string, permissions map[string]map[stri
 	return fmt.Sprintf(`
 %s
 
-data "azuredevops_group" "tf-project-readers" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "tf-project-readers" {
+  project_id = betterado_project.project.id
   name       = "Readers"
 }
 
-resource "azuredevops_iteration_permissions" "root-permissions" {
-  project_id = azuredevops_project.project.id
-  principal  = data.azuredevops_group.tf-project-readers.id
+resource "betterado_iteration_permissions" "root-permissions" {
+  project_id = betterado_project.project.id
+  principal  = data.betterado_group.tf-project-readers.id
   permissions = {
 		%s
   }
 }
 
-resource "azuredevops_iteration_permissions" "iteration-permissions" {
-  project_id = azuredevops_project.project.id
-  principal  = data.azuredevops_group.tf-project-readers.id
+resource "betterado_iteration_permissions" "iteration-permissions" {
+  project_id = betterado_project.project.id
+  principal  = data.betterado_group.tf-project-readers.id
   path       = "Iteration 1"
   permissions = {
 		%s

@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 // Verifies that the following sequence of events occurrs without error:
@@ -26,7 +26,7 @@ func TestAccEnvironment_CreateAndUpdate(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	environmentNameFirst := testutils.GenerateResourceName()
 	environmentNameSecond := testutils.GenerateResourceName()
-	tfNode := "azuredevops_environment.environment"
+	tfNode := "betterado_environment.environment"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -66,7 +66,7 @@ func TestAccEnvironment_CreateAndUpdate(t *testing.T) {
 // or not the environment (1) exists in the state and (2) exist in AzDO and (3) has the correct name
 func checkEnvironmentExists(expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resource, ok := s.RootModule().Resources["azuredevops_environment.environment"]
+		resource, ok := s.RootModule().Resources["betterado_environment.environment"]
 		if !ok {
 			return fmt.Errorf("Did not find an environment in the TF state")
 		}
@@ -98,7 +98,7 @@ func checkEnvironmentDestroyed(s *terraform.State) error {
 
 	// verify that every environment referenced in the state does not exist in AzDO
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_environment" {
+		if resource.Type != "betterado_environment" {
 			continue
 		}
 

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccCheckRequiredTemplate_basic(t *testing.T) {
@@ -14,7 +14,7 @@ func TestAccCheckRequiredTemplate_basic(t *testing.T) {
 	repositoryRef := "refs/heads/master"
 	templatePath := "templ/path1.yaml"
 
-	resourceType := "azuredevops_check_required_template"
+	resourceType := "betterado_check_required_template"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -41,7 +41,7 @@ func TestAccCheckRequiredTemplate_complete(t *testing.T) {
 	repositoryRef := "refs/heads/master"
 	templatePath := "templ/path1.yaml"
 
-	resourceType := "azuredevops_check_required_template"
+	resourceType := "betterado_check_required_template"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -73,7 +73,7 @@ func TestAccCheckRequiredTemplate_update(t *testing.T) {
 	repositoryRefSecond := "refs/heads/main"
 	templatePathSecond := "templ/path2.yaml"
 
-	resourceType := "azuredevops_check_required_template"
+	resourceType := "betterado_check_required_template"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -106,9 +106,9 @@ func TestAccCheckRequiredTemplate_update(t *testing.T) {
 
 func hclRequiredTemplateCheckResourceBasic(projectName, repositoryName, repositoryRef, templatePath string) string {
 	checkResource := fmt.Sprintf(`
-resource "azuredevops_check_required_template" "test" {
-  project_id           = azuredevops_project.project.id
-  target_resource_id   = azuredevops_serviceendpoint_generic.test.id
+resource "betterado_check_required_template" "test" {
+  project_id           = betterado_project.project.id
+  target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
   required_template {
     repository_name = "%s"
@@ -123,9 +123,9 @@ resource "azuredevops_check_required_template" "test" {
 
 func hclRequiredTemplateCheckResourceComplete(projectName, repository_type, repositoryName, repositoryRef, templatePath string) string {
 	checkResource := fmt.Sprintf(`
-resource "azuredevops_check_required_template" "test" {
-  project_id           = azuredevops_project.project.id
-  target_resource_id   = azuredevops_serviceendpoint_generic.test.id
+resource "betterado_check_required_template" "test" {
+  project_id           = betterado_project.project.id
+  target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
   required_template {
     repository_type = "%s"
@@ -141,9 +141,9 @@ resource "azuredevops_check_required_template" "test" {
 
 func hclRequiredTemplateCheckResourceUpdate(projectName, repository_type, repositoryName, repositoryRef, templatePath string) string {
 	checkResource := fmt.Sprintf(`
-resource "azuredevops_check_required_template" "test" {
-  project_id           = azuredevops_project.project.id
-  target_resource_id   = azuredevops_serviceendpoint_generic.test.id
+resource "betterado_check_required_template" "test" {
+  project_id           = betterado_project.project.id
+  target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
   required_template {
     repository_type = "%s"

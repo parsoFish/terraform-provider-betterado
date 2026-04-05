@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointDynamicLifecycleServices_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_dynamics_lifecycle_services"
+	resourceType := "betterado_serviceendpoint_dynamics_lifecycle_services"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -37,7 +37,7 @@ func TestAccServiceEndpointDynamicLifecycleServices_complete(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_dynamics_lifecycle_services"
+	resourceType := "betterado_serviceendpoint_dynamics_lifecycle_services"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -65,7 +65,7 @@ func TestAccServiceEndpointDynamicLifecycleServices_update(t *testing.T) {
 	description := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_dynamics_lifecycle_services"
+	resourceType := "betterado_serviceendpoint_dynamics_lifecycle_services"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -98,7 +98,7 @@ func TestAccServiceEndpointDynamicLifecycleServices_update(t *testing.T) {
 func TestAccServiceEndpointDynamicLifecycleServices_requiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_dynamics_lifecycle_services"
+	resourceType := "betterado_serviceendpoint_dynamics_lifecycle_services"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -122,12 +122,12 @@ func TestAccServiceEndpointDynamicLifecycleServices_requiresImportErrorStep(t *t
 
 func hclSvcEndpointDynamicLifecycleServicesResourceBasic(projectName string, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_dynamics_lifecycle_services" "test" {
-  project_id                      = azuredevops_project.test.id
+resource "betterado_serviceendpoint_dynamics_lifecycle_services" "test" {
+  project_id                      = betterado_project.test.id
   service_endpoint_name           = "%s"
   authorization_endpoint          = "https://login.microsoftonline.com/organization"
   lifecycle_services_api_endpoint = "https://lcsapi.lcs.dynamics.com"
@@ -139,12 +139,12 @@ resource "azuredevops_serviceendpoint_dynamics_lifecycle_services" "test" {
 
 func hclSvcEndpointDynamicLifecycleServicesResourceComplete(projectName string, serviceEndpointName string, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_dynamics_lifecycle_services" "test" {
-  project_id                      = azuredevops_project.test.id
+resource "betterado_serviceendpoint_dynamics_lifecycle_services" "test" {
+  project_id                      = betterado_project.test.id
   service_endpoint_name           = "%s"
   description                     = "%s"
   authorization_endpoint          = "https://login.microsoftonline.com/organization"
@@ -157,12 +157,12 @@ resource "azuredevops_serviceendpoint_dynamics_lifecycle_services" "test" {
 
 func hclSvcEndpointDynamicLifecycleServicesResourceUpdate(projectName string, serviceEndpointName string, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_dynamics_lifecycle_services" "test" {
-  project_id                      = azuredevops_project.test.id
+resource "betterado_serviceendpoint_dynamics_lifecycle_services" "test" {
+  project_id                      = betterado_project.test.id
   service_endpoint_name           = "%s"
   description                     = "%s"
   authorization_endpoint          = "https://login.microsoftonline.com/organization/update/"
@@ -177,14 +177,14 @@ func hclSvcEndpointDynamicLifecycleServicesResourceRequiresImport(projectName st
 	template := hclSvcEndpointDynamicLifecycleServicesResourceBasic(projectName, serviceEndpointName)
 	return fmt.Sprintf(`
 %s
-resource "azuredevops_serviceendpoint_dynamics_lifecycle_services" "import" {
-  project_id                      = azuredevops_serviceendpoint_dynamics_lifecycle_services.test.project_id
-  service_endpoint_name           = azuredevops_serviceendpoint_dynamics_lifecycle_services.test.service_endpoint_name
-  authorization_endpoint          = azuredevops_serviceendpoint_dynamics_lifecycle_services.test.authorization_endpoint
-  lifecycle_services_api_endpoint = azuredevops_serviceendpoint_dynamics_lifecycle_services.test.lifecycle_services_api_endpoint
-  client_id                       = azuredevops_serviceendpoint_dynamics_lifecycle_services.test.client_id
-  username                        = azuredevops_serviceendpoint_dynamics_lifecycle_services.test.username
-  password                        = azuredevops_serviceendpoint_dynamics_lifecycle_services.test.password
+resource "betterado_serviceendpoint_dynamics_lifecycle_services" "import" {
+  project_id                      = betterado_serviceendpoint_dynamics_lifecycle_services.test.project_id
+  service_endpoint_name           = betterado_serviceendpoint_dynamics_lifecycle_services.test.service_endpoint_name
+  authorization_endpoint          = betterado_serviceendpoint_dynamics_lifecycle_services.test.authorization_endpoint
+  lifecycle_services_api_endpoint = betterado_serviceendpoint_dynamics_lifecycle_services.test.lifecycle_services_api_endpoint
+  client_id                       = betterado_serviceendpoint_dynamics_lifecycle_services.test.client_id
+  username                        = betterado_serviceendpoint_dynamics_lifecycle_services.test.username
+  password                        = betterado_serviceendpoint_dynamics_lifecycle_services.test.password
 }
 `, template)
 }

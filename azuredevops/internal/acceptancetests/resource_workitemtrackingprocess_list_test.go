@@ -10,14 +10,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 )
 
 func TestAccWorkitemtrackingprocessList_Basic(t *testing.T) {
 	listName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_list.test"
+	tfNode := "betterado_workitemtrackingprocess_list.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -42,7 +42,7 @@ func TestAccWorkitemtrackingprocessList_Basic(t *testing.T) {
 
 func TestAccWorkitemtrackingprocessList_Update(t *testing.T) {
 	listName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_list.test"
+	tfNode := "betterado_workitemtrackingprocess_list.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -88,7 +88,7 @@ func TestAccWorkitemtrackingprocessList_Update(t *testing.T) {
 
 func TestAccWorkitemtrackingprocessList_Integer(t *testing.T) {
 	listName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_list.test"
+	tfNode := "betterado_workitemtrackingprocess_list.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -112,7 +112,7 @@ func TestAccWorkitemtrackingprocessList_Integer(t *testing.T) {
 
 func basicList(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_list" "test" {
+resource "betterado_workitemtrackingprocess_list" "test" {
   name  = "%s"
   items = ["Red", "Green", "Blue"]
 }
@@ -121,7 +121,7 @@ resource "azuredevops_workitemtrackingprocess_list" "test" {
 
 func updatedList(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_list" "test" {
+resource "betterado_workitemtrackingprocess_list" "test" {
   name         = "%s"
   items        = ["Red", "Green", "Blue", "Yellow"]
   is_suggested = true
@@ -131,7 +131,7 @@ resource "azuredevops_workitemtrackingprocess_list" "test" {
 
 func integerList(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_list" "test" {
+resource "betterado_workitemtrackingprocess_list" "test" {
   name  = "%s"
   type  = "integer"
   items = ["1", "2", "3"]
@@ -144,7 +144,7 @@ func checkListDestroyed(s *terraform.State) error {
 	timeout := 10 * time.Second
 
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_workitemtrackingprocess_list" {
+		if resource.Type != "betterado_workitemtrackingprocess_list" {
 			continue
 		}
 

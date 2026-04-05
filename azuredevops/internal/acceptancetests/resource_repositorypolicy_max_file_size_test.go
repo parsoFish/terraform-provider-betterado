@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccRepositoryPolicyFileSize(t *testing.T) {
@@ -22,7 +22,7 @@ func TestAccRepositoryPolicyFileSize(t *testing.T) {
 }
 
 func testAccRepoPolicyFileSizeBasic(t *testing.T) {
-	fileSizeTfNode := "azuredevops_repository_policy_max_file_size.test"
+	fileSizeTfNode := "betterado_repository_policy_max_file_size.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -47,7 +47,7 @@ func testAccRepoPolicyFileSizeBasic(t *testing.T) {
 }
 
 func testAccRepoPolicyFileSizeUpdate(t *testing.T) {
-	fileSizeTfNode := "azuredevops_repository_policy_max_file_size.test"
+	fileSizeTfNode := "betterado_repository_policy_max_file_size.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -77,7 +77,7 @@ func testAccRepoPolicyFileSizeUpdate(t *testing.T) {
 }
 
 func testAccProjectPolicyFileSizeBasic(t *testing.T) {
-	fileSizeTfNode := "azuredevops_repository_policy_max_file_size.test"
+	fileSizeTfNode := "betterado_repository_policy_max_file_size.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -102,7 +102,7 @@ func testAccProjectPolicyFileSizeBasic(t *testing.T) {
 }
 
 func testAccProjectPolicyFileSizeUpdate(t *testing.T) {
-	fileSizeTfNode := "azuredevops_repository_policy_max_file_size.test"
+	fileSizeTfNode := "betterado_repository_policy_max_file_size.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -133,7 +133,7 @@ func testAccProjectPolicyFileSizeUpdate(t *testing.T) {
 
 func hclPolicyFileSizeResourceTemplate(projectName string, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%s"
   description        = "Test Project Description"
   visibility         = "private"
@@ -141,8 +141,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%s"
   initialization {
     init_type = "Clean"
@@ -156,12 +156,12 @@ func hclRepoPolicyFileSizeBasic(projectName string, repoName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_max_file_size" "test" {
-  project_id     = azuredevops_project.test.id
+resource "betterado_repository_policy_max_file_size" "test" {
+  project_id     = betterado_project.test.id
   enabled        = true
   blocking       = true
   max_file_size  = 1
-  repository_ids = [azuredevops_git_repository.test.id]
+  repository_ids = [betterado_git_repository.test.id]
 }`, projectAndRepo)
 }
 
@@ -170,12 +170,12 @@ func hclRepoPolicyFileSizeUpdate(projectName string, repoName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_max_file_size" "test" {
-  project_id     = azuredevops_project.test.id
+resource "betterado_repository_policy_max_file_size" "test" {
+  project_id     = betterado_project.test.id
   enabled        = true
   blocking       = true
   max_file_size  = 5
-  repository_ids = [azuredevops_git_repository.test.id]
+  repository_ids = [betterado_git_repository.test.id]
 }`, projectAndRepo)
 }
 
@@ -184,12 +184,12 @@ func hclProjectPolicyFileSizeBasic(projectName string, repoName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_max_file_size" "test" {
-  project_id    = azuredevops_project.test.id
+resource "betterado_repository_policy_max_file_size" "test" {
+  project_id    = betterado_project.test.id
   enabled       = true
   blocking      = true
   max_file_size = 1
-  depends_on    = [azuredevops_git_repository.test]
+  depends_on    = [betterado_git_repository.test]
 }`, projectAndRepo)
 }
 
@@ -198,11 +198,11 @@ func hclProjectPolicyFileSizeUpdate(projectName string, repoName string) string 
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_max_file_size" "test" {
-  project_id    = azuredevops_project.test.id
+resource "betterado_repository_policy_max_file_size" "test" {
+  project_id    = betterado_project.test.id
   enabled       = true
   blocking      = true
   max_file_size = 5
-  depends_on    = [azuredevops_git_repository.test]
+  depends_on    = [betterado_git_repository.test]
 }`, projectAndRepo)
 }

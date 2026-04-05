@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccGroupMembershipData_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	groupName := testutils.GenerateResourceName()
-	tfNode := "data.azuredevops_group_membership.test"
+	tfNode := "data.betterado_group_membership.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
@@ -29,30 +29,30 @@ func TestAccGroupMembershipData_basic(t *testing.T) {
 
 func hclDataMemberShipBasic(projectName, groupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-data "azuredevops_group" "admin" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "admin" {
+  project_id = betterado_project.test.id
   name       = "Build Administrators"
 }
 
-data "azuredevops_group" "contributors" {
-  project_id = azuredevops_project.test.id
+data "betterado_group" "contributors" {
+  project_id = betterado_project.test.id
   name       = "Contributors"
 }
 
-resource "azuredevops_group" "test" {
-  scope        = azuredevops_project.test.id
+resource "betterado_group" "test" {
+  scope        = betterado_project.test.id
   display_name = "%s"
 
   members = [
-    data.azuredevops_group.admin.descriptor,
-    data.azuredevops_group.contributors.descriptor
+    data.betterado_group.admin.descriptor,
+    data.betterado_group.contributors.descriptor
   ]
 }
-data "azuredevops_group_membership" "test" {
-  group_descriptor = azuredevops_group.test.descriptor
+data "betterado_group_membership" "test" {
+  group_descriptor = betterado_group.test.descriptor
 }`, projectName, groupName)
 }

@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 // retryMinTimeout is the minimum time to wait between retries for eventual consistency.
@@ -88,7 +88,7 @@ func ResourceGroup() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Computed:    true,
-				Description: "Controls to be created with the group. Required for HTML controls which cannot be added to existing groups. This is mutally exclusive with the 'azuredevops_workitemtrackingprocess_control' resource.",
+				Description: "Controls to be created with the group. Required for HTML controls which cannot be added to existing groups. This is mutally exclusive with the 'betterado_workitemtrackingprocess_control' resource.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {

@@ -6,12 +6,12 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWorkitemtrackingprocessProcess_Basic(t *testing.T) {
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_process.test"
+	tfNode := "betterado_workitemtrackingprocess_process.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -41,7 +41,7 @@ func TestAccWorkitemtrackingprocessProcess_Basic(t *testing.T) {
 
 func TestAccWorkitemtrackingprocessProcess_CreateDisabled(t *testing.T) {
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_process.test"
+	tfNode := "betterado_workitemtrackingprocess_process.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -67,7 +67,7 @@ func TestAccWorkitemtrackingprocessProcess_CreateDisabled(t *testing.T) {
 
 func TestAccWorkitemtrackingprocessProcess_CreateAndUpdate(t *testing.T) {
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_process.test"
+	tfNode := "betterado_workitemtrackingprocess_process.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -104,7 +104,7 @@ func TestAccWorkitemtrackingprocessProcess_CreateAndUpdate(t *testing.T) {
 
 func process(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
 }
@@ -113,7 +113,7 @@ resource "azuredevops_workitemtrackingprocess_process" "test" {
 
 func disabledProcess(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
   is_enabled             = false

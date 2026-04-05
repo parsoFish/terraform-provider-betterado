@@ -6,13 +6,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWorkitemtrackingprocessWorkItemType_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_workitemtype.test"
+	tfNode := "betterado_workitemtrackingprocess_workitemtype.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -45,7 +45,7 @@ func TestAccWorkitemtrackingprocessWorkItemType_CreateAndUpdate(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_workitemtrackingprocess_workitemtype.test"
+	tfNode := "betterado_workitemtrackingprocess_workitemtype.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -99,9 +99,9 @@ func basicWorkItemType(name string, processName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
   name       = "%s"
-  process_id = azuredevops_workitemtrackingprocess_process.test.id
+  process_id = betterado_workitemtrackingprocess_process.test.id
 }
 `, process, name)
 }
@@ -111,9 +111,9 @@ func disabledWorkItemType(name string, processName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
   name       = "%s"
-  process_id = azuredevops_workitemtrackingprocess_process.test.id
+  process_id = betterado_workitemtrackingprocess_process.test.id
   is_enabled = false
 }
 `, process, name)

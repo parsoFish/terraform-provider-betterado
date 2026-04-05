@@ -8,13 +8,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/feed"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccFeed_basic(t *testing.T) {
 	feedName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_feed.test"
+	tfNode := "betterado_feed.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -35,7 +35,7 @@ func TestAccFeed_basic(t *testing.T) {
 func TestAccFeed_project(t *testing.T) {
 	feedName := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_feed.test"
+	tfNode := "betterado_feed.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -55,7 +55,7 @@ func TestAccFeed_project(t *testing.T) {
 
 func TestAccFeed_softDeleteRecovery(t *testing.T) {
 	feedName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_feed.test"
+	tfNode := "betterado_feed.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -79,7 +79,7 @@ func TestAccFeed_softDeleteRecovery(t *testing.T) {
 
 func TestAccFeed_requiresImportErrorOrg(t *testing.T) {
 	feedName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_feed.test"
+	tfNode := "betterado_feed.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -105,7 +105,7 @@ func TestAccFeed_requiresImportErrorProject(t *testing.T) {
 	feedName := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_feed.test"
+	tfNode := "betterado_feed.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -128,7 +128,7 @@ func TestAccFeed_requiresImportErrorProject(t *testing.T) {
 func checkFeedDestroyed(s *terraform.State) error {
 	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
 	for _, res := range s.RootModule().Resources {
-		if res.Type != "azuredevops_feed" {
+		if res.Type != "betterado_feed" {
 			continue
 		}
 		id := res.Primary.ID
@@ -147,9 +147,9 @@ func checkFeedDestroyed(s *terraform.State) error {
 
 func CheckFeedExist(expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		res, ok := s.RootModule().Resources["azuredevops_feed.test"]
+		res, ok := s.RootModule().Resources["betterado_feed.test"]
 		if !ok {
-			return fmt.Errorf("Did not find `azuredevops_feed` in the TF state")
+			return fmt.Errorf("Did not find `betterado_feed` in the TF state")
 		}
 
 		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
@@ -178,14 +178,14 @@ func requiresFeedImportError(resourceName string) *regexp.Regexp {
 
 func hclFeedBasic(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_feed" "test" {
+resource "betterado_feed" "test" {
   name = "%s"
 }`, name)
 }
 
 func hclFeedWithProject(projectName, feedName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "description"
   visibility         = "private"
@@ -193,15 +193,15 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_feed" "test" {
+resource "betterado_feed" "test" {
   name       = "%[2]s"
-  project_id = azuredevops_project.test.id
+  project_id = betterado_project.test.id
 }`, projectName, feedName)
 }
 
 func hclFeedRestore(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_feed" "test" {
+resource "betterado_feed" "test" {
   name = "%s"
   features {
     restore = true
@@ -214,8 +214,8 @@ func hclFeedImportOrg(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_feed" "import" {
-  name = azuredevops_feed.test.name
+resource "betterado_feed" "import" {
+  name = betterado_feed.test.name
 }
 `, hclFeedBasic(name))
 }
@@ -224,9 +224,9 @@ func hclFeedImportProject(projectName, feedName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_feed" "import" {
-  name       = azuredevops_feed.test.name
-  project_id = azuredevops_project.test.id
+resource "betterado_feed" "import" {
+  name       = betterado_feed.test.name
+  project_id = betterado_project.test.id
 }
 `, hclFeedWithProject(projectName, feedName))
 }

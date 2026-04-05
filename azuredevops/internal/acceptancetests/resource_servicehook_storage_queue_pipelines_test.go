@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServicehookStorageQueuePipelines_basic(t *testing.T) {
@@ -17,7 +17,7 @@ func TestAccServicehookStorageQueuePipelines_basic(t *testing.T) {
 	resultFilter := "Succeeded"
 	accountKey := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-	resourceType := "azuredevops_servicehook_storage_queue_pipelines"
+	resourceType := "betterado_servicehook_storage_queue_pipelines"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -50,7 +50,7 @@ func TestAccServicehookStorageQueuePipelines_Update(t *testing.T) {
 	resultFilter2 := "Failed"
 	accountKey2 := "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 
-	resourceType := "azuredevops_servicehook_storage_queue_pipelines"
+	resourceType := "betterado_servicehook_storage_queue_pipelines"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -104,7 +104,7 @@ func TestAccServicehookStorageQueuePipelines_NoEventConfig_CreateAndUpdate(t *te
 	eventType2 := "stage_state_changed_event"
 	accountKey := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-	resourceType := "azuredevops_servicehook_storage_queue_pipelines"
+	resourceType := "betterado_servicehook_storage_queue_pipelines"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -135,7 +135,7 @@ func TestAccServicehookStorageQueuePipelines_AddEventConfig(t *testing.T) {
 	stateFilter := "Completed"
 	resultFilter := "Succeeded"
 
-	resourceType := "azuredevops_servicehook_storage_queue_pipelines"
+	resourceType := "betterado_servicehook_storage_queue_pipelines"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -171,7 +171,7 @@ func TestAccServicehookStorageQueuePipelines_RemoveEventConfigAndChangeEvent(t *
 	stateFilter := "Completed"
 	resultFilter := "Succeeded"
 
-	resourceType := "azuredevops_servicehook_storage_queue_pipelines"
+	resourceType := "betterado_servicehook_storage_queue_pipelines"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -208,7 +208,7 @@ func TestAccServicehookStorageQueuePipelines_RemoveEventConfig(t *testing.T) {
 	stateFilter := "Completed"
 	resultFilter := "Succeeded"
 
-	resourceType := "azuredevops_servicehook_storage_queue_pipelines"
+	resourceType := "betterado_servicehook_storage_queue_pipelines"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -239,7 +239,7 @@ func TestAccServicehookStorageQueuePipelines_RemoveEventConfig(t *testing.T) {
 
 func CheckServicehookStorageQueuePipelinesDestroyed(s *terraform.State) error {
 	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "azuredevops_servicehook_storage_queue_pipelines" {
+		if resource.Type != "betterado_servicehook_storage_queue_pipelines" {
 			continue
 		}
 

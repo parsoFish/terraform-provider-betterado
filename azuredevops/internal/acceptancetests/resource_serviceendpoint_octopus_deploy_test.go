@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointOctopusDeploy_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_octopusdeploy"
+	resourceType := "betterado_serviceendpoint_octopusdeploy"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -36,7 +36,7 @@ func TestAccServiceEndpointOctopusDeploy_complete(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_octopusdeploy"
+	resourceType := "betterado_serviceendpoint_octopusdeploy"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -65,7 +65,7 @@ func TestAccServiceEndpointOctopusDeploy_update(t *testing.T) {
 	description := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_octopusdeploy"
+	resourceType := "betterado_serviceendpoint_octopusdeploy"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -97,7 +97,7 @@ func TestAccServiceEndpointOctopusDeploy_update(t *testing.T) {
 func TestAccServiceEndpointOctopusDeploy_RequiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_octopusdeploy"
+	resourceType := "betterado_serviceendpoint_octopusdeploy"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -121,7 +121,7 @@ func TestAccServiceEndpointOctopusDeploy_RequiresImportErrorStep(t *testing.T) {
 
 func hclSvcEndpointOctopusDeployResourceBasic(projectName string, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "Managed by Terraform"
   visibility         = "private"
@@ -129,8 +129,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_octopusdeploy" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_octopusdeploy" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%[2]s"
   url                   = "https://dev.azure.com"
   api_key               = "000000000000000000000000000000000000"
@@ -139,7 +139,7 @@ resource "azuredevops_serviceendpoint_octopusdeploy" "test" {
 
 func hclSvcEndpointOctopusDeployResourceComplete(projectName string, serviceEndpointName string, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "Managed by Terraform"
   visibility         = "private"
@@ -147,8 +147,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_octopusdeploy" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_octopusdeploy" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%[2]s"
   url                   = "https://dev.azure.com"
   api_key               = "000000000000000000000000000000000000"
@@ -159,7 +159,7 @@ resource "azuredevops_serviceendpoint_octopusdeploy" "test" {
 
 func hclSvcEndpointOctopusDeployResourceUpdate(projectName string, serviceEndpointName string, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "Managed by Terraform"
   visibility         = "private"
@@ -167,8 +167,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_octopusdeploy" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_octopusdeploy" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%[2]s"
   url                   = "https://dev.azure.com"
   api_key               = "000000000000000000000000000000000000"
@@ -181,13 +181,13 @@ func hclSvcEndpointOctopusDeployResourceRequiresImport(projectName string, servi
 	template := hclSvcEndpointOctopusDeployResourceBasic(projectName, serviceEndpointName)
 	return fmt.Sprintf(`
 %s
-resource "azuredevops_serviceendpoint_octopusdeploy" "import" {
-  project_id            = azuredevops_serviceendpoint_octopusdeploy.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_octopusdeploy.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_octopusdeploy.test.description
-  url                   = azuredevops_serviceendpoint_octopusdeploy.test.url
+resource "betterado_serviceendpoint_octopusdeploy" "import" {
+  project_id            = betterado_serviceendpoint_octopusdeploy.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_octopusdeploy.test.service_endpoint_name
+  description           = betterado_serviceendpoint_octopusdeploy.test.description
+  url                   = betterado_serviceendpoint_octopusdeploy.test.url
   api_key               = "000000000000000000000000000000000000"
-  ignore_ssl_error      = azuredevops_serviceendpoint_octopusdeploy.test.ignore_ssl_error
+  ignore_ssl_error      = betterado_serviceendpoint_octopusdeploy.test.ignore_ssl_error
 }
 `, template)
 }

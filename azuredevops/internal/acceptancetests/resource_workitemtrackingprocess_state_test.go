@@ -6,13 +6,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWorkitemtrackingprocessState_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_state.test"
+	tfNode := "betterado_workitemtrackingprocess_state.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -40,7 +40,7 @@ func TestAccWorkitemtrackingprocessState_Basic(t *testing.T) {
 func TestAccWorkitemtrackingprocessState_Update(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_state.test"
+	tfNode := "betterado_workitemtrackingprocess_state.test"
 
 	var stateId string
 
@@ -100,19 +100,19 @@ func captureStateId(tfNode string, id *string) resource.TestCheckFunc {
 
 func basicState(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
 }
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
   name       = "%s"
-  process_id = azuredevops_workitemtrackingprocess_process.test.id
+  process_id = betterado_workitemtrackingprocess_process.test.id
 }
 
-resource "azuredevops_workitemtrackingprocess_state" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+resource "betterado_workitemtrackingprocess_state" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   name              = "Ready"
   color             = "#b2b2b2"
   state_category    = "Proposed"
@@ -123,19 +123,19 @@ resource "azuredevops_workitemtrackingprocess_state" "test" {
 
 func updatedState(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
 }
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
   name       = "%s"
-  process_id = azuredevops_workitemtrackingprocess_process.test.id
+  process_id = betterado_workitemtrackingprocess_process.test.id
 }
 
-resource "azuredevops_workitemtrackingprocess_state" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+resource "betterado_workitemtrackingprocess_state" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   name              = "Ready"
   color             = "#5688E0"
   state_category    = "InProgress"

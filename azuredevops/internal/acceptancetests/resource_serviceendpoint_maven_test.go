@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointMaven_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_maven"
+	resourceType := "betterado_serviceendpoint_maven"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -36,7 +36,7 @@ func TestAccServiceEndpointMaven_basic_usernamepassword(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_maven"
+	resourceType := "betterado_serviceendpoint_maven"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -61,7 +61,7 @@ func TestAccServiceEndpointMaven_complete_token(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := t.Name()
 
-	resourceType := "azuredevops_serviceendpoint_maven"
+	resourceType := "betterado_serviceendpoint_maven"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -88,7 +88,7 @@ func TestAccServiceEndpointMaven_complete_usernamepassword(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := t.Name()
 
-	resourceType := "azuredevops_serviceendpoint_maven"
+	resourceType := "betterado_serviceendpoint_maven"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -117,7 +117,7 @@ func TestAccServiceEndpointMaven_update(t *testing.T) {
 	description := t.Name()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_maven"
+	resourceType := "betterado_serviceendpoint_maven"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -153,7 +153,7 @@ func TestAccServiceEndpointMaven_update_usernamepassword(t *testing.T) {
 	description := t.Name()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_maven"
+	resourceType := "betterado_serviceendpoint_maven"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -185,7 +185,7 @@ func TestAccServiceEndpointMaven_update_usernamepassword(t *testing.T) {
 func TestAccServiceEndpointMaven_RequiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_maven"
+	resourceType := "betterado_serviceendpoint_maven"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -210,7 +210,7 @@ func TestAccServiceEndpointMaven_RequiresImportErrorStep(t *testing.T) {
 func TestAccServiceEndpointMaven_RequiresImportErrorStepUsernamePassword(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_maven"
+	resourceType := "betterado_serviceendpoint_maven"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -234,8 +234,8 @@ func TestAccServiceEndpointMaven_RequiresImportErrorStepUsernamePassword(t *test
 
 func hclSvcEndpointMavenResourceBasic(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_maven" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_maven" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   repository_id         = "test-repository"
   authentication_token {
@@ -251,8 +251,8 @@ resource "azuredevops_serviceendpoint_maven" "test" {
 
 func hclSvcEndpointMavenResourceBasicUsernamePassword(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_maven" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_maven" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   repository_id         = "test-repository"
   authentication_basic {
@@ -269,8 +269,8 @@ resource "azuredevops_serviceendpoint_maven" "test" {
 
 func hclSvcEndpointMavenResourceCompleteUsernamePassword(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_maven" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_maven" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   description           = "%s"
   repository_id         = "test-repository"
@@ -287,8 +287,8 @@ resource "azuredevops_serviceendpoint_maven" "test" {
 
 func hclSvcEndpointMavenResourceComplete(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_maven" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_maven" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   description           = "%s"
   repository_id         = "test-repository"
@@ -304,8 +304,8 @@ resource "azuredevops_serviceendpoint_maven" "test" {
 
 func hclSvcEndpointMavenResourceUpdate(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_maven" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_maven" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   description           = "%s"
   repository_id         = "test-repository"
@@ -321,8 +321,8 @@ resource "azuredevops_serviceendpoint_maven" "test" {
 
 func hclSvcEndpointMavenResourceUpdateUsernamePassword(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_maven" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_maven" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   description           = "%s"
   repository_id         = "test-repository"
@@ -341,11 +341,11 @@ func hclSvcEndpointMavenResourceRequiresImport(projectName string, serviceEndpoi
 	template := hclSvcEndpointMavenResourceBasic(projectName, serviceEndpointName, description)
 	return fmt.Sprintf(`
 %s
-resource "azuredevops_serviceendpoint_maven" "import" {
-  project_id            = azuredevops_serviceendpoint_maven.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_maven.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_maven.test.description
-  url                   = azuredevops_serviceendpoint_maven.test.url
+resource "betterado_serviceendpoint_maven" "import" {
+  project_id            = betterado_serviceendpoint_maven.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_maven.test.service_endpoint_name
+  description           = betterado_serviceendpoint_maven.test.description
+  url                   = betterado_serviceendpoint_maven.test.url
   repository_id         = "test-repository"
   authentication_token {
     token = "redacted"

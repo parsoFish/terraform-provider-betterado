@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccRepositoryPolicyAuthorEmailPatterns(t *testing.T) {
@@ -22,7 +22,7 @@ func TestAccRepositoryPolicyAuthorEmailPatterns(t *testing.T) {
 }
 
 func testAccRepositoryPolicyAuthorEmailPatternsRepoPolicyBasic(t *testing.T) {
-	authorEmailTfNode := "azuredevops_repository_policy_author_email_pattern.test"
+	authorEmailTfNode := "betterado_repository_policy_author_email_pattern.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -47,7 +47,7 @@ func testAccRepositoryPolicyAuthorEmailPatternsRepoPolicyBasic(t *testing.T) {
 }
 
 func testAccRepositoryPolicyAuthorEmailPatternsRepoPolicyUpdate(t *testing.T) {
-	authorEmailTfNode := "azuredevops_repository_policy_author_email_pattern.test"
+	authorEmailTfNode := "betterado_repository_policy_author_email_pattern.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -77,7 +77,7 @@ func testAccRepositoryPolicyAuthorEmailPatternsRepoPolicyUpdate(t *testing.T) {
 }
 
 func testAccRepositoryPolicyAuthorEmailPatternsProjectPolicyBasic(t *testing.T) {
-	authorEmailTfNode := "azuredevops_repository_policy_author_email_pattern.test"
+	authorEmailTfNode := "betterado_repository_policy_author_email_pattern.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -102,7 +102,7 @@ func testAccRepositoryPolicyAuthorEmailPatternsProjectPolicyBasic(t *testing.T) 
 }
 
 func testAccRepositoryPolicyAuthorEmailPatternsProjectPolicyUpdate(t *testing.T) {
-	authorEmailTfNode := "azuredevops_repository_policy_author_email_pattern.test"
+	authorEmailTfNode := "betterado_repository_policy_author_email_pattern.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -133,7 +133,7 @@ func testAccRepositoryPolicyAuthorEmailPatternsProjectPolicyUpdate(t *testing.T)
 
 func hclRepositoryPolicyAuthorEmailPatternsResourceTemplate(projectName string, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%s"
   description        = "Test Project Description"
   visibility         = "private"
@@ -141,8 +141,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%s"
   initialization {
     init_type = "Clean"
@@ -156,14 +156,14 @@ func hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyBasic(projectName s
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_author_email_pattern" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_repository_policy_author_email_pattern" "test" {
+  project_id = betterado_project.test.id
 
   enabled  = true
   blocking = true
 
   author_email_patterns = ["test1@test.com"]
-  repository_ids        = [azuredevops_git_repository.test.id]
+  repository_ids        = [betterado_git_repository.test.id]
 }`, projectAndRepo)
 }
 
@@ -172,14 +172,14 @@ func hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyUpdate(projectName 
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_author_email_pattern" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_repository_policy_author_email_pattern" "test" {
+  project_id = betterado_project.test.id
 
   enabled  = true
   blocking = true
 
   author_email_patterns = ["test2@test.com"]
-  repository_ids        = [azuredevops_git_repository.test.id]
+  repository_ids        = [betterado_git_repository.test.id]
 }`, projectAndRepo)
 }
 
@@ -188,13 +188,13 @@ func hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyBasic(projectNam
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_author_email_pattern" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_repository_policy_author_email_pattern" "test" {
+  project_id = betterado_project.test.id
 
   enabled               = true
   blocking              = true
   author_email_patterns = ["test1@test.com"]
-  depends_on            = [azuredevops_git_repository.test]
+  depends_on            = [betterado_git_repository.test]
 }`, projectAndRepo)
 }
 
@@ -203,13 +203,13 @@ func hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyUpdate(projectNa
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_author_email_pattern" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_repository_policy_author_email_pattern" "test" {
+  project_id = betterado_project.test.id
 
   enabled  = true
   blocking = true
 
   author_email_patterns = ["test1@test.com", "test2@test.com"]
-  depends_on            = [azuredevops_git_repository.test]
+  depends_on            = [betterado_git_repository.test]
 }`, projectAndRepo)
 }

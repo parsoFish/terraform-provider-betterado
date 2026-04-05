@@ -9,14 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 func TestAccProject_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_project.test"
+	tfNode := "betterado_project.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -46,7 +46,7 @@ func TestAccProject_basic(t *testing.T) {
 
 func TestAccProject_importByName(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_project.test"
+	tfNode := "betterado_project.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -80,7 +80,7 @@ func TestAccProject_importByName(t *testing.T) {
 func TestAccProject_update(t *testing.T) {
 	projectNameFirst := testutils.GenerateResourceName()
 	projectNameSecond := testutils.GenerateResourceName()
-	tfNode := "azuredevops_project.test"
+	tfNode := "betterado_project.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -127,7 +127,7 @@ func TestAccProject_update(t *testing.T) {
 
 func TestAccProject_features(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_project.test"
+	tfNode := "betterado_project.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -180,7 +180,7 @@ func TestAccProject_features(t *testing.T) {
 
 func TestAccProject_requireImportError(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_project.test"
+	tfNode := "betterado_project.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -208,7 +208,7 @@ func TestAccProject_requireImportError(t *testing.T) {
 
 func checkProjectExists(expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		state, ok := s.RootModule().Resources["azuredevops_project.test"]
+		state, ok := s.RootModule().Resources["betterado_project.test"]
 		if !ok {
 			return fmt.Errorf("Did not find a project in the TF state")
 		}
@@ -248,7 +248,7 @@ func checkImportProject() resource.ImportStateCheckFunc {
 
 func hclProjectBasic(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -259,7 +259,7 @@ resource "azuredevops_project" "test" {
 
 func hclProjectUpdate(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description-update"
   visibility         = "public"
@@ -270,7 +270,7 @@ resource "azuredevops_project" "test" {
 
 func hclProjectFeature(projectName, testPlans, stateArtifacts string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%s"
   description        = "%s-description"
   visibility         = "private"
@@ -289,11 +289,11 @@ func hclProjectImport(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_project" "import" {
-  name               = azuredevops_project.test.name
-  description        = azuredevops_project.test.description
-  visibility         = azuredevops_project.test.visibility
-  version_control    = azuredevops_project.test.version_control
-  work_item_template = azuredevops_project.test.work_item_template
+resource "betterado_project" "import" {
+  name               = betterado_project.test.name
+  description        = betterado_project.test.description
+  visibility         = betterado_project.test.visibility
+  version_control    = betterado_project.test.version_control
+  work_item_template = betterado_project.test.work_item_template
 }`, template)
 }

@@ -8,15 +8,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 // TestAccDeploymentGroup_basic verifies that a deployment group can be created and imported
 func TestAccDeploymentGroup_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	deploymentGroupName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_deployment_group.test"
+	tfNode := "betterado_deployment_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -44,7 +44,7 @@ func TestAccDeploymentGroup_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	deploymentGroupNameFirst := testutils.GenerateResourceName()
 	deploymentGroupNameSecond := testutils.GenerateResourceName()
-	tfNode := "azuredevops_deployment_group.test"
+	tfNode := "betterado_deployment_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -84,7 +84,7 @@ func TestAccDeploymentGroup_update(t *testing.T) {
 func TestAccDeploymentGroup_withPoolId(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	deploymentGroupName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_deployment_group.test"
+	tfNode := "betterado_deployment_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -112,7 +112,7 @@ func checkDeploymentGroupDestroyed(s *terraform.State) error {
 	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
 
 	for _, res := range s.RootModule().Resources {
-		if res.Type != "azuredevops_deployment_group" {
+		if res.Type != "betterado_deployment_group" {
 			continue
 		}
 
@@ -138,8 +138,8 @@ func hclDeploymentGroupBasic(projectName string, deploymentGroupName string) str
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_deployment_group" "test" {
-  project_id = azuredevops_project.project.id
+resource "betterado_deployment_group" "test" {
+  project_id = betterado_project.project.id
   name       = "%s"
 }
 `, projectResource, deploymentGroupName)
@@ -150,8 +150,8 @@ func hclDeploymentGroupResource(projectName string, deploymentGroupName string, 
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_deployment_group" "test" {
-  project_id  = azuredevops_project.project.id
+resource "betterado_deployment_group" "test" {
+  project_id  = betterado_project.project.id
   name        = "%s"
   description = "%s"
 }
@@ -163,22 +163,22 @@ func hclDeploymentGroupWithPoolId(projectName string, deploymentGroupName string
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_project" "project2" {
+resource "betterado_project" "project2" {
   name               = "%s-2"
   visibility         = "private"
   version_control    = "Git"
   work_item_template = "Agile"
 }
 
-resource "azuredevops_deployment_group" "pool_source" {
-  project_id = azuredevops_project.project.id
+resource "betterado_deployment_group" "pool_source" {
+  project_id = betterado_project.project.id
   name       = "%s-source"
 }
 
-resource "azuredevops_deployment_group" "test" {
-  project_id = azuredevops_project.project2.id
+resource "betterado_deployment_group" "test" {
+  project_id = betterado_project.project2.id
   name       = "%s"
-  pool_id    = azuredevops_deployment_group.pool_source.pool_id
+  pool_id    = betterado_deployment_group.pool_source.pool_id
 }
 `, projectResource, projectName, deploymentGroupName, deploymentGroupName)
 }

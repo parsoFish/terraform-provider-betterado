@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/serviceendpoint"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/tfhelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/tfhelper"
 )
 
 func ResourceServiceEndpointAzureDevOps() *schema.Resource {
@@ -28,7 +28,7 @@ func ResourceServiceEndpointAzureDevOps() *schema.Resource {
 		Importer: tfhelper.ImportProjectQualifiedResourceUUID(),
 		Schema:   baseSchema(),
 	}
-	r.DeprecationMessage = "This resource is duplicate with azuredevops_serviceendpoint_runpipeline,  will be removed in the future, use azuredevops_serviceendpoint_runpipeline instead."
+	r.DeprecationMessage = "This resource is duplicate with betterado_serviceendpoint_runpipeline,  will be removed in the future, use betterado_serviceendpoint_runpipeline instead."
 
 	maps.Copy(r.Schema, map[string]*schema.Schema{
 		"org_url": {

@@ -5,17 +5,17 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccClientConfig_LoadsCorrectProperties(t *testing.T) {
-	tfNode := "data.azuredevops_client_config.test"
+	tfNode := "data.betterado_client_config.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
 		Steps: []resource.TestStep{
 			{
-				Config: `data "azuredevops_client_config" "test" {}`,
+				Config: `data "betterado_client_config" "test" {}`,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "name"),
 					resource.TestCheckResourceAttrSet(tfNode, "status"),

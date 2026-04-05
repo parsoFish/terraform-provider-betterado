@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/tfhelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/tfhelper"
 )
 
 func ResourceInheritedPage() *schema.Resource {
@@ -134,7 +134,7 @@ func getInheritedPage(ctx context.Context, d *schema.ResourceData, m any, pageId
 	}
 
 	if page.Inherited == nil || !*page.Inherited {
-		return nil, diag.Errorf("page %s is not inherited, use azuredevops_workitemtrackingprocess_page to manage custom pages", pageId)
+		return nil, diag.Errorf("page %s is not inherited, use betterado_workitemtrackingprocess_page to manage custom pages", pageId)
 	}
 
 	return page, nil

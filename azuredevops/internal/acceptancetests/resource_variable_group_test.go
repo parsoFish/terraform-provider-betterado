@@ -13,15 +13,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 func TestAccVariableGroup_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	vgName := testutils.GenerateResourceName()
-	tfVarGroupNode := "azuredevops_variable_group.test"
+	tfVarGroupNode := "betterado_variable_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -52,7 +52,7 @@ func TestAccVariableGroup_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	vgName := testutils.GenerateResourceName()
 	vgName2 := testutils.GenerateResourceName()
-	tfVarGroupNode := "azuredevops_variable_group.test"
+	tfVarGroupNode := "betterado_variable_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -113,7 +113,7 @@ func TestAccVariableGroup_update(t *testing.T) {
 func TestAccVariableGroup_secretValue(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	vgName := testutils.GenerateResourceName()
-	tfVarGroupNode := "azuredevops_variable_group.test"
+	tfVarGroupNode := "betterado_variable_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -152,7 +152,7 @@ func TestAccVariableGroup_keyVault_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 
 	vgKeyVault := testutils.GenerateResourceName()
-	tfVarGroupNode := "azuredevops_variable_group.test"
+	tfVarGroupNode := "betterado_variable_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -179,7 +179,7 @@ func TestAccVariableGroup_keyVault_basic(t *testing.T) {
 
 func checkVariableGroupExists(expectedName string, expectedAllowAccess bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		varGroup, ok := s.RootModule().Resources["azuredevops_variable_group.test"]
+		varGroup, ok := s.RootModule().Resources["betterado_variable_group.test"]
 		if !ok {
 			return fmt.Errorf("Did not find a variable group in the TF state")
 		}
@@ -217,7 +217,7 @@ func checkVariableGroupExists(expectedName string, expectedAllowAccess bool) res
 // invoked *after* Terraform destroys the resource but *before* the state is wiped clean.
 func checkVariableGroupDestroyed(s *terraform.State) error {
 	for _, res := range s.RootModule().Resources {
-		if res.Type != "azuredevops_variable_group" {
+		if res.Type != "betterado_variable_group" {
 			continue
 		}
 
@@ -270,11 +270,11 @@ func getDefinitionResourceFromVariableGroupResource(resource *terraform.Resource
 
 func hclVariableGroupBasic(projectName, variableGroupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
-resource "azuredevops_variable_group" "test" {
-  project_id   = azuredevops_project.test.id
+resource "betterado_variable_group" "test" {
+  project_id   = betterado_project.test.id
   name         = "%s"
   description  = "test description"
   allow_access = false
@@ -287,12 +287,12 @@ resource "azuredevops_variable_group" "test" {
 
 func hclVariableGroupUpdate(projectName, variableGroupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_variable_group" "test" {
-  project_id   = azuredevops_project.test.id
+resource "betterado_variable_group" "test" {
+  project_id   = betterado_project.test.id
   name         = "%s"
   description  = "update description"
   allow_access = true
@@ -315,12 +315,12 @@ resource "azuredevops_variable_group" "test" {
 
 func hclVariableGroupSecretValue(projectName, variableGroupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_variable_group" "test" {
-  project_id   = azuredevops_project.test.id
+resource "betterado_variable_group" "test" {
+  project_id   = betterado_project.test.id
   name         = "%s"
   description  = "test description"
   allow_access = true
@@ -334,12 +334,12 @@ resource "azuredevops_variable_group" "test" {
 
 func hclVariableGroupAzureKeyVault(projectName, variableGroupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_azurerm" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_azurerm" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%sAzureRM"
   credentials {
     serviceprincipalid  = "%s"
@@ -351,14 +351,14 @@ resource "azuredevops_serviceendpoint_azurerm" "test" {
   service_endpoint_authentication_scheme = "ServicePrincipal"
 }
 
-resource "azuredevops_variable_group" "test" {
-  project_id   = azuredevops_project.test.id
+resource "betterado_variable_group" "test" {
+  project_id   = betterado_project.test.id
   name         = "%s"
   description  = "A sample variable group."
   allow_access = false
   key_vault {
     name                = "%s"
-    service_endpoint_id = azuredevops_serviceendpoint_azurerm.test.id
+    service_endpoint_id = betterado_serviceendpoint_azurerm.test.id
   }
   variable {
     name = "key1"

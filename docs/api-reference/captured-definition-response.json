@@ -1,0 +1,191 @@
+{
+  "source": "userInterface",
+  "revision": 1,
+  "description": null,
+  "createdBy": {
+    "displayName": "david.g.parsonson",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "uniqueName": "david.g.parsonson@gmail.com",
+    "descriptor": "msa.REDACTED"
+  },
+  "createdOn": "2026-04-04T17:08:28.987Z",
+  "modifiedBy": {
+    "displayName": "david.g.parsonson",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "uniqueName": "david.g.parsonson@gmail.com",
+    "descriptor": "msa.REDACTED"
+  },
+  "modifiedOn": "2026-04-04T17:08:28.987Z",
+  "isDeleted": false,
+  "isDisabled": false,
+  "variables": {},
+  "variableGroups": [],
+  "environments": [
+    {
+      "id": 1,
+      "name": "Stage 1",
+      "rank": 1,
+      "owner": {
+        "displayName": "david.g.parsonson",
+        "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+        "uniqueName": "david.g.parsonson@gmail.com"
+      },
+      "variables": {},
+      "variableGroups": [],
+      "preDeployApprovals": {
+        "approvals": [
+          {
+            "rank": 1,
+            "isAutomated": true,
+            "isNotificationOn": false,
+            "id": 1
+          }
+        ],
+        "approvalOptions": {
+          "requiredApproverCount": null,
+          "releaseCreatorCanBeApprover": false,
+          "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+          "enforceIdentityRevalidation": false,
+          "timeoutInMinutes": 0,
+          "executionOrder": "beforeGates"
+        }
+      },
+      "deployStep": {
+        "id": 2
+      },
+      "postDeployApprovals": {
+        "approvals": [
+          {
+            "rank": 1,
+            "isAutomated": true,
+            "isNotificationOn": false,
+            "id": 3
+          }
+        ],
+        "approvalOptions": {
+          "requiredApproverCount": null,
+          "releaseCreatorCanBeApprover": false,
+          "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+          "enforceIdentityRevalidation": false,
+          "timeoutInMinutes": 0,
+          "executionOrder": "afterSuccessfulGates"
+        }
+      },
+      "deployPhases": [
+        {
+          "deploymentInput": {
+            "parallelExecution": {
+              "parallelExecutionType": "none"
+            },
+            "agentSpecification": null,
+            "skipArtifactsDownload": false,
+            "artifactsDownloadInput": {
+              "downloadInputs": []
+            },
+            "queueId": 4,
+            "demands": [],
+            "enableAccessToken": false,
+            "timeoutInMinutes": 0,
+            "jobCancelTimeoutInMinutes": 1,
+            "condition": "succeeded()",
+            "overrideInputs": {}
+          },
+          "rank": 1,
+          "phaseType": "agentBasedDeployment",
+          "name": "Agent job",
+          "refName": null,
+          "workflowTasks": []
+        }
+      ],
+      "environmentOptions": {
+        "emailNotificationType": "OnlyOnFailure",
+        "emailRecipients": "release.environment.owner;release.creator",
+        "skipArtifactsDownload": false,
+        "timeoutInMinutes": 0,
+        "enableAccessToken": false,
+        "publishDeploymentStatus": true,
+        "badgeEnabled": false,
+        "autoLinkWorkItems": false,
+        "pullRequestDeploymentEnabled": false
+      },
+      "demands": [],
+      "conditions": [
+        {
+          "name": "ReleaseStarted",
+          "conditionType": "event",
+          "value": "",
+          "result": null
+        }
+      ],
+      "executionPolicy": {
+        "concurrencyCount": 1,
+        "queueDepthCount": 0
+      },
+      "schedules": [],
+      "currentRelease": {
+        "id": 0,
+        "url": "https://vsrm.dev.azure.com/davidgparsonson/PROJECT_ID/_apis/Release/releases/0",
+        "_links": {}
+      },
+      "retentionPolicy": {
+        "daysToKeep": 30,
+        "releasesToKeep": 3,
+        "retainBuild": true
+      },
+      "processParameters": {},
+      "properties": {
+        "BoardsEnvironmentType": {
+          "$type": "System.String",
+          "$value": "unmapped"
+        },
+        "LinkBoardsWorkItems": {
+          "$type": "System.String",
+          "$value": "False"
+        }
+      },
+      "preDeploymentGates": {
+        "id": 0,
+        "gatesOptions": null,
+        "gates": []
+      },
+      "postDeploymentGates": {
+        "id": 0,
+        "gatesOptions": null,
+        "gates": []
+      },
+      "environmentTriggers": [],
+      "badgeUrl": "https://vsrm.dev.azure.com/davidgparsonson/_apis/public/Release/badge/PROJECT_ID/1/1"
+    }
+  ],
+  "artifacts": [],
+  "triggers": [],
+  "releaseNameFormat": "Release-$(rev:r)",
+  "tags": [],
+  "properties": {
+    "DefinitionCreationSource": {
+      "$type": "System.String",
+      "$value": "ReleaseNew"
+    },
+    "IntegrateBoardsWorkItems": {
+      "$type": "System.String",
+      "$value": "False"
+    },
+    "IntegrateJiraWorkItems": {
+      "$type": "System.String",
+      "$value": "false"
+    }
+  },
+  "id": 1,
+  "name": "tf-test-release-definition",
+  "path": "\\",
+  "projectReference": null,
+  "url": "https://vsrm.dev.azure.com/davidgparsonson/PROJECT_ID/_apis/Release/definitions/1",
+  "_links": {
+    "self": {
+      "href": "https://vsrm.dev.azure.com/davidgparsonson/PROJECT_ID/_apis/Release/definitions/1"
+    },
+    "web": {
+      "href": "https://dev.azure.com/davidgparsonson/PROJECT_ID/_release?definitionId=1"
+    }
+  }
+}

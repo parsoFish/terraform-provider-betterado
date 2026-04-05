@@ -11,15 +11,15 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/microsoft/terraform-provider-azuredevops/azdosdkmocks"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azdosdkmocks"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 	"github.com/stretchr/testify/require"
 )
 

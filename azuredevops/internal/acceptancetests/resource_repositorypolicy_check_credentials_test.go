@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccRepositoryPolicyCheckCredentials(t *testing.T) {
@@ -22,7 +22,7 @@ func TestAccRepositoryPolicyCheckCredentials(t *testing.T) {
 }
 
 func testAccRepoPolicyCheckCredentialsBasic(t *testing.T) {
-	checkCredentialsTfNode := "azuredevops_repository_policy_check_credentials.test"
+	checkCredentialsTfNode := "betterado_repository_policy_check_credentials.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -46,7 +46,7 @@ func testAccRepoPolicyCheckCredentialsBasic(t *testing.T) {
 }
 
 func testAccRepoPolicyCheckCredentialsUpdate(t *testing.T) {
-	checkCredentialsTfNode := "azuredevops_repository_policy_check_credentials.test"
+	checkCredentialsTfNode := "betterado_repository_policy_check_credentials.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -75,7 +75,7 @@ func testAccRepoPolicyCheckCredentialsUpdate(t *testing.T) {
 }
 
 func testAccProjectPolicyCheckCredentialsBasic(t *testing.T) {
-	checkCredentialsTfNode := "azuredevops_repository_policy_check_credentials.test"
+	checkCredentialsTfNode := "betterado_repository_policy_check_credentials.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -99,7 +99,7 @@ func testAccProjectPolicyCheckCredentialsBasic(t *testing.T) {
 }
 
 func testAccProjectPolicyCheckCredentialsUpdate(t *testing.T) {
-	checkCredentialsTfNode := "azuredevops_repository_policy_check_credentials.test"
+	checkCredentialsTfNode := "betterado_repository_policy_check_credentials.test"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -129,7 +129,7 @@ func testAccProjectPolicyCheckCredentialsUpdate(t *testing.T) {
 
 func hclPolicyCheckCredentialsResourceTemplate(projectName string, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%s"
   description        = "Test Project Description"
   visibility         = "private"
@@ -137,8 +137,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%s"
   initialization {
     init_type = "Clean"
@@ -152,12 +152,12 @@ func hclRepoPolicyCheckCredentialsBasic(projectName string, repoName string) str
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_check_credentials" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_repository_policy_check_credentials" "test" {
+  project_id = betterado_project.test.id
 
   enabled        = true
   blocking       = true
-  repository_ids = [azuredevops_git_repository.test.id]
+  repository_ids = [betterado_git_repository.test.id]
 }`, projectAndRepo)
 }
 
@@ -166,11 +166,11 @@ func hclRepoPolicyCheckCredentialsUpdate(projectName string, repoName string) st
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_check_credentials" "test" {
-  project_id     = azuredevops_project.test.id
+resource "betterado_repository_policy_check_credentials" "test" {
+  project_id     = betterado_project.test.id
   enabled        = false
   blocking       = true
-  repository_ids = [azuredevops_git_repository.test.id]
+  repository_ids = [betterado_git_repository.test.id]
 }`, projectAndRepo)
 }
 
@@ -179,11 +179,11 @@ func hclProjectPolicyCheckCredentialsBasic(projectName string, repoName string) 
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_check_credentials" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_repository_policy_check_credentials" "test" {
+  project_id = betterado_project.test.id
   enabled    = true
   blocking   = true
-  depends_on = [azuredevops_git_repository.test]
+  depends_on = [betterado_git_repository.test]
 }
 `, projectAndRepo)
 }
@@ -193,10 +193,10 @@ func hclProjectPolicyCheckCredentialsUpdate(projectName string, repoName string)
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_repository_policy_check_credentials" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_repository_policy_check_credentials" "test" {
+  project_id = betterado_project.test.id
   enabled    = false
   blocking   = true
-  depends_on = [azuredevops_git_repository.test]
+  depends_on = [betterado_git_repository.test]
 }`, projectAndRepo)
 }

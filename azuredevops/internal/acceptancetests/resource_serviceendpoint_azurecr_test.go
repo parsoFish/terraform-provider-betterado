@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointAzureCR_spn_basic(t *testing.T) {
@@ -18,7 +18,7 @@ func TestAccServiceEndpointAzureCR_spn_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointNameFirst := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_azurecr"
+	resourceType := "betterado_serviceendpoint_azurecr"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -57,7 +57,7 @@ func TestAccServiceEndpointAzureCR_spn_update(t *testing.T) {
 	serviceEndpointNameFirst := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_azurecr"
+	resourceType := "betterado_serviceendpoint_azurecr"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -113,7 +113,7 @@ func TestAccServiceEndpointAzureCR_workLoadIdentity_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointNameFirst := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_azurecr"
+	resourceType := "betterado_serviceendpoint_azurecr"
 	tfSvcEpNode := resourceType + ".test"
 	// fmt.Println(hclAzureCRWorkLoadIdentity(projectName, serviceEndpointNameFirst))
 	resource.ParallelTest(t, resource.TestCase{
@@ -153,7 +153,7 @@ func TestAccServiceEndpointAzureCR_workLoadIdentity_update(t *testing.T) {
 	serviceEndpointNameFirst := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_azurecr"
+	resourceType := "betterado_serviceendpoint_azurecr"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
@@ -202,7 +202,7 @@ func TestAccServiceEndpointAzureCR_workLoadIdentity_update(t *testing.T) {
 
 func hclAzureCRSpn(projectName, serviceConnectionName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "description"
   visibility         = "private"
@@ -210,8 +210,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_azurecr" "test" {
-  project_id                             = azuredevops_project.test.id
+resource "betterado_serviceendpoint_azurecr" "test" {
+  project_id                             = betterado_project.test.id
   service_endpoint_authentication_scheme = "ServicePrincipal"
   service_endpoint_name                  = "%s"
   azurecr_spn_tenantid                   = "%s"
@@ -226,7 +226,7 @@ resource "azuredevops_serviceendpoint_azurecr" "test" {
 
 func hclAzureCRWorkLoadIdentity(projectName, serviceConnectionName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%s"
   description        = "description"
   visibility         = "private"
@@ -234,8 +234,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_azurecr" "test" {
-  project_id                             = azuredevops_project.test.id
+resource "betterado_serviceendpoint_azurecr" "test" {
+  project_id                             = betterado_project.test.id
   service_endpoint_authentication_scheme = "WorkloadIdentityFederation"
   service_endpoint_name                  = "%s"
   azurecr_spn_tenantid                   = "%s"

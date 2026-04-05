@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointGitLab_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_gitlab"
+	resourceType := "betterado_serviceendpoint_gitlab"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -38,7 +38,7 @@ func TestAccServiceEndpointGitLab_complete(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_gitlab"
+	resourceType := "betterado_serviceendpoint_gitlab"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -66,7 +66,7 @@ func TestAccServiceEndpointGitLab_update(t *testing.T) {
 	description := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_gitlab"
+	resourceType := "betterado_serviceendpoint_gitlab"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -99,7 +99,7 @@ func TestAccServiceEndpointGitLab_update(t *testing.T) {
 func TestAccServiceEndpointGitLab_requiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_gitlab"
+	resourceType := "betterado_serviceendpoint_gitlab"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -123,12 +123,12 @@ func TestAccServiceEndpointGitLab_requiresImportErrorStep(t *testing.T) {
 
 func hclSvcEndpointGitLabResourceBasic(projectName string, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_gitlab" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_gitlab" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   url                   = "https://gitlab.com"
   username              = "username"
@@ -138,12 +138,12 @@ resource "azuredevops_serviceendpoint_gitlab" "test" {
 
 func hclSvcEndpointGitLabResourceComplete(projectName string, serviceEndpointName string, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_gitlab" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_gitlab" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   description           = "%s"
   url                   = "https://gitlab.com"
@@ -154,12 +154,12 @@ resource "azuredevops_serviceendpoint_gitlab" "test" {
 
 func hclSvcEndpointGitLabResourceUpdate(projectName string, serviceEndpointName string, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_gitlab" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_gitlab" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   description           = "%s"
   url                   = "https://gitlab.com/update"
@@ -173,13 +173,13 @@ func hclSvcEndpointGitLabResourceRequiresImport(projectName string, serviceEndpo
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_gitlab" "import" {
-  project_id            = azuredevops_serviceendpoint_gitlab.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_gitlab.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_gitlab.test.description
-  url                   = azuredevops_serviceendpoint_gitlab.test.url
-  username              = azuredevops_serviceendpoint_gitlab.test.username
-  api_token             = azuredevops_serviceendpoint_gitlab.test.api_token
+resource "betterado_serviceendpoint_gitlab" "import" {
+  project_id            = betterado_serviceendpoint_gitlab.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_gitlab.test.service_endpoint_name
+  description           = betterado_serviceendpoint_gitlab.test.description
+  url                   = betterado_serviceendpoint_gitlab.test.url
+  username              = betterado_serviceendpoint_gitlab.test.username
+  api_token             = betterado_serviceendpoint_gitlab.test.api_token
 }
 `, template)
 }

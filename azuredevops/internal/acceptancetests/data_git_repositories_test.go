@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccTfsGitRepositories_DataSource_Basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
-	tfNode := "data.azuredevops_git_repositories.test"
+	tfNode := "data.betterado_git_repositories.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testutils.PreCheck(t, nil) },
 		Providers:                 testutils.GetProviders(),
@@ -35,7 +35,7 @@ func TestAccTfsGitRepositories_DataSource_all(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
-	tfNode := "data.azuredevops_git_repositories.test"
+	tfNode := "data.betterado_git_repositories.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testutils.PreCheck(t, nil) },
 		Providers:                 testutils.GetProviders(),
@@ -53,7 +53,7 @@ func TestAccTfsGitRepositories_DataSource_all(t *testing.T) {
 
 func hckGitRepositoriesDatSourceBasic(projectName, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "description"
   visibility         = "private"
@@ -61,25 +61,25 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
 
-data "azuredevops_git_repositories" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repositories" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
-  depends_on = [azuredevops_git_repository.test]
+  depends_on = [betterado_git_repository.test]
 }
 `, projectName, repoName)
 }
 
 func hckGitRepositoriesDatSourceAll(projectName, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "description"
   visibility         = "private"
@@ -87,17 +87,17 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
 
-data "azuredevops_git_repositories" "test" {
-  project_id = azuredevops_project.test.id
-  depends_on = [azuredevops_git_repository.test]
+data "betterado_git_repositories" "test" {
+  project_id = betterado_project.test.id
+  depends_on = [betterado_git_repository.test]
 }
 `, projectName, repoName)
 }

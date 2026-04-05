@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccCheckBusinessHours_basic(t *testing.T) {
@@ -14,7 +14,7 @@ func TestAccCheckBusinessHours_basic(t *testing.T) {
 	start_time := "01:20"
 	end_time := "03:20"
 
-	resourceType := "azuredevops_check_business_hours"
+	resourceType := "betterado_check_business_hours"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -50,7 +50,7 @@ func TestAccCheckBusinessHours_complete(t *testing.T) {
 	saturday := "false"
 	sunday := "false"
 
-	resourceType := "azuredevops_check_business_hours"
+	resourceType := "betterado_check_business_hours"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -107,7 +107,7 @@ func TestAccCheckBusinessHours_update(t *testing.T) {
 	saturday_second := "true"
 	sunday_second := "true"
 
-	resourceType := "azuredevops_check_business_hours"
+	resourceType := "betterado_check_business_hours"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -155,10 +155,10 @@ func TestAccCheckBusinessHours_update(t *testing.T) {
 
 func hclCheckBusinessHoursResourceBasic(projectName string, checkName string, start_time string, end_time string) string {
 	checkResource := fmt.Sprintf(`
-resource "azuredevops_check_business_hours" "test" {
-  project_id           = azuredevops_project.project.id
+resource "betterado_check_business_hours" "test" {
+  project_id           = betterado_project.project.id
   display_name         = "%s"
-  target_resource_id   = azuredevops_serviceendpoint_generic.test.id
+  target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
   time_zone            = "UTC"
   start_time           = "%s"
@@ -174,10 +174,10 @@ func hclCheckBusinessHoursResourceComplete(projectName string, checkName string,
 	monday string, tuesday string, wednesday string, thursday string, friday string, saturday string, sunday string,
 ) string {
 	checkResource := fmt.Sprintf(`
-resource "azuredevops_check_business_hours" "test" {
-  project_id           = azuredevops_project.project.id
+resource "betterado_check_business_hours" "test" {
+  project_id           = betterado_project.project.id
   display_name         = "%s"
-  target_resource_id   = azuredevops_serviceendpoint_generic.test.id
+  target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
   start_time           = "%s"
   end_time             = "%s"
@@ -200,10 +200,10 @@ func hclCheckBusinessHoursResourceUpdate(projectName string, checkName string, s
 	monday string, tuesday string, wednesday string, thursday string, friday string, saturday string, sunday string,
 ) string {
 	checkResource := fmt.Sprintf(`
-resource "azuredevops_check_business_hours" "test" {
-  project_id           = azuredevops_project.project.id
+resource "betterado_check_business_hours" "test" {
+  project_id           = betterado_project.project.id
   display_name         = "%s"
-  target_resource_id   = azuredevops_serviceendpoint_generic.test.id
+  target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
   start_time           = "%s"
   end_time             = "%s"

@@ -5,18 +5,18 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointCheckMarxOne_apiKey(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	tfSvcEpNode := "azuredevops_serviceendpoint_checkmarx_one.test"
+	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_one.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("azuredevops_serviceendpoint_checkmarx_one"),
+		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxOneServiceResourceApiKey(projectName, serviceEndpointName),
@@ -33,11 +33,11 @@ func TestAccServiceEndpointCheckMarxOne_apiKeyUpdate(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	tfSvcEpNode := "azuredevops_serviceendpoint_checkmarx_one.test"
+	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_one.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("azuredevops_serviceendpoint_checkmarx_one"),
+		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxOneServiceResourceApiKeyUpdate(projectName, serviceEndpointName),
@@ -55,11 +55,11 @@ func TestAccServiceEndpointCheckMarxOne_clientIdSecret(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	tfSvcEpNode := "azuredevops_serviceendpoint_checkmarx_one.test"
+	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_one.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("azuredevops_serviceendpoint_checkmarx_one"),
+		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxOneServiceResourceClientIdSecret(projectName, serviceEndpointName),
@@ -76,11 +76,11 @@ func TestAccServiceEndpointCheckMarxOne_clientIdSecretUpdate(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	tfSvcEpNode := "azuredevops_serviceendpoint_checkmarx_one.test"
+	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_one.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("azuredevops_serviceendpoint_checkmarx_one"),
+		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxOneServiceResourceClientIdSecret(projectName, serviceEndpointName),
@@ -106,12 +106,12 @@ func TestAccServiceEndpointCheckMarxOne_clientIdSecretUpdate(t *testing.T) {
 func TestAccServiceEndpointCheckMarxOne_requiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	tfSvcEpNode := "azuredevops_serviceendpoint_checkmarx_one.test"
+	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_one.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("azuredevops_serviceendpoint_checkmarx_one"),
+		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxOneServiceResourceApiKey(projectName, serviceEndpointName),
@@ -129,12 +129,12 @@ func TestAccServiceEndpointCheckMarxOne_requiresImportErrorStep(t *testing.T) {
 
 func hclSvcEndpointCheckMarxOneServiceResourceApiKey(projectName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_checkmarx_one" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_checkmarx_one" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "https://server.com"
   api_key               = "apikey"
@@ -143,12 +143,12 @@ resource "azuredevops_serviceendpoint_checkmarx_one" "test" {
 
 func hclSvcEndpointCheckMarxOneServiceResourceApiKeyUpdate(projectName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_checkmarx_one" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_checkmarx_one" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "https://server.com/update"
   api_key               = "apikeyupdate"
@@ -157,12 +157,12 @@ resource "azuredevops_serviceendpoint_checkmarx_one" "test" {
 
 func hclSvcEndpointCheckMarxOneServiceResourceClientIdSecret(projectName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_checkmarx_one" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_checkmarx_one" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "https://server.com"
   client_id             = "clientid"
@@ -173,12 +173,12 @@ resource "azuredevops_serviceendpoint_checkmarx_one" "test" {
 
 func hclSvcEndpointCheckMarxOneServiceResourceClientIdSecretUpdate(projectName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_checkmarx_one" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_checkmarx_one" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "https://server.com/update"
   client_id             = "clientidupdate"
@@ -193,12 +193,12 @@ func hclSvcEndpointCheckMarxOneServiceResourceRequiresImport(projectName, servic
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_checkmarx_one" "import" {
-  project_id            = azuredevops_serviceendpoint_checkmarx_one.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_checkmarx_one.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_checkmarx_one.test.description
-  server_url            = azuredevops_serviceendpoint_checkmarx_one.test.server_url
-  api_key               = azuredevops_serviceendpoint_checkmarx_one.test.api_key
+resource "betterado_serviceendpoint_checkmarx_one" "import" {
+  project_id            = betterado_serviceendpoint_checkmarx_one.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_checkmarx_one.test.service_endpoint_name
+  description           = betterado_serviceendpoint_checkmarx_one.test.description
+  server_url            = betterado_serviceendpoint_checkmarx_one.test.server_url
+  api_key               = betterado_serviceendpoint_checkmarx_one.test.api_key
 }
 `, template)
 }

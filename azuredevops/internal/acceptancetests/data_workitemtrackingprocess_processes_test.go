@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWorkitemtrackingprocessProcesses_DataSource_AllProcesses(t *testing.T) {
-	tfNode := "data.azuredevops_workitemtrackingprocess_processes.all"
+	tfNode := "data.betterado_workitemtrackingprocess_processes.all"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -23,7 +23,7 @@ func TestAccWorkitemtrackingprocessProcesses_DataSource_AllProcesses(t *testing.
 
 func hclDataSourceAllProcesses() string {
 	return `
-data "azuredevops_workitemtrackingprocess_processes" "all" {
+data "betterado_workitemtrackingprocess_processes" "all" {
 }
 `
 }

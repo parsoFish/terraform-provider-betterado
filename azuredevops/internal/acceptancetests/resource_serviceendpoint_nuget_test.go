@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointNuGet_ApiKey(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_nuget"
+	resourceType := "betterado_serviceendpoint_nuget"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -36,7 +36,7 @@ func TestAccServiceEndpointNuGet_PersonalAccessToken(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_nuget"
+	resourceType := "betterado_serviceendpoint_nuget"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -59,7 +59,7 @@ func TestAccServiceEndpointNuGet_UnamePwd(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_nuget"
+	resourceType := "betterado_serviceendpoint_nuget"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -83,7 +83,7 @@ func TestAccServiceEndpointNuGet_Update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_nuget"
+	resourceType := "betterado_serviceendpoint_nuget"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -113,7 +113,7 @@ func TestAccServiceEndpointNuGet_Update(t *testing.T) {
 func TestAccServiceEndpointNuGet_RequiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_nuget"
+	resourceType := "betterado_serviceendpoint_nuget"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -137,7 +137,7 @@ func TestAccServiceEndpointNuGet_RequiresImportErrorStep(t *testing.T) {
 
 func hclSvcEndpointNuGetResourceApiKey(projectName string, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -145,8 +145,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_nuget" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_nuget" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%[2]s"
   api_key               = "apikey"
   feed_url              = "https://api.nuget.org/v3/index.json"
@@ -156,7 +156,7 @@ resource "azuredevops_serviceendpoint_nuget" "test" {
 
 func hclSvcEndpointNuGetResourcePersonalAccessToken(projectName string, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -164,8 +164,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_nuget" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_nuget" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%[2]s"
   personal_access_token = "pat"
   feed_url              = "https://api.nuget.org/v3/index.json"
@@ -175,7 +175,7 @@ resource "azuredevops_serviceendpoint_nuget" "test" {
 
 func hclSvcEndpointNuGetResourceUnamePwd(projectName string, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -183,8 +183,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_nuget" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_nuget" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%[2]s"
   username              = "uname"
   password              = "pwd"
@@ -197,12 +197,12 @@ func hclSvcEndpointNugGetResourceRequiresImport(projectName string, serviceEndpo
 	template := hclSvcEndpointNuGetResourceApiKey(projectName, serviceEndpointName)
 	return fmt.Sprintf(`
 %s
-resource "azuredevops_serviceendpoint_nuget" "import" {
-  project_id            = azuredevops_serviceendpoint_nuget.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_nuget.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_nuget.test.description
-  api_key               = azuredevops_serviceendpoint_nuget.test.api_key
-  feed_url              = azuredevops_serviceendpoint_nuget.test.feed_url
+resource "betterado_serviceendpoint_nuget" "import" {
+  project_id            = betterado_serviceendpoint_nuget.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_nuget.test.service_endpoint_name
+  description           = betterado_serviceendpoint_nuget.test.description
+  api_key               = betterado_serviceendpoint_nuget.test.api_key
+  feed_url              = betterado_serviceendpoint_nuget.test.feed_url
 }
 `, template)
 }

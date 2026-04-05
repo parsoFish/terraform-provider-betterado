@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccBranchPolicyStatusCheck_basic(t *testing.T) {
-	statusCheckTfNode := "azuredevops_branch_policy_status_check.p"
+	statusCheckTfNode := "betterado_branch_policy_status_check.p"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -32,7 +32,7 @@ func TestAccBranchPolicyStatusCheck_basic(t *testing.T) {
 }
 
 func TestAccBranchPolicyStatusCheck_complete(t *testing.T) {
-	statusCheckTfNode := "azuredevops_branch_policy_status_check.p"
+	statusCheckTfNode := "betterado_branch_policy_status_check.p"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -60,7 +60,7 @@ func TestAccBranchPolicyStatusCheck_complete(t *testing.T) {
 }
 
 func TestAccBranchPolicyStatusCheckUpdate(t *testing.T) {
-	statusCheckTfNode := "azuredevops_branch_policy_status_check.p"
+	statusCheckTfNode := "betterado_branch_policy_status_check.p"
 	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
@@ -94,7 +94,7 @@ func TestAccBranchPolicyStatusCheckUpdate(t *testing.T) {
 
 func hclBranchPolicyStatusCheckResourceTemplate(projectName string, repoName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "p" {
+resource "betterado_project" "p" {
   name               = "%s"
   description        = "Test Project Description"
   visibility         = "private"
@@ -102,8 +102,8 @@ resource "azuredevops_project" "p" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_git_repository" "r" {
-  project_id = azuredevops_project.p.id
+resource "betterado_git_repository" "r" {
+  project_id = betterado_project.p.id
   name       = "%s"
   initialization {
     init_type = "Clean"
@@ -115,8 +115,8 @@ resource "azuredevops_git_repository" "r" {
 func hclBranchPolicyStatusCheckResourceBasic(projectName string, repoName string, statusName string) string {
 	projectAndRepo := hclBranchPolicyStatusCheckResourceTemplate(projectName, repoName)
 	statusCheck := fmt.Sprintf(`
-resource "azuredevops_branch_policy_status_check" "p" {
-  project_id = azuredevops_project.p.id
+resource "betterado_branch_policy_status_check" "p" {
+  project_id = betterado_project.p.id
 
   enabled  = true
   blocking = true
@@ -124,8 +124,8 @@ resource "azuredevops_branch_policy_status_check" "p" {
   settings {
     name = "%s"
     scope {
-      repository_id  = azuredevops_git_repository.r.id
-      repository_ref = azuredevops_git_repository.r.default_branch
+      repository_id  = betterado_git_repository.r.id
+      repository_ref = betterado_git_repository.r.default_branch
       match_type     = "Exact"
     }
   }
@@ -141,28 +141,28 @@ func hclBranchPolicyStatusCheckResourceComplete(projectName string, repoName str
 		hclBranchPolicyStatusCheckResourceTemplate(projectName, repoName), `
 
 
-resource "azuredevops_user_entitlement" "user" {
+resource "betterado_user_entitlement" "user" {
   principal_name       = "mail@email.com"
   account_license_type = "basic"
 }
 
-resource "azuredevops_branch_policy_status_check" "p" {
-  project_id = azuredevops_project.p.id
+resource "betterado_branch_policy_status_check" "p" {
+  project_id = betterado_project.p.id
 
   enabled  = true
   blocking = true
 
   settings {
     name                 = "Release"
-    author_id            = azuredevops_user_entitlement.user.id
+    author_id            = betterado_user_entitlement.user.id
     invalidate_on_update = true
     applicability        = "conditional"
     display_name         = "PreCheck"
     filename_patterns    = ["*.go", "**.ts"]
 
     scope {
-      repository_id  = azuredevops_git_repository.r.id
-      repository_ref = azuredevops_git_repository.r.default_branch
+      repository_id  = betterado_git_repository.r.id
+      repository_ref = betterado_git_repository.r.default_branch
       match_type     = "Exact"
     }
   }
@@ -174,28 +174,28 @@ func hclBranchPolicyStatusCheckResourceUpdate(projectName string, repoName strin
 	statusName string, invalid bool, applicability string, displayName string,
 ) string {
 	statusCheck := fmt.Sprintf(`
-data "azuredevops_group" "group" {
-  project_id = azuredevops_project.p.id
+data "betterado_group" "group" {
+  project_id = betterado_project.p.id
   name       = "Project Administrators"
 }
 
-resource "azuredevops_branch_policy_status_check" "p" {
-  project_id = azuredevops_project.p.id
+resource "betterado_branch_policy_status_check" "p" {
+  project_id = betterado_project.p.id
 
   enabled  = true
   blocking = true
 
   settings {
     name                 = "%s"
-    author_id            = data.azuredevops_group.group.origin_id
+    author_id            = data.betterado_group.group.origin_id
     invalidate_on_update = %t
     applicability        = "%s"
     display_name         = "%s"
     filename_patterns    = ["*.go", "**.ts"]
 
     scope {
-      repository_id  = azuredevops_git_repository.r.id
-      repository_ref = azuredevops_git_repository.r.default_branch
+      repository_id  = betterado_git_repository.r.id
+      repository_ref = betterado_git_repository.r.default_branch
       match_type     = "Exact"
     }
   }

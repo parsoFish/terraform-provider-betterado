@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 // Folder under an area (Shared Queries)
@@ -15,7 +15,7 @@ func TestAccWorkItemQueryFolder_UnderArea(t *testing.T) {
 
 	config := hclWorkItemQueryFolderUnderArea(projectName, folderName)
 
-	res := "azuredevops_workitemquery_folder.folder"
+	res := "betterado_workitemquery_folder.folder"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -39,8 +39,8 @@ func TestAccWorkItemQueryFolder_UnderFolder(t *testing.T) {
 
 	config := hclWorkItemQueryFolderUnderFolder(projectName, parentFolderName, childFolderName)
 
-	parentRes := "azuredevops_workitemquery_folder.parent"
-	childRes := "azuredevops_workitemquery_folder.child"
+	parentRes := "betterado_workitemquery_folder.parent"
+	childRes := "betterado_workitemquery_folder.child"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -59,8 +59,8 @@ func TestAccWorkItemQueryFolder_UnderFolder(t *testing.T) {
 
 func hclWorkItemQueryFolderUnderArea(projectName, folderName string) string {
 	return testutils.HclProjectResource(projectName) + fmt.Sprintf(`
-resource "azuredevops_workitemquery_folder" "folder" {
-  project_id = azuredevops_project.project.id
+resource "betterado_workitemquery_folder" "folder" {
+  project_id = betterado_project.project.id
   name       = "%s"
   area       = "My Queries"
 }
@@ -69,16 +69,16 @@ resource "azuredevops_workitemquery_folder" "folder" {
 
 func hclWorkItemQueryFolderUnderFolder(projectName, parentFolderName, childFolderName string) string {
 	return testutils.HclProjectResource(projectName) + fmt.Sprintf(`
-resource "azuredevops_workitemquery_folder" "parent" {
-  project_id = azuredevops_project.project.id
+resource "betterado_workitemquery_folder" "parent" {
+  project_id = betterado_project.project.id
   name       = "%s"
   area       = "My Queries"
 }
 
-resource "azuredevops_workitemquery_folder" "child" {
-  project_id = azuredevops_project.project.id
+resource "betterado_workitemquery_folder" "child" {
+  project_id = betterado_project.project.id
   name       = "%s"
-  parent_id  = azuredevops_workitemquery_folder.parent.id
+  parent_id  = betterado_workitemquery_folder.parent.id
 }
 `, parentFolderName, childFolderName)
 }

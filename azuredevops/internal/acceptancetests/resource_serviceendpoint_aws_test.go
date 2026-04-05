@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointAws_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_aws"
+	resourceType := "betterado_serviceendpoint_aws"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -43,7 +43,7 @@ func TestAccServiceEndpointAws_complete(t *testing.T) {
 	rsn := "rsn"
 	externalId := "external_id"
 
-	resourceType := "azuredevops_serviceendpoint_aws"
+	resourceType := "betterado_serviceendpoint_aws"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -77,7 +77,7 @@ func TestAccServiceEndpointAws_update(t *testing.T) {
 	description := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_aws"
+	resourceType := "betterado_serviceendpoint_aws"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -108,7 +108,7 @@ func TestAccServiceEndpointAws_oidc(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_aws"
+	resourceType := "betterado_serviceendpoint_aws"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -134,7 +134,7 @@ func TestAccServiceEndpointAws_requiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_aws"
+	resourceType := "betterado_serviceendpoint_aws"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -163,11 +163,11 @@ func hclSvcEndpointAwsResource(projectName string, serviceEndpointName string) s
 
 func hclSvcEndpointAwsResourceUpdate(projectName string, serviceEndpointName string, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name = "%s"
 }
-resource "azuredevops_serviceendpoint_aws" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_aws" "test" {
+  project_id            = betterado_project.project.id
   access_key_id         = "0000"
   secret_access_key     = "secretkey"
   service_endpoint_name = "%s"
@@ -178,11 +178,11 @@ resource "azuredevops_serviceendpoint_aws" "test" {
 
 func hclSvcEndpointAwsResourceComplete(projectName string, serviceEndpointName string, description string, sessionToken string, rta string, rsn string, externalId string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name = "%s"
 }
-resource "azuredevops_serviceendpoint_aws" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_aws" "test" {
+  project_id            = betterado_project.project.id
   access_key_id         = "0000"
   secret_access_key     = "secretkey"
   service_endpoint_name = "%s"
@@ -198,11 +198,11 @@ resource "azuredevops_serviceendpoint_aws" "test" {
 
 func hclSvcEndpointAwsResourceOidc(projectName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name = "%s"
 }
-resource "azuredevops_serviceendpoint_aws" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_aws" "test" {
+  project_id            = betterado_project.project.id
   access_key_id         = "0000"
   secret_access_key     = "secretkey"
   service_endpoint_name = "%s"
@@ -215,13 +215,13 @@ func hclSvcEndpointAwsResourceRequiresImport(projectName string, serviceEndpoint
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_aws" "import" {
-  project_id            = azuredevops_serviceendpoint_aws.test.project_id
+resource "betterado_serviceendpoint_aws" "import" {
+  project_id            = betterado_serviceendpoint_aws.test.project_id
   access_key_id         = "0000"
   secret_access_key     = "secretkey"
-  service_endpoint_name = azuredevops_serviceendpoint_aws.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_aws.test.description
-  use_oidc              = azuredevops_serviceendpoint_aws.test.use_oidc
+  service_endpoint_name = betterado_serviceendpoint_aws.test.service_endpoint_name
+  description           = betterado_serviceendpoint_aws.test.description
+  use_oidc              = betterado_serviceendpoint_aws.test.use_oidc
 }
 `, template)
 }

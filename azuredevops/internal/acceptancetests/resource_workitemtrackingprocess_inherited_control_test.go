@@ -8,15 +8,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 func TestAccWorkitemtrackingprocessInheritedControl_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_inherited_control.test"
+	tfNode := "betterado_workitemtrackingprocess_inherited_control.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -42,7 +42,7 @@ func TestAccWorkitemtrackingprocessInheritedControl_Basic(t *testing.T) {
 func TestAccWorkitemtrackingprocessInheritedControl_Update(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_inherited_control.test"
+	tfNode := "betterado_workitemtrackingprocess_inherited_control.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -80,7 +80,7 @@ func TestAccWorkitemtrackingprocessInheritedControl_Update(t *testing.T) {
 func TestAccWorkitemtrackingprocessInheritedControl_Revert(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_inherited_control.test"
+	tfNode := "betterado_workitemtrackingprocess_inherited_control.test"
 
 	var processId, witRefName, groupId, controlId string
 
@@ -129,21 +129,21 @@ func TestAccWorkitemtrackingprocessInheritedControl_Revert(t *testing.T) {
 
 func basicInheritedControl(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
 }
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
   name       = "%s"
-  process_id = azuredevops_workitemtrackingprocess_process.test.id
+  process_id = betterado_workitemtrackingprocess_process.test.id
 }
 
-resource "azuredevops_workitemtrackingprocess_inherited_control" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
-  group_id          = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].groups[0].id
-  control_id        = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].groups[0].controls[0].id
+resource "betterado_workitemtrackingprocess_inherited_control" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
+  group_id          = betterado_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].groups[0].id
+  control_id        = betterado_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].groups[0].controls[0].id
   visible           = false
 }
 `, processName, agileSystemProcessTypeId, workItemTypeName)
@@ -151,21 +151,21 @@ resource "azuredevops_workitemtrackingprocess_inherited_control" "test" {
 
 func updatedInheritedControl(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
 }
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
   name       = "%s"
-  process_id = azuredevops_workitemtrackingprocess_process.test.id
+  process_id = betterado_workitemtrackingprocess_process.test.id
 }
 
-resource "azuredevops_workitemtrackingprocess_inherited_control" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
-  group_id          = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].groups[0].id
-  control_id        = azuredevops_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].groups[0].controls[0].id
+resource "betterado_workitemtrackingprocess_inherited_control" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
+  group_id          = betterado_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].groups[0].id
+  control_id        = betterado_workitemtrackingprocess_workitemtype.test.pages[0].sections[0].groups[0].controls[0].id
   visible           = true
   label             = "Custom Label"
 }
@@ -174,14 +174,14 @@ resource "azuredevops_workitemtrackingprocess_inherited_control" "test" {
 
 func inheritedControlRevertConfig(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
 }
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
   name       = "%s"
-  process_id = azuredevops_workitemtrackingprocess_process.test.id
+  process_id = betterado_workitemtrackingprocess_process.test.id
 }
 `, processName, agileSystemProcessTypeId, workItemTypeName)
 }

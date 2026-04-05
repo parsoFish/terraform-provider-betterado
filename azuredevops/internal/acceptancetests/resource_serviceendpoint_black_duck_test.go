@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointBlackDuck(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_black_duck"
+	resourceType := "betterado_serviceendpoint_black_duck"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -45,7 +45,7 @@ func TestAccServiceEndpointBlackDuck_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_black_duck"
+	resourceType := "betterado_serviceendpoint_black_duck"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -96,7 +96,7 @@ func TestAccServiceEndpointBlackDuck_requireImportError(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_black_duck"
+	resourceType := "betterado_serviceendpoint_black_duck"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -119,12 +119,12 @@ func TestAccServiceEndpointBlackDuck_requireImportError(t *testing.T) {
 
 func hclServiceConnectionBlackDuck(projectName, seName, url string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_black_duck" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_black_duck" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "%s"
   api_token             = "dummytoken"
@@ -133,12 +133,12 @@ resource "azuredevops_serviceendpoint_black_duck" "test" {
 
 func hclServiceConnectionBlackDuckUpdate(projectName, seName, url string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_black_duck" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_black_duck" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   server_url            = "%s"
   api_token             = "dummytoken2"
@@ -149,10 +149,10 @@ func hclServiceConnectionBlackDuckRequireImport(projectName, seName, url string)
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_black_duck" "import" {
-  project_id            = azuredevops_serviceendpoint_black_duck.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_black_duck.test.service_endpoint_name
-  server_url            = azuredevops_serviceendpoint_black_duck.test.server_url
-  api_token             = azuredevops_serviceendpoint_black_duck.test.api_token
+resource "betterado_serviceendpoint_black_duck" "import" {
+  project_id            = betterado_serviceendpoint_black_duck.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_black_duck.test.service_endpoint_name
+  server_url            = betterado_serviceendpoint_black_duck.test.server_url
+  api_token             = betterado_serviceendpoint_black_duck.test.api_token
 }`, hclServiceConnectionBlackDuck(projectName, seName, url))
 }

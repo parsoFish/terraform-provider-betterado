@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccAgentPoolDataSource_basic(t *testing.T) {
 	agentPoolName := testutils.GenerateResourceName()
-	tfNode := "data.azuredevops_agent_pool.test"
+	tfNode := "data.betterado_agent_pool.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
@@ -32,15 +32,15 @@ func TestAccAgentPoolDataSource_basic(t *testing.T) {
 
 func hclDataSourceAgentPoolBasic(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_agent_pool" "test" {
+resource "betterado_agent_pool" "test" {
   name           = "%s"
   auto_provision = false
   auto_update    = false
   pool_type      = "automation"
 }
 
-data "azuredevops_agent_pool" "test" {
-  name = azuredevops_agent_pool.test.name
+data "betterado_agent_pool" "test" {
+  name = betterado_agent_pool.test.name
 }
 
 `, name)

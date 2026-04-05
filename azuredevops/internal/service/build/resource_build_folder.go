@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/tfhelper"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/validate"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/tfhelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/validate"
 )
 
 // ResourceBuildFolder schema and implementation for build folder resource
@@ -102,7 +102,7 @@ func resourceBuildFolderRead(d *schema.ResourceData, m interface{}) error {
 
 	if len(*buildFolders) == 0 {
 		d.SetId("")
-		log.Printf("[TRACE] plugin.terraform-provider-azuredevops: Folder [%s] not found. Removing from state.", path)
+		log.Printf("[TRACE] plugin.terraform-provider-betterado: Folder [%s] not found. Removing from state.", path)
 		return nil
 	}
 

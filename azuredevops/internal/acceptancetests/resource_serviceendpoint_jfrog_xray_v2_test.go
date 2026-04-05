@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointJFrogXRayV2_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_jfrog_xray_v2"
+	resourceType := "betterado_serviceendpoint_jfrog_xray_v2"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -36,7 +36,7 @@ func TestAccServiceEndpointJFrogXRayV2_basic_usernamepassword(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_jfrog_xray_v2"
+	resourceType := "betterado_serviceendpoint_jfrog_xray_v2"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -61,7 +61,7 @@ func TestAccServiceEndpointJFrogXRayV2_complete_token(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := t.Name()
 
-	resourceType := "azuredevops_serviceendpoint_jfrog_xray_v2"
+	resourceType := "betterado_serviceendpoint_jfrog_xray_v2"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -88,7 +88,7 @@ func TestAccServiceEndpointJFrogXRayV2_complete_usernamepassword(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	description := t.Name()
 
-	resourceType := "azuredevops_serviceendpoint_jfrog_xray_v2"
+	resourceType := "betterado_serviceendpoint_jfrog_xray_v2"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -117,7 +117,7 @@ func TestAccServiceEndpointJFrogXRayV2_update(t *testing.T) {
 	description := t.Name()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_jfrog_xray_v2"
+	resourceType := "betterado_serviceendpoint_jfrog_xray_v2"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -153,7 +153,7 @@ func TestAccServiceEndpointJFrogXRayV2_update_usernamepassword(t *testing.T) {
 	description := t.Name()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_jfrog_xray_v2"
+	resourceType := "betterado_serviceendpoint_jfrog_xray_v2"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -185,7 +185,7 @@ func TestAccServiceEndpointJFrogXRayV2_update_usernamepassword(t *testing.T) {
 func TestAccServiceEndpointJFrogXRayV2_RequiresImportErrorStep(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_jfrog_xray_v2"
+	resourceType := "betterado_serviceendpoint_jfrog_xray_v2"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -210,7 +210,7 @@ func TestAccServiceEndpointJFrogXRayV2_RequiresImportErrorStep(t *testing.T) {
 func TestAccServiceEndpointJFrogXRayV2_RequiresImportErrorStepUsernamePassword(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
-	resourceType := "azuredevops_serviceendpoint_jfrog_xray_v2"
+	resourceType := "betterado_serviceendpoint_jfrog_xray_v2"
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -234,8 +234,8 @@ func TestAccServiceEndpointJFrogXRayV2_RequiresImportErrorStepUsernamePassword(t
 
 func hclSvcEndpointJFrogXRayV2ResourceBasic(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_jfrog_xray_v2" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_jfrog_xray_v2" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   authentication_token {
     token = "redacted"
@@ -250,8 +250,8 @@ resource "azuredevops_serviceendpoint_jfrog_xray_v2" "test" {
 
 func hclSvcEndpointJFrogXRayV2ResourceBasicUsernamePassword(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_jfrog_xray_v2" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_jfrog_xray_v2" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   authentication_basic {
     username = "u"
@@ -267,8 +267,8 @@ resource "azuredevops_serviceendpoint_jfrog_xray_v2" "test" {
 
 func hclSvcEndpointJFrogXRayV2ResourceCompleteUsernamePassword(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_jfrog_xray_v2" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_jfrog_xray_v2" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   description           = "%s"
   authentication_basic {
@@ -284,8 +284,8 @@ resource "azuredevops_serviceendpoint_jfrog_xray_v2" "test" {
 
 func hclSvcEndpointJFrogXRayV2ResourceComplete(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_jfrog_xray_v2" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_jfrog_xray_v2" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   description           = "%s"
   authentication_token {
@@ -300,8 +300,8 @@ resource "azuredevops_serviceendpoint_jfrog_xray_v2" "test" {
 
 func hclSvcEndpointJFrogXRayV2ResourceUpdate(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_jfrog_xray_v2" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_jfrog_xray_v2" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   description           = "%s"
   authentication_token {
@@ -316,8 +316,8 @@ resource "azuredevops_serviceendpoint_jfrog_xray_v2" "test" {
 
 func hclSvcEndpointJFrogXRayV2ResourceUpdateUsernamePassword(projectName string, serviceEndpointName string, description string) string {
 	serviceEndpointResource := fmt.Sprintf(`
-resource "azuredevops_serviceendpoint_jfrog_xray_v2" "test" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_jfrog_xray_v2" "test" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "%s"
   description           = "%s"
   authentication_basic {
@@ -335,11 +335,11 @@ func hclSvcEndpointJFrogXRayV2ResourceRequiresImport(projectName string, service
 	template := hclSvcEndpointJFrogXRayV2ResourceBasic(projectName, serviceEndpointName, description)
 	return fmt.Sprintf(`
 %s
-resource "azuredevops_serviceendpoint_jfrog_xray_v2" "import" {
-  project_id            = azuredevops_serviceendpoint_jfrog_xray_v2.test.project_id
-  service_endpoint_name = azuredevops_serviceendpoint_jfrog_xray_v2.test.service_endpoint_name
-  description           = azuredevops_serviceendpoint_jfrog_xray_v2.test.description
-  url                   = azuredevops_serviceendpoint_jfrog_xray_v2.test.url
+resource "betterado_serviceendpoint_jfrog_xray_v2" "import" {
+  project_id            = betterado_serviceendpoint_jfrog_xray_v2.test.project_id
+  service_endpoint_name = betterado_serviceendpoint_jfrog_xray_v2.test.service_endpoint_name
+  description           = betterado_serviceendpoint_jfrog_xray_v2.test.description
+  url                   = betterado_serviceendpoint_jfrog_xray_v2.test.url
   authentication_token {
     token = "redacted"
   }

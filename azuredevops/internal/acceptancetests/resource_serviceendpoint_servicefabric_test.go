@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 // validates that an apply followed by another apply (i.e., resource update) will be reflected in AzDO and the
@@ -14,7 +14,7 @@ func TestAccServiceEndpointServiceFabric_CertificateCreateAndUpdate(t *testing.T
 	serviceEndpointNameFirst := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_servicefabric"
+	resourceType := "betterado_serviceendpoint_servicefabric"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -56,7 +56,7 @@ func TestAccServiceEndpointServiceFabric_UsernamePasswordCreateAndUpdate(t *test
 	serviceEndpointNameFirst := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_servicefabric"
+	resourceType := "betterado_serviceendpoint_servicefabric"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -98,7 +98,7 @@ func TestAccServiceEndpointServiceFabric_NoneCreateAndUpdate(t *testing.T) {
 	serviceEndpointNameFirst := testutils.GenerateResourceName()
 	serviceEndpointNameSecond := testutils.GenerateResourceName()
 
-	resourceType := "azuredevops_serviceendpoint_servicefabric"
+	resourceType := "betterado_serviceendpoint_servicefabric"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },

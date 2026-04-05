@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccFeedDataSource_byName(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "data.azuredevops_feed.test"
+	tfNode := "data.betterado_feed.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -30,7 +30,7 @@ func TestAccFeedDataSource_byName(t *testing.T) {
 func TestAccFeedDataSource_byId(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "data.azuredevops_feed.test"
+	tfNode := "data.betterado_feed.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -48,22 +48,22 @@ func TestAccFeedDataSource_byId(t *testing.T) {
 
 func hclFeedDataSourceByName(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_feed" "test" {
+resource "betterado_feed" "test" {
   name = "%s"
 }
 
-data "azuredevops_feed" "test" {
-  name = azuredevops_feed.test.name
+data "betterado_feed" "test" {
+  name = betterado_feed.test.name
 }`, name)
 }
 
 func hclFeedDataSourceByID(feedID string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_feed" "test" {
+resource "betterado_feed" "test" {
   name = "%s"
 }
 
-data "azuredevops_feed" "test" {
-  feed_id = azuredevops_feed.test.id
+data "betterado_feed" "test" {
+  feed_id = betterado_feed.test.id
 }`, feedID)
 }

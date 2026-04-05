@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccUsers_DataSource(t *testing.T) {
 	userName := "foo@email.com"
-	tfNode := "data.azuredevops_users.test"
+	tfNode := "data.betterado_users.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -28,7 +28,7 @@ func TestAccUsers_DataSource(t *testing.T) {
 }
 
 func TestAccUsers_DataSource_AllSvc(t *testing.T) {
-	tfNode := "data.azuredevops_users.test"
+	tfNode := "data.betterado_users.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -46,7 +46,7 @@ func TestAccUsers_DataSource_AllSvc(t *testing.T) {
 }
 
 func TestAccUsers_DataSource_All_WithFeatures(t *testing.T) {
-	tfNode := "data.azuredevops_users.test"
+	tfNode := "data.betterado_users.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -64,7 +64,7 @@ func TestAccUsers_DataSource_All_WithFeatures(t *testing.T) {
 }
 
 func TestAccUsers_DataSource_userNotFound(t *testing.T) {
-	tfNode := "data.azuredevops_users.test"
+	tfNode := "data.betterado_users.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -82,7 +82,7 @@ func TestAccUsers_DataSource_userNotFound(t *testing.T) {
 
 func hclDataUserAllWithFeatures(numWorkers int) string {
 	return fmt.Sprintf(`
-data "azuredevops_users" "test" {
+data "betterado_users" "test" {
   features {
     concurrent_workers = %d
   }
@@ -91,27 +91,27 @@ data "azuredevops_users" "test" {
 
 func hclDataUserAllSvc() string {
 	return `
-data "azuredevops_users" "test" {
+data "betterado_users" "test" {
   subject_types = ["aad"]
 }`
 }
 
 func hclDataUsersBasic(uname string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_user_entitlement" "test" {
+resource "betterado_user_entitlement" "test" {
   principal_name       = "%[1]s"
   account_license_type = "basic"
 }
 
-data "azuredevops_users" "test" {
+data "betterado_users" "test" {
   principal_name = "%[1]s"
-  depends_on     = [azuredevops_user_entitlement.test]
+  depends_on     = [betterado_user_entitlement.test]
 }`, uname)
 }
 
 func hclDataUserUserNotFound() string {
 	return `
-data "azuredevops_users" "test" {
+data "betterado_users" "test" {
   principal_name = "dummy"
 }`
 }

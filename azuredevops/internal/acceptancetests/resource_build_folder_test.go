@@ -7,13 +7,13 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccBuildFolder_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_build_folder.test"
+	tfNode := "betterado_build_folder.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -31,7 +31,7 @@ func TestAccBuildFolder_basic(t *testing.T) {
 			{
 				ResourceName:      tfNode,
 				ImportState:       true,
-				ImportStateIdFunc: importBuildFolderID("azuredevops_build_folder.test"),
+				ImportStateIdFunc: importBuildFolderID("betterado_build_folder.test"),
 				ImportStateVerify: true,
 			},
 		},
@@ -41,7 +41,7 @@ func TestAccBuildFolder_basic(t *testing.T) {
 func TestAccBuildFolder_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_build_folder.test"
+	tfNode := "betterado_build_folder.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -57,7 +57,7 @@ func TestAccBuildFolder_update(t *testing.T) {
 			{
 				ResourceName:      tfNode,
 				ImportState:       true,
-				ImportStateIdFunc: importBuildFolderID("azuredevops_build_folder.test"),
+				ImportStateIdFunc: importBuildFolderID("betterado_build_folder.test"),
 				ImportStateVerify: true,
 			},
 			{
@@ -70,7 +70,7 @@ func TestAccBuildFolder_update(t *testing.T) {
 			{
 				ResourceName:      tfNode,
 				ImportState:       true,
-				ImportStateIdFunc: importBuildFolderID("azuredevops_build_folder.test"),
+				ImportStateIdFunc: importBuildFolderID("betterado_build_folder.test"),
 				ImportStateVerify: true,
 			},
 			{
@@ -83,7 +83,7 @@ func TestAccBuildFolder_update(t *testing.T) {
 			{
 				ResourceName:      tfNode,
 				ImportState:       true,
-				ImportStateIdFunc: importBuildFolderID("azuredevops_build_folder.test"),
+				ImportStateIdFunc: importBuildFolderID("betterado_build_folder.test"),
 				ImportStateVerify: true,
 			},
 		},
@@ -105,9 +105,9 @@ func TestAccBuildFolder_requiresImportErrorStep(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      "azuredevops_build_folder.test",
+				ResourceName:      "betterado_build_folder.test",
 				ImportState:       true,
-				ImportStateIdFunc: importBuildFolderID("azuredevops_build_folder.test"),
+				ImportStateIdFunc: importBuildFolderID("betterado_build_folder.test"),
 				ImportStateVerify: true,
 			},
 			{
@@ -134,7 +134,7 @@ func importBuildFolderID(resName string) func(state *terraform.State) (string, e
 
 func buildFolderBasic(projectName, path, description string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -142,8 +142,8 @@ resource "azuredevops_project" "project" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_build_folder" "test" {
-  project_id  = azuredevops_project.project.id
+resource "betterado_build_folder" "test" {
+  project_id  = betterado_project.project.id
   path        = "%[2]s"
   description = "%[3]s"
 }
@@ -157,10 +157,10 @@ func buildFolderRequiresImport(projectName, path, description string) string {
 
 %s
 
-resource "azuredevops_build_folder" "import" {
-  project_id  = azuredevops_build_folder.test.project_id
-  path        = azuredevops_build_folder.test.path
-  description = azuredevops_build_folder.test.description
+resource "betterado_build_folder" "import" {
+  project_id  = betterado_build_folder.test.project_id
+  path        = betterado_build_folder.test.path
+  description = betterado_build_folder.test.description
 }
 `, basicConfig)
 }

@@ -32,11 +32,11 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/wiki"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/utils/sdk/dashboardextras"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/utils/sdk/organization"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/utils/sdk/pipelineschecksextras"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/utils/sdk/securityroles"
-	"github.com/microsoft/terraform-provider-azuredevops/version"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/dashboardextras"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/organization"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/pipelineschecksextras"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/securityroles"
+	"github.com/parsoFish/terraform-provider-betterado/version"
 )
 
 // AggregatedClient aggregates all of the underlying clients into a single data
@@ -269,7 +269,7 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 
 // setUserAgent set UserAgent for http headers
 func setUserAgent(connection *azuredevops.Connection) {
-	providerUserAgent := fmt.Sprintf("terraform-provider-azuredevops/%s", version.ProviderVersion)
+	providerUserAgent := fmt.Sprintf("terraform-provider-betterado/%s", version.ProviderVersion)
 	connection.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", connection.UserAgent, providerUserAgent))
 
 	// append the CloudShell version to the user agent if it exists

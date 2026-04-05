@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccProject_dataSource_withID(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	tfNode := "data.azuredevops_project.test"
+	tfNode := "data.betterado_project.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testutils.PreCheck(t, nil) },
 		ProviderFactories:         testutils.GetProviderFactories(),
@@ -32,7 +32,7 @@ func TestAccProject_dataSource_withID(t *testing.T) {
 
 func TestAccProject_dataSource_withName(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	tfNode := "data.azuredevops_project.test"
+	tfNode := "data.betterado_project.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testutils.PreCheck(t, nil) },
 		ProviderFactories:         testutils.GetProviderFactories(),
@@ -54,7 +54,7 @@ func TestAccProject_dataSource_withName(t *testing.T) {
 
 func hclProjectDataSourceWithID(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -62,15 +62,15 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-data "azuredevops_project" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_project" "test" {
+  project_id = betterado_project.test.id
 }
 `, name)
 }
 
 func hclProjectDataSourceWithName(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -78,8 +78,8 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-data "azuredevops_project" "test" {
-  name = azuredevops_project.test.name
+data "betterado_project" "test" {
+  name = betterado_project.test.name
 }
 `, name)
 }

@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/tfhelper"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/tfhelper"
 )
 
 func ResourceInheritedState() *schema.Resource {
@@ -224,7 +224,7 @@ func findInheritedStateByName(ctx context.Context, clients *client.AggregatedCli
 				// States inherited from another work item type are marked as "System".
 				// Once the state get hidden it transform to "Inherited", so both are expected here.
 				if *state.CustomizationType == workitemtrackingprocess.CustomizationTypeValues.Custom {
-					return nil, fmt.Errorf("state %q is a custom state, use azuredevops_workitemtrackingprocess_state for custom states", name)
+					return nil, fmt.Errorf("state %q is a custom state, use betterado_workitemtrackingprocess_state for custom states", name)
 				}
 				return &state, nil
 			}

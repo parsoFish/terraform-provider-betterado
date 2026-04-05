@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccSecurityRoleAssignmentResource_basic(t *testing.T) {
@@ -19,8 +19,8 @@ func TestAccSecurityRoleAssignmentResource_basic(t *testing.T) {
 			{
 				Config: hclSecurityRoleAssignmentBasic(projectName, groupName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("azuredevops_securityrole_assignment.test", "scope"),
-					resource.TestCheckResourceAttr("azuredevops_securityrole_assignment.test", "role_name", "Administrator"),
+					resource.TestCheckResourceAttrSet("betterado_securityrole_assignment.test", "scope"),
+					resource.TestCheckResourceAttr("betterado_securityrole_assignment.test", "role_name", "Administrator"),
 				),
 			},
 		},
@@ -38,15 +38,15 @@ func TestAccSecurityRoleAssignmentResource_update(t *testing.T) {
 			{
 				Config: hclSecurityRoleAssignmentBasic(projectName, groupName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("azuredevops_securityrole_assignment.test", "scope"),
-					resource.TestCheckResourceAttr("azuredevops_securityrole_assignment.test", "role_name", "Administrator"),
+					resource.TestCheckResourceAttrSet("betterado_securityrole_assignment.test", "scope"),
+					resource.TestCheckResourceAttr("betterado_securityrole_assignment.test", "role_name", "Administrator"),
 				),
 			},
 			{
 				Config: hclSecurityRoleAssignmentUpdate(projectName, groupName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("azuredevops_securityrole_assignment.test", "scope"),
-					resource.TestCheckResourceAttr("azuredevops_securityrole_assignment.test", "role_name", "User"),
+					resource.TestCheckResourceAttrSet("betterado_securityrole_assignment.test", "scope"),
+					resource.TestCheckResourceAttr("betterado_securityrole_assignment.test", "role_name", "User"),
 				),
 			},
 		},
@@ -55,7 +55,7 @@ func TestAccSecurityRoleAssignmentResource_update(t *testing.T) {
 
 func hclSecurityRoleAssignmentBasic(projectName, groupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -63,21 +63,21 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_group" "test" {
-  scope        = azuredevops_project.test.id
+resource "betterado_group" "test" {
+  scope        = betterado_project.test.id
   display_name = "%[2]s"
 }
 
-resource "azuredevops_environment" "test" {
-  project_id  = azuredevops_project.test.id
+resource "betterado_environment" "test" {
+  project_id  = betterado_project.test.id
   name        = "Example Environment"
   description = "Example pipeline deployment environment"
 }
 
-resource "azuredevops_securityrole_assignment" "test" {
+resource "betterado_securityrole_assignment" "test" {
   scope       = "distributedtask.environmentreferencerole"
-  resource_id = "${azuredevops_project.test.id}_${azuredevops_environment.test.id}"
-  identity_id = azuredevops_group.test.origin_id
+  resource_id = "${betterado_project.test.id}_${betterado_environment.test.id}"
+  identity_id = betterado_group.test.origin_id
   role_name   = "Administrator"
 }
 `, projectName, groupName)
@@ -85,7 +85,7 @@ resource "azuredevops_securityrole_assignment" "test" {
 
 func hclSecurityRoleAssignmentUpdate(projectName, groupName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   description        = "%[1]s-description"
   visibility         = "private"
@@ -93,21 +93,21 @@ resource "azuredevops_project" "test" {
   work_item_template = "Agile"
 }
 
-resource "azuredevops_group" "test" {
-  scope        = azuredevops_project.test.id
+resource "betterado_group" "test" {
+  scope        = betterado_project.test.id
   display_name = "%[2]s"
 }
 
-resource "azuredevops_environment" "test" {
-  project_id  = azuredevops_project.test.id
+resource "betterado_environment" "test" {
+  project_id  = betterado_project.test.id
   name        = "Example Environment"
   description = "Example pipeline deployment environment"
 }
 
-resource "azuredevops_securityrole_assignment" "test" {
+resource "betterado_securityrole_assignment" "test" {
   scope       = "distributedtask.environmentreferencerole"
-  resource_id = "${azuredevops_project.test.id}_${azuredevops_environment.test.id}"
-  identity_id = azuredevops_group.test.origin_id
+  resource_id = "${betterado_project.test.id}_${betterado_environment.test.id}"
+  identity_id = betterado_group.test.origin_id
   role_name   = "User"
 }
 `, projectName, groupName)

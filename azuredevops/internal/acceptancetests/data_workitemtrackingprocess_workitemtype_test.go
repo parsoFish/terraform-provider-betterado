@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWorkitemtrackingprocessWorkItemType_DataSource_Get(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfResourceNode := "azuredevops_workitemtrackingprocess_workitemtype.test"
-	tfDataNode := "data.azuredevops_workitemtrackingprocess_workitemtype.test"
+	tfResourceNode := "betterado_workitemtrackingprocess_workitemtype.test"
+	tfDataNode := "data.betterado_workitemtrackingprocess_workitemtype.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -42,15 +42,15 @@ func hclDataSourceWorkItemType(workItemTypeName string, processName string) stri
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
   name        = "%s"
-  process_id  = azuredevops_workitemtrackingprocess_process.test.id
+  process_id  = betterado_workitemtrackingprocess_process.test.id
   description = "Test work item type"
 }
 
-data "azuredevops_workitemtrackingprocess_workitemtype" "test" {
-  process_id     = azuredevops_workitemtrackingprocess_workitemtype.test.process_id
-  reference_name = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+data "betterado_workitemtrackingprocess_workitemtype" "test" {
+  process_id     = betterado_workitemtrackingprocess_workitemtype.test.process_id
+  reference_name = betterado_workitemtrackingprocess_workitemtype.test.reference_name
 }
 `, process, workItemTypeName)
 }

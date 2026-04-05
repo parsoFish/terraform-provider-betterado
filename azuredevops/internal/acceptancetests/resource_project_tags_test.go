@@ -8,15 +8,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 )
 
 func TestAccProjectTags_basic(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_project_tags.test"
+	tfNode := "betterado_project_tags.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -38,7 +38,7 @@ func TestAccProjectTags_basic(t *testing.T) {
 func TestAccProjectTags_update(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_project_tags.test"
+	tfNode := "betterado_project_tags.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -69,7 +69,7 @@ func TestAccProjectTags_update(t *testing.T) {
 func TestAccProjectTags_requiresImportError(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_project_tags.test"
+	tfNode := "betterado_project_tags.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
 		ProviderFactories: testutils.GetProviderFactories(),
@@ -98,7 +98,7 @@ func TestAccProjectTags_requiresImportError(t *testing.T) {
 func checkProjectTagsDestroyed(s *terraform.State) error {
 	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
 	for _, res := range s.RootModule().Resources {
-		if res.Type != "azuredevops_project_tags" {
+		if res.Type != "betterado_project_tags" {
 			continue
 		}
 		id := res.Primary.ID
@@ -127,9 +127,9 @@ func checkProjectTagsDestroyed(s *terraform.State) error {
 
 func CheckProjectTagsExist() resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		res, ok := s.RootModule().Resources["azuredevops_project_tags.test"]
+		res, ok := s.RootModule().Resources["betterado_project_tags.test"]
 		if !ok {
-			return fmt.Errorf("Did not find a `azuredevops_project_tags` in the TF state")
+			return fmt.Errorf("Did not find a `betterado_project_tags` in the TF state")
 		}
 
 		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
@@ -152,7 +152,7 @@ func CheckProjectTagsExist() resource.TestCheckFunc {
 
 func hclProjectTagsTemplate(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%[1]s"
 }`, name)
 }
@@ -161,8 +161,8 @@ func hclProjectTagsBasic(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_project_tags" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_project_tags" "test" {
+  project_id = betterado_project.test.id
   tags       = ["tag1", "tag2"]
 }
 `, hclProjectTagsTemplate(name))
@@ -172,8 +172,8 @@ func hclProjectTagsUpdate(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_project_tags" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_project_tags" "test" {
+  project_id = betterado_project.test.id
   tags       = ["tag1", "tag3"]
 }
 `, hclProjectTagsTemplate(name))
@@ -183,9 +183,9 @@ func hclProjectTagsImport(name string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_project_tags" "import" {
-  project_id = azuredevops_project_tags.test.project_id
-  tags       = azuredevops_project_tags.test.tags
+resource "betterado_project_tags" "import" {
+  project_id = betterado_project_tags.test.project_id
+  tags       = betterado_project_tags.test.tags
 }
 `, hclProjectTagsBasic(name))
 }

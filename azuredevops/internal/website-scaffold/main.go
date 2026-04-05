@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops"
 )
 
 // NOTE: since we're using `go run` for these tools all of the code needs to live within the main.go
@@ -122,7 +122,7 @@ func saveContent(resourceName string, websitePath string, content string, isReso
 		resourceKind = "d"
 	}
 
-	fileName := strings.TrimPrefix(resourceName, "azuredevops_")
+	fileName := strings.TrimPrefix(resourceName, "betterado_")
 	outputFileName := fmt.Sprintf("%s/docs/%s/%s.html.markdown", websitePath, resourceKind, fileName)
 	outputPath, err := filepath.Abs(outputFileName)
 	if err != nil {
@@ -156,7 +156,7 @@ type documentationGenerator struct {
 	// brandName is the marketing brand name used for this resource (e.g. Resource Group / App Service / Web Apps)
 	brandName string
 
-	// resourceName is the name of the resource e.g. `azuredevops_agent_pool`
+	// resourceName is the name of the resource e.g. `betterado_agent_pool`
 	resourceName string
 
 	// isDataSource defines if this is a Data Source (if not it's a Resource)

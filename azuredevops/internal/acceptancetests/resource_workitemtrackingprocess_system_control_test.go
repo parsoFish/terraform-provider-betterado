@@ -8,15 +8,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 func TestAccWorkitemtrackingprocessSystemControl_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_system_control.test"
+	tfNode := "betterado_workitemtrackingprocess_system_control.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -42,7 +42,7 @@ func TestAccWorkitemtrackingprocessSystemControl_Basic(t *testing.T) {
 func TestAccWorkitemtrackingprocessSystemControl_Update(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_system_control.test"
+	tfNode := "betterado_workitemtrackingprocess_system_control.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
@@ -80,7 +80,7 @@ func TestAccWorkitemtrackingprocessSystemControl_Update(t *testing.T) {
 func TestAccWorkitemtrackingprocessSystemControl_Revert(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
-	tfNode := "azuredevops_workitemtrackingprocess_system_control.test"
+	tfNode := "betterado_workitemtrackingprocess_system_control.test"
 
 	var processId, witRefName, controlId string
 
@@ -149,19 +149,19 @@ func testCheckSystemControlReverted(processId, witRefName, controlId *string) re
 
 func basicSystemControl(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
 }
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
   name       = "%s"
-  process_id = azuredevops_workitemtrackingprocess_process.test.id
+  process_id = betterado_workitemtrackingprocess_process.test.id
 }
 
-resource "azuredevops_workitemtrackingprocess_system_control" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+resource "betterado_workitemtrackingprocess_system_control" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   control_id        = "System.AreaPath"
   visible           = false
 }
@@ -170,19 +170,19 @@ resource "azuredevops_workitemtrackingprocess_system_control" "test" {
 
 func updatedSystemControl(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
 }
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
   name       = "%s"
-  process_id = azuredevops_workitemtrackingprocess_process.test.id
+  process_id = betterado_workitemtrackingprocess_process.test.id
 }
 
-resource "azuredevops_workitemtrackingprocess_system_control" "test" {
-  process_id        = azuredevops_workitemtrackingprocess_process.test.id
-  work_item_type_id = azuredevops_workitemtrackingprocess_workitemtype.test.reference_name
+resource "betterado_workitemtrackingprocess_system_control" "test" {
+  process_id        = betterado_workitemtrackingprocess_process.test.id
+  work_item_type_id = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   control_id        = "System.AreaPath"
   visible           = true
   label             = "Custom Area"
@@ -192,14 +192,14 @@ resource "azuredevops_workitemtrackingprocess_system_control" "test" {
 
 func removedSystemControl(workItemTypeName string, processName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_workitemtrackingprocess_process" "test" {
+resource "betterado_workitemtrackingprocess_process" "test" {
   name                   = "%s"
   parent_process_type_id = "%s"
 }
 
-resource "azuredevops_workitemtrackingprocess_workitemtype" "test" {
+resource "betterado_workitemtrackingprocess_workitemtype" "test" {
   name       = "%s"
-  process_id = azuredevops_workitemtrackingprocess_process.test.id
+  process_id = betterado_workitemtrackingprocess_process.test.id
 }
 `, processName, agileSystemProcessTypeId, workItemTypeName)
 }

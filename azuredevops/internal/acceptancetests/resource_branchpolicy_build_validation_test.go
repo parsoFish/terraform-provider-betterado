@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccBranchPolicyBuildValidation_basic(t *testing.T) {
 	name := testutils.GenerateResourceName()
-	buildValidationTfNode := "azuredevops_branch_policy_build_validation.test"
+	buildValidationTfNode := "betterado_branch_policy_build_validation.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -39,45 +39,45 @@ func TestAccBranchPolicyBuildValidation_basic(t *testing.T) {
 
 func hclBuildValidationBasic(name string, enabled, blocking bool, displayName string, validDuration int) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name        = "%[1]s"
   description = "description"
 }
 
-data "azuredevops_git_repository" "test" {
-  project_id = azuredevops_project.test.id
+data "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
   name       = "%[1]s"
 }
 
-resource "azuredevops_build_definition" "test" {
-  project_id      = azuredevops_project.test.id
+resource "betterado_build_definition" "test" {
+  project_id      = betterado_project.test.id
   name            = "Example Build Definition"
   agent_pool_name = "Azure Pipelines"
   path            = "\\"
 
   repository {
     repo_type   = "TfsGit"
-    repo_id     = data.azuredevops_git_repository.test.id
+    repo_id     = data.betterado_git_repository.test.id
     branch_name = "main"
     yml_path    = "path/to/yaml"
   }
 }
 
-resource "azuredevops_branch_policy_build_validation" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_branch_policy_build_validation" "test" {
+  project_id = betterado_project.test.id
   enabled    = %[2]t
   blocking   = %[3]t
   settings {
     display_name        = "%[4]s"
     valid_duration      = %[5]d
-    build_definition_id = azuredevops_build_definition.test.id
+    build_definition_id = betterado_build_definition.test.id
     filename_patterns = [
       "/WebApp/*",
       "!/WebApp/Tests/*",
       "*.cs"
     ]
     scope {
-      repository_id  = data.azuredevops_git_repository.test.id
+      repository_id  = data.betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }

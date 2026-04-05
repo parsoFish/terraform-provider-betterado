@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/serviceendpoint"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 // Tests basic functionality of the Generic Service Endpoint V2 resource
@@ -20,7 +20,7 @@ func TestAccServiceEndpointGenericV2_Basic(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	serviceEndpointType := "github"
 
-	resourceType := "azuredevops_serviceendpoint_generic_v2"
+	resourceType := "betterado_serviceendpoint_generic_v2"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -57,7 +57,7 @@ func TestAccServiceEndpointGenericV2_Update(t *testing.T) {
 	serverUrlInitial := "https://github.com"
 	serverUrlUpdated := "https://api.github.com"
 
-	resourceType := "azuredevops_serviceendpoint_generic_v2"
+	resourceType := "betterado_serviceendpoint_generic_v2"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -94,7 +94,7 @@ func TestAccServiceEndpointGenericV2_UsernamePassword(t *testing.T) {
 	username := "testuser"
 	password := "testpass"
 
-	resourceType := "azuredevops_serviceendpoint_generic_v2"
+	resourceType := "betterado_serviceendpoint_generic_v2"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -127,7 +127,7 @@ func TestAccServiceEndpointGenericV2_SharedProjects(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	serviceEndpointType := "generic"
 
-	resourceType := "azuredevops_serviceendpoint_generic_v2"
+	resourceType := "betterado_serviceendpoint_generic_v2"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -141,7 +141,7 @@ func TestAccServiceEndpointGenericV2_SharedProjects(t *testing.T) {
 					resource.TestCheckResourceAttr(tfSvcEpNode, "name", serviceEndpointName),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "type", serviceEndpointType),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "shared_project_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttrPair(tfSvcEpNode, "shared_project_ids.*", "azuredevops_project.project2", "id"),
+					resource.TestCheckTypeSetElemAttrPair(tfSvcEpNode, "shared_project_ids.*", "betterado_project.project2", "id"),
 				),
 			},
 			{
@@ -163,7 +163,7 @@ func TestAccServiceEndpointGenericV2_SharedProjectsUpdate(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	serviceEndpointType := "generic"
 
-	resourceType := "azuredevops_serviceendpoint_generic_v2"
+	resourceType := "betterado_serviceendpoint_generic_v2"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -176,7 +176,7 @@ func TestAccServiceEndpointGenericV2_SharedProjectsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "project_id"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "name", serviceEndpointName),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "shared_project_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttrPair(tfSvcEpNode, "shared_project_ids.*", "azuredevops_project.project2", "id"),
+					resource.TestCheckTypeSetElemAttrPair(tfSvcEpNode, "shared_project_ids.*", "betterado_project.project2", "id"),
 				),
 			},
 			{
@@ -185,8 +185,8 @@ func TestAccServiceEndpointGenericV2_SharedProjectsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "project_id"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "name", serviceEndpointName),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "shared_project_ids.#", "2"),
-					resource.TestCheckTypeSetElemAttrPair(tfSvcEpNode, "shared_project_ids.*", "azuredevops_project.project2", "id"),
-					resource.TestCheckTypeSetElemAttrPair(tfSvcEpNode, "shared_project_ids.*", "azuredevops_project.project3", "id"),
+					resource.TestCheckTypeSetElemAttrPair(tfSvcEpNode, "shared_project_ids.*", "betterado_project.project2", "id"),
+					resource.TestCheckTypeSetElemAttrPair(tfSvcEpNode, "shared_project_ids.*", "betterado_project.project3", "id"),
 				),
 			},
 			{
@@ -195,7 +195,7 @@ func TestAccServiceEndpointGenericV2_SharedProjectsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "project_id"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "name", serviceEndpointName),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "shared_project_ids.#", "1"),
-					resource.TestCheckTypeSetElemAttrPair(tfSvcEpNode, "shared_project_ids.*", "azuredevops_project.project2", "id"),
+					resource.TestCheckTypeSetElemAttrPair(tfSvcEpNode, "shared_project_ids.*", "betterado_project.project2", "id"),
 				),
 			},
 		},
@@ -209,7 +209,7 @@ func TestAccServiceEndpointGenericV2_SharedProjectsRemoveAll(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	serviceEndpointType := "generic"
 
-	resourceType := "azuredevops_serviceendpoint_generic_v2"
+	resourceType := "betterado_serviceendpoint_generic_v2"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -242,7 +242,7 @@ func TestAccServiceEndpointGenericV2_ValidateServiceEndpointType(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	serviceEndpointType := "invalidtype" // This should fail validation
 
-	resourceType := "azuredevops_serviceendpoint_generic_v2"
+	resourceType := "betterado_serviceendpoint_generic_v2"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -267,8 +267,8 @@ func hclServiceEndpointGenericV2TokenBasic(projectName string, serviceEndpointNa
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_generic_v2" "test" {
-  project_id  = azuredevops_project.project.id
+resource "betterado_serviceendpoint_generic_v2" "test" {
+  project_id  = betterado_project.project.id
   name        = "%s"
   description = "Managed by Terraform"
   type        = "%s"
@@ -287,8 +287,8 @@ func hclServiceEndpointGenericV2TokenCustomUrl(projectName string, serviceEndpoi
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_generic_v2" "test" {
-  project_id  = azuredevops_project.project.id
+resource "betterado_serviceendpoint_generic_v2" "test" {
+  project_id  = betterado_project.project.id
   name        = "%s"
   description = "Managed by Terraform"
   type        = "%s"
@@ -307,8 +307,8 @@ func hclServiceEndpointGenericV2UsernamePassword(projectName string, serviceEndp
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_generic_v2" "test" {
-  project_id  = azuredevops_project.project.id
+resource "betterado_serviceendpoint_generic_v2" "test" {
+  project_id  = betterado_project.project.id
   name        = "%s"
   description = "Managed by Terraform"
   type        = "%s"
@@ -327,21 +327,21 @@ func hclServiceEndpointGenericV2WithSharedProjects(projectName1 string, projectN
 	projectResource1 := testutils.HclProjectResource(projectName1)
 	projectResource2 := testutils.HclProjectResource(projectName2)
 	// Replace "project" with "project2" in the second project
-	projectResource2 = strings.Replace(projectResource2, "azuredevops_project\" \"project", "azuredevops_project\" \"project2", 1)
+	projectResource2 = strings.Replace(projectResource2, "betterado_project\" \"project", "betterado_project\" \"project2", 1)
 	return fmt.Sprintf(`
 %s
 
 %s
 
-resource "azuredevops_serviceendpoint_generic_v2" "test" {
-  project_id  = azuredevops_project.project.id
+resource "betterado_serviceendpoint_generic_v2" "test" {
+  project_id  = betterado_project.project.id
   name        = "%s"
   description = "Managed by Terraform"
   type        = "%s"
   server_url  = "https://example.com"
 
   shared_project_ids = [
-    azuredevops_project.project2.id
+    betterado_project.project2.id
   ]
 
   authorization_scheme = "UsernamePassword"
@@ -358,8 +358,8 @@ func hclServiceEndpointGenericV2WithoutSharedProjects(projectName string, servic
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_serviceendpoint_generic_v2" "test" {
-  project_id  = azuredevops_project.project.id
+resource "betterado_serviceendpoint_generic_v2" "test" {
+  project_id  = betterado_project.project.id
   name        = "%s"
   description = "Managed by Terraform"
   type        = "%s"
@@ -379,8 +379,8 @@ func hclServiceEndpointGenericV2WithMultipleSharedProjects(projectName1 string, 
 	projectResource2 := testutils.HclProjectResource(projectName2)
 	projectResource3 := testutils.HclProjectResource(projectName3)
 	// Replace "project" with "project2" and "project3" in the additional projects
-	projectResource2 = strings.Replace(projectResource2, "azuredevops_project\" \"project", "azuredevops_project\" \"project2", 1)
-	projectResource3 = strings.Replace(projectResource3, "azuredevops_project\" \"project", "azuredevops_project\" \"project3", 1)
+	projectResource2 = strings.Replace(projectResource2, "betterado_project\" \"project", "betterado_project\" \"project2", 1)
+	projectResource3 = strings.Replace(projectResource3, "betterado_project\" \"project", "betterado_project\" \"project3", 1)
 	return fmt.Sprintf(`
 %s
 
@@ -388,16 +388,16 @@ func hclServiceEndpointGenericV2WithMultipleSharedProjects(projectName1 string, 
 
 %s
 
-resource "azuredevops_serviceendpoint_generic_v2" "test" {
-  project_id  = azuredevops_project.project.id
+resource "betterado_serviceendpoint_generic_v2" "test" {
+  project_id  = betterado_project.project.id
   name        = "%s"
   description = "Managed by Terraform"
   type        = "%s"
   server_url  = "https://example.com"
 
   shared_project_ids = [
-    azuredevops_project.project2.id,
-    azuredevops_project.project3.id
+    betterado_project.project2.id,
+    betterado_project.project3.id
   ]
 
   authorization_scheme = "UsernamePassword"

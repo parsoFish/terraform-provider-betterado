@@ -1,4 +1,4 @@
-module github.com/microsoft/terraform-provider-azuredevops
+module github.com/parsoFish/terraform-provider-betterado
 
 go 1.24.1
 

@@ -6,13 +6,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccWikiPageResource_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tf := "azuredevops_wiki.test"
-	resourceType := "azuredevops_wiki"
+	tf := "betterado_wiki.test"
+	resourceType := "betterado_wiki"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
@@ -21,10 +21,10 @@ func TestAccWikiPageResource_basic(t *testing.T) {
 			{
 				Config: hclProjectWikiPageBasic(projectName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("azuredevops_wiki_page.test", "project_id"),
-					resource.TestCheckResourceAttrSet("azuredevops_wiki_page.test", "wiki_id"),
-					resource.TestCheckResourceAttrSet("azuredevops_wiki_page.test", "path"),
-					resource.TestCheckResourceAttrSet("azuredevops_wiki_page.test", "content"),
+					resource.TestCheckResourceAttrSet("betterado_wiki_page.test", "project_id"),
+					resource.TestCheckResourceAttrSet("betterado_wiki_page.test", "wiki_id"),
+					resource.TestCheckResourceAttrSet("betterado_wiki_page.test", "path"),
+					resource.TestCheckResourceAttrSet("betterado_wiki_page.test", "content"),
 				),
 			},
 			{
@@ -38,19 +38,19 @@ func TestAccWikiPageResource_basic(t *testing.T) {
 
 func TestAccWikiPageResource_update(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tf := "azuredevops_wiki.test"
+	tf := "betterado_wiki.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkWikiDestroyed("azuredevops_wiki"),
+		CheckDestroy: checkWikiDestroyed("betterado_wiki"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectWikiPageBasic(projectName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("azuredevops_wiki_page.test", "project_id"),
-					resource.TestCheckResourceAttrSet("azuredevops_wiki_page.test", "wiki_id"),
-					resource.TestCheckResourceAttr("azuredevops_wiki_page.test", "path", "/path"),
-					resource.TestCheckResourceAttr("azuredevops_wiki_page.test", "content", "content"),
+					resource.TestCheckResourceAttrSet("betterado_wiki_page.test", "project_id"),
+					resource.TestCheckResourceAttrSet("betterado_wiki_page.test", "wiki_id"),
+					resource.TestCheckResourceAttr("betterado_wiki_page.test", "path", "/path"),
+					resource.TestCheckResourceAttr("betterado_wiki_page.test", "content", "content"),
 				),
 			},
 			{
@@ -61,10 +61,10 @@ func TestAccWikiPageResource_update(t *testing.T) {
 			{
 				Config: hclProjectWikiPageUpdate(projectName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("azuredevops_wiki_page.test", "project_id"),
-					resource.TestCheckResourceAttrSet("azuredevops_wiki_page.test", "wiki_id"),
-					resource.TestCheckResourceAttr("azuredevops_wiki_page.test", "path", "/path"),
-					resource.TestCheckResourceAttr("azuredevops_wiki_page.test", "content", "contentupdate"),
+					resource.TestCheckResourceAttrSet("betterado_wiki_page.test", "project_id"),
+					resource.TestCheckResourceAttrSet("betterado_wiki_page.test", "wiki_id"),
+					resource.TestCheckResourceAttr("betterado_wiki_page.test", "path", "/path"),
+					resource.TestCheckResourceAttr("betterado_wiki_page.test", "content", "contentupdate"),
 				),
 			},
 			{
@@ -78,19 +78,19 @@ func TestAccWikiPageResource_update(t *testing.T) {
 
 func TestAccWikiPageResource_requireImportError(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
-	tf := "azuredevops_wiki.test"
+	tf := "betterado_wiki.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
 		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkWikiDestroyed("azuredevops_wiki"),
+		CheckDestroy: checkWikiDestroyed("betterado_wiki"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectWikiPageBasic(projectName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("azuredevops_wiki_page.test", "project_id"),
-					resource.TestCheckResourceAttrSet("azuredevops_wiki_page.test", "wiki_id"),
-					resource.TestCheckResourceAttr("azuredevops_wiki_page.test", "path", "/path"),
-					resource.TestCheckResourceAttr("azuredevops_wiki_page.test", "content", "content"),
+					resource.TestCheckResourceAttrSet("betterado_wiki_page.test", "project_id"),
+					resource.TestCheckResourceAttrSet("betterado_wiki_page.test", "wiki_id"),
+					resource.TestCheckResourceAttr("betterado_wiki_page.test", "path", "/path"),
+					resource.TestCheckResourceAttr("betterado_wiki_page.test", "content", "content"),
 				),
 			},
 			{
@@ -108,19 +108,19 @@ func TestAccWikiPageResource_requireImportError(t *testing.T) {
 
 func hclProjectWikiPageBasic(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_wiki" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_wiki" "test" {
+  project_id = betterado_project.test.id
   name       = "projectWikiRepo"
   type       = "projectWiki"
 }
 
-resource "azuredevops_wiki_page" "test" {
-  project_id = azuredevops_project.test.id
-  wiki_id    = azuredevops_wiki.test.id
+resource "betterado_wiki_page" "test" {
+  project_id = betterado_project.test.id
+  wiki_id    = betterado_wiki.test.id
   path       = "/path"
   content    = "content"
 }
@@ -129,19 +129,19 @@ resource "azuredevops_wiki_page" "test" {
 
 func hclProjectWikiPageUpdate(projectName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_wiki" "test" {
-  project_id = azuredevops_project.test.id
+resource "betterado_wiki" "test" {
+  project_id = betterado_project.test.id
   name       = "projectWikiRepo"
   type       = "projectWiki"
 }
 
-resource "azuredevops_wiki_page" "test" {
-  project_id = azuredevops_project.test.id
-  wiki_id    = azuredevops_wiki.test.id
+resource "betterado_wiki_page" "test" {
+  project_id = betterado_project.test.id
+  wiki_id    = betterado_wiki.test.id
   path       = "/path"
   content    = "contentupdate"
 }
@@ -152,11 +152,11 @@ func hclProjectWikiPageImport(projectName string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azuredevops_wiki_page" "import" {
-  project_id = azuredevops_wiki_page.test.project_id
-  wiki_id    = azuredevops_wiki_page.test.wiki_id
-  path       = azuredevops_wiki_page.test.path
-  content    = azuredevops_wiki_page.test.content
+resource "betterado_wiki_page" "import" {
+  project_id = betterado_wiki_page.test.project_id
+  wiki_id    = betterado_wiki_page.test.wiki_id
+  path       = betterado_wiki_page.test.path
+  content    = betterado_wiki_page.test.content
 }
 `, hclProjectWikiPageBasic(projectName))
 }

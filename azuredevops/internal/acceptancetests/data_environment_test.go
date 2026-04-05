@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccEnvironment_dataSource(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_environment.test"
+	tfNode := "betterado_environment.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -31,7 +31,7 @@ func TestAccEnvironment_dataSource(t *testing.T) {
 func TestAccEnvironment_dataSource_by_name(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	tfNode := "azuredevops_environment.test"
+	tfNode := "betterado_environment.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testutils.PreCheck(t, nil) },
@@ -50,44 +50,44 @@ func TestAccEnvironment_dataSource_by_name(t *testing.T) {
 
 func hclDataSourceEnvironmentBasic(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
   work_item_template = "Agile"
 }
 
-resource "azuredevops_environment" "test" {
-  project_id  = azuredevops_project.test.id
+resource "betterado_environment" "test" {
+  project_id  = betterado_project.test.id
   name        = "%[1]s"
   description = "Managed by Terraform"
 }
 
-data "azuredevops_environment" "test" {
-  project_id     = azuredevops_project.test.id
-  environment_id = azuredevops_environment.test.id
+data "betterado_environment" "test" {
+  project_id     = betterado_project.test.id
+  environment_id = betterado_environment.test.id
 }
 `, name)
 }
 
 func hclDataSourceEnvironmentBasicByName(name string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name               = "%[1]s"
   visibility         = "private"
   version_control    = "Git"
   work_item_template = "Agile"
 }
 
-resource "azuredevops_environment" "test" {
-  project_id  = azuredevops_project.test.id
+resource "betterado_environment" "test" {
+  project_id  = betterado_project.test.id
   name        = "%[1]s"
   description = "Managed by Terraform"
 }
 
-data "azuredevops_environment" "test" {
-  project_id = azuredevops_project.test.id
-  name       = azuredevops_environment.test.name
+data "betterado_environment" "test" {
+  project_id = betterado_project.test.id
+  name       = betterado_environment.test.name
 }
 `, name)
 }

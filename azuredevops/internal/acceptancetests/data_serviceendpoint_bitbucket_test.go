@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/microsoft/terraform-provider-azuredevops/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccServiceEndpointBitbucketDataSource_withID(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
 
-	tfNode := "data.azuredevops_serviceendpoint_bitbucket.test"
+	tfNode := "data.betterado_serviceendpoint_bitbucket.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -32,7 +32,7 @@ func TestAccServiceEndpointBitbucketDataSource_withName(t *testing.T) {
 	serviceEndpointName := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
 
-	tfNode := "data.azuredevops_serviceendpoint_bitbucket.test"
+	tfNode := "data.betterado_serviceendpoint_bitbucket.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
 		Providers: testutils.GetProviders(),
@@ -50,40 +50,40 @@ func TestAccServiceEndpointBitbucketDataSource_withName(t *testing.T) {
 
 func hclDataSourceServiceConnectionBitbucketWithID(projectName, serviceConnectionName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_bitbucket" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_bitbucket" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   username              = "username"
   password              = "password"
 }
 
-data "azuredevops_serviceendpoint_bitbucket" "test" {
-  project_id          = azuredevops_project.test.id
-  service_endpoint_id = azuredevops_serviceendpoint_bitbucket.test.id
+data "betterado_serviceendpoint_bitbucket" "test" {
+  project_id          = betterado_project.test.id
+  service_endpoint_id = betterado_serviceendpoint_bitbucket.test.id
 }
 `, projectName, serviceConnectionName)
 }
 
 func hclDataSourceServiceConnectionBitbucketWithName(projectName, serviceConnectionName string) string {
 	return fmt.Sprintf(`
-resource "azuredevops_project" "test" {
+resource "betterado_project" "test" {
   name = "%s"
 }
 
-resource "azuredevops_serviceendpoint_bitbucket" "test" {
-  project_id            = azuredevops_project.test.id
+resource "betterado_serviceendpoint_bitbucket" "test" {
+  project_id            = betterado_project.test.id
   service_endpoint_name = "%s"
   username              = "username"
   password              = "password"
 }
 
-data "azuredevops_serviceendpoint_bitbucket" "test" {
-  project_id            = azuredevops_project.test.id
-  service_endpoint_name = azuredevops_serviceendpoint_bitbucket.test.service_endpoint_name
+data "betterado_serviceendpoint_bitbucket" "test" {
+  project_id            = betterado_project.test.id
+  service_endpoint_name = betterado_serviceendpoint_bitbucket.test.service_endpoint_name
 }
 `, projectName, serviceConnectionName)
 }
