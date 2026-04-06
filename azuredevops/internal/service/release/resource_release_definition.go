@@ -3,8 +3,8 @@ package release
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -103,6 +103,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 			"tags": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				// Tags are not persisted by the release definitions API (silently ignored on write).
+				// Computed prevents permanent plan diff since the API always returns [].
+				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -231,6 +234,59 @@ func ResourceReleaseDefinition() *schema.Resource {
 										Default:      "agentBasedDeployment",
 										ValidateFunc: validation.StringInSlice([]string{"agentBasedDeployment", "runOnServer", "machineGroupBasedDeployment"}, false),
 									},
+									"deployment_input": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"queue_id": {
+													Type:         schema.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntAtLeast(1),
+												},
+												"demands": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+													},
+												},
+												"timeout_in_minutes": {
+													Type:         schema.TypeInt,
+													Optional:     true,
+													Default:      0,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+												"job_cancel_timeout_in_minutes": {
+													Type:         schema.TypeInt,
+													Optional:     true,
+													Default:      1,
+													ValidateFunc: validation.IntAtLeast(0),
+												},
+												"condition": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Default:  "succeeded()",
+												},
+												"skip_artifacts_download": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+												"enable_access_token": {
+													Type:     schema.TypeBool,
+													Optional: true,
+													Default:  false,
+												},
+												"agent_specification": {
+													Type:     schema.TypeString,
+													Optional: true,
+													// e.g. "ubuntu-latest", "windows-2022", "macOS-14"
+												},
+											},
+										},
+									},
 									"workflow_task": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -264,6 +320,85 @@ func ResourceReleaseDefinition() *schema.Resource {
 										Type:     schema.TypeBool,
 										Optional: true,
 										Default:  true,
+									},
+								},
+							},
+						},
+						"environment_options": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"email_notification_type": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      "OnlyOnFailure",
+										ValidateFunc: validation.StringInSlice([]string{"OnlyOnFailure", "Always", "Never"}, false),
+									},
+									"email_recipients": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true, // API defaults to "release.environment.owner;release.creator"
+									},
+									"skip_artifacts_download": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+									"timeout_in_minutes": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntAtLeast(0),
+									},
+									"enable_access_token": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+									"publish_deployment_status": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+									"badge_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+									"auto_link_work_items": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+									"pull_request_deployment_enabled": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+								},
+							},
+						},
+						"execution_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"concurrency_count": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      1,
+										ValidateFunc: validation.IntAtLeast(1),
+									},
+									"queue_depth_count": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntInSlice([]int{0, 1}),
 									},
 								},
 							},
@@ -327,6 +462,48 @@ func approvalSchema() map[string]*schema.Schema {
 						Optional:     true,
 						Default:      1,
 						ValidateFunc: validation.IntAtLeast(1),
+					},
+				},
+			},
+		},
+		"approval_options": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"required_approver_count": {
+						Type:         schema.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+					"release_creator_can_be_approver": {
+						Type:     schema.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"enforce_identity_revalidation": {
+						Type:     schema.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"timeout_in_minutes": {
+						Type:         schema.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+					"execution_order": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						Default:      "beforeGates",
+						ValidateFunc: validation.StringInSlice([]string{"beforeGates", "afterSuccessfulGates", "afterGatesAlways"}, false),
+					},
+					"auto_triggered_and_previous_environment_approved_can_be_skipped": {
+						Type:     schema.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 				},
 			},
@@ -454,7 +631,25 @@ func resourceReleaseDefinitionUpdate(ctx context.Context, d *schema.ResourceData
 		Project:           &projectID,
 	})
 	if err != nil {
-		return diag.Errorf("updating release definition (ID: %d): %+v", defID, err)
+		// The API returns HTTP 400 with a message about "old copy of the release pipeline" when
+		// there is a revision conflict (not HTTP 409). Retry once with a fresh revision.
+		if strings.Contains(err.Error(), "old copy of the release pipeline") {
+			freshDef, readErr := clients.ReleaseClient.GetReleaseDefinition(clients.Ctx, releaseapi.GetReleaseDefinitionArgs{
+				Project:      &projectID,
+				DefinitionId: &defID,
+			})
+			if readErr != nil {
+				return diag.Errorf("re-reading release definition after revision conflict (ID: %d): %+v", defID, readErr)
+			}
+			releaseDefinition.Revision = freshDef.Revision
+			_, err = clients.ReleaseClient.UpdateReleaseDefinition(clients.Ctx, releaseapi.UpdateReleaseDefinitionArgs{
+				ReleaseDefinition: releaseDefinition,
+				Project:           &projectID,
+			})
+		}
+		if err != nil {
+			return diag.Errorf("updating release definition (ID: %d): %+v", defID, err)
+		}
 	}
 
 	return resourceReleaseDefinitionRead(ctx, d, m)
@@ -603,6 +798,16 @@ func expandEnvironments(input []interface{}) ([]releaseapi.ReleaseDefinitionEnvi
 			env.RetentionPolicy = expandRetentionPolicy(retention)
 		}
 
+		// Environment options
+		if envOpts, ok := envMap["environment_options"].([]interface{}); ok && len(envOpts) > 0 {
+			env.EnvironmentOptions = expandEnvironmentOptions(envOpts)
+		}
+
+		// Execution policy
+		if execPolicy, ok := envMap["execution_policy"].([]interface{}); ok && len(execPolicy) > 0 {
+			env.ExecutionPolicy = expandExecutionPolicy(execPolicy)
+		}
+
 		// Variables
 		if vars, ok := envMap["variable"]; ok {
 			env.Variables = expandVariables(vars.(*schema.Set).List())
@@ -655,7 +860,38 @@ func expandApprovals(input []interface{}) *releaseapi.ReleaseDefinitionApprovals
 		result.Approvals = &steps
 	}
 
+	if opts, ok := approvalMap["approval_options"].([]interface{}); ok && len(opts) > 0 && opts[0] != nil {
+		result.ApprovalOptions = expandApprovalOptions(opts)
+	}
+
 	return result
+}
+
+func expandApprovalOptions(input []interface{}) *releaseapi.ApprovalOptions {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	optMap := input[0].(map[string]interface{})
+	opts := &releaseapi.ApprovalOptions{
+		ReleaseCreatorCanBeApprover:                             converter.Bool(optMap["release_creator_can_be_approver"].(bool)),
+		EnforceIdentityRevalidation:                             converter.Bool(optMap["enforce_identity_revalidation"].(bool)),
+		TimeoutInMinutes:                                        converter.Int(optMap["timeout_in_minutes"].(int)),
+		AutoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped: converter.Bool(optMap["auto_triggered_and_previous_environment_approved_can_be_skipped"].(bool)),
+	}
+
+	if exOrder, ok := optMap["execution_order"].(string); ok && exOrder != "" {
+		order := releaseapi.ApprovalExecutionOrder(exOrder)
+		opts.ExecutionOrder = &order
+	}
+
+	// required_approver_count: only set if explicitly provided (nil = all required)
+	if v, ok := optMap["required_approver_count"]; ok && v != nil {
+		if count, ok := v.(int); ok {
+			opts.RequiredApproverCount = converter.Int(count)
+		}
+	}
+
+	return opts
 }
 
 func expandDeployPhases(input []interface{}) ([]interface{}, error) {
@@ -669,6 +905,10 @@ func expandDeployPhases(input []interface{}) ([]interface{}, error) {
 			PhaseType: &phaseType,
 		}
 
+		if deplInput, ok := phaseMap["deployment_input"].([]interface{}); ok && len(deplInput) > 0 {
+			phase.DeploymentInput = expandDeploymentInput(deplInput)
+		}
+
 		if tasks, ok := phaseMap["workflow_task"].([]interface{}); ok && len(tasks) > 0 {
 			wfTasks := expandWorkflowTasks(tasks)
 			phase.WorkflowTasks = &wfTasks
@@ -677,6 +917,37 @@ func expandDeployPhases(input []interface{}) ([]interface{}, error) {
 		phases[i] = phase
 	}
 	return phases, nil
+}
+
+func expandDeploymentInput(input []interface{}) *releaseapi.AgentDeploymentInput {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	diMap := input[0].(map[string]interface{})
+	di := &releaseapi.AgentDeploymentInput{
+		QueueId:                   converter.Int(diMap["queue_id"].(int)),
+		TimeoutInMinutes:          converter.Int(diMap["timeout_in_minutes"].(int)),
+		JobCancelTimeoutInMinutes: converter.Int(diMap["job_cancel_timeout_in_minutes"].(int)),
+		Condition:                 converter.String(diMap["condition"].(string)),
+		SkipArtifactsDownload:     converter.Bool(diMap["skip_artifacts_download"].(bool)),
+		EnableAccessToken:         converter.Bool(diMap["enable_access_token"].(bool)),
+	}
+
+	if demands, ok := diMap["demands"].([]interface{}); ok && len(demands) > 0 {
+		demandStrs := make([]interface{}, len(demands))
+		for j, d := range demands {
+			demandStrs[j] = d.(string)
+		}
+		di.Demands = &demandStrs
+	}
+
+	if spec, ok := diMap["agent_specification"].(string); ok && spec != "" {
+		di.AgentSpecification = &releaseapi.AgentSpecification{
+			Identifier: converter.String(spec),
+		}
+	}
+
+	return di
 }
 
 func expandWorkflowTasks(input []interface{}) []releaseapi.WorkflowTask {
@@ -712,11 +983,11 @@ func expandRetentionPolicy(input []interface{}) *releaseapi.EnvironmentRetention
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	retMap := input[0].(map[string]interface{})
+	rpMap := input[0].(map[string]interface{})
 	return &releaseapi.EnvironmentRetentionPolicy{
-		DaysToKeep:     converter.Int(retMap["days_to_keep"].(int)),
-		ReleasesToKeep: converter.Int(retMap["releases_to_keep"].(int)),
-		RetainBuild:    converter.Bool(retMap["retain_build"].(bool)),
+		DaysToKeep:     converter.Int(rpMap["days_to_keep"].(int)),
+		ReleasesToKeep: converter.Int(rpMap["releases_to_keep"].(int)),
+		RetainBuild:    converter.Bool(rpMap["retain_build"].(bool)),
 	}
 }
 
@@ -730,7 +1001,7 @@ func expandArtifacts(input []interface{}) []releaseapi.Artifact {
 			IsPrimary: converter.Bool(artMap["is_primary"].(bool)),
 		}
 
-		if defRef, ok := artMap["definition_reference"].(map[string]interface{}); ok {
+		if defRef, ok := artMap["definition_reference"].(map[string]interface{}); ok && len(defRef) > 0 {
 			refs := make(map[string]releaseapi.ArtifactSourceReference)
 			for k, val := range defRef {
 				refs[k] = releaseapi.ArtifactSourceReference{
@@ -745,65 +1016,129 @@ func expandArtifacts(input []interface{}) []releaseapi.Artifact {
 	return artifacts
 }
 
+func expandEnvironmentOptions(input []interface{}) *releaseapi.EnvironmentOptions {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	optMap := input[0].(map[string]interface{})
+	opts := &releaseapi.EnvironmentOptions{
+		EmailNotificationType:        converter.String(optMap["email_notification_type"].(string)),
+		SkipArtifactsDownload:        converter.Bool(optMap["skip_artifacts_download"].(bool)),
+		TimeoutInMinutes:             converter.Int(optMap["timeout_in_minutes"].(int)),
+		EnableAccessToken:            converter.Bool(optMap["enable_access_token"].(bool)),
+		PublishDeploymentStatus:      converter.Bool(optMap["publish_deployment_status"].(bool)),
+		BadgeEnabled:                 converter.Bool(optMap["badge_enabled"].(bool)),
+		AutoLinkWorkItems:            converter.Bool(optMap["auto_link_work_items"].(bool)),
+		PullRequestDeploymentEnabled: converter.Bool(optMap["pull_request_deployment_enabled"].(bool)),
+	}
+	// The API rejects empty string for EmailRecipients; omit when blank so the API
+	// uses its default ("release.environment.owner;release.creator").
+	if v, ok := optMap["email_recipients"].(string); ok && v != "" {
+		opts.EmailRecipients = converter.String(v)
+	}
+	return opts
+}
+
+func expandExecutionPolicy(input []interface{}) *releaseapi.EnvironmentExecutionPolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	epMap := input[0].(map[string]interface{})
+	return &releaseapi.EnvironmentExecutionPolicy{
+		ConcurrencyCount: converter.Int(epMap["concurrency_count"].(int)),
+		QueueDepthCount:  converter.Int(epMap["queue_depth_count"].(int)),
+	}
+}
+
 // Flatten functions: API response → Terraform state
 
 func flattenReleaseDefinition(d *schema.ResourceData, def *releaseapi.ReleaseDefinition, projectID string) {
-	d.Set("name", def.Name)
+	d.SetId(strconv.Itoa(*def.Id))
 	d.Set("project_id", projectID)
+	d.Set("name", def.Name)
 	d.Set("path", def.Path)
 	d.Set("description", def.Description)
 	d.Set("release_name_format", def.ReleaseNameFormat)
 	d.Set("revision", def.Revision)
 
+	// Variables
 	if def.Variables != nil {
-		d.Set("variable", flattenVariables(def.Variables))
+		d.Set("variable", flattenVariables(def.Variables, d))
 	}
 
+	// Variable groups
 	if def.VariableGroups != nil {
-		d.Set("variable_groups", *def.VariableGroups)
+		d.Set("variable_groups", flattenVariableGroups(def.VariableGroups))
 	}
 
+	// Tags
 	if def.Tags != nil {
 		d.Set("tags", *def.Tags)
 	}
 
+	// Environments
 	if def.Environments != nil {
-		d.Set("environment", flattenEnvironments(def.Environments))
+		d.Set("environment", flattenEnvironments(def.Environments, d))
 	}
 
+	// Artifacts
 	if def.Artifacts != nil {
-		d.Set("artifact", flattenArtifacts(def.Artifacts))
+		d.Set("artifact", flattenArtifacts(def.Artifacts, d))
 	}
 }
 
-func flattenVariables(variables *map[string]releaseapi.ConfigurationVariableValue) []interface{} {
+func flattenVariables(variables *map[string]releaseapi.ConfigurationVariableValue, d *schema.ResourceData) []interface{} {
 	if variables == nil {
 		return nil
 	}
+
+	// For secret variables, the API returns null values. Preserve what's in state.
+	existingVars := make(map[string]string)
+	if v, ok := d.GetOk("variable"); ok {
+		for _, item := range v.(*schema.Set).List() {
+			varMap := item.(map[string]interface{})
+			if varMap["is_secret"].(bool) {
+				existingVars[varMap["name"].(string)] = varMap["value"].(string)
+			}
+		}
+	}
+
 	result := make([]interface{}, 0, len(*variables))
 	for name, v := range *variables {
 		varMap := map[string]interface{}{
 			"name":           name,
+			"value":          "",
 			"is_secret":      false,
 			"allow_override": false,
-			"value":          "",
+		}
+		if v.Value != nil {
+			varMap["value"] = *v.Value
 		}
 		if v.IsSecret != nil {
 			varMap["is_secret"] = *v.IsSecret
+			if *v.IsSecret {
+				// Secret values come back null — use state value
+				if stateVal, ok := existingVars[name]; ok {
+					varMap["value"] = stateVal
+				}
+			}
 		}
 		if v.AllowOverride != nil {
 			varMap["allow_override"] = *v.AllowOverride
-		}
-		// Secret values are not returned by the API
-		if v.Value != nil && !*v.IsSecret {
-			varMap["value"] = *v.Value
 		}
 		result = append(result, varMap)
 	}
 	return result
 }
 
-func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment) []interface{} {
+func flattenVariableGroups(groups *[]int) []int {
+	if groups == nil {
+		return nil
+	}
+	return *groups
+}
+
+func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *schema.ResourceData) []interface{} {
 	if envs == nil {
 		return nil
 	}
@@ -822,32 +1157,49 @@ func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment) []inte
 			envMap["owner"] = *env.Owner.Id
 		}
 
+		// Conditions
 		if env.Conditions != nil {
 			envMap["condition"] = flattenConditions(env.Conditions)
 		}
 
+		// Pre-deploy approvals
 		if env.PreDeployApprovals != nil {
 			envMap["pre_deploy_approval"] = flattenApprovals(env.PreDeployApprovals)
 		}
 
+		// Post-deploy approvals
 		if env.PostDeployApprovals != nil {
 			envMap["post_deploy_approval"] = flattenApprovals(env.PostDeployApprovals)
 		}
 
+		// Deploy phases
 		if env.DeployPhases != nil {
 			envMap["deploy_phase"] = flattenDeployPhases(env.DeployPhases)
 		}
 
+		// Retention policy
 		if env.RetentionPolicy != nil {
 			envMap["retention_policy"] = flattenRetentionPolicy(env.RetentionPolicy)
 		}
 
-		if env.Variables != nil {
-			envMap["variable"] = flattenVariables(env.Variables)
+		// Environment options
+		if env.EnvironmentOptions != nil {
+			envMap["environment_options"] = flattenEnvironmentOptions(env.EnvironmentOptions)
 		}
 
+		// Execution policy
+		if env.ExecutionPolicy != nil {
+			envMap["execution_policy"] = flattenExecutionPolicy(env.ExecutionPolicy)
+		}
+
+		// Variables
+		if env.Variables != nil {
+			envMap["variable"] = flattenVariables(env.Variables, d)
+		}
+
+		// Variable groups
 		if env.VariableGroups != nil {
-			envMap["variable_groups"] = *env.VariableGroups
+			envMap["variable_groups"] = flattenVariableGroups(env.VariableGroups)
 		}
 
 		result[i] = envMap
@@ -887,71 +1239,180 @@ func flattenApprovals(approvals *releaseapi.ReleaseDefinitionApprovals) []interf
 	approvalMap := map[string]interface{}{}
 
 	if approvals.Approvals != nil {
-		approvers := make([]interface{}, len(*approvals.Approvals))
+		steps := make([]interface{}, len(*approvals.Approvals))
 		for i, step := range *approvals.Approvals {
-			aMap := map[string]interface{}{
+			stepMap := map[string]interface{}{
+				"id":           "00000000-0000-0000-0000-000000000000",
 				"is_automated": false,
 				"rank":         1,
-				"id":           "",
 			}
-			if step.Approver != nil && step.Approver.Id != nil {
-				aMap["id"] = *step.Approver.Id
+			if step.Approver != nil && step.Approver.Id != nil && *step.Approver.Id != "" {
+				stepMap["id"] = *step.Approver.Id
 			}
 			if step.IsAutomated != nil {
-				aMap["is_automated"] = *step.IsAutomated
+				stepMap["is_automated"] = *step.IsAutomated
 			}
 			if step.Rank != nil {
-				aMap["rank"] = *step.Rank
+				stepMap["rank"] = *step.Rank
 			}
-			approvers[i] = aMap
+			steps[i] = stepMap
 		}
-		approvalMap["approver"] = approvers
+		approvalMap["approver"] = steps
+	}
+
+	if approvals.ApprovalOptions != nil {
+		approvalMap["approval_options"] = flattenApprovalOptions(approvals.ApprovalOptions)
 	}
 
 	return []interface{}{approvalMap}
+}
+
+func flattenApprovalOptions(opts *releaseapi.ApprovalOptions) []interface{} {
+	if opts == nil {
+		return nil
+	}
+	optMap := map[string]interface{}{
+		"release_creator_can_be_approver":  false,
+		"enforce_identity_revalidation":    false,
+		"timeout_in_minutes":               0,
+		"execution_order":                  "beforeGates",
+		"auto_triggered_and_previous_environment_approved_can_be_skipped": false,
+	}
+	if opts.RequiredApproverCount != nil {
+		optMap["required_approver_count"] = *opts.RequiredApproverCount
+	}
+	if opts.ReleaseCreatorCanBeApprover != nil {
+		optMap["release_creator_can_be_approver"] = *opts.ReleaseCreatorCanBeApprover
+	}
+	if opts.EnforceIdentityRevalidation != nil {
+		optMap["enforce_identity_revalidation"] = *opts.EnforceIdentityRevalidation
+	}
+	if opts.TimeoutInMinutes != nil {
+		optMap["timeout_in_minutes"] = *opts.TimeoutInMinutes
+	}
+	if opts.ExecutionOrder != nil {
+		optMap["execution_order"] = string(*opts.ExecutionOrder)
+	}
+	if opts.AutoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped != nil {
+		optMap["auto_triggered_and_previous_environment_approved_can_be_skipped"] = *opts.AutoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped
+	}
+	return []interface{}{optMap}
 }
 
 func flattenDeployPhases(phases *[]interface{}) []interface{} {
 	if phases == nil {
 		return nil
 	}
-	result := make([]interface{}, len(*phases))
-	for i, p := range *phases {
-		phaseMap := map[string]interface{}{
+
+	result := make([]interface{}, 0, len(*phases))
+	for _, phase := range *phases {
+		// The API returns deploy phases as generic interface{} which unmarshals as map[string]interface{}
+		phaseData, err := json.Marshal(phase)
+		if err != nil {
+			continue
+		}
+		var phaseMap map[string]interface{}
+		if err := json.Unmarshal(phaseData, &phaseMap); err != nil {
+			continue
+		}
+
+		flatPhase := map[string]interface{}{
 			"name":       "",
 			"rank":       1,
 			"phase_type": "agentBasedDeployment",
 		}
 
-		// The API returns deploy phases as map[string]interface{} (since the SDK type is []interface{})
-		if pMap, ok := p.(map[string]interface{}); ok {
-			if name, ok := pMap["name"].(string); ok {
-				phaseMap["name"] = name
-			}
-			if rank, ok := pMap["rank"].(json.Number); ok {
-				if r, err := rank.Int64(); err == nil {
-					phaseMap["rank"] = int(r)
-				}
-			} else if rank, ok := pMap["rank"].(float64); ok {
-				phaseMap["rank"] = int(rank)
-			}
-			if pt, ok := pMap["phaseType"].(string); ok {
-				phaseMap["phase_type"] = pt
-			}
-			if tasks, ok := pMap["workflowTasks"].([]interface{}); ok {
-				phaseMap["workflow_task"] = flattenWorkflowTasksFromMap(tasks)
-			}
+		if name, ok := phaseMap["name"].(string); ok {
+			flatPhase["name"] = name
+		}
+		if rank, ok := phaseMap["rank"].(float64); ok {
+			flatPhase["rank"] = int(rank)
+		}
+		if pt, ok := phaseMap["phaseType"].(string); ok {
+			flatPhase["phase_type"] = pt
 		}
 
-		result[i] = phaseMap
+		// Deployment input
+		if di, ok := phaseMap["deploymentInput"].(map[string]interface{}); ok {
+			flatPhase["deployment_input"] = flattenDeploymentInput(di)
+		}
+
+		// Workflow tasks
+		if wfTasks, ok := phaseMap["workflowTasks"].([]interface{}); ok {
+			flatPhase["workflow_task"] = flattenWorkflowTasks(wfTasks)
+		}
+
+		result = append(result, flatPhase)
 	}
 	return result
 }
 
-func flattenWorkflowTasksFromMap(tasks []interface{}) []interface{} {
-	result := make([]interface{}, len(tasks))
-	for i, t := range tasks {
-		taskMap := map[string]interface{}{
+func flattenDeploymentInput(di map[string]interface{}) []interface{} {
+	if di == nil {
+		return nil
+	}
+	diMap := map[string]interface{}{
+		"queue_id":                      0,
+		"timeout_in_minutes":            0,
+		"job_cancel_timeout_in_minutes": 1,
+		"condition":                     "succeeded()",
+		"skip_artifacts_download":       false,
+		"enable_access_token":           false,
+		"agent_specification":           "",
+	}
+
+	if queueID, ok := di["queueId"].(float64); ok {
+		diMap["queue_id"] = int(queueID)
+	}
+	if timeout, ok := di["timeoutInMinutes"].(float64); ok {
+		diMap["timeout_in_minutes"] = int(timeout)
+	}
+	if jcTimeout, ok := di["jobCancelTimeoutInMinutes"].(float64); ok {
+		diMap["job_cancel_timeout_in_minutes"] = int(jcTimeout)
+	}
+	if cond, ok := di["condition"].(string); ok {
+		diMap["condition"] = cond
+	}
+	if skip, ok := di["skipArtifactsDownload"].(bool); ok {
+		diMap["skip_artifacts_download"] = skip
+	}
+	if eat, ok := di["enableAccessToken"].(bool); ok {
+		diMap["enable_access_token"] = eat
+	}
+
+	// Agent specification
+	if agentSpec, ok := di["agentSpecification"].(map[string]interface{}); ok {
+		if identifier, ok := agentSpec["identifier"].(string); ok {
+			diMap["agent_specification"] = identifier
+		}
+	}
+
+	// Demands
+	if demands, ok := di["demands"].([]interface{}); ok && len(demands) > 0 {
+		demandStrs := make([]string, len(demands))
+		for i, d := range demands {
+			demandStrs[i], _ = d.(string)
+		}
+		diMap["demands"] = demandStrs
+	} else {
+		diMap["demands"] = []string{}
+	}
+
+	return []interface{}{diMap}
+}
+
+func flattenWorkflowTasks(tasks []interface{}) []interface{} {
+	if tasks == nil {
+		return nil
+	}
+	result := make([]interface{}, 0, len(tasks))
+	for _, t := range tasks {
+		taskMap, ok := t.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		flat := map[string]interface{}{
 			"name":              "",
 			"task_id":           "",
 			"version":           "1.*",
@@ -960,83 +1421,196 @@ func flattenWorkflowTasksFromMap(tasks []interface{}) []interface{} {
 			"continue_on_error": false,
 			"condition":         "succeeded()",
 			"definition_type":   "task",
-			"inputs":            map[string]interface{}{},
+			"inputs":            map[string]string{},
 		}
 
-		if tMap, ok := t.(map[string]interface{}); ok {
-			if name, ok := tMap["name"].(string); ok {
-				taskMap["name"] = name
-			}
-			if taskID, ok := tMap["taskId"].(string); ok {
-				taskMap["task_id"] = taskID
-			}
-			if version, ok := tMap["version"].(string); ok {
-				taskMap["version"] = version
-			}
-			if enabled, ok := tMap["enabled"].(bool); ok {
-				taskMap["enabled"] = enabled
-			}
-			if alwaysRun, ok := tMap["alwaysRun"].(bool); ok {
-				taskMap["always_run"] = alwaysRun
-			}
-			if continueOnError, ok := tMap["continueOnError"].(bool); ok {
-				taskMap["continue_on_error"] = continueOnError
-			}
-			if condition, ok := tMap["condition"].(string); ok {
-				taskMap["condition"] = condition
-			}
-			if defType, ok := tMap["definitionType"].(string); ok {
-				taskMap["definition_type"] = defType
-			}
-			if inputs, ok := tMap["inputs"].(map[string]interface{}); ok {
-				strInputs := make(map[string]interface{})
-				for k, v := range inputs {
-					strInputs[k] = fmt.Sprintf("%v", v)
-				}
-				taskMap["inputs"] = strInputs
-			}
+		if name, ok := taskMap["name"].(string); ok {
+			flat["name"] = name
 		}
 
-		result[i] = taskMap
+		// task_id comes from nested "task" object or direct "taskId" field
+		if taskRef, ok := taskMap["task"].(map[string]interface{}); ok {
+			if id, ok := taskRef["id"].(string); ok {
+				flat["task_id"] = id
+			}
+			if ver, ok := taskRef["versionSpec"].(string); ok {
+				flat["version"] = ver
+			}
+			if dt, ok := taskRef["definitionType"].(string); ok {
+				flat["definition_type"] = dt
+			}
+		}
+		if taskID, ok := taskMap["taskId"].(string); ok {
+			flat["task_id"] = taskID
+		}
+
+		if enabled, ok := taskMap["enabled"].(bool); ok {
+			flat["enabled"] = enabled
+		}
+		if ar, ok := taskMap["alwaysRun"].(bool); ok {
+			flat["always_run"] = ar
+		}
+		if coe, ok := taskMap["continueOnError"].(bool); ok {
+			flat["continue_on_error"] = coe
+		}
+		if cond, ok := taskMap["condition"].(string); ok {
+			flat["condition"] = cond
+		}
+		if ver, ok := taskMap["version"].(string); ok {
+			flat["version"] = ver
+		}
+		if dt, ok := taskMap["definitionType"].(string); ok {
+			flat["definition_type"] = dt
+		}
+
+		// Inputs
+		if inputs, ok := taskMap["inputs"].(map[string]interface{}); ok && len(inputs) > 0 {
+			inputMap := make(map[string]string)
+			for k, v := range inputs {
+				inputMap[k], _ = v.(string)
+			}
+			flat["inputs"] = inputMap
+		}
+
+		result = append(result, flat)
 	}
 	return result
 }
 
-func flattenRetentionPolicy(policy *releaseapi.EnvironmentRetentionPolicy) []interface{} {
-	if policy == nil {
+func flattenRetentionPolicy(rp *releaseapi.EnvironmentRetentionPolicy) []interface{} {
+	if rp == nil {
 		return nil
 	}
-	return []interface{}{
-		map[string]interface{}{
-			"days_to_keep":     policy.DaysToKeep,
-			"releases_to_keep": policy.ReleasesToKeep,
-			"retain_build":     policy.RetainBuild,
-		},
+	rpMap := map[string]interface{}{
+		"days_to_keep":     30,
+		"releases_to_keep": 3,
+		"retain_build":     true,
 	}
+	if rp.DaysToKeep != nil {
+		rpMap["days_to_keep"] = *rp.DaysToKeep
+	}
+	if rp.ReleasesToKeep != nil {
+		rpMap["releases_to_keep"] = *rp.ReleasesToKeep
+	}
+	if rp.RetainBuild != nil {
+		rpMap["retain_build"] = *rp.RetainBuild
+	}
+	return []interface{}{rpMap}
 }
 
-func flattenArtifacts(artifacts *[]releaseapi.Artifact) []interface{} {
+func flattenEnvironmentOptions(opts *releaseapi.EnvironmentOptions) []interface{} {
+	if opts == nil {
+		return nil
+	}
+	optMap := map[string]interface{}{
+		"email_notification_type":          "OnlyOnFailure",
+		"email_recipients":                 "",
+		"skip_artifacts_download":          false,
+		"timeout_in_minutes":               0,
+		"enable_access_token":              false,
+		"publish_deployment_status":        false,
+		"badge_enabled":                    false,
+		"auto_link_work_items":             false,
+		"pull_request_deployment_enabled":  false,
+	}
+	if opts.EmailNotificationType != nil {
+		optMap["email_notification_type"] = *opts.EmailNotificationType
+	}
+	if opts.EmailRecipients != nil {
+		optMap["email_recipients"] = *opts.EmailRecipients
+	}
+	if opts.SkipArtifactsDownload != nil {
+		optMap["skip_artifacts_download"] = *opts.SkipArtifactsDownload
+	}
+	if opts.TimeoutInMinutes != nil {
+		optMap["timeout_in_minutes"] = *opts.TimeoutInMinutes
+	}
+	if opts.EnableAccessToken != nil {
+		optMap["enable_access_token"] = *opts.EnableAccessToken
+	}
+	if opts.PublishDeploymentStatus != nil {
+		optMap["publish_deployment_status"] = *opts.PublishDeploymentStatus
+	}
+	if opts.BadgeEnabled != nil {
+		optMap["badge_enabled"] = *opts.BadgeEnabled
+	}
+	if opts.AutoLinkWorkItems != nil {
+		optMap["auto_link_work_items"] = *opts.AutoLinkWorkItems
+	}
+	if opts.PullRequestDeploymentEnabled != nil {
+		optMap["pull_request_deployment_enabled"] = *opts.PullRequestDeploymentEnabled
+	}
+	return []interface{}{optMap}
+}
+
+func flattenExecutionPolicy(ep *releaseapi.EnvironmentExecutionPolicy) []interface{} {
+	if ep == nil {
+		return nil
+	}
+	epMap := map[string]interface{}{
+		"concurrency_count":  1,
+		"queue_depth_count":  0,
+	}
+	if ep.ConcurrencyCount != nil {
+		epMap["concurrency_count"] = *ep.ConcurrencyCount
+	}
+	if ep.QueueDepthCount != nil {
+		epMap["queue_depth_count"] = *ep.QueueDepthCount
+	}
+	return []interface{}{epMap}
+}
+
+func flattenArtifacts(artifacts *[]releaseapi.Artifact, d *schema.ResourceData) []interface{} {
 	if artifacts == nil {
 		return nil
 	}
+
+	// Build a set of user-configured definition_reference keys per artifact index
+	// so we can filter out API-computed keys like "artifactSourceDefinitionUrl".
+	configuredKeys := map[int]map[string]bool{}
+	if v, ok := d.GetOk("artifact"); ok {
+		for i, raw := range v.([]interface{}) {
+			artMap := raw.(map[string]interface{})
+			if dr, ok := artMap["definition_reference"].(map[string]interface{}); ok {
+				keys := make(map[string]bool, len(dr))
+				for k := range dr {
+					keys[k] = true
+				}
+				configuredKeys[i] = keys
+			}
+		}
+	}
+
 	result := make([]interface{}, len(*artifacts))
 	for i, a := range *artifacts {
 		artMap := map[string]interface{}{
-			"alias":      a.Alias,
-			"type":       a.Type,
-			"is_primary": a.IsPrimary,
+			"alias":      "",
+			"type":       "",
+			"is_primary": false,
 		}
-
+		if a.Alias != nil {
+			artMap["alias"] = *a.Alias
+		}
+		if a.Type != nil {
+			artMap["type"] = *a.Type
+		}
+		if a.IsPrimary != nil {
+			artMap["is_primary"] = *a.IsPrimary
+		}
 		if a.DefinitionReference != nil {
-			refs := make(map[string]interface{})
+			defRef := make(map[string]string)
+			allowed := configuredKeys[i]
 			for k, v := range *a.DefinitionReference {
+				// Only include keys the user configured; skip API-computed keys
+				if allowed != nil && !allowed[k] {
+					continue
+				}
 				if v.Id != nil {
-					refs[k] = *v.Id
+					defRef[k] = *v.Id
 				}
 			}
-			artMap["definition_reference"] = refs
+			artMap["definition_reference"] = defRef
 		}
-
 		result[i] = artMap
 	}
 	return result

@@ -124,4 +124,9 @@ endif
 scaffold-website:
 	./scripts/scaffold-website.sh
 
-.PHONY: build test testacc vet fmt fmtcheck lint tools test-compile website website-lint website-test
+clean-cache:
+	@echo "==> Cleaning Go build and test caches..."
+	go clean -cache -testcache
+	@echo "==> Done. Disk space reclaimed."
+
+.PHONY: build test testacc vet fmt fmtcheck lint tools test-compile website website-lint website-test clean-cache

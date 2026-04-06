@@ -1,0 +1,6 @@
+ado_org_url   = "https://dev.azure.com/your-org"
+ado_pat       = "your-personal-access-token"
+project_id    = "00000000-0000-0000-0000-000000000000"
+project_name  = "YourProject"
+queue_id      = 9        # "Azure Pipelines" hosted pool
+approver_id   = "00000000-0000-0000-0000-000000000000"

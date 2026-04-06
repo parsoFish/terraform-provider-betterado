@@ -102,9 +102,31 @@ Every resource follows this pattern (matching the official provider):
 
 - Wrap API errors with context: `fmt.Errorf("creating release definition: %w", err)`
 - On 404 in Read: `d.SetId("")` and return nil (resource was deleted outside TF)
-- On 409 (conflict): retry with backoff for concurrent modification
+- On revision conflict in Update: API returns **HTTP 400** (not 409) with `typeKey: InvalidRequestException` and message containing "old copy of the release pipeline". The Update function detects this, re-reads the definition to get the current revision, and retries once with the fresh revision.
 
 ## Development Workflow
+
+### Disk Space Warning
+
+> **IMPORTANT for AI agents:** `go build ./...` compiles all packages including every
+> test file and generates 2–4 GB of build cache in `%LOCALAPPDATA%\go-build`.
+> Running it multiple times per session can fill a drive.
+>
+> **Always use targeted builds:**
+> ```powershell
+> # Verify compilation — builds entry point only (fast, ~50 MB cache delta)
+> & "C:\Program Files\Go\bin\go.exe" build -mod=vendor .
+>
+> # Vet a specific package under development (not ./...)
+> & "C:\Program Files\Go\bin\go.exe" vet -mod=vendor ./azuredevops/internal/service/release/...
+>
+> # Clean build cache when done with a session
+> & "C:\Program Files\Go\bin\go.exe" clean -cache -testcache
+> # or on Windows: scripts/clean-build-cache.ps1
+> ```
+>
+> **Never run `go build ./...` or `go vet ./...` (full tree) unless explicitly asked.**
+> One targeted `go build -mod=vendor .` at the end of a session is sufficient.
 
 ### Building
 
@@ -113,6 +135,7 @@ make build                     # Build the provider
 make install                   # Build and install locally
 make test                      # Run unit tests
 make testacc                   # Run acceptance tests (needs TF_ACC=1)
+make clean-cache               # Clear Go build/test cache to reclaim disk space
 ```
 
 ### Testing API calls
@@ -152,47 +175,4 @@ The official Go SDK handles the host routing via the `release.Client`.
 
 Release definitions are deeply nested:
 ```
-ReleaseDefinition
-├── environments[]
-│   ├── preDeployApprovals
-│   │   └── approvers[]
-│   ├── postDeployApprovals
-│   │   └── approvers[]
-│   ├── preDeploymentGates
-│   ├── postDeploymentGates
-│   ├── deployPhases[]
-│   │   └── workflowTasks[]
-│   ├── variables{}
-│   └── environmentTriggers[]
-├── artifacts[]
-│   └── definitionReference{}
-├── triggers[]
-├── variables{}
-└── retentionPolicy
-```
-
-Handle this by building expand/flatten helpers for each nested level, composing them bottom-up.
-
-### State Management
-
-- `revision` field is critical — updates require the current revision number
-- Always read-after-write to get computed fields
-- Environment IDs are assigned server-side on creation
-
-### go.mod replace directive
-
-The upstream provider uses a `replace` directive for `microsoft/azure-devops-go-api` pointing to `magodo/azure-devops-go-api`. This is an upstream choice — keep it.
-
-## Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `AZDO_ORG_SERVICE_URL` | ADO org URL (e.g., `https://dev.azure.com/myorg`) | Yes |
-| `AZDO_PERSONAL_ACCESS_TOKEN` | PAT with release management scope | Yes |
-| `AZDO_TEST_PROJECT` | Project name for acceptance tests | For tests |
-
-## Skills Available
-
-- **ado-api-explorer** — Systematically discover and test ADO API endpoints
-- **ado-browser-inspector** — Capture and analyze network traces from ADO UI in Chrome (requires Cowork with Chrome MCP)
-- **resource-scaffolder** — Generate Terraform resource boilerplate from API specs
+ReleaseDefiniti
