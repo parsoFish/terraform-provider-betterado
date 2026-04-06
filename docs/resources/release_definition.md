@@ -166,6 +166,7 @@ The following arguments are supported:
 * `variable_group_ids` - (Optional) List of variable group IDs to link.
 * `tags` - (Optional) Set of tags.
 * `variable` - (Optional) Pipeline-level variables. See [Variable](#variable) below.
+* `artifact` - (Optional) Build artifacts to link. See [Artifact](#artifact) below.
 * `environment` - (Required, min 1) Release environments/stages. See [Environment](#environment) below.
 
 ### Variable
@@ -179,12 +180,15 @@ The following arguments are supported:
 
 * `name` - (Required) Stage name.
 * `rank` - (Required) Stage order (1-based).
+* `variable` - (Optional) Environment-level variables. Same structure as top-level [Variable](#variable).
 * `variable_group_ids` - (Optional) Variable group IDs for this stage.
 * `pre_deploy_approvals` - (Optional) Pre-deployment approval config. See [Approval Config](#approval-config).
 * `post_deploy_approvals` - (Optional) Post-deployment approval config. See [Approval Config](#approval-config).
 * `deploy_phase` - (Required, min 1) Deployment phases/jobs. See [Deploy Phase](#deploy-phase).
-* `retention_policy` - (Optional) Retention settings. See [Retention Policy](#retention-policy).
 * `condition` - (Optional) Deployment trigger conditions. See [Condition](#condition).
+* `environment_options` - (Optional) Environment settings. See [Environment Options](#environment-options).
+* `execution_policy` - (Optional) Concurrency settings. See [Execution Policy](#execution-policy).
+* `retention_policy` - (Optional) Retention settings. See [Retention Policy](#retention-policy).
 
 ### Approval Config
 
@@ -195,6 +199,33 @@ The following arguments are supported:
   * `rank` - (Optional) Approval order. Default: `1`.
 * `timeout_in_minutes` - (Optional) Approval timeout. Default: `0` (no timeout).
 * `execution_order` - (Optional, Computed) When approvals run relative to gates.
+* `approval_options` - (Optional) Approval behavior settings. See [Approval Options](#approval-options).
+
+### Approval Options
+
+* `required_approver_count` - (Optional) Number of approvers required. Default: all.
+* `release_creator_can_be_approver` - (Optional) Allow the release creator to approve. Default: `false`.
+* `enforce_identity_revalidation` - (Optional) Require re-authentication. Default: `false`.
+* `timeout_in_minutes` - (Optional) Approval-level timeout. Default: `0`.
+* `execution_order` - (Optional) When approvals run relative to gates. Values: `beforeGates`, `afterSuccessfulGates`, `afterGatesAlways`.
+* `auto_triggered_and_previous_environment_approved_can_be_skipped` - (Optional) Whether approvals can be skipped for auto-triggered releases when the previous environment was approved. Default: `false`.
+
+### Environment Options
+
+* `email_notification_type` - (Optional) Notification mode. Values: `OnlyOnFailure`, `Always`, `Never`. Default: `OnlyOnFailure`.
+* `email_recipients` - (Optional) Email addresses for notifications.
+* `badge_enabled` - (Optional) Show deployment badge. Default: `false`.
+* `auto_link_work_items` - (Optional) Auto-link work items. Default: `false`.
+* `pull_request_deployment_enabled` - (Optional) Enable PR deployment. Default: `false`.
+* `publish_deployment_status` - (Optional) Publish deployment status to source. Default: `true`.
+* `timeout_in_minutes` - (Optional) Environment-level timeout. Default: `0`.
+* `enable_access_token` - (Optional) Make OAuth token available. Default: `false`.
+* `skip_artifacts_download` - (Optional) Skip downloading artifacts. Default: `false`.
+
+### Execution Policy
+
+* `concurrency_count` - (Optional) Number of concurrent deployments. Default: `1`.
+* `queue_depth_count` - (Optional) Number of deployments to queue. Values: `0` or `1`. Default: `0`.
 
 ### Deploy Phase
 
@@ -212,17 +243,28 @@ The following arguments are supported:
 * `condition` - (Optional) Job condition expression. Default: `succeeded()`.
 * `skip_artifacts_download` - (Optional) Skip downloading artifacts. Default: `false`.
 * `enable_access_token` - (Optional) Make OAuth token available to tasks. Default: `false`.
+* `agent_specification` - (Optional) Agent image specification (e.g., `ubuntu-latest`, `windows-latest`). Free-form string.
 
 ### Workflow Task
 
-* `task_id` - (Required) Task GUID from the marketplace.
+* `task_id` - (Required) Task GUID from the marketplace (or task group UUID).
 * `version` - (Required) Task version (e.g., `2.*`).
 * `name` - (Required) Display name.
+* `definition_type` - (Optional) Type of task. `task` for built-in/marketplace tasks, `metaTask` for task group references. Default: `task`.
 * `enabled` - (Optional) Whether the task runs. Default: `true`.
 * `always_run` - (Optional) Run even if previous tasks failed. Default: `false`.
 * `continue_on_error` - (Optional) Continue on failure. Default: `false`.
 * `condition` - (Optional) Condition expression. Default: `succeeded()`.
 * `inputs` - (Optional) Map of task input key-value pairs.
+
+### Artifact
+
+* `source_id` - (Required) Artifact source identifier (e.g., `projectId:buildDefinitionId`).
+* `type` - (Required) Artifact type. Currently supported: `Build`.
+* `alias` - (Required) Unique alias for this artifact (e.g., `_MyBuild`).
+* `definition_reference` - (Required) Map of key-value pairs defining the artifact source. Common keys: `definition` (build def name), `defaultVersionType` (e.g., `latestType`), `project` (project name), `repository` (repo name).
+* `is_primary` - (Optional) Whether this is the primary artifact. Default: `false`.
+* `is_retained` - (Optional) Whether the artifact is retained. Default: `false`.
 
 ### Retention Policy
 

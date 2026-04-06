@@ -234,3 +234,66 @@ Example for environments:
     },
 }
 ```
+
+## Lessons Learned from Implementation
+
+These patterns were discovered during the `betterado_release_definition` and `betterado_task_group` implementations and should be applied to all new resources.
+
+### API-Computed Field Filtering
+
+When the API returns extra fields in maps that the user didn't configure (e.g., artifact `definition_reference` gets `artifactSourceDefinitionUrl`, `defaultVersionSpecific`), the flatten function must filter to only persist keys the user configured. Otherwise Terraform shows perpetual diff.
+
+```go
+// In flattenArtifacts: compare API response keys against user config
+userKeys := getUserConfiguredKeys(d, artifactIndex)
+for key := range apiRef {
+    if _, ok := userKeys[key]; !ok {
+        continue // skip API-computed keys not in user config
+    }
+    result[key] = apiRef[key]
+}
+```
+
+### Revision-Aware Update with Retry
+
+Release API (and potentially others) returns HTTP 400 (not 409) for stale revisions. Always implement retry:
+
+```go
+_, err := client.UpdateDefinition(ctx, args)
+if err != nil && isStaleRevisionError(err) {
+    // Re-read to get current revision, retry once
+    current, _ := client.GetDefinition(ctx, getArgs)
+    args.ReleaseDefinition.Revision = current.Revision
+    _, err = client.UpdateDefinition(ctx, args)
+}
+```
+
+### Task Group References in Workflow Tasks
+
+When a workflow task references a task group (not a built-in task), set `definition_type = "metaTask"`. The schema should support this:
+- `definition_type` (Optional, default `"task"`, options: `"task"`, `"metaTask"`)
+
+### Empty String vs Nil Handling
+
+ADO API returns empty strings where nil might be expected (e.g., `email_recipients: ""`). Flatten functions must handle both nil and empty string to avoid drift. For optional string fields, set the value regardless — Terraform will handle the diff.
+
+### Automated Approval UUID Handling
+
+When `is_automated = true`, the API returns a zero UUID (`00000000-...`) for `approver_id`. The flatten function should detect this and not set `approver_id`, avoiding drift against user config that omits it.
+
+### SDK Type Assertions for DeploymentInput
+
+The Go SDK returns `DeploymentInput` as `interface{}` in deploy phases. Use JSON roundtrip to safely extract typed fields:
+
+```go
+inputBytes, _ := json.Marshal(phase.DeploymentInput)
+var input release.AgentBasedDeploymentInput
+json.Unmarshal(inputBytes, &input)
+```
+
+### Resource Package Placement
+
+- Release resources → `azuredevops/internal/service/release/`
+- Task agent resources (task groups) → `azuredevops/internal/service/taskagent/`
+- Match the SDK client used (ReleaseClient vs TaskAgentClient)
+- Register in `azuredevops/provider.go` under `ResourcesMap`

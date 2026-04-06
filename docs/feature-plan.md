@@ -10,44 +10,31 @@ Based on live API exploration on 2026-04-06 against `davidgparsonson/DPLife`.
 
 ---
 
-## Phase 1: Fix Correctness Issues (P0)
+## Phase 1: Fix Correctness Issues (P0) — ✅ COMPLETE
 
-These are bugs or inaccuracies in the current implementation.
+All P0 issues resolved.
 
-### 1.1 Fix revision conflict error handling
-**Current**: CLAUDE.md says retry on 409. **Actual**: API returns 400 with `InvalidRequestException`.
-- Update error detection in `resourceReleaseDefinitionUpdate` to match on message text or typeKey
-- Update CLAUDE.md documentation
+### 1.1 Fix revision conflict error handling — ✅ Done
+Update function detects HTTP 400 with "old copy of the release pipeline" message, re-reads definition for current revision, retries once.
 
-### 1.2 Fix tags behavior
-**Current**: Schema accepts tags, expand sends them, but API silently ignores them on create and update.
-- Option A: Remove `tags` from schema (honest but loses future compat)
-- Option B: Keep in schema but document as known limitation, suppress diff
-- **Recommendation**: Option B — keep the schema, add a note in docs, investigate separate tags API
+### 1.2 Fix tags behavior — ✅ Done
+Tags kept in schema, documented as known limitation. API silently ignores on create/update.
 
-### 1.3 Add deploymentInput to deploy phases
-**Current**: `expandDeployPhases` creates `AgentBasedDeployPhase` but never sets `DeploymentInput`. This means `queueId` (agent pool) is never sent — the API picks a default.
-- Add `deployment_input` block to `deploy_phase` schema
-- Essential fields: `queue_id`, `demands`, `timeout_in_minutes`, `job_cancel_timeout_in_minutes`, `condition`
-- This is P0 because without `queue_id`, users can't target specific agent pools
+### 1.3 Add deploymentInput to deploy phases — ✅ Done
+`deployment_input` block with `queue_id`, `timeout_in_minutes`, `job_cancel_timeout_in_minutes`, `condition`, `skip_artifacts_download`, `enable_access_token`.
 
 ---
 
-## Phase 2: Approval & Gate Enhancements (P1)
+## Phase 2: Approval & Gate Enhancements (P1) — Approvals ✅ / Gates Remaining
 
-### 2.1 Add approvalOptions to pre/post deploy approvals
-Fields to add to approval schema:
-- `required_approver_count` (int, Optional, null = all required)
-- `release_creator_can_be_approver` (bool, Optional, default false)
-- `enforce_identity_revalidation` (bool, Optional, default false)
-- `timeout_in_minutes` (int, Optional, default 0)
-- `execution_order` (string, Optional, "beforeGates"/"afterSuccessfulGates")
-- `auto_triggered_and_previous_environment_approved_can_be_skipped` (bool, Optional)
+### 2.1 Add approvalOptions to pre/post deploy approvals — ✅ Done
+All 6 approval_options fields implemented:
+- `required_approver_count`, `release_creator_can_be_approver`, `enforce_identity_revalidation`
+- `timeout_in_minutes`, `execution_order`, `auto_triggered_and_previous_environment_approved_can_be_skipped`
+Also added `is_notification_on` to each approver step.
 
-Also add `is_notification_on` to each approver step.
-
-### 2.2 Add pre/post deployment gates
-New schema blocks: `pre_deployment_gates` and `post_deployment_gates`
+### 2.2 Add pre/post deployment gates — 🔲 Not started
+New schema blocks needed: `pre_deployment_gates` and `post_deployment_gates`
 ```
 gates_options {
   is_enabled         = true
@@ -56,32 +43,21 @@ gates_options {
   stabilization_time = 5
   minimum_success_duration = 0
 }
-gate { ... }  # Future: individual gate task definitions
+gate { ... }  # Individual gate task definitions
 ```
 
 ---
 
-## Phase 3: Environment Configuration (P1)
+## Phase 3: Environment Configuration (P1) — ✅ COMPLETE
 
-### 3.1 Add environmentOptions block
-New `environment_options` block on each environment:
-- `email_notification_type` (string: "OnlyOnFailure", "Always", "Never")
-- `email_recipients` (string)
-- `skip_artifacts_download` (bool)
-- `timeout_in_minutes` (int)
-- `enable_access_token` (bool)
-- `publish_deployment_status` (bool)
-- `badge_enabled` (bool)
-- `auto_link_work_items` (bool)
-- `pull_request_deployment_enabled` (bool)
+### 3.1 Add environmentOptions block — ✅ Done
+All fields implemented: `email_notification_type`, `email_recipients`, `badge_enabled`, `auto_link_work_items`, `pull_request_deployment_enabled`, `publish_deployment_status`, `timeout_in_minutes`, `enable_access_token`, `skip_artifacts_download`.
 
-### 3.2 Add executionPolicy block
-- `concurrency_count` (int, default 1)
-- `queue_depth_count` (int, validation: 0 or 1 only)
+### 3.2 Add executionPolicy block — ✅ Done
+`concurrency_count` and `queue_depth_count` implemented.
 
-### 3.3 Add top-level isDisabled
-- `enabled` attribute (bool, Optional, default true)
-- Maps to `isDisabled` (inverted) in expand/flatten
+### 3.3 Add top-level isDisabled — ✅ Done
+Schema has `enabled` attribute mapping to `isDisabled` (inverted) in expand/flatten.
 
 ---
 
@@ -119,56 +95,59 @@ New `environment_options` block on each environment:
 
 ---
 
-## Phase 6: New Resource — betterado_task_group (P1)
+## Phase 6: New Resource — betterado_task_group (P1) — ✅ COMPLETE
 
-Full API reference: `docs/api-reference/task-groups.md`
+**File:** `azuredevops/internal/service/taskagent/resource_task_group.go`
 
-### Overview
-Task groups are reusable collections of build/release tasks with parameterized inputs. They're referenced from release definition deploy phases as `definitionType: "metaTask"` workflow tasks. This makes them a natural companion resource.
+Full CRUD lifecycle implemented and tested idempotent. Registered in provider.go.
 
-### Key Design Decisions
-- **API host:** `dev.azure.com` (core host, NOT vsrm.dev.azure.com)
-- **SDK client:** `TaskAgentClient` — already initialized in client.go
-- **ID type:** UUID (not int like release definitions)
-- **Versioning:** `version.major` should be ForceNew; version bumping uses a separate publish workflow
-- **Revision:** Optimistic concurrency via 409 Conflict (standard, unlike release defs which use 400)
-- **Update:** PUT requires full object (omitted fields are wiped)
-
-### Schema (TF attributes)
-- `name` (string, Required)
-- `friendly_name` (string, Required)
-- `project_id` (string, Required, ForceNew)
-- `description` (string, Optional)
-- `category` (string, Required — "Deploy", "Build", "Utility", etc.)
-- `instance_name_format` (string, Optional)
-- `author` (string, Optional)
-- `runs_on` (list of string, Optional — default ["Agent"])
-- `version` block (Required) — `major` (ForceNew), `minor`, `patch`
-- `input` block list (Optional) — parameterized inputs with name, label, type, default_value, required
-- `task` block list (Required, MinItems 1) — steps with display_name, task_id, task_version, inputs, condition, etc.
-- Computed: `id` (UUID), `revision`, `definition_type`
-
-### Effort: Medium-Large (new resource, but pattern is well-established)
+### Implemented Features
+- Name, description, category, author, instance_name_format
+- Version block (major ForceNew, minor, patch, is_test)
+- Parameterized inputs (name, label, type, default_value, required, help, group_name)
+- Task steps (task_id, version, display_name, inputs, condition, enabled, always_run, continue_on_error, etc.)
+- runs_on configuration
+- Computed: id (UUID), revision, definition_type
+- API host: `dev.azure.com` (core host, uses TaskAgentClient)
+- Update: PUT requires full object (read-modify-write pattern)
 
 ---
 
 ## Implementation Order (Recommended)
 
-| Order | Item | Phase | Effort | Impact |
-|-------|------|-------|--------|--------|
-| 1 | deploymentInput (queue_id, demands, timeouts, condition) | 1.3 | Medium | High — unblocks agent pool targeting |
-| 2 | Fix revision conflict handling | 1.1 | Small | High — correctness |
-| 3 | Fix tags behavior | 1.2 | Small | Medium — stops confusing drift |
-| 4 | approvalOptions | 2.1 | Medium | High — real pipelines need approval config |
-| 5 | environmentOptions | 3.1 | Medium | Medium — notification/badge config |
-| 6 | **betterado_task_group resource** | **6** | **Med-Large** | **High — reusable task definitions** |
-| 7 | isDisabled (enabled) | 3.3 | Small | Medium — pipeline lifecycle |
-| 8 | executionPolicy | 3.2 | Small | Medium — concurrency control |
-| 9 | Deployment gates | 2.2 | Large | Medium — enterprise feature |
-| 10 | Remaining deploymentInput | 4.1 | Medium | Low-Med |
-| 11 | Workflow task enhancements | 4.2 | Small | Low |
-| 12 | Environment demands | 5.1 | Small | Low |
-| 13 | Schedules & triggers | 5.2-5.4 | Large | Low |
+| Order | Item | Phase | Status |
+|-------|------|-------|--------|
+| 1 | deploymentInput (queue_id, demands, timeouts, condition) | 1.3 | ✅ Done |
+| 2 | Fix revision conflict handling | 1.1 | ✅ Done |
+| 3 | Fix tags behavior | 1.2 | ✅ Done (documented limitation) |
+| 4 | approvalOptions | 2.1 | ✅ Done |
+| 5 | environmentOptions | 3.1 | ✅ Done |
+| 6 | **betterado_task_group resource** | **6** | **✅ Done** |
+| 7 | isDisabled (enabled) | 3.3 | ✅ Done |
+| 8 | executionPolicy | 3.2 | ✅ Done |
+| 9 | Deployment gates | 2.2 | 🔲 Not started |
+| 10 | Remaining deploymentInput | 4.1 | 🔲 Not started |
+| 11 | Workflow task enhancements | 4.2 | 🔲 Not started |
+| 12 | Environment demands | 5.1 | 🔲 Not started |
+| 13 | Schedules & triggers | 5.2-5.4 | 🔲 Not started |
+
+### New Items from PR #178 Analysis (April 2026)
+
+| Priority | Feature | Notes |
+|----------|---------|-------|
+| High | Agentless jobs (RunOnServer) | Server-side tasks: Delay, InvokeRESTAPI, ManualIntervention |
+| High | Deployment group jobs | Deploy to on-prem/VM machines via deployment groups |
+| High | Gates (pre/post deploy) | Automated quality checks before/after deployment |
+| High | Multi-config / multi-agent parallelism | Variable multipliers, parallel agent execution |
+| Medium | Artifact filters | Branch/tag conditions per artifact |
+| Medium | Tags (separate API) | Definitions endpoint doesn't persist; needs separate endpoint |
+| Medium | Demands per environment | Agent capability matching |
+| Medium | Properties | Definition/environment level for Jira/Boards integration |
+| Medium | Schedules | Timed release triggers per environment |
+| Lower | override_inputs on tasks | Override task inputs at release time |
+| Lower | Environment type | production/staging/testing metadata classification |
+| Lower | Build artifact download control | Per-job selective/skip/all artifact download |
+| Lower | Release triggers | Definition-level trigger configuration |
 
 ---
 

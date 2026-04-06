@@ -86,8 +86,8 @@ Every resource follows this pattern (matching the official provider):
 
 ### Naming
 
-- Resources: `betterado_release_definition`, `betterado_release_environment`
-- Files: `resource_release_definition.go`
+- Resources: `betterado_release_definition`, `betterado_task_group`
+- Files: `resource_release_definition.go`, `resource_task_group.go`
 - Go functions: `ResourceReleaseDefinition()`, `expandReleaseDefinition()`, `flattenReleaseDefinition()`
 - Test functions: `TestAccReleaseDefinition_Basic`, `TestAccReleaseDefinition_Complete`
 
@@ -135,6 +135,117 @@ make build                     # Build the provider
 make install                   # Build and install locally
 make test                      # Run unit tests
 make testacc                   # Run acceptance tests (needs TF_ACC=1)
+make clean-cache               # Clear Go build/test cache to reclaim disk space
+```
+
+### Testing API calls
+
+Use `scripts/ado-api.sh` to test API endpoints directly:
+```bash
+./scripts/ado-api.sh GET "release/definitions" --project MyProject
+./scripts/ado-api.sh POST "release/definitions" --project MyProject --body @definition.json
+```
+
+### Discovering new API surfaces
+
+1. Use the `ado-browser-inspector` skill to capture network traces from ADO UI
+2. Use the `ado-api-explorer` skill to systematically test endpoints
+3. Document findings in `docs/api-reference/`
+
+### Adding a new resource
+
+1. Use the `resource-scaffolder` skill to generate boilerplate
+2. Map the API types in `docs/api-reference/`
+3. Implement expand/flatten for the nested structure
+4. Register in `azuredevops/provider.go`
+5. Write acceptance tests in `azuredevops/internal/acceptancetests/`
+6. Add example configurations
+
+## Key Technical Notes
+
+### Release API Host
+
+The release API lives at a **different host** than the core ADO API:
+- Core API: `https://dev.azure.com/{org}/`
+- Release API: `https://vsrm.dev.azure.com/{org}/`
+
+The official Go SDK handles the host routing via the `release.Client`.
+
+### Nested Complexity
+
+Release definitions are deeply nested:
+```
+ReleaseDefinition
+├── Environments[]
+│   ├── DeployPhases[]
+│   │   ├── DeploymentInput
+│   │   └── WorkflowTasks[]
+│   ├── PreDeployApprovals
+│   │   └── Approvals[] + ApprovalOptions
+│   ├── PostDeployApprovals
+│   ├── Conditions[]
+│   ├── EnvironmentOptions
+│   ├── ExecutionPolicy
+│   ├── RetentionPolicy
+│   └── Variables{}
+├── Artifacts[]
+│   └── DefinitionReference{}
+├── Variables{}
+└── VariableGroups[]
+```
+
+Each expand/flatten function handles one layer. The expand functions construct API request objects from Terraform state; flatten functions convert API responses into the `[]map[string]interface{}` structures Terraform expects.
+
+### API-Computed Fields in Artifacts
+
+The artifact `definition_reference` map comes back from the API with extra keys (e.g., `artifactSourceDefinitionUrl`, `defaultVersionSpecific`) that weren't in user config. The `flattenArtifacts` function filters these out, only persisting keys the user actually configured, preventing perpetual diff.
+
+## Implemented Resource Status
+
+### betterado_release_definition (feature-complete for P0/P1)
+
+**File:** `azuredevops/internal/service/release/resource_release_definition.go` (~1,490 lines)
+
+Fully tested with Create → Read → Update → Delete lifecycle. Confirmed idempotent (no drift on re-plan).
+
+**Implemented features:**
+- Environments with agent-based deployment phases
+- Pre/post deploy approvals with approval_options (6 fields)
+- Variables (plain, secret, allow_override) at definition + environment level
+- Variable groups at definition + environment level
+- Artifacts (Build type with definition_reference map)
+- Workflow tasks (task + metaTask/task group references)
+- Environment options (notifications, badge, auto-link, PR deploy)
+- Execution policy (concurrency, queue depth)
+- Retention policy per environment
+- Environment conditions (event trigger, environment state dependency)
+- Revision-aware update with retry on stale revision (HTTP 400)
+- 404 tolerance in Read (graceful external delete handling)
+- Import support (projectID/definitionID format)
+- Agent specification (free-form string, future-proof)
+
+**Known limitations:**
+- Tags: API doesn't persist via definitions endpoint (separate API may be needed)
+
+### betterado_task_group
+
+**File:** `azuredevops/internal/service/taskagent/resource_task_group.go`
+
+Full CRUD lifecycle for reusable task group definitions. Referenced from release definitions as `definition_type = "metaTask"` workflow tasks.
+
+**Features:**
+- Name, description, category, author, instance_name_format
+- Version block (major ForceNew, minor, patch, is_test)
+- Parameterized inputs (name, label, type, default_value, required, help, group_name)
+- Task steps (task_id, version, display_name, inputs, condition, enabled, etc.)
+- runs_on configuration
+- Computed: id (UUID), revision, definition_type
+
+**API host:** `dev.azure.com` (core host, uses TaskAgentClient)
+
+## Roadmap
+
+See `docs/feature-plan.md` for the full implementation plan and `docs/api-reference/` for API mappings. Key future features include agentless jobs, deployment group jobs, gates, and multi-config parallelism — detailed in repo memory at `/memories/repo/pr178-analysis-and-roadmap.md`.
 make clean-cache               # Clear Go build/test cache to reclaim disk space
 ```
 
