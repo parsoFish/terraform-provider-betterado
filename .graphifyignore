@@ -1,0 +1,30 @@
+# Graphify exclusion list for terraform-provider-betterado.
+#
+# Aligns with PM scope-guard documented in
+# brain/projects/terraform-provider-betterado/themes/council-constraints.md:
+# PM/agentic work only touches azuredevops/internal/service/* + provider.go +
+# azdosdkmocks/* (read-only) + sibling upstream tests as gomock patterns.
+# Everything else is dependency / build / generated-docs noise.
+
+# mirrored from .gitignore-style noise
+.terraform/
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+/*.tf
+**/debug.test
+dist/
+bin/
+.idea/
+.fleet/
+
+# Go vendored dependencies (40MB) — not our code, would dominate the graph
+vendor/
+
+# Auto-generated provider documentation (Terraform Registry rendering source)
+website/
+docs/
+
+# Graphify's own output (now lives at brain/graphify-out/ per three-brain model)
+brain/graphify-out/

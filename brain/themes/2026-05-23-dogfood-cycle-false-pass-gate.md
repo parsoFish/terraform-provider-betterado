@@ -56,7 +56,7 @@ When the architect drafts a substrate initiative for any betterado package:
 
 ## See also
 
-- Forge-wide pattern: [[quality-gate-cmd-must-assert-new-work]] — the
+- Forge-wide pattern: quality-gate-cmd-must-assert-new-work — the
   general antipattern this is an instance of.
 - [[council-constraints]] §"Per-resource test substrate" — the 5-test
   pattern that the dogfood failed to actually implement.
