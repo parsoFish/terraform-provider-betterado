@@ -6,6 +6,16 @@
 
 _(updated by each iteration — most recent at the top)_
 
+### Iteration 3 (unifier)
+
+- Read AGENT.md (up to date from iter 2) and fix_plan.md (all 4 ACs ticked).
+- Confirmed demo/INIT-2026-05-31-task-group-unit-tests/ has demo.json + DEMO.md + DEMO.html — all present, no placeholders.
+- Confirmed .forge/pr-description.md has substantive Why/What/How/Demo sections.
+- Ran quality gate: `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...` → **GREEN** (0.007s), all tests pass.
+- Branch was 1 commit ahead of origin (safety-net autocommit 229f6016). Pushed to origin — branches now in sync.
+- All 4 gates expected to pass: initiative_gate (GREEN), demo_runs_clean (harness shape with inline metrics), pr_self_contained (demo.json valid, pr-description.md substantive), branches_in_sync (pushed, local == origin).
+- No code changes needed; only AGENT.md updated.
+
 ### Iteration 2 (unifier)
 
 - Read AGENT.md, fix_plan.md, demo.json, DEMO.md, pr-description.md — all complete and substantive from prior iteration.
