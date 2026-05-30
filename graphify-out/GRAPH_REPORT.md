@@ -1,7 +1,7 @@
 # Graph Report - INIT-2026-05-31-task-group-unit-tests  (2026-05-31)
 
 ## Corpus Check
-- 591 files · ~319,740 words
+- 591 files · ~320,053 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `61d57004`
+- Built from commit: `100df800`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

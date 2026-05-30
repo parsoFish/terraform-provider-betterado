@@ -88,7 +88,7 @@
       "label": "acceptanceCriteria",
       "file_type": "code",
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
-      "source_location": "L27",
+      "source_location": "L55",
       "id": "init_2026_05_31_task_group_unit_tests_demo_acceptancecriteria",
       "community": 1,
       "norm_label": "acceptancecriteria"
@@ -155,9 +155,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
       "source_location": "L2",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_title",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_title"
     },
     {
       "relation": "contains",
@@ -165,9 +165,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
       "source_location": "L3",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_essence",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_essence"
     },
     {
       "relation": "contains",
@@ -175,9 +175,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_project",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_project"
     },
     {
       "relation": "contains",
@@ -185,9 +185,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_initiativeid",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_initiativeid"
     },
     {
       "relation": "contains",
@@ -195,9 +195,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_baseref",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_baseref"
     },
     {
       "relation": "contains",
@@ -205,9 +205,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_changedref",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_changedref"
     },
     {
       "relation": "contains",
@@ -215,9 +215,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_diffstat",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_diffstat"
     },
     {
       "relation": "contains",
@@ -225,9 +225,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_checkpoints",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_checkpoints"
     },
     {
       "relation": "contains",
@@ -235,9 +235,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_acceptancecriteria",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_acceptancecriteria"
     },
     {
       "relation": "contains",
@@ -291,5 +291,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "61d5700468e7680f4355dce31f1d722cc86bbb2f"
+  "built_at_commit": "100df80005c6f3430711712a772249e8110e6d3f"
 }
