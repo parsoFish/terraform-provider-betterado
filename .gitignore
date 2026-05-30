@@ -1,7 +1,18 @@
 .env
+# Local secrets for the live acceptance/test harness — NEVER commit
+secrets.env
 #direnv files
 .envrc
 bin/
+
+# forge orchestration scratch (preflight C2). The .forge/ runtime dir
+# (work-items/, verdicts, etc.) must never land in a PR; the two committed
+# config files (.forge/project.json, .forge/quality_gate_cmd) are
+# force-tracked via `git add -f` so they survive this ignore.
+.forge/
+AGENT.md
+PROMPT.md
+fix_plan.md
 
 terraform-provider-azure-devops
 terraform.log

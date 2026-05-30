@@ -1,0 +1,20 @@
+{
+  "$comment": "forge per-project config (orchestrator reads this; preflight reads .forge/quality_gate_cmd). The default quality gate is the FAST, deterministic, creds-free OFFLINE unit suite scoped to the fork's net-new packages (release + taskagent) — NOT the live TF_ACC acceptance tests (those need a PAT + are 120m-timeout, so they run as sharp per-WI gates / operator confirmation, never as the project default). This pairing is the project-scoped fix for the 2026-05-23 dogfood false-pass (brain: themes/2026-05-23-dogfood-cycle-false-pass-gate.md).",
+  "quality_gate_cmd": [
+    "go", "test", "-tags", "all", "-count=1",
+    "./azuredevops/internal/service/release/...",
+    "./azuredevops/internal/service/taskagent/..."
+  ],
+  "demo": {
+    "shape": "harness",
+    "command": [
+      "go", "test", "-tags", "all", "-v", "-count=1",
+      "./azuredevops/internal/service/release/...",
+      "./azuredevops/internal/service/taskagent/..."
+    ],
+    "baseline": "main"
+  },
+  "logging": {
+    "heartbeat_seconds": 30
+  }
+}
