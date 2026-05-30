@@ -4,58 +4,121 @@
   "graph": {},
   "nodes": [
     {
+      "label": "AGENT.md",
+      "file_type": "document",
+      "source_file": "AGENT.md",
+      "source_location": "L1",
+      "id": "agent_md",
+      "community": 3,
+      "norm_label": "agent.md"
+    },
+    {
+      "label": "Unifier Agent Memory \u2014 INIT-2026-05-31-task-group-unit-tests",
+      "file_type": "document",
+      "source_file": "AGENT.md",
+      "source_location": "L1",
+      "id": "init_2026_05_31_task_group_unit_tests_agent_unifier_agent_memory_init_2026_05_31_task_group_unit_tests",
+      "community": 3,
+      "norm_label": "unifier agent memory \u2014 init-2026-05-31-task-group-unit-tests"
+    },
+    {
+      "label": "What I tried",
+      "file_type": "document",
+      "source_file": "AGENT.md",
+      "source_location": "L5",
+      "id": "init_2026_05_31_task_group_unit_tests_agent_what_i_tried",
+      "community": 3,
+      "norm_label": "what i tried"
+    },
+    {
+      "label": "Iteration 1 (unifier)",
+      "file_type": "document",
+      "source_file": "AGENT.md",
+      "source_location": "L9",
+      "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_1_unifier",
+      "community": 3,
+      "norm_label": "iteration 1 (unifier)"
+    },
+    {
+      "label": "Notes for reflection",
+      "file_type": "document",
+      "source_file": "AGENT.md",
+      "source_location": "L21",
+      "id": "init_2026_05_31_task_group_unit_tests_agent_notes_for_reflection",
+      "community": 3,
+      "norm_label": "notes for reflection"
+    },
+    {
+      "label": "fix_plan.md",
+      "file_type": "document",
+      "source_file": "fix_plan.md",
+      "source_location": "L1",
+      "id": "fix_plan_md",
+      "community": 4,
+      "norm_label": "fix_plan.md"
+    },
+    {
+      "label": "Fix Plan \u2014 unifier sub-phase",
+      "file_type": "document",
+      "source_file": "fix_plan.md",
+      "source_location": "L1",
+      "id": "init_2026_05_31_task_group_unit_tests_fix_plan_fix_plan_unifier_sub_phase",
+      "community": 4,
+      "norm_label": "fix plan \u2014 unifier sub-phase"
+    },
+    {
       "label": "DEMO.md",
       "file_type": "document",
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/DEMO.md",
       "source_location": "L1",
-      "id": "demo_init_2026_05_31_task_group_unit_tests_demo_md",
       "community": 2,
-      "norm_label": "demo.md"
+      "norm_label": "demo.md",
+      "id": "demo_init_2026_05_31_task_group_unit_tests_demo_md"
     },
     {
       "label": "Add gomock unit tests for the betterado_task_group resource",
       "file_type": "document",
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/DEMO.md",
       "source_location": "L1",
-      "id": "init_2026_05_31_task_group_unit_tests_demo_add_gomock_unit_tests_for_the_betterado_task_group_resource",
       "community": 2,
-      "norm_label": "add gomock unit tests for the betterado_task_group resource"
+      "norm_label": "add gomock unit tests for the betterado_task_group resource",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_add_gomock_unit_tests_for_the_betterado_task_group_resource"
     },
     {
       "label": "Five unit tests cover every CRUD path and expand/flatten symmetry of the task group resource",
       "file_type": "document",
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/DEMO.md",
       "source_location": "L5",
-      "id": "init_2026_05_31_task_group_unit_tests_demo_five_unit_tests_cover_every_crud_path_and_expand_flatten_symmetry_of_the_task_group_resource",
       "community": 2,
-      "norm_label": "five unit tests cover every crud path and expand/flatten symmetry of the task group resource"
+      "norm_label": "five unit tests cover every crud path and expand/flatten symmetry of the task group resource",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_five_unit_tests_cover_every_crud_path_and_expand_flatten_symmetry_of_the_task_group_resource"
     },
     {
       "label": "Acceptance criteria",
       "file_type": "document",
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/DEMO.md",
       "source_location": "L18",
-      "id": "init_2026_05_31_task_group_unit_tests_demo_acceptance_criteria",
       "community": 2,
-      "norm_label": "acceptance criteria"
+      "norm_label": "acceptance criteria",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_acceptance_criteria"
     },
     {
       "label": "Changed files",
       "file_type": "document",
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/DEMO.md",
       "source_location": "L25",
-      "id": "init_2026_05_31_task_group_unit_tests_demo_changed_files",
       "community": 2,
-      "norm_label": "changed files"
+      "norm_label": "changed files",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_changed_files"
     },
     {
       "label": "code:block1 (.forge/project.json                                         )",
       "file_type": "document",
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/DEMO.md",
       "source_location": "L27",
-      "id": "init_2026_05_31_task_group_unit_tests_demo_codeblock_1",
       "community": 2,
-      "norm_label": "code:block1 (.forge/project.json                                         )"
+      "norm_label": "code:block1 (.forge/project.json                                         )",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_codeblock_1"
     },
     {
       "label": "demo.json",
@@ -206,12 +269,62 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "AGENT.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "agent_md",
+      "target": "init_2026_05_31_task_group_unit_tests_agent_unifier_agent_memory_init_2026_05_31_task_group_unit_tests",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENT.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "init_2026_05_31_task_group_unit_tests_agent_unifier_agent_memory_init_2026_05_31_task_group_unit_tests",
+      "target": "init_2026_05_31_task_group_unit_tests_agent_what_i_tried",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENT.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "init_2026_05_31_task_group_unit_tests_agent_unifier_agent_memory_init_2026_05_31_task_group_unit_tests",
+      "target": "init_2026_05_31_task_group_unit_tests_agent_notes_for_reflection",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENT.md",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "init_2026_05_31_task_group_unit_tests_agent_what_i_tried",
+      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_1_unifier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "fix_plan.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "fix_plan_md",
+      "target": "init_2026_05_31_task_group_unit_tests_fix_plan_fix_plan_unifier_sub_phase",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/DEMO.md",
       "source_location": "L1",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "demo_init_2026_05_31_task_group_unit_tests_demo_md",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_add_gomock_unit_tests_for_the_betterado_task_group_resource",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_add_gomock_unit_tests_for_the_betterado_task_group_resource"
     },
     {
       "relation": "contains",
@@ -219,9 +332,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/DEMO.md",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "init_2026_05_31_task_group_unit_tests_demo_add_gomock_unit_tests_for_the_betterado_task_group_resource",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_five_unit_tests_cover_every_crud_path_and_expand_flatten_symmetry_of_the_task_group_resource",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_five_unit_tests_cover_every_crud_path_and_expand_flatten_symmetry_of_the_task_group_resource"
     },
     {
       "relation": "contains",
@@ -229,9 +342,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/DEMO.md",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "init_2026_05_31_task_group_unit_tests_demo_add_gomock_unit_tests_for_the_betterado_task_group_resource",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_acceptance_criteria",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_acceptance_criteria"
     },
     {
       "relation": "contains",
@@ -239,9 +352,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/DEMO.md",
       "source_location": "L25",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "init_2026_05_31_task_group_unit_tests_demo_add_gomock_unit_tests_for_the_betterado_task_group_resource",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_changed_files",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_changed_files"
     },
     {
       "relation": "contains",
@@ -249,9 +362,9 @@
       "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/DEMO.md",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "init_2026_05_31_task_group_unit_tests_demo_changed_files",
-      "target": "init_2026_05_31_task_group_unit_tests_demo_codeblock_1",
-      "confidence_score": 1.0
+      "target": "init_2026_05_31_task_group_unit_tests_demo_codeblock_1"
     },
     {
       "relation": "contains",
@@ -395,5 +508,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "99d67d8196c751795050bd21df6aa8aeba7c767c"
+  "built_at_commit": "ca8e118b19cadbc098bdc650ead550280aace6a1"
 }
