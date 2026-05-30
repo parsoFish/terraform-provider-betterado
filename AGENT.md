@@ -6,6 +6,14 @@
 
 _(updated by each iteration — most recent at the top)_
 
+### Iteration 2 (unifier)
+
+- Read AGENT.md, fix_plan.md, demo.json, DEMO.md, pr-description.md — all complete and substantive from prior iteration.
+- Ran quality gate: `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...` → **GREEN** (0.007s), all tests pass.
+- Working tree was clean, no changes needed to any artifact.
+- Branch was 1 commit ahead of origin (the safety-net autocommit b455e777). Pushed to origin — branches now in sync.
+- All 4 gates expected to pass: initiative_gate (GREEN), demo_runs_clean (no harness command, shape=harness with inline metrics), pr_self_contained (demo.json valid, pr-description.md substantive), branches_in_sync (pushed, local == origin).
+
 ### Iteration 1 (unifier)
 
 - Read AGENT.md (empty), fix_plan.md (4 ACs), and WI-1 spec via fix_plan.md.
