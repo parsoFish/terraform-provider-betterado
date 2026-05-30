@@ -3023,5 +3023,15 @@
     "mtime": 1780181515.5144112,
     "ast_hash": "69618c163207bb428ef260ec17ec823b",
     "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/demo/INIT-2026-05-31-task-group-unit-tests/DEMO.html": {
+    "mtime": 1780181684.3600543,
+    "ast_hash": "01ed2e584f49b4e97d356d7e608d5a60",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/demo/INIT-2026-05-31-task-group-unit-tests/DEMO.md": {
+    "mtime": 1780181684.3600543,
+    "ast_hash": "7a1a1b1f9f0d7f4b581095fac62474f5",
+    "semantic_hash": ""
   }
 }
