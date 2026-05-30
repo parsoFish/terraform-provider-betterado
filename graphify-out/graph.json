@@ -31,10 +31,19 @@
       "norm_label": "what i tried"
     },
     {
-      "label": "Iteration 7 (unifier)",
+      "label": "Iteration 8 (unifier) \u2014 re-invocation as \"iter 1\"",
       "file_type": "document",
       "source_file": "AGENT.md",
       "source_location": "L9",
+      "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_8_unifier_re_invocation_as_iter_1",
+      "community": 3,
+      "norm_label": "iteration 8 (unifier) \u2014 re-invocation as \"iter 1\""
+    },
+    {
+      "label": "Iteration 7 (unifier)",
+      "file_type": "document",
+      "source_file": "AGENT.md",
+      "source_location": "L19",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_7_unifier",
       "community": 3,
       "norm_label": "iteration 7 (unifier)"
@@ -43,7 +52,7 @@
       "label": "Iteration 6 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L19",
+      "source_location": "L29",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_6_unifier",
       "community": 3,
       "norm_label": "iteration 6 (unifier)"
@@ -52,7 +61,7 @@
       "label": "Iteration 5 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L29",
+      "source_location": "L39",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_5_unifier",
       "community": 3,
       "norm_label": "iteration 5 (unifier)"
@@ -61,7 +70,7 @@
       "label": "Iteration 4 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L39",
+      "source_location": "L49",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_4_unifier",
       "community": 3,
       "norm_label": "iteration 4 (unifier)"
@@ -70,7 +79,7 @@
       "label": "Iteration 3 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L48",
+      "source_location": "L58",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_3_unifier",
       "community": 3,
       "norm_label": "iteration 3 (unifier)"
@@ -79,7 +88,7 @@
       "label": "Iteration 2 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L58",
+      "source_location": "L68",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_2_unifier",
       "community": 3,
       "norm_label": "iteration 2 (unifier)"
@@ -88,7 +97,7 @@
       "label": "Iteration 1 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L66",
+      "source_location": "L76",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_1_unifier",
       "community": 3,
       "norm_label": "iteration 1 (unifier)"
@@ -97,7 +106,7 @@
       "label": "Notes for reflection",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L78",
+      "source_location": "L88",
       "id": "init_2026_05_31_task_group_unit_tests_agent_notes_for_reflection",
       "community": 5,
       "norm_label": "notes for reflection"
@@ -357,8 +366,18 @@
       "source_location": "L9",
       "weight": 1.0,
       "source": "init_2026_05_31_task_group_unit_tests_agent_what_i_tried",
-      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_7_unifier",
+      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_8_unifier_re_invocation_as_iter_1",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENT.md",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "init_2026_05_31_task_group_unit_tests_agent_what_i_tried",
+      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_7_unifier"
     },
     {
       "relation": "contains",
@@ -622,5 +641,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "6ccb5d8c7aeed010ab15e4303015695bf8563b75"
+  "built_at_commit": "87ae37311087ee979f591d3fe6d5de0ce1dcd192"
 }
