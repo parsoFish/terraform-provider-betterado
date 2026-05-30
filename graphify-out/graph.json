@@ -31,10 +31,19 @@
       "norm_label": "what i tried"
     },
     {
-      "label": "Iteration 2 (unifier)",
+      "label": "Iteration 3 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
       "source_location": "L9",
+      "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_3_unifier",
+      "community": 3,
+      "norm_label": "iteration 3 (unifier)"
+    },
+    {
+      "label": "Iteration 2 (unifier)",
+      "file_type": "document",
+      "source_file": "AGENT.md",
+      "source_location": "L19",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_2_unifier",
       "community": 3,
       "norm_label": "iteration 2 (unifier)"
@@ -43,7 +52,7 @@
       "label": "Iteration 1 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L17",
+      "source_location": "L27",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_1_unifier",
       "community": 3,
       "norm_label": "iteration 1 (unifier)"
@@ -52,7 +61,7 @@
       "label": "Notes for reflection",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L29",
+      "source_location": "L39",
       "id": "init_2026_05_31_task_group_unit_tests_agent_notes_for_reflection",
       "community": 3,
       "norm_label": "notes for reflection"
@@ -312,8 +321,18 @@
       "source_location": "L9",
       "weight": 1.0,
       "source": "init_2026_05_31_task_group_unit_tests_agent_what_i_tried",
-      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_2_unifier",
+      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_3_unifier",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENT.md",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "init_2026_05_31_task_group_unit_tests_agent_what_i_tried",
+      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_2_unifier"
     },
     {
       "relation": "contains",
@@ -527,5 +546,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "51696d5d934e916627a6d1b15f2ad81e7cdcf615"
+  "built_at_commit": "cd50bd405f5958be0f2db50dec391ac1db0238a5"
 }
