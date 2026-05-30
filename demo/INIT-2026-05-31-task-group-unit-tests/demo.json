@@ -1,23 +1,51 @@
 {
-  "title": "Add unit tests for task group resource CRUD operations",
-  "essence": "The task group resource previously had no unit test coverage. A comprehensive test suite now verifies Create, Read, Update, and Delete operations, ensuring correct API interactions and error handling.",
+  "title": "Add gomock unit tests for the betterado_task_group resource",
+  "essence": "The task group resource (a net-new fork addition) previously had zero unit test coverage. Five gomock-based unit tests now verify Create, Read, Update, Delete, and expand/flatten round-trip behaviour, closing the highest-value offline test gap in the provider.",
   "project": "azuredevops",
   "initiativeId": "INIT-2026-05-31-task-group-unit-tests",
   "baseRef": "main",
   "changedRef": "HEAD",
-  "diffStat": " .forge/project.json                                |  20 --\n .forge/quality_gate_cmd                            |   1 -\n azuredevops/internal/service/taskagent/resource_task_group_test.go  | 394 +++++++++++++++++++++\n 3 files changed, 394 insertions(+), 21 deletions(-)",
+  "diffStat": " .forge/project.json                                                  |  20 --\n .forge/quality_gate_cmd                                               |   1 -\n azuredevops/internal/service/taskagent/resource_task_group_test.go   | 394 +++++++++++++++++++++\n 3 files changed, 394 insertions(+), 21 deletions(-)",
   "checkpoints": [
     {
-      "label": "main",
-      "caption": "Unit tests for task group CRUD operations pass",
-      "beforeNote": "No unit tests existed for the task group resource; all CRUD behaviour was untested at the unit level.",
-      "afterNote": "394 lines of unit tests now cover Create, Read, Update, and Delete for task groups, verifying correct API calls and error handling.",
+      "label": "TestTaskGroup_* — 5 tests, all PASS",
+      "caption": "Five unit tests cover every CRUD path and expand/flatten symmetry of the task group resource",
       "kind": "harness",
+      "beforeNote": "resource_task_group_test.go did not exist; `go test -run TestTaskGroup` exited non-zero with [no test files].",
+      "afterNote": "All five TestTaskGroup_* tests pass in 0.006 s with no live ADO credentials required.",
       "metrics": [
         {
-          "label": "task group unit tests",
-          "before": "0 tests",
-          "after": "passing",
+          "label": "TestTaskGroup_ExpandFlatten_Roundtrip",
+          "before": "not present",
+          "after": "PASS (0.00s)",
+          "deltaPct": null,
+          "parity": "improvement"
+        },
+        {
+          "label": "TestTaskGroup_Create_DoesNotSwallowError",
+          "before": "not present",
+          "after": "PASS (0.00s)",
+          "deltaPct": null,
+          "parity": "improvement"
+        },
+        {
+          "label": "TestTaskGroup_Read_ClearsIdOn404",
+          "before": "not present",
+          "after": "PASS (0.00s)",
+          "deltaPct": null,
+          "parity": "improvement"
+        },
+        {
+          "label": "TestTaskGroup_Update_CallsSDKWithArgs",
+          "before": "not present",
+          "after": "PASS (0.00s)",
+          "deltaPct": null,
+          "parity": "improvement"
+        },
+        {
+          "label": "TestTaskGroup_Delete_SurfacesAPIError",
+          "before": "not present",
+          "after": "PASS (0.00s)",
           "deltaPct": null,
           "parity": "improvement"
         }
@@ -25,7 +53,9 @@
     }
   ],
   "acceptanceCriteria": [
-    "Unit tests for resource_task_group cover Create, Read, Update, Delete",
-    "Quality gate (go test) passes against the full service packages"
+    "resource_task_group_test.go created with all five TestTaskGroup_* functions",
+    "All five tests show --- PASS: when the quality gate runs",
+    "go build exits 0 — no compilation errors introduced",
+    "Only resource_task_group_test.go is added; resource_task_group.go and azdosdkmocks/taskagent_sdk_mock.go are unchanged"
   ]
 }

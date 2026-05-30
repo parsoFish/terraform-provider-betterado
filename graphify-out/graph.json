@@ -1,0 +1,295 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "demo.json",
+      "file_type": "code",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L1",
+      "id": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
+      "community": 1,
+      "norm_label": "demo.json"
+    },
+    {
+      "label": "title",
+      "file_type": "code",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L2",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_title",
+      "community": 1,
+      "norm_label": "title"
+    },
+    {
+      "label": "essence",
+      "file_type": "code",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L3",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_essence",
+      "community": 1,
+      "norm_label": "essence"
+    },
+    {
+      "label": "project",
+      "file_type": "code",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L4",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_project",
+      "community": 1,
+      "norm_label": "project"
+    },
+    {
+      "label": "initiativeId",
+      "file_type": "code",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L5",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_initiativeid",
+      "community": 1,
+      "norm_label": "initiativeid"
+    },
+    {
+      "label": "baseRef",
+      "file_type": "code",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L6",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_baseref",
+      "community": 1,
+      "norm_label": "baseref"
+    },
+    {
+      "label": "changedRef",
+      "file_type": "code",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L7",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_changedref",
+      "community": 1,
+      "norm_label": "changedref"
+    },
+    {
+      "label": "diffStat",
+      "file_type": "code",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L8",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_diffstat",
+      "community": 1,
+      "norm_label": "diffstat"
+    },
+    {
+      "label": "checkpoints",
+      "file_type": "code",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L9",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_checkpoints",
+      "community": 1,
+      "norm_label": "checkpoints"
+    },
+    {
+      "label": "acceptanceCriteria",
+      "file_type": "code",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L27",
+      "id": "init_2026_05_31_task_group_unit_tests_demo_acceptancecriteria",
+      "community": 1,
+      "norm_label": "acceptancecriteria"
+    },
+    {
+      "label": "resource_task_group_test.go",
+      "file_type": "code",
+      "source_file": "azuredevops/internal/service/taskagent/resource_task_group_test.go",
+      "source_location": "L1",
+      "community": 0,
+      "norm_label": "resource_task_group_test.go",
+      "id": "azuredevops_internal_service_taskagent_resource_task_group_test_go"
+    },
+    {
+      "label": "TestTaskGroup_ExpandFlatten_Roundtrip()",
+      "file_type": "code",
+      "source_file": "azuredevops/internal/service/taskagent/resource_task_group_test.go",
+      "source_location": "L70",
+      "community": 0,
+      "norm_label": "testtaskgroup_expandflatten_roundtrip()",
+      "id": "taskagent_resource_task_group_test_testtaskgroup_expandflatten_roundtrip"
+    },
+    {
+      "label": "TestTaskGroup_Create_DoesNotSwallowError()",
+      "file_type": "code",
+      "source_file": "azuredevops/internal/service/taskagent/resource_task_group_test.go",
+      "source_location": "L130",
+      "community": 0,
+      "norm_label": "testtaskgroup_create_doesnotswallowerror()",
+      "id": "taskagent_resource_task_group_test_testtaskgroup_create_doesnotswallowerror"
+    },
+    {
+      "label": "TestTaskGroup_Read_ClearsIdOn404()",
+      "file_type": "code",
+      "source_file": "azuredevops/internal/service/taskagent/resource_task_group_test.go",
+      "source_location": "L196",
+      "community": 0,
+      "norm_label": "testtaskgroup_read_clearsidon404()",
+      "id": "taskagent_resource_task_group_test_testtaskgroup_read_clearsidon404"
+    },
+    {
+      "label": "TestTaskGroup_Update_CallsSDKWithArgs()",
+      "file_type": "code",
+      "source_file": "azuredevops/internal/service/taskagent/resource_task_group_test.go",
+      "source_location": "L265",
+      "community": 0,
+      "norm_label": "testtaskgroup_update_callssdkwithargs()",
+      "id": "taskagent_resource_task_group_test_testtaskgroup_update_callssdkwithargs"
+    },
+    {
+      "label": "TestTaskGroup_Delete_SurfacesAPIError()",
+      "file_type": "code",
+      "source_file": "azuredevops/internal/service/taskagent/resource_task_group_test.go",
+      "source_location": "L336",
+      "community": 0,
+      "norm_label": "testtaskgroup_delete_surfacesapierror()",
+      "id": "taskagent_resource_task_group_test_testtaskgroup_delete_surfacesapierror"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
+      "target": "init_2026_05_31_task_group_unit_tests_demo_title",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
+      "target": "init_2026_05_31_task_group_unit_tests_demo_essence",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
+      "target": "init_2026_05_31_task_group_unit_tests_demo_project",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
+      "target": "init_2026_05_31_task_group_unit_tests_demo_initiativeid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
+      "target": "init_2026_05_31_task_group_unit_tests_demo_baseref",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
+      "target": "init_2026_05_31_task_group_unit_tests_demo_changedref",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
+      "target": "init_2026_05_31_task_group_unit_tests_demo_diffstat",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
+      "target": "init_2026_05_31_task_group_unit_tests_demo_checkpoints",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "demo/INIT-2026-05-31-task-group-unit-tests/demo.json",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "demo_init_2026_05_31_task_group_unit_tests_demo_json",
+      "target": "init_2026_05_31_task_group_unit_tests_demo_acceptancecriteria",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "azuredevops/internal/service/taskagent/resource_task_group_test.go",
+      "source_location": "L70",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "azuredevops_internal_service_taskagent_resource_task_group_test_go",
+      "target": "taskagent_resource_task_group_test_testtaskgroup_expandflatten_roundtrip"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "azuredevops/internal/service/taskagent/resource_task_group_test.go",
+      "source_location": "L130",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "azuredevops_internal_service_taskagent_resource_task_group_test_go",
+      "target": "taskagent_resource_task_group_test_testtaskgroup_create_doesnotswallowerror"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "azuredevops/internal/service/taskagent/resource_task_group_test.go",
+      "source_location": "L196",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "azuredevops_internal_service_taskagent_resource_task_group_test_go",
+      "target": "taskagent_resource_task_group_test_testtaskgroup_read_clearsidon404"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "azuredevops/internal/service/taskagent/resource_task_group_test.go",
+      "source_location": "L265",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "azuredevops_internal_service_taskagent_resource_task_group_test_go",
+      "target": "taskagent_resource_task_group_test_testtaskgroup_update_callssdkwithargs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "azuredevops/internal/service/taskagent/resource_task_group_test.go",
+      "source_location": "L336",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "azuredevops_internal_service_taskagent_resource_task_group_test_go",
+      "target": "taskagent_resource_task_group_test_testtaskgroup_delete_surfacesapierror"
+    }
+  ],
+  "hyperedges": [],
+  "built_at_commit": "61d5700468e7680f4355dce31f1d722cc86bbb2f"
+}

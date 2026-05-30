@@ -1,0 +1,3027 @@
+{
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/main.go": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "bdbe8e2cac98fb522557c4a42ee10eef",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/provider.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "91ef46bfdbc830d8bfc9ce4ca323ebc8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/provider_test.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "3fbcc17d7cecd14daed92cf1ef4c03a8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/HttpResponse_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "c3d19fe6f3c5bb0b3abba6589ba6d272",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/retry.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "492ebe5f8f5cfbc8c6167c47aaa86d4c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/HttpResponse.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "fdd2374c3824b53761953507561a1135",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/datahelper/data_helper.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "ae27c0dd4f52bfd457d84ecd01f44399",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/tfhelper/tfhelper.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "3286b6578484eb629ac6269c06d441c8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/tfhelper/tfhelper_test.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "9437797d1b8b8a2eb894f566936fc076",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/tfhelper/error.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "e60983eb5ab97f41477963983f7bc732",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/converter/converter.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "db24b7a92fcf2ea4f490749cc3c43c34",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/converter/converter_test.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "e43c9adfd946b0ddae0d4f1398252d11",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/testhelper/dataGenerator.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "858145661de0f7bb7eefe2f8a30f5ea5",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/testhelper/array.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "78f5e25d175aec9959ab71b8d2fc86e0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/testhelper/random.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "cab77e96e502d3b4c282e77d4e6ae62a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/validate/file_path_test.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "8ec5897062635e0c05343cfe2ae27eee",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/validate/file_path.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "0b6badcabdf122508d0b2faa857dfd4b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/validate/url.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "eb226d73c2c54837aa64cc19906e6a35",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/suppress/string.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "924b5f739d0d7db62817ce4d28d1b9fa",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/utils/suppress/string_test.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "ce5bd536f4d26da61d1247bea6a337ab",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/website-scaffold/main.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "9ffb629d4687f42bad5ff45914f4bcce",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_area_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "4015cf8bc5814b0824782849b40f7060",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_branchpolicy_work_item_linking_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "99fb2dd448739ce7d086851044b35fdf",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_jenkins_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "4ffe89c7b62787bbd913b540ea0892b8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_serviceendpoint_github_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "353676a18507d4e0b6f13a8612ad5e2b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_azurecr_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "21c5a795b58cee13aa644c97efaa1287",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_teams_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "d84715737eecf52dead1617ced8fb49b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_check_common_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "bc40879ea26c89c21a0cc354834ae041",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_projects_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "b21ff703d3ef588db2dd4ee0b4e93f92",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_repositorypolicy_case_enforcement_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "9cdf98e589cd9b08d044aae87f02371e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_branchpolicy_auto_reviewers_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "f0dfb8ed640b27d16c5ef6ba60881f26",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_users_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "c241f6f77781b08d8b0d13770a7895ce",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_branchpolicy_build_validation_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "d636a9b2135ba0f02f9c930387877132",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_octopus_deploy_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "09192ae26b4f818ddf9c3e5fc9eafa65",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_black_duck_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "2f2fbdcf085e2cf4e45bbe627c7bf02b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_team_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "f3a668cbd5ea3743cc440cb3c1bf98b0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_client_config_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "3ef35bbdb0a234b68e4f834e650c85c6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_servicehook_storage_queue_pipelines_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "b11a230219962467681ce28fba3c822f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_team_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "90abb37c397914e569e06d6bd767e2f5",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitem_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "aee5a2cc9b71110207e7d4a1e9f2552d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_externaltfs_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "9b1cac3264d9f91212c09ddaf57cbd3c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_kubernetes_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "2c0ea0f5fad7308d047b708660588941",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_repositorypolicy_file_reserved_names_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "93e08ca7fedb7ad634293a56025d4171",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_build_definition_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "ef31baf842173e533c4820caba178c13",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_serviceendpoint_sonarcloud_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "9d9c468b7d8db247490307a4d017d339",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/provider_auth_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "1ce6b5bfc43eaceedfc2647eb7bf2902",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_workitemtrackingprocess_workitemtypes_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "860341ac84624a5f619f5e08392e0387",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_identity_group_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "5af0873770c70932447c41b9de4f0085",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_serviceendpoint_npm_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "99ca922508f99e9e2b22fe8fee1a58cb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_group_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "5016ff9ccd94213384963d920233e305",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_securityrole_definitions_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "98bb90a246f45cf9025ff43cbb2e6d4e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_branchpolicy_comment_resolution_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "5725d9e2de4bf365f5c055f5262d984d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_state_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "2e4cf3923ae4cf8e53db6e1350d7bc68",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_visualstudiomarketplace_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "204b6889aad7802f5f54ab0c96dfbcf1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_check_exclusive_lock_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "0d896e74813721a47e4fb78d8cfa20c1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_feed_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "5b7739bfde8957fd7a99c96a2dc8ba41",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_control_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "ff0019c778d16332945fc62543a9152a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_checkmarx_sca_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "c53a0d29ba48cfea1ccabb1df096c711",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_dashboard_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "94302564bb0348b9cfd446d929e3c964",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_storage_key_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "67426ba638164fb5819d7ae336802b99",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_workitemtrackingprocess_workitemtype_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "5ce878f26de7d817904162f944843bd7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_list_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "f77df524462a5b705c21d87258a0a29a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_build_folder_permissions_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "4333e5e42c1633d070a65093d4256ff4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_git_repository_file_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "a3afa4ee6c2a59a3e41123fcf8cdd55e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_user_entitlement_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "469f947fd0c12a9d2463797b6357874e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_git_repository_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "e9605acab2eb325cba4dcae32de8ca6c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_branchpolicy_merge_types_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "0cb2d3850d5db385e3d968974c40c476",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_page_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "f2a684f541e692e02e1083f932322931",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_ssh_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "58748d539fc5e405d699d42c1169690e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_inherited_page_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "c8b8f2ed1ac1be1ec49a8ff5cf7ef288",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_git_repository_branch_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "91f8286487d7ac6033f9ba95a23aded1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_environment_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "89e29b0d6b005926e9a66e65a73a0d08",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_permissions_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "443fe251ae323f748fc9ee8eb0ba22ef",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_variable_group_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "5d0a1c043ca3dd8928d6bd3107ce55fc",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_argocd_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "2cfcb477f5b61b679599f833d238a65f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_git_repositories_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "4c4cfc0d7ef386e40f4c162580fd065f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_wiki_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "fa9db582948c9c57ad8b88b57c4d77c2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_group_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "c001c41e72297ef67c43f598c0e1892f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_project_tags_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "8bf3b4fdb9ae41a5658bba4f7e61b170",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_agent_queue_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "30e2283bd15e3cb3e948b702c5eee8f4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_rule_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "3126fdbce5c8d9868b727d5442213c81",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_feed_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "436f9dfea4d40aca526e6c5eafd64349",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_iteration_permissions_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "b50e079278ababa42cdad9c5d53d167e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_artifactory_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "2cfe7816220b1469e4edd13689c67449",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_check_approval_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "415851bfa0b11b7fda6ab9e77d1381e0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_area_permissions_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "53f61a49c18bd7aa3dad8b6832578fc7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_sonarqube_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "6a0d889bc01fdfcf83b0dc1cda148745",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_jfrog_artifactory_v2_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "bc38580c0d3fcc0e784d66d04b09512a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_serviceendpoint_bitbucket_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "1335f7c527505c1a9caa0d94e8010ce1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_github_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "101830c11291be3f14d577b69c41b207",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_project_pipeline_settings_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "78a11e4cf7b89bedd6642b0d19a5fd8d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_jfrog_platform_v2_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "08fd34fc67c0e42ee0db20eabf97e533",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_securityrole_assignment_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "e76e9f0f0e98568319cd8d873a7cc251",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_library_permissions_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "76bee8400484847f91b8f7a309201aee",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_environment_resource_kubernetes_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "f968ee36becfded7ab0b551836815f40",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_inherited_control_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "2ad857667d9f3162dba90f2a8623d91d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_check_required_template_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "6360d22d44fbbb12eb00ba1918adc659",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_git_permissions_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "4fbfc3ce955273ee8cf330f9625edcd4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_security_namespaces_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "f623cc2b2bd6bbfc40fc6348a90322b1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemquery_permissions_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "99b94b3ea740b5cad75c0c349d4b3282",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_extension_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "cd4a12c4fb11cfdc21e3e08b56bcb76d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_system_control_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "4be04ada97c76178c7164b36456b5d2c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_groups_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "80a94c80b2f1b11bc0a15846538fd36f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemquery_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "fa1a5cd418fe322a0860bbb79309cdd6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_checkmarx_sast_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "43b16b95c633cead9c1ba5c9f6b62b7e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_process_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "6d7f9d8adafa228491f184510448fb47",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_git_repository_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "ffa59ecbd4ed17ee8d54ab1bfbab722b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_branchpolicy_status_check_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "2573329df0edc54c214ed6c993b0a3cb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_generic_git_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "70c50a0b1e103cc66d4a5e6850b3aa6c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_agent_pool_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "84732d8a3573b729da7285b1d99523c5",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_aws_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "7746d394c220bb8ae7c13b41b8db64c7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_git_repository_file_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "d84503144feb127e5acf3d70d6b74ecb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_snyk_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "45bc7bdb1225ea750e02b1de4eff97ba",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_resource_authorization_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "8dd1b4b1f533ea2914da07089cabafbb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_deployment_group_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "66b454ac935168ca96e5c9f12eb383dd",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_agent_pool_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "3520e38059f33d7b3bb581dbc5434f33",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_repositorypolicy_file_path_patterns_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "893c020e0ce9d9d83d596b9b8368b18d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_workitemtype_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "a8b5aae77309f6f159cdf5256f4161b1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_repositorypolicy_max_path_length_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "b6e4025a5871f290a70bfc0f0975df9e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_variable_group_variable_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "1c1418bc9bf03346da7d1121a4c02b37",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_incomingwebhook_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "e19e17f9d2ae8db75b6ac625f7903f56",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_team_members_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "ebefbf38a70ef3e99cbe41ac4be009da",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_serviceendpoint_dockerregistry_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "1816f707f4cb1c50c881d8da6efb1d19",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_tagging_permissions_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "56f49e482457e42ea96b0fca60f3f27e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_servicefabric_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "3995a26ac7a8a4ef0a397fc573c87813",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_iteration_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "f392e32ebb01f47e7e26c7bd0829bfd5",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_branchpolicy_min_reviewer_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "ad1c12a3e145de11ecc9defdac261479",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_generic_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "956045f12ebdfea709eff0006c40015c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_feed_permission_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "363d993c559f29a490a47f01ecb0bea7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_project_permissions_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "403df62cbabb22eee2b8127be9b785f6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_azurerm_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "f7394321f52ed5a5fdf5a8a66cb2227a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_openshift_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "225385502c9e78ea67ff9d70ce15d5d7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_project_features_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "679ea5e8e7577751906bac86798222b1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_build_definition_permissions_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "c43ca2d92a354b6e5278b84edf03dc24",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_servicehook_permissions_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "a35cf8d4a621e53b0a5c5a1bc0d64fc5",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_jfrog_xray_v2_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "caef909a58a503d21f2b431413db2159",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_build_folder_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "c863abf7d2491ca18ce74378c030bd01",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_inherited_state_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "8a5dbe7821cfed2f10f7cb213a153972",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_check_rest_api_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "01acec9f41747831aae350d4291a07e6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_checkmarx_one_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "79b39f57233e184cf730ab041ac1b9da",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_dynamic_lifecycle_services_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "3eab6ab08712db5e8b9c1ebf547a4fb7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_descriptor_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "8c0fabda465c1f499b5d9eebb1017d0f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_azuredevops_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "c39df684f5e67c2e4adb7b378779ee91",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_project_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "70e3eb7db901f4d692c17640b1d63df2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_variable_group_permissions_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "e6051a094a5e0368879b1e06f9c60446",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_repositorypolicy_max_file_size_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "f8ffeb103fbb9ac5f5ba3cffbabf56e8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_service_principal_entitlement_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "039589d19cda62d3b65e5862dbbb4124",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_generic_v2_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "e96ea180343bf876a064ae5ff317d19f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_bitbucket_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "f7ef0498fbd4ffe85d4675c2212d7824",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_service_principal_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "7f3bac411d893b9a861cc3cf4d16b63d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_process_permissions_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "08973160f969c89b255e26d894de81e7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_agent_pools_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "5d2ef402695d69e8cc7b950cd0c4caf8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/package.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "47227f193db5185a885dcf38eef98b95",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemquery_folder_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "2eea7282d6be26564afb521fe6b917a8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_security_permissions_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "e3db408d651135519066a7a1ca92ceb3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_elastic_pool_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "4e8d312ac8193df95f21334d7ea9b536",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_nuget_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "54735d082a2df475c2b0ad5a079e53a0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_serviceendpoint_azurerm_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "03ec99e2584c1123a3a388e49d7d222d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_team_administrators_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "a14ad91093fedfe1fc5e7a69c3a168e4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_identity_user_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "48f9f946bd464d68662dedbc5290e681",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_variable_group_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "e72f171cb25f88872073cf4d767c7871",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtracking_field_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "fcdfdda2645860cda83a553c2a71b365",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_group_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "a60a98620f7bec97e67cb7b4d5652e7d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_npm_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "fba3d0bddf2189db6767308d7c7b87ad",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_group_entitlement_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "00a4f542ae96566f7b1aacae218bafa7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_pipeline_authorization_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "1123ea568dd6ac1f6e288893dbc18e2d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_user_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "604ad079eaf9864cf5b35731596df929",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_workitemtrackingprocess_field_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "36774342c9b303ef95068fa60d2da602",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_feed_retention_policy_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "c9b4a893ab0007bf5e96b4e767bf0611",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_build_definition_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "4dc3e1725d33368459010467016ac1a3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_identity_groups_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "75b853b78cbf76703b72fe03e21cdace",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_servicehook_webhook_tfs_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "1432768ea6708a9cc889e3f783dbd5e3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_project_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "428c5a8ff080e7f109640e9105537a9d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_azure_service_bus_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "4a49883e04b7766ff9c3cdeecc666404",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_environment_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "d06c69b891204b35d11a6532e5ec70d4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_runpipeline_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "907fffffcfc0aea835609183c605f168",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_workitemtrackingprocess_process_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "da00ab90ebbbf4cef67e8eba5969c1d3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_maven_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "89b7e301834078dd396a9630250b0669",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_dockerregistry_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "7f1c5345e68ffe844104f85697a1239e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_workitemtrackingprocess_processes_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "3e8cc6d913ce19dbf5a75840793fe437",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_serviceendpoint_azurecr_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "3d59a67670421e15da1b14caa9be8717",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_sonarcloud_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "873f095bbbccde8dbbc59ab2253ecf08",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_group_membership_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "30e66be53db5ad03a38cb7a9af6fb212",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_repositorypolicy_author_email_patterns_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "6401b334f3657d554f495844b61604c4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_wiki_page_test.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "66d34b842249dcac3f2a647c46410ebf",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_gitlab_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "1fdedb854879bf8bce34832cd1c5b84b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_gcp_terraform_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "e58aca561227e7e7415e8138d9c7c18c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_agent_queue_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "0be16049766d9bcfc3319aa1ff024379",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/data_group_membership_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "90f48131af061d343de5cd1516d503e3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_release_definition_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "795d8f5e841816312cafd2d7c27b535a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_check_branch_control_test.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "e28b7d58519bbb75a92bee7db806180b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_nexus_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "ccd9a0ce206f71e0092c35b1159186f3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_jfrog_distribution_v2_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "3479dcf419f1f2ac5c22b962c8ee2efe",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_check_business_hours_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "3b2cee84544e5ea8c20c5cdbad2b2bee",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/resource_serviceendpoint_github_enterprise_test.go": {
+    "mtime": 1780181106.7427628,
+    "ast_hash": "01f9233aa6db5c2fb5b32666909137ad",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/testutils/commons.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "18f0cfc3878aad89fad7cc680c17a32f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/testutils/hcl.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "cf30173624940b2ba032e514718bde59",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/testutils/serviceendpoint.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "93ea04baaf1aff20c89c2fe4e0b681f3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/testutils/process.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "24e8f02fb43283c84ee981f453842ca0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/testutils/projects.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "b81400a62963a67c11d47d637a3c3c66",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/testutils/data.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "59f1fe6c9e0109a98a9867ec6deed5f8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/acceptancetests/testutils/pipelinechecks.go": {
+    "mtime": 1780181106.7471628,
+    "ast_hash": "0620fea9003a34be34f2ad7e9ab237ec",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/data_client_config.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "406297dcb766447f97436ae19192fa7e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_tagging_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "4b1cbb1b8f2ec6440f95887879a48ef7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_iteration_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "0d1bb57e2a2f3588b48f6db7f627e737",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_workitemquery_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "c0f4b34e40dfea7fe2dc17ad4b185144",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_build_folder_permissions_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "7b3084a40ae3949142a83b4ebf93f42f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_git_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "f9a71e16d55ad846be87bd6dead20489",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_area_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "b8ccb70896138d5c903c160e065cbddb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_library_permissions_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "e93624802f2c1e3e4a2bff4adfc00586",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_variable_group_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "fa36aba8b6ae6514e90132d62f4da279",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_git_permissions_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "c7570786c4d0ed88fdd29a3aa05cfd6f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_workitemquery_permissions_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "b1f7dbe43a204d7ae0a7a1c778ceab7e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_project_permissions_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "307d6f8727ef842838ea55d09ed4b0be",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_build_folder_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "62416582f89fb6ba5ead7eba95a57124",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_workitemtrackingprocess_process_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "199393ed6f33e1c597cce563cc8b3b96",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_build_definition_permissions_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "9279ad5ae1d980d8ea01c84a445540d7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_variable_group_permissions_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "e4548c69a0546d73e07b8f00a3401c60",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_workitemtrackingprocess_process_permissions_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "23d7ec64d7ebf94989e2bf6362051238",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_library_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "eff46a31f3d6c92fec6e561e052ab782",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_serviceendpoint_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "bd80a3f577133795b2f6078184b5aca7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_build_definition_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "9c6d17ac50940feb37a3947fecbc1595",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_project_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "4832d790ab35fe93d06f93b9736f59f5",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/resource_servicehook_permissions.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "2f27f5ba32bdb381015f4928da254a94",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/utils/classification.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "993ca75e67ad771e93d06a2acc38bc0d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/utils/securityHelper.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "2a915cd967a2d669971b6269915aa747",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/utils/baseSchema_test.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "6b1529bacca036c3c34e3ae546767de2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/utils/namespaces_test.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "c94fb3d75149f8fd797ae0a977e533a2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/utils/baseSchema.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "a32457ef95588ccc91f9e4d6943951c8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/utils/namespaces.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "92fde7f87123ba49398d5e1b5dca8ba6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/permissions/utils/classification_test.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "1924f825e4551eb59ef69b065a1a0ade",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/dashboard/resource_dashboard.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "2eaa7ead5ff5c26b63963b0cf17d15d9",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/resource_project.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "173859824200d462d87c9cfa18f38a8a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/resource_team_members.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "e60f64063066936dba4ca758ad676d49",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/resource_team_administrators.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "fafd6283ad058da2d2f0a9dfb69abb14",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/data_teams_test.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "28386325f9041c3c6aec43870a302ac0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/data_projects_test.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "31154e9fb94ccd8403796f38a4fa0d2e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/resource_team_test.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "c3077267ef4f07526aa358e0fee8cfcd",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/data_team_test.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "fb11707b6646167e6041e719e213a954",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/resource_project_pipeline_settings.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "5f912adb338d9d1e649c4524a48cb090",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/data_team.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "65f965d3332ea925d4dafd5c8b918e2d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/resource_project_tags.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "1132e00f0074b9b8381a9f9ed2e8666b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/resource_team_members_test.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "1d1c3ad9a283520bc1670f98085dd5b9",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/data_project.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "1178f58e6067ff2c3cddf76896cddbff",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/resource_team.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "85c2ff6a66139c4b517bfb0255bc7296",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/data_projects.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "5c7fdd37e5621c84bb014291197e9f67",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/resource_project_features.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "a694c69c1c96f6899f3e04b978dee4c9",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/data_teams.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "e78fd8fd313f6f96bf97e295130bcfcd",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/core/resource_team_administrators_test.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "38540935024ba4bc2dfea58835b63249",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/repository/resource_repositorypolicy_reserved_names.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "e1fc82ac9c837a86737f19b4b095c16a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/repository/resource_repositorypolicy_max_file_size.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "e1bcd631ee8ea7c5e4b32104566f5c2c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/repository/resource_repositorypolicy_author_email_patterns.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "4e4b1cd9f69d0337e4a701dcdbc690d6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/repository/resource_repositorypolicy_file_path_patterns.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "49a70b5a42879c63871eabbf699a4d07",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/repository/common.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "c91c1332cd0bcaa11d11db96e10aabeb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/repository/resource_repositorypolicy_max_path_length.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "2651e09cc10b7666c00558be84c1035f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/repository/resource_repositorypolicy_enforce_consistent_case.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "3842b03f5f9c4b9946fc8d968eb03da6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_work_item_linking_test.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "a759d2c31602fea860df03cc35b1a1cf",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_auto_reviewers_test.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "4e5deb090cf41c8d9c3ed7005a726317",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_build_validation_test.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "3a0c600fdb435cd38b532afc75b2a714",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_work_item_linking.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "6783a4376cdd503c0c7aadfccb7a4187",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_comment_resolution_test.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "5906edf96147324dcd6f78cc51429668",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_status_check.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "daed5c9d0e7f3f8c24a570171dba377d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/common_test.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "7dc9a88fa182488dc3ab6c13d4c4d492",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_merge_types_test.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "ddf0024f5d8bdf785ff36840a127b54f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_auto_reviewers.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "b326ad7477f9efa5b14f3511f645830e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_min_reviewers.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "b7ac1d4a1dcc7cab2b3a34dfebb5592f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/common.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "a4b7770939f38407a369ea80843a5e78",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_build_validation.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "51948ebd4925c1a356a7fe03b211f912",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_min_reviewers_test.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "f942866a404f0100688783d7a75c58ec",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_comment_resolution.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "a5a94fafee913096245601da7137ef8c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/policy/branch/resource_branchpolicy_merge_types.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "5068074514314b3574ce007c374bd5e3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_jfrog_xray_v2.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "5a035fccc1cfa3bfe138d09567ab0125",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_jenkins_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "b0b941fdd36ca3f9bc65cffbd5dc6688",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_azurecr_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "bb27699a9936d2bdbf0c124f96720697",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/data_serviceendpoint_bitbucket.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "16fcdd6ed3bfdf217f2022136e8cf790",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_generic.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "195a0972775f701f45d57a5703c93f79",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_aws.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "52aaac8eab55fe567dfcbcdcfddc583a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_externaltfs_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "2596aaa16391b6b507ee70fc8482897c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_kubernetes_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "ced2db9b351b4fc7d0cea4a11ffc4fc8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/commons.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "ccc43a2174fc44aeb6b1b230d45554d0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_openshift.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "44d9490ac6aa383d6e78927f4be1b360",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_azuredevops.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "33677b540f391b131b236eb89fb0f521",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_jenkins.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "65399482cc83e3e292e0b87011cc0c49",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_gcp_terraform.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "4eb637c8a732700b18aae1e3dc5c83d3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_generic_git.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "9b64b5add5f251fb7a645ae20740e522",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_runpipeline.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "df95d0e098a808a02a94b7780af13b80",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_npm.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "e27afeb76d827d228c28a25e46e5fb98",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_kubernetes.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "104c49bdd1b2f8a43ef401a38a2dce50",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_dockerregistry.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "4a75f2558d9c9aba50e4726daa177baf",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/data_serviceendpoint_github.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "7f1ee7ca53c639d158774697c264e8dc",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_generic_v2.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "a752578313021ddce60c9633dd444686",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_argocd.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "bbea39d649ce20a2ad0c6371afff0987",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_github.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "7f569c0b8d7055e5d883883a8f1922ca",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_maven.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "35f184f2c4fbd521ee1a04eb4936d40f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_argocd_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "8bacbe7b902e7fe82e6fa2d21d273c0d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_servicefabric.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "4c6ad0c0155db0b972689c0a9f58cd14",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_azurecr.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "3b37a1bed4701dc9265f0acb5cd1dfb6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_jfrog_distribution_v2.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "3272d30fc574a9ff0476c658364e42d4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_visualstudiomarketplace.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "db9844b3033e586fc3d5003bd16df682",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_ssh.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "f2d0bce7df030830304906092d838dcf",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_snyk.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "af58e93e88dae1d24a4090f345a96bde",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_artifactory_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "81c987c73359ff7d74cfb79ee72c9c4d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_sonarqube_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "79c6265dd6adf8de0440d69a66a3d161",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_jfrog_artifactory_v2_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "1ff932221c6cbbdf92a56313bc3be334",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_gitlab.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "b2f853ef4e68fd7c1f70b38395d90f28",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_incomingwebhook.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "5f7500f7e0e26dd375bde73d576727aa",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/data_serviceendpoint_sonarcloud.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "aea9392d1004d04f06fcff39c4ceb8ec",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_github_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "c3e325f0906233ca81ddd2e1182aea8e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_jfrog_platform_v2_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "caf097b04fb9c001e03d6ecdca33c2cf",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_azure_service_bus.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "3fba3937a1f9b7c36b749fc6a5ecbd19",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_checkmarx_sca.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "549a8575832d232f0c1d840ca544d410",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_nexus.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "4137b3887683131e6b05a5655c55282e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/data_serviceendpoint_azurecr.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "e86561657c9f1cf8c3a0a529ddcdbd36",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_aws_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "ccf494bdd2567863f0051075d10ce702",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_nuget.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "fbd73f8cfb250c96510d20909dc510f8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_incomingwebhook_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "9834431da9e3f00b8563a364cb2ed841",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_servicefabric_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "59867623584831df31441441e2f90560",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/data_serviceendpoint_generic_v2.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "c85287d1ed58bc88f5514459000d9f1e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_azurerm_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "317ed628efd998e7e2337d801f4555ff",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_jfrog_xray_v2_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "ee2109a9ae1a67a1b99df21dc38ded21",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_dynamic_lifecycle_services.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "fde90a5203d820fcc6451e8cbac1a10d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_sonarqube.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "09e248b0170ae7e78465ae3fd8825cf2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_externaltfs.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "a019bc26d92d884134f492ee8c242d74",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_bitbucket.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "53aa6cab49974569c65392827c252a72",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_sonarcloud.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "df78c1edbe5987577af733a7a8e61c91",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/data_serviceendpoint_npm.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "97c79714d7fd23906e5c324ef357c16f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_jfrog_platform_v2.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "bba3755b37938199c7af6e3832a9309f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_checkmarx_sast.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "346b4b5547908fec51617fe69f3bd72b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_github_enterprise.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "6cfc1614f49ce44fa8cb14d204e90869",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_azurerm.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "58c03683dd22e7951e941b6818567925",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_npm_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "08083d492b616d55e5d2c4d1ad5fff38",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_black_duck.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "52f33b2bc417442b6437af6e33c84a72",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_runpipeline_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "a31a34777e329c314b82379ac42a17b2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_maven_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "a6fd3d1551e46d54207360a0126ee659",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_dockerregistry_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "1c33acc3ef56d92f719d5f33783196e0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_octopus_deploy.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "b29a7e1dc5153ea3659a91f2c0a78a62",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_artifactory.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "7792de29d9126b7426d08b64855546e3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_gcp_terraform_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "24eeed5437573bf68b33a655f6086894",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/data_serviceendpoint_dockerregistry.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "a6dd01ff09590fe400874fd360d2c6c0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/data_serviceendpoint_azurerm.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "087175b1d41e82ab2859942bf9b647da",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_jfrog_artifactory_v2.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "a31a31de6a00d2c56feb43a2de69f72f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_nexus_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "a63919b419f87da75fe60ed2aa989274",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_jfrog_distribution_v2_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "0ee02d9d1c178675c982d59ce7282fe2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_checkmarx_one.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "ff3f9773ba391ecf8c4d7f7bb3d3a211",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/resource_serviceendpoint_github_enterprise_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "59696b2a9497c76a87f7ad18ed49a735",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/migration/serviceendpoint_azurerm_migration_v0_to_v1.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "4fd3117122e7f7a216d8b0fbf72308cf",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/serviceendpoint/migration/serviceendpoint_azurerm_migration_v1_to_v2.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "ad8f21c8b21d3054a4c1932693cdf79d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/extension/resource_extension.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "87be48dba7bc4f8965aa409a3f88e8dd",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/feed/resource_feed_test.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "033fed8f45c22a01f6d7b7e6997d3a52",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/feed/resource_feed_retention_policy.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "2b4f3dca46de7a4a8db1ae3f83d8a728",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/feed/resource_feed_permission.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "4c673b17863c54660684381737ea5fb6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/feed/resource_feed.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "6dab1befc802746f2226da9fff7d86da",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/feed/resource_feed_permission_test.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "ce7d144db6bd485c58fa6ca9dafc9544",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/feed/data_feed.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "5166ea33850724d0ff64491ae5061635",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/security/data_security_namespaces.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "a3978da86e05cb8a94b0549003d93288",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/security/data_security_namespace.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "f3629f6d0105449e71e1b91400f35edc",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/security/resource_security_permissions.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "f4bb77cba3a52005330a4cb9588ac675",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_inherited_page_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "d5d2ba87da8043c97f4144cafd7060d0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/data_processes.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "fb00a605f275dac1312f9d6a7797d03a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/data_work_item_type.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "8aedd6b80bd8279599418c3a458aae03",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_list.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "2aa164aa93f62bdf45df24f74966949c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_group_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "1b63dbe33b5538ff150bd454440af2b5",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_state.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "43afa5c803c8623721d06a32003aa8bb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/order.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "cf58a1e30484d79535e76160c40cc949",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_field.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "a2ea62eda4ca79891e9024b2a75dfaf9",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_group.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "b3e15a0683e0d79b372a70da19331802",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/data_work_item_type_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "c567d302bc107a264d731c701b1d5e17",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/data_process.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "756c6055221680688ad470dd853f555f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_inherited_control_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "7a6e6e507f455a78f63e02e309d52fb6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_control.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "db56216011eed0904325651f7b2ef07e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_control_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "a32003e760f16d1c4cbf2142ea23df70",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_process_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "9d92503db8aa71bb04bec0a86a633b17",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_page_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "0683d3d66f59b48a22a0a20be60ff035",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_inherited_control.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "642db3e73abd5f7004048528e038072a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_inherited_page.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "6c6911f38659ca05489f5ddddb32f4a8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/color.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "7ced41ae63890171db4defa343bc471f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_work_item_type_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "5c2a2270a9e3dfc09766d713f83bffb1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_rule.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "36bc5479bac90f07b01903924afedb95",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/data_work_item_types.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "d4b2878c8240b6cd1517265634dadb84",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_work_item_type.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "490c59e1b7baffa212a0a73b960b7d58",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_inherited_state.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "803ea10172883c6c7c2d9ccbd008b567",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_page.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "03f90ecda82cbb90e4049940f370323e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_system_control.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "33b00d21b7d4a4b7c7b9e0cabee672ca",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/data_work_item_types_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "53b94dad78f4aacca6c04dd4983e1dcb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/data_process_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "1e03efb83279135801d20931f6331b47",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/data_processes_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "85443be2cc1602073a853fa499c6e9c0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_process.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "29d6be129170eda3901586f63aa9bcd7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/resource_inherited_state_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "a3182a2757a834b165f87503eecd55ab",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtrackingprocess/helpers.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "38d994369b9e5067fe0934bc3a9486fa",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/memberentitlementmanagement/resource_user_entitlement_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "4cc18c34f3e46bd289f799ec704c6c63",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/memberentitlementmanagement/resource_user_entitlement.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "e4ffe87b02193f829b6b717aebbbd71d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/memberentitlementmanagement/resource_service_principal_entitlement_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "f853edc286841a798c111680a27e9886",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/memberentitlementmanagement/resource_group_entitlement.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "9dab52aa6594804862193dfa72b412ac",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/memberentitlementmanagement/resource_group_entitlement_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "a2345fe489d34b93ac4119bb141f1c78",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/memberentitlementmanagement/resource_service_principal_entitlement.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "858f83964dfc085e119596cee288613e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/data_users_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "b2f5564ceb7e9b3c8dbed9b823a80a36",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/data_group_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "f0ef664daef65619371106104d374a96",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/data_users.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "af9ed16613dbcc719add3a2fa6c14508",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/data_descriptor.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "8c20c2c8de9035817a0cdd041d005c20",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/resource_group_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "26aa78cf0891bea668cf5477a30037b1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/resource_group.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "a2c642be260b0e3792b2502fdc66d7fe",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/data_groups.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "a9e0549cc2ea730778046fc8e7ff2738",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/data_groups_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "e894aab8fe7e76cd1cbdebfd73a2c1df",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/data_user.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "62be791cf918973745d4c678cba04381",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/data_group.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "d2cf5019856a5e73d0c15236c824a943",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/resource_group_membership.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "cda745083fef6bca8347c5fa005fafc3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/data_service_principal.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "ba4539f67d1ab9faf83405cc113abb29",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/data_service_principal_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "d36a54736c27fbb903e95e7fd9540182",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/data_group_membership.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "4f2746557da56109155a28920616698b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/resource_group_membership_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "336f12e65163dfe419eb905a93615d5a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/graph/data_storagekey.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "a4e498fda0349596e8fc0afe3353f50a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/securityroles/resource_securityrole_assignment_test.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "aad86dc07d203b0c6ef6d9ca44c14c66",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/securityroles/data_securityrole_definitions.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "eda94b6185e0247ebc5eb9e7aec5cf84",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/securityroles/resource_securityrole_assignment.go": {
+    "mtime": 1780181106.769163,
+    "ast_hash": "36ad1faf7010901746e3429ecd709ded",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/identity/data_identity_group_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "c9941589df64e47e151a51668b1015a7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/identity/data_identity_user.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "2150961dae4507a54d8ff8ca0595878b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/identity/data_identity_groups.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "7ecbf4df03bcc91ba11d7296d08e89c4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/identity/data_identity_user_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "2ab2dadd9e9cb994c39a01acfb6429b1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/identity/data_identity_groups_test.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "d1b0c3a103775d4e9ef58d4deb84feb6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/identity/data_identity_group.go": {
+    "mtime": 1780181106.7603629,
+    "ast_hash": "ef6e2382142b8b7d58c48d36034412f2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/servicehook/resource_servicehook_storage_queue_pipelines_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "78eddba9bb539454d009a38da56c961a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/servicehook/commons.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "9b93519f1efba4781926c20f3aa5de40",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/servicehook/resource_servicehook_storage_queue_pipelines.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "c428803a4c9cd401863fc52ba2bf4a61",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/servicehook/resource_servicehook_webhook_tfs.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "3348829677e9b9f37b54e531a0ebe7dc",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/servicehook/pipelines_publisher.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "22e18fb10a541049354cdfceca5fd23c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/servicehook/resource_servicehook_webhook_tfs_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "7d0f09dc26f8bbbd53d7d366fffc65e6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/servicehook/tfs_publisher.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "d28a51aa7e20757d2da2bcf0bad2925b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/release/resource_release_definition.go": {
+    "mtime": 1780181106.7647629,
+    "ast_hash": "031c8462485fdc10005698e1d0f1806d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_agent_queue.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "35edb56656f1ad5840cbf4006abb4431",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/data_agent_pools.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "f46855b5ec01d197961107350cddedc0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/data_agent_pool.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "c0895f4b975eb97bdf4aac2e9a7fcd55",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_deployment_group.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "278f75d7cc3859f0bd35e36d03fdcd59",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_variable_group_variable.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "186e839af4556f28e256637ceca06ce4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_variable_group.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "f1fe72fab9dd40d890769b6f5a2b08e7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/data_variable_group.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "9b4757b497525ab26b672f653a250abb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_environment_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "f73c179f30af3bc279cab0e91a0157f3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/data_variable_group_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "29c60d44d1f6a9289d097f9d0022c2da",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_task_group_test.go": {
+    "mtime": 1780181404.803724,
+    "ast_hash": "8451bb11facf210c2cb2850bc044840c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_agent_queue_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "3ef70e9b6343d5577dccfacb2f66425c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_agent_pool.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "1c12a83ade6373d78a1659d4fca05b56",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/data_environment.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "cac554d159dfb8ddbd4df9e0664b37e9",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_environment_resource_kubernetes_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "623b54ad3795a2239c97dc3c6462816e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_task_group.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "50b4d79c82fdb32afe8330f77bd61d2b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/data_agent_pool_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "48ba772a2c176af0af5f080567dacba1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/data_agent_queue.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "5eb9d67379272d712e41014323e5c8d8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_environment_resource_kubernetes.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "9880df69f2bada1ff224619c0c985da3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/data_agent_pools_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "07a7114e0fa34ee0f7296ba51c403a55",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_elastic_pool.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "567bfad45820efe08a58c10dc50ecd91",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/resource_environment.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "0d0220ed03889452f5f565d264034d71",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/data_agent_queue_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "399f234f3840351cd35b521f32210f80",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/validate/environment_name_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "ab5dd74ecfadb6e6830e3dfe3551378a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/taskagent/validate/environment_name.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "87ba2dc0d981a9acf4f019da0775504c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/approvalsandchecks/resource_check_rest_api.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "fa6560078e266c7025e4cef0fc15eec7",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/approvalsandchecks/resource_check_approval.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "df11534928eb5aef167c4c11be51b702",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/approvalsandchecks/resource_check_exclusive_lock_test.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "f3a2ffae0e5dbe17c6dfb2a8291ba9a6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/approvalsandchecks/resource_check_branch_control.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "a437cef1d3a7b830420098508dc544ec",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/approvalsandchecks/resource_check_business_hours.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "e9cba0926c23c9d6baf248ab5a0c4dd8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/approvalsandchecks/common_check.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "5ab626ccc66568dc03d433ef48d28d55",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/approvalsandchecks/resource_check_exclusive_lock.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "ca908ddec2c60522cebb7586a0c7d96d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/approvalsandchecks/resource_check_approval_test.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "039491868c7603fdeb19bfa9b4596bd2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/approvalsandchecks/resource_check_required_template_test.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "b98a860d3473779a48063f01997dc045",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/approvalsandchecks/resource_check_required_template.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "6f8afb0f44515bdc48c26374800cf539",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/approvalsandchecks/resource_check_branch_control_test.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "116d489b5feda6c0f02e27e9a1dd7df3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/approvalsandchecks/resource_check_business_hours_test.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "72d1d4716f8c7f60f23b1bc32e6481e8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtracking/resource_workitem_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "50f0ca3fcb1ce04b140dfb53e4204517",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtracking/resource_workitemquery_folder.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "ad4ccefa588b5bcf738fb8b860116132",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtracking/data_area.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "c501adde2e925e2f993af658086f77a9",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtracking/resource_field.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "65983322e60a7ef1ae1540b579e26b1e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtracking/resource_workitem.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "e9d19303fa9a6ce28552933e6c23f68d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtracking/data_iteration.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "e75c41b1828057af4c0eca790bf2fb38",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtracking/resource_workitemquery_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "78ef117780e96f3b3af44b073b722f56",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtracking/resource_workitemquery.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "e2a1faadc150b9b237e4946063565569",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtracking/resource_workitemquery_folder_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "0f8e50c403713add5339a4de631165d4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtracking/utils/classification.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "63ec6f9d66c6ff22fe02608f943ea50a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/workitemtracking/utils/classification_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "04da30e3bd0561bece4987727e239fbb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/wiki/resource_wiki_test.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "b724e9cb03cc3087059366fb61f52aa6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/wiki/resource_wiki_page.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "3458d0bb1faee6d364ee99d5d73e9411",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/wiki/resource_wiki.go": {
+    "mtime": 1780181106.773563,
+    "ast_hash": "2b1d8ecfec3485af8bcd2070cf0cefb6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/git/resource_git_repository_file_test.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "35ec10e6d73162aedb3946c1f0e3d0a0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/git/data_git_repository_test.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "e8596a4d90335d671f13a1e63842b507",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/git/resource_git_repository_branch_test.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "10ddd62235c60ead0d2dbd795eca744b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/git/data_git_repositories_test.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "8b4ba8c34bea10c16624f29cd2685463",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/git/resource_git_repository_test.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "6097ee83a0e2bc78a901871db7387d98",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/git/resource_git_repository_branch.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "073268f192f9ef9129fd4a7d1e0b46b2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/git/data_git_repository.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "fe878fc891c255990120ca4075930c32",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/git/data_git_repository_file_test.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "30aff7225c44c372e4c20fbd857b0e56",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/git/resource_git_repository.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "8c6e75387ad9a8ad25ae5058f07ca96b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/git/resource_git_repository_file.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "c03b93c67fe8ffc722d7b96e6a00f392",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/git/data_git_repository_file.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "4ee130a9949ef2e683c1e06bda3c18f0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/service/git/data_git_repositories.go": {
+    "mtime": 1780181106.7559628,
+    "ast_hash": "d485d826dd2d3552f5cb2f5a3ee5ab60",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/client/client.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "f780a70ecd8189900710b8c5ede690d1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/model/model_job.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "a1b80054773cf8d9e61b875288e04af0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/model/repo.go": {
+    "mtime": 1780181106.7515628,
+    "ast_hash": "13934d406073a1526c29dd79de7a956e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/utils/commons.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "2445428ab8f903f783974329a0a6fe81",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/utils/sdk/organization/models.go": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "0d0cc0014b53f30733ef9c61071252ca",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/utils/sdk/organization/client.go": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "8874d95e3772cbfc6836cd70621f962f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/utils/sdk/pipelineschecksextras/models.go": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "922f972811038d114ecfb07beb8825d8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/utils/sdk/pipelineschecksextras/client.go": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "104e24dc7d3d76b624a2e798f2a2699c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/utils/sdk/dashboardextras/models.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "2e71d62b371dce812d7fed2ac1be1cf1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/utils/sdk/dashboardextras/client.go": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "82453d823a93ed1b1016596b579a4694",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/utils/sdk/securityroles/models.go": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "e9c81aafa4ca5be192a205212ce09579",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/utils/sdk/securityroles/client.go": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "40d148414efd35ba20cb44ab6a789bad",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.vscode/settings.json": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "2b722ed48dcc26998bf801a27f4f5855",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.vscode/launch.json": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "b60f5d032b0897e7b67613ad0fa09031",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.devcontainer/devcontainer.json": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "63af3cf3445f39992f9ca5fd2896f77c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.forge/project.json": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "5956612af4724bac6b98e96d6c286b2a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/accounts_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "4b2813a881f3278aba4e2b4eacc6e710",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/workitemtrackingprocess_sdk_mock.go": {
+    "mtime": 1780181106.7383628,
+    "ast_hash": "25072bbaee6a7db2e35da01b309943dc",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/notification_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "706719237428833e1cccae2fdfc730eb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/graph_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "f9d67f084c96e91990f3ee27fe5984f2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/feed_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "11601d6b659d99f6d7a995f4a4282800",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/pipelinepermissions_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "672a2dd3c58bd8eb386d7ed1638b1050",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/build_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "288d4a7cf41c66054abf7684246b3146",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/featuremanagement_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "9d5c85abbe9e13dfd5b848a8fec80611",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/pipelineschecks_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "90a6a0897deee65e7df3a6390cc75404",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/policy_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "bab9bfd31c0e32a9c7cb7af4dff299dc",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/wiki_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "dce5d5c639c59018b6b1690f907dff91",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/git_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "8a007d371b6d06df0adc9c260c4804ee",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/pipelineschecksextras_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "d422a17e81792141817924e211ffc790",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/workitemtracking_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "6a66b10fccb197001f312e6b06b191eb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/taskagent_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "4c7feda62e4253b0c3a3f5c7c5afad32",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/serviceendpoint_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "8dc08fd03a329e778c73bd7ac2d35fa2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/servicehooks_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "3b435d0a2e739e38bfe7a9cb856d25cc",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/pipelines_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "38554ee720f32e350b157e3b038313fe",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/release_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "4f2c63340014d15d27b6204b6c165849",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/pipelinesapproval_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "fd7fe9be36a333662afe6eae4f7ce3b9",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/elastic_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "7104a3516ce475bffe142ae7dab6fd78",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/memberentitlementmanagement_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "bd1acb12d40113d8f44af6f9eb6ce586",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/core_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "e8804a0f87038fbe9bbccf797f102d47",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/securityroles_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "313769e502c31a2756f9393894ba8362",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/operations_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "d7a0b5bd6117ec6998fc17234df07436",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/dashboard_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "f9d8249aaa79b0a670cccb3b68e1695c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/security_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "a2fda05d866b863c98f13c98c28d2145",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/test_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "11638013af977e24d310a2a43c48982f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/identity_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "5a1aa32097f1fcce7bcc70763372a0d2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/profile_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "9039735f6bc760688cdf888005f57668",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/extensionmanagement_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "aa5b387d2728a4787b048cdf743de222",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azdosdkmocks/gallery_sdk_mock.go": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "ece74d92b0dba99584234d9494ae185f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/lint-check-go.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "50a93833e1a668e820aad7b5a3ffec10",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/generate-mocks.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "fd4eed253843e8b94b5771c68ea3f0f3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/build.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "dbd28285103fa27bbcd46b6b1d7016f6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/scaffold-website.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "35a696dea16c341698be4b5cb60348f3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/commons.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "c6e21ff9a08dffabfd549d8d86375a34",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/ado-api.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "a27cf8268de1f9539a65083ef98fd0e4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/timeouts.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "a715603d800b922b89f5c26fc8668707",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/clean-build-cache.ps1": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "d6eaa1f7a43ae0e02c50657074ebcdaf",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/fmt-check-go.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "834272140d87209db956eee87df03b92",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/gofmtcheck.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "29a2a69ace22f76a50f3d8079cc3b5d6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/local-install.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "bd54df8f0c223de67f736ee1bb142ca3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/acctest.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "c6bb5b785d180986ee1debdee04a3680",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/terrafmt.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "fc22ce1b868f9f09b1ea1c40377a40e1",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/changelog-links.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "c9a5522df21cfb86537dbefa4fff07d2",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/scripts/unittest.sh": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "5a8f70e04bed306fe8fb8de7a64d69c0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/version/version.go": {
+    "mtime": 1780181107.1651628,
+    "ast_hash": "fea9abad4d47f8199bd6ddc4a5e27f71",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/examples/release_definition/minimal.json": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "af869829069fe7762596ab5b291460e8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/fix_plan.md": {
+    "mtime": 1780181424.3815215,
+    "ast_hash": "4cd61f90170ea6c0f99779a31b986abb",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/CODE_OF_CONDUCT.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "b5466fb60e64cce0de7ec4be47c9653f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.goreleaser.yml": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "515900a836afed2c5340d8c6c827178f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/PROVIDER_VERSION.txt": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "25e64aa754c310d45c1e084d574c1bb0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/CLAUDE.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "69b4137153975f013ccdcbd7cc76905e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/CHANGELOG.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "054292ba274a1ab44463337a70a3d549",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/README.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "e0aa5b8f7380556e55cb4e0581b4778c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/roadmap.md": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "9a8509cbc53672332df565479e911d9a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/PROVIDER_NAME.txt": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "bb41eda197ba2dd0fe5e53253a0658ff",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/AGENT.md": {
+    "mtime": 1780181424.3815215,
+    "ast_hash": "9af54ee51e43beb5088641369e0f779b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/SECURITY.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "3c9b6cb682380bea1e009750bd190ac4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.golangci.yml": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "fbf5fb06f043f3476c0856a9ab4db3fc",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/PROMPT.md": {
+    "mtime": 1780181424.3815215,
+    "ast_hash": "2b8c158e88e977d1969e7bd554087c0f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/azuredevops/internal/website-scaffold/README.md": {
+    "mtime": 1780181106.777963,
+    "ast_hash": "ffab3cc71b19577960cb96f3ed3ed960",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/brain/profile.md": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "8a54c7fc4c1b295cc8f89fd916e09f28",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/brain/decisions.md": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "ef0bd6d0b1c1090820b611c7b11dae50",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/brain/operations.md": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "8a79dbef6adf8e3c5f2f0d8c066c9553",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/brain/reference.md": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "38f2ca6c3fed4466d28c750509881413",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/brain/themes/2026-05-18-stack-and-test-layout.md": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "b0fc433a9a483a0fce8b852192668a2e",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/brain/themes/2026-05-23-dogfood-cycle-false-pass-gate.md": {
+    "mtime": 1780181106.7867627,
+    "ast_hash": "04f746cfe9363384560ca37bebc2c6ae",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/brain/themes/2026-05-18-branch-model-consolidated.md": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "babb5fe547ad53f333500302a7363d5a",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/brain/themes/2026-05-18-go-test-harness-demos.md": {
+    "mtime": 1780181106.782363,
+    "ast_hash": "a263334d296b8b2979af53ff35096b17",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/brain/themes/council-constraints.md": {
+    "mtime": 1780181106.7867627,
+    "ast_hash": "3d6ea0c046d65003b5e9ebad5d5302fa",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/brain/themes/release-substrate-context.md": {
+    "mtime": 1780181106.7867627,
+    "ast_hash": "572c82e2057f8a0a85ccc64a34f431fc",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.claude/skills/ado-api-explorer/SKILL.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "7a00b73a3ad44b43989d47827458536c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.claude/skills/ado-browser-inspector/SKILL.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "cb867e863ce9abd4d166c98275f100a6",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.claude/skills/resource-scaffolder/SKILL.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "f1808b29726bdd8cc970acef24ff9104",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.forge/work-items/_graph.md": {
+    "mtime": 1780181220.1553745,
+    "ast_hash": "eb4655a96c2a9b3201f0fa8db9b0c242",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.forge/work-items/WI-1.md": {
+    "mtime": 1780181422.0055215,
+    "ast_hash": "aa00357766ea90f0510bf48862cb5ab8",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.azdo/oidc-test.yml": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "664c483548c0b0b9012f68ecd871fe65",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.azdo/ci.yml": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "1703475025655fb71dd06051093b6b99",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.azdo/package.yml": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "2733ce9caf2913b23a1d7bd618f2a172",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.azdo/azure-pipeline-nightly.yml": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "83d10df93b966fd7e06d270671436c57",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/examples/github-based-cicd-simple/README.md": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "18b7f2bba2ad59df0865a734d073f62b",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/examples/azdo-based-cicd/README.md": {
+    "mtime": 1780181106.7911627,
+    "ast_hash": "11355ec95d006683e4da5296556f8f51",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/_architect/2026-05-23T11-19-10/council-transcript.md": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "4ce98b7e2228fcddc693919961af9dd4",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/_architect/2026-05-23T11-19-10/PLAN.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "786397ce1d0912b7d7cb316fb823e73f",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/_architect/2026-05-23T11-19-10/PLAN.html": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "3476ae140bdb305e3ecfa1daa57241a0",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/_architect/2026-05-23T11-19-10/manifests/INIT-2026-05-23-release-def-substrate-gates.md": {
+    "mtime": 1780181106.7339628,
+    "ast_hash": "8af231bf7d5eefe0a34e9df8d60f95a3",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.github/PULL_REQUEST_TEMPLATE.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "6382d4256197fc5466e92c15e5c1384c",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.github/workflows/oidc-test.yml": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "bea48285588ffb39a1bc26af1bf027af",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.github/workflows/terrafmt.yml": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "6ae338bb013e1cf7a506ce83612bf5ed",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.github/workflows/depscheck.yml": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "53e8af7cf09aa56a43f4ba0335075c83",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.github/workflows/unit-test.yml": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "bbfa505811e41096c05af49ff82e09ac",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.github/workflows/golint.yml": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "d94f0ccec7877324b88881c74d7ec540",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.github/ISSUE_TEMPLATE/Feature_Request.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "3e91e85b81acf9dd27d51586e71f67da",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.github/ISSUE_TEMPLATE/Bug_Report.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "80e96ac97c49420212ea5c23dbea960d",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.github/ISSUE_TEMPLATE/Question.md": {
+    "mtime": 1780181106.7295628,
+    "ast_hash": "10905866c5a026fdb597de51dd3ab829",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/demo/INIT-2026-05-31-task-group-unit-tests/demo.json": {
+    "mtime": 1780181450.2330124,
+    "ast_hash": "8ff4f9b8486ffb4458c8c31075ecad25",
+    "semantic_hash": ""
+  },
+  "/home/parso/forge/_worktrees/INIT-2026-05-31-task-group-unit-tests/.forge/pr-description.md": {
+    "mtime": 1780181450.2462125,
+    "ast_hash": "436484ecb7434c8d32291c0d15ab3ad7",
+    "semantic_hash": ""
+  }
+}
