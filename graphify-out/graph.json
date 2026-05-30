@@ -31,10 +31,19 @@
       "norm_label": "what i tried"
     },
     {
-      "label": "Iteration 4 (unifier)",
+      "label": "Iteration 5 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
       "source_location": "L9",
+      "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_5_unifier",
+      "community": 3,
+      "norm_label": "iteration 5 (unifier)"
+    },
+    {
+      "label": "Iteration 4 (unifier)",
+      "file_type": "document",
+      "source_file": "AGENT.md",
+      "source_location": "L19",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_4_unifier",
       "community": 3,
       "norm_label": "iteration 4 (unifier)"
@@ -43,7 +52,7 @@
       "label": "Iteration 3 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L18",
+      "source_location": "L28",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_3_unifier",
       "community": 3,
       "norm_label": "iteration 3 (unifier)"
@@ -52,7 +61,7 @@
       "label": "Iteration 2 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L28",
+      "source_location": "L38",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_2_unifier",
       "community": 3,
       "norm_label": "iteration 2 (unifier)"
@@ -61,7 +70,7 @@
       "label": "Iteration 1 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L36",
+      "source_location": "L46",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_1_unifier",
       "community": 3,
       "norm_label": "iteration 1 (unifier)"
@@ -70,7 +79,7 @@
       "label": "Notes for reflection",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L48",
+      "source_location": "L58",
       "id": "init_2026_05_31_task_group_unit_tests_agent_notes_for_reflection",
       "community": 3,
       "norm_label": "notes for reflection"
@@ -330,8 +339,18 @@
       "source_location": "L9",
       "weight": 1.0,
       "source": "init_2026_05_31_task_group_unit_tests_agent_what_i_tried",
-      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_4_unifier",
+      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_5_unifier",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENT.md",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "init_2026_05_31_task_group_unit_tests_agent_what_i_tried",
+      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_4_unifier"
     },
     {
       "relation": "contains",
@@ -565,5 +584,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "b2efbde42c3d7b699fa64a1d33adfbc7e622cd18"
+  "built_at_commit": "bf67ff9d0c6a65e15458f0e18730900be6d644e2"
 }
