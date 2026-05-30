@@ -1,16 +1,16 @@
 # Graph Report - INIT-2026-05-31-task-group-unit-tests  (2026-05-31)
 
 ## Corpus Check
-- 592 files · ~321,790 words
+- 592 files · ~321,901 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 33 nodes · 28 edges · 5 communities (4 shown, 1 thin omitted)
+- 34 nodes · 29 edges · 6 communities (4 shown, 2 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bf67ff9d`
+- Built from commit: `7ee369cb`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -19,23 +19,24 @@
 - [[_COMMUNITY_Community 2|Community 2]]
 - [[_COMMUNITY_Community 3|Community 3]]
 - [[_COMMUNITY_Community 4|Community 4]]
+- [[_COMMUNITY_Community 5|Community 5]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `What I tried` - 6 edges
+1. `What I tried` - 7 edges
 2. `Add gomock unit tests for the betterado_task_group resource` - 4 edges
 3. `Unifier Agent Memory — INIT-2026-05-31-task-group-unit-tests` - 3 edges
 4. `Changed files` - 2 edges
-5. `Iteration 5 (unifier)` - 1 edges
-6. `Iteration 4 (unifier)` - 1 edges
-7. `Iteration 3 (unifier)` - 1 edges
-8. `Iteration 2 (unifier)` - 1 edges
-9. `Iteration 1 (unifier)` - 1 edges
-10. `Notes for reflection` - 1 edges
+5. `Iteration 6 (unifier)` - 1 edges
+6. `Iteration 5 (unifier)` - 1 edges
+7. `Iteration 4 (unifier)` - 1 edges
+8. `Iteration 3 (unifier)` - 1 edges
+9. `Iteration 2 (unifier)` - 1 edges
+10. `Iteration 1 (unifier)` - 1 edges
 
 ## Surprising Connections (you probably didn't know these)
 - None detected - all connections are within the same source files.
 
-## Communities (5 total, 1 thin omitted)
+## Communities (6 total, 2 thin omitted)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.20
@@ -46,16 +47,20 @@ Cohesion: 0.33
 Nodes (5): Acceptance criteria, Add gomock unit tests for the betterado_task_group resource, Changed files, code:block1 (.forge/project.json                                         ), Five unit tests cover every CRUD path and expand/flatten symmetry of the task group resource
 
 ### Community 3 - "Community 3"
-Cohesion: 0.22
-Nodes (8): Iteration 1 (unifier), Iteration 2 (unifier), Iteration 3 (unifier), Iteration 4 (unifier), Iteration 5 (unifier), Notes for reflection, Unifier Agent Memory — INIT-2026-05-31-task-group-unit-tests, What I tried
+Cohesion: 0.29
+Nodes (7): Iteration 1 (unifier), Iteration 2 (unifier), Iteration 3 (unifier), Iteration 4 (unifier), Iteration 5 (unifier), Iteration 6 (unifier), What I tried
 
 ## Knowledge Gaps
-- **19 isolated node(s):** `Iteration 5 (unifier)`, `Iteration 4 (unifier)`, `Iteration 3 (unifier)`, `Iteration 2 (unifier)`, `Iteration 1 (unifier)` (+14 more)
+- **20 isolated node(s):** `Iteration 6 (unifier)`, `Iteration 5 (unifier)`, `Iteration 4 (unifier)`, `Iteration 3 (unifier)`, `Iteration 2 (unifier)` (+15 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **1 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **2 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **What connects `Iteration 5 (unifier)`, `Iteration 4 (unifier)`, `Iteration 3 (unifier)` to the rest of the system?**
-  _19 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `What I tried` connect `Community 3` to `Community 5`?**
+  _High betweenness centrality (0.062) - this node is a cross-community bridge._
+- **Why does `Unifier Agent Memory — INIT-2026-05-31-task-group-unit-tests` connect `Community 5` to `Community 3`?**
+  _High betweenness centrality (0.028) - this node is a cross-community bridge._
+- **What connects `Iteration 6 (unifier)`, `Iteration 5 (unifier)`, `Iteration 4 (unifier)` to the rest of the system?**
+  _20 weakly-connected nodes found - possible documentation gaps or missing edges._

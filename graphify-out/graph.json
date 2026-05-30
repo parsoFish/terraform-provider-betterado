@@ -9,7 +9,7 @@
       "source_file": "AGENT.md",
       "source_location": "L1",
       "id": "agent_md",
-      "community": 3,
+      "community": 5,
       "norm_label": "agent.md"
     },
     {
@@ -18,7 +18,7 @@
       "source_file": "AGENT.md",
       "source_location": "L1",
       "id": "init_2026_05_31_task_group_unit_tests_agent_unifier_agent_memory_init_2026_05_31_task_group_unit_tests",
-      "community": 3,
+      "community": 5,
       "norm_label": "unifier agent memory \u2014 init-2026-05-31-task-group-unit-tests"
     },
     {
@@ -31,10 +31,19 @@
       "norm_label": "what i tried"
     },
     {
-      "label": "Iteration 5 (unifier)",
+      "label": "Iteration 6 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
       "source_location": "L9",
+      "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_6_unifier",
+      "community": 3,
+      "norm_label": "iteration 6 (unifier)"
+    },
+    {
+      "label": "Iteration 5 (unifier)",
+      "file_type": "document",
+      "source_file": "AGENT.md",
+      "source_location": "L19",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_5_unifier",
       "community": 3,
       "norm_label": "iteration 5 (unifier)"
@@ -43,7 +52,7 @@
       "label": "Iteration 4 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L19",
+      "source_location": "L29",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_4_unifier",
       "community": 3,
       "norm_label": "iteration 4 (unifier)"
@@ -52,7 +61,7 @@
       "label": "Iteration 3 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L28",
+      "source_location": "L38",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_3_unifier",
       "community": 3,
       "norm_label": "iteration 3 (unifier)"
@@ -61,7 +70,7 @@
       "label": "Iteration 2 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L38",
+      "source_location": "L48",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_2_unifier",
       "community": 3,
       "norm_label": "iteration 2 (unifier)"
@@ -70,7 +79,7 @@
       "label": "Iteration 1 (unifier)",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L46",
+      "source_location": "L56",
       "id": "init_2026_05_31_task_group_unit_tests_agent_iteration_1_unifier",
       "community": 3,
       "norm_label": "iteration 1 (unifier)"
@@ -79,9 +88,9 @@
       "label": "Notes for reflection",
       "file_type": "document",
       "source_file": "AGENT.md",
-      "source_location": "L58",
+      "source_location": "L68",
       "id": "init_2026_05_31_task_group_unit_tests_agent_notes_for_reflection",
-      "community": 3,
+      "community": 5,
       "norm_label": "notes for reflection"
     },
     {
@@ -339,8 +348,18 @@
       "source_location": "L9",
       "weight": 1.0,
       "source": "init_2026_05_31_task_group_unit_tests_agent_what_i_tried",
-      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_5_unifier",
+      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_6_unifier",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENT.md",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "init_2026_05_31_task_group_unit_tests_agent_what_i_tried",
+      "target": "init_2026_05_31_task_group_unit_tests_agent_iteration_5_unifier"
     },
     {
       "relation": "contains",
@@ -584,5 +603,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "bf67ff9d0c6a65e15458f0e18730900be6d644e2"
+  "built_at_commit": "7ee369cb9d8aa49a2813872d60971abdcee6c928"
 }
