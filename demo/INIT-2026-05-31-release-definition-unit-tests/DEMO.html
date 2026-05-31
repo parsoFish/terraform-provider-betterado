@@ -52,7 +52,7 @@
   <div class="meta">
     <code>INIT-2026-05-31-release-definition-unit-tests</code> · project <strong>terraform-provider-betterado</strong>
     · before <code>main</code> → after <code>HEAD</code>
-    · generated 2026-05-31T10:43:52.227Z
+    · generated 2026-05-31T10:45:03.068Z
   </div>
 </header>
 
@@ -75,8 +75,10 @@
 
 <details class="appendix"><summary>Acceptance criteria this demo is grounded in (5)</summary><ol><li>AC1 (WI-1): 5 baseline CRUD tests pass under -run TestReleaseDefinition</li><li>AC2 (WI-1): go build -mod=vendor . exits 0 with no compilation errors</li><li>AC3 (WI-2): All 11 TestReleaseDefinition tests pass</li><li>AC4 (WI-2): TestReleaseDefinition_Update_RevisionRetryOnConflict verifies GetReleaseDefinition called once and UpdateReleaseDefinition called twice</li><li>AC5 (WI-2): TestReleaseDefinition_SecretVariables_PreserveOnFlatten verifies secret variable values preserved from state on flatten</li></ol></details>
 <details class="appendix"><summary>Changed files (<code>git diff --stat main..HEAD</code>)</summary><pre> .../release/resource_release_definition_test.go    | 1008 ++++++++++++++++++++
+ .../DEMO.html                                      |   83 ++
+ .../DEMO.md                                        |   40 +
  .../demo.json                                      |  118 +++
- 2 files changed, 1126 insertions(+)</pre></details>
+ 4 files changed, 1249 insertions(+)</pre></details>
 
 <footer>Before = the project's prior behaviour (a valid working state). After = behaviour with this initiative applied. The demo focuses on the behavioural delta that is the essence of the change — it is not exhaustive and is not a failure hunt.</footer>
 </body>

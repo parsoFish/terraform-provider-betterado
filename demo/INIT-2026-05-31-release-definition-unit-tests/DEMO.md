@@ -35,6 +35,8 @@
 
 ```
  .../release/resource_release_definition_test.go    | 1008 ++++++++++++++++++++
+ .../DEMO.html                                      |   83 ++
+ .../DEMO.md                                        |   40 +
  .../demo.json                                      |  118 +++
- 2 files changed, 1126 insertions(+)
+ 4 files changed, 1249 insertions(+)
 ```
