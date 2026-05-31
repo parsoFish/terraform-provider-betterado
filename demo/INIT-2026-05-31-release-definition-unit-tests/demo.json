@@ -1,0 +1,118 @@
+{
+  "title": "Add 11 unit tests for release definition resource (CRUD + characterization)",
+  "essence": "Before this change, the release definition resource had zero unit tests, leaving CRUD error-paths, secret-variable handling, and the revision-conflict retry path untested. After this change, 11 focused unit tests cover all five CRUD operations, secret-variable flattening, revision-retry logic, deep-nested environment expand/flatten, artifact definition-reference filtering, approval-options round-trip, and deploy-phases JSON marshal/unmarshal — all passing in <20 ms.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-05-31-release-definition-unit-tests",
+  "baseRef": "main",
+  "changedRef": "HEAD",
+  "diffStat": " .../release/resource_release_definition_test.go    | 1008 ++++++++++++++++++++\n .../DEMO.html                                      |   85 ++\n .../DEMO.md                                        |   42 +\n .../demo.json                                      |  118 +++\n 4 files changed, 1253 insertions(+)",
+  "checkpoints": [
+    {
+      "label": "Test suite baseline → 11 passing tests",
+      "caption": "go test -tags all -count=1 -v ./azuredevops/internal/service/release/... — before: no test file, 0 tests; after: 11 unit tests, all PASS in <20 ms",
+      "kind": "harness",
+      "beforeNote": "resource_release_definition_test.go did not exist; go test reported 0 tests run for the release package.",
+      "afterNote": "11 tests added (5 baseline CRUD + 6 characterization). All PASS. Total package run time <20 ms. No regressions in the taskagent packages.",
+      "metrics": [
+        {
+          "label": "Tests in release package",
+          "before": "0",
+          "after": "11",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        },
+        {
+          "label": "Package test result",
+          "before": "no test files",
+          "after": "ok (0.013s)",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        },
+        {
+          "label": "TestReleaseDefinition_ExpandFlatten_Roundtrip",
+          "before": "missing",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        },
+        {
+          "label": "TestReleaseDefinition_Create_DoesNotSwallowError",
+          "before": "missing",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        },
+        {
+          "label": "TestReleaseDefinition_Read_ClearsIdOn404",
+          "before": "missing",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        },
+        {
+          "label": "TestReleaseDefinition_Update_CallsSDKWithArgs",
+          "before": "missing",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        },
+        {
+          "label": "TestReleaseDefinition_Update_RevisionRetryOnConflict",
+          "before": "missing",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        },
+        {
+          "label": "TestReleaseDefinition_SecretVariables_PreserveOnFlatten",
+          "before": "missing",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        },
+        {
+          "label": "TestReleaseDefinition_DeepNestedEnvironment_ExpandFlatten",
+          "before": "missing",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        },
+        {
+          "label": "TestReleaseDefinition_Artifacts_DefinitionReferenceFiltering",
+          "before": "missing",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        },
+        {
+          "label": "TestReleaseDefinition_ApprovalOptions_RoundTrip",
+          "before": "missing",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        },
+        {
+          "label": "TestReleaseDefinition_DeployPhases_JSONMarshalUnmarshal",
+          "before": "missing",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        },
+        {
+          "label": "TestReleaseDefinition_Delete_SurfacesAPIError",
+          "before": "missing",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "higher_is_better"
+        }
+      ]
+    }
+  ],
+  "acceptanceCriteria": [
+    "AC1 (WI-1): 5 baseline CRUD tests pass under -run TestReleaseDefinition",
+    "AC2 (WI-1): go build -mod=vendor . exits 0 with no compilation errors",
+    "AC3 (WI-2): All 11 TestReleaseDefinition tests pass",
+    "AC4 (WI-2): TestReleaseDefinition_Update_RevisionRetryOnConflict verifies GetReleaseDefinition called once and UpdateReleaseDefinition called twice",
+    "AC5 (WI-2): TestReleaseDefinition_SecretVariables_PreserveOnFlatten verifies secret variable values preserved from state on flatten"
+  ]
+}
