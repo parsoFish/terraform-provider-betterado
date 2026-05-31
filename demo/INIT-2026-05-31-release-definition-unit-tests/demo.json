@@ -5,7 +5,7 @@
   "initiativeId": "INIT-2026-05-31-release-definition-unit-tests",
   "baseRef": "main",
   "changedRef": "HEAD",
-  "diffStat": " .../release/resource_release_definition_test.go    | 1008 ++++++++++++++++++++\n 1 file changed, 1008 insertions(+)",
+  "diffStat": " .../release/resource_release_definition_test.go    | 1008 ++++++++++++++++++++\n .../demo.json                                      |  118 +++\n 2 files changed, 1126 insertions(+)",
   "checkpoints": [
     {
       "label": "Test suite baseline → 11 passing tests",
