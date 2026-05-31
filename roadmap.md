@@ -5,9 +5,19 @@ updated_at: 2026-05-23T11:19:10Z
 
 # terraform-provider-betterado Roadmap
 
+> **North star (2026-05-31):** feature-complete representation of the ADO REST API
+> 7.2, structured as **one initiative per API path** (area → feature → work item),
+> then auto-synced as the API evolves via a coverage matrix. The model + the
+> first-mover **Release** initiative are detailed in
+> [`docs/api-coverage-roadmap.md`](./docs/api-coverage-roadmap.md). The phase below
+> is the prior 7.1 createable-resource framing, now reframed under that north star
+> (the listed initiatives become per-path features). Parked pending forge-hardening
+> (forge `docs/known-gaps.md` §2026-05-31). The `task_group` unit substrate landed
+> 2026-05-31; `release_definition` still needs unit tests + an acceptance refresh.
+
 ## Current phase
 
-**Theme:** Full ADO REST API 7.1 createable-resource coverage — net-new-vs-upstream first
+**Theme:** Full ADO REST API 7.2 coverage — one initiative per API path (north star above)
 **Status:** active
 **Rationale:** The fork already inherits ~132 resources + ~44 data sources
 from upstream; its reason to exist is the createable surface Microsoft does
