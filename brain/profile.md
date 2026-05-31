@@ -33,8 +33,9 @@ correctly, cleanly track upstream, and stay mergeable back toward upstream.
   (`AZDO_ORG_SERVICE_URL` + PAT), so cycles CAN do live verification when
   launched with those in the env — confirmed: the provider creates real ADO
   resources end-to-end ([[2026-05-31-forge-onboarding-findings]]). Offline,
-  `azdosdkmocks`+gomock unit tests remain the default gate. `task_group` now
-  has the canonical 5-test unit substrate; `release_definition` still has none.
+  `azdosdkmocks`+gomock unit tests remain the default gate. Both `task_group`
+  (5 tests) and `release_definition` (11 tests) now have canonical gomock unit
+  substrates ([[2026-05-31-release-definition-unit-test-substrate]]).
 - Go 1.24.1; deps are vendored — do not break offline `go build`/`go test`.
 - Single-branch model: `main` is the fork. The repo's own `CLAUDE.md`
   describes a now-superseded two-branch workflow — do not trust it
@@ -42,13 +43,7 @@ correctly, cleanly track upstream, and stay mergeable back toward upstream.
 
 ## Active focus
 
-- Forge-ready as of 2026-05-31 (`.forge/project.json` + gate config committed;
-  `forge preflight` passes). First landed cycle shipped the `task_group` unit-test
-  substrate. **Next, at roadmap scale (multi-feature, NOT single-WI):**
-  `release_definition` unit substrate (apply the canonical 5-test pattern), then
-  the live acceptance + `scripts/forge-acc-harness.sh`, then resume the createable-
-  resource program in `roadmap.md`. Use the betterado gate pattern + live-harness
-  findings in [[2026-05-31-forge-onboarding-findings]].
+- Both unit substrates landed. **Next:** live acceptance harness (`scripts/forge-acc-harness.sh`) + fix stale `TestAccReleaseDefinition_basic` HCL (stage `retention_policy` + `pre_deploy_approval` now required by ADO REST 7.1 — see [[2026-05-31-forge-onboarding-findings]]). Then resume the createable-resource program in `roadmap.md`.
 
 ## Cycles
 
@@ -58,3 +53,8 @@ correctly, cleanly track upstream, and stay mergeable back toward upstream.
   (binary/graphify/scratch — now gitignored). Live ADO confirmation: provider
   created+confirmed+destroyed a real project. See
   [[2026-05-31-forge-onboarding-findings]].
+- **2026-05-31 — release_definition unit-test substrate.** Landed 11 gomock
+  characterization tests for `betterado_release_definition` (PR #2, merged
+  `9f3ac5d5`). 1 iteration resume, $0.80. One production fix: type-switch in
+  `expandWorkflowTask` for `map[string]interface{}` inputs from Terraform SDK.
+  See [[2026-05-31-release-definition-unit-test-substrate]].
