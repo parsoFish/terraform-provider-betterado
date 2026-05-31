@@ -677,10 +677,19 @@ func TestReleaseDefinition_DeepNestedEnvironment_ExpandFlatten(t *testing.T) {
 	require.Equal(t, taskDisplayName, task["name"])
 	require.Equal(t, testReleaseDefinitionWorkflowTaskID.String(), task["task_id"])
 
-	// Verify workflow task input key/value pair survives
-	inputs, ok := task["inputs"].(map[string]string)
-	require.True(t, ok, "inputs should be map[string]string")
-	require.Equal(t, taskInputValue, inputs[taskInputKey])
+	// Verify workflow task input key/value pair survives.
+	// Note: Terraform SDK normalises TypeMap(TypeString) → map[string]interface{} on Get,
+	// so we accept either map[string]interface{} or map[string]string.
+	switch inputsTyped := task["inputs"].(type) {
+	case map[string]interface{}:
+		val, ok := inputsTyped[taskInputKey]
+		require.True(t, ok, "input key %q must be present", taskInputKey)
+		require.Equal(t, taskInputValue, val.(string))
+	case map[string]string:
+		require.Equal(t, taskInputValue, inputsTyped[taskInputKey])
+	default:
+		require.Fail(t, "inputs must be map[string]interface{} or map[string]string, got %T", task["inputs"])
+	}
 }
 
 // ── 9. Artifacts: API-computed keys are filtered out ─────────────────────
