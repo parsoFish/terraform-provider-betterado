@@ -457,7 +457,7 @@ func expandTaskGroupSteps(input []interface{}) []taskagent.TaskGroupStep {
 	steps := make([]taskagent.TaskGroupStep, len(input))
 	for i, raw := range input {
 		m := raw.(map[string]interface{})
-		taskID, _ := uuid.Parse(m["task_id"].(string))
+		taskID, _ := uuid.Parse(m["task_id"].(string)) //nolint:errcheck
 
 		step := taskagent.TaskGroupStep{
 			DisplayName:     converter.String(m["display_name"].(string)),
@@ -609,37 +609,6 @@ func flattenTaskGroupSteps(steps *[]taskagent.TaskGroupStep) []interface{} {
 		}
 
 		result[i] = m
-	}
-	return result
-}
-
-// importTaskGroupState handles importing a task group by "projectID/taskGroupID"
-func importTaskGroupState(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
-	// ID format: projectID/taskGroupID
-	parts := splitImportID(d.Id())
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("invalid import ID %q, expected format: project_id/task_group_id", d.Id())
-	}
-
-	d.Set("project_id", parts[0])
-	d.SetId(parts[1])
-
-	return []*schema.ResourceData{d}, nil
-}
-
-func splitImportID(id string) []string {
-	result := []string{}
-	current := ""
-	for _, c := range id {
-		if c == '/' {
-			result = append(result, current)
-			current = ""
-		} else {
-			current += string(c)
-		}
-	}
-	if current != "" {
-		result = append(result, current)
 	}
 	return result
 }
