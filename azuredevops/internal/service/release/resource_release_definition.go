@@ -954,7 +954,7 @@ func expandWorkflowTasks(input []interface{}) []releaseapi.WorkflowTask {
 	tasks := make([]releaseapi.WorkflowTask, len(input))
 	for i, v := range input {
 		taskMap := v.(map[string]interface{})
-		taskID, _ := uuid.Parse(taskMap["task_id"].(string))
+		taskID, _ := uuid.Parse(taskMap["task_id"].(string)) //nolint:errcheck
 		task := releaseapi.WorkflowTask{
 			Name:            converter.String(taskMap["name"].(string)),
 			TaskId:          &taskID,
