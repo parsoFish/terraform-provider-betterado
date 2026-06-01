@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Add betterado_release_folder resource for organizing Azure DevOps release definitions — before / after</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body { font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0 1.5rem 4rem; max-width: 1400px; margin-inline: auto; }
+  header { padding: 2rem 0 1rem; border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+  h1 { font-size: 1.6rem; margin: 0 0 .4rem; }
+  .meta { color: color-mix(in srgb, currentColor 60%, transparent); font-size: .85rem; }
+  .meta code { font-size: .85rem; }
+  .essence { font-size: 1.05rem; margin: 1.2rem 0; padding: 1rem 1.2rem; border-left: 3px solid color-mix(in srgb, currentColor 35%, transparent); background: color-mix(in srgb, currentColor 5%, transparent); border-radius: 0 6px 6px 0; }
+  .banner { margin: 1rem 0; padding: .9rem 1.1rem; border-radius: 6px; background: color-mix(in srgb, #e0a800 22%, transparent); font-size: .9rem; }
+  .banner hr { border: none; border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent); margin: .6rem 0; }
+  .checkpoint { margin: 2.4rem 0; }
+  .checkpoint h3 { font-size: 1.05rem; margin: 0 0 .8rem; display: flex; align-items: center; gap: .6rem; }
+  .step { display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: color-mix(in srgb, currentColor 14%, transparent); font-size: .85rem; font-weight: 600; }
+  .kind { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; padding: .15rem .5rem; border-radius: 999px; background: color-mix(in srgb, #4a9eff 30%, transparent); vertical-align: middle; }
+  .muted { color: color-mix(in srgb, currentColor 55%, transparent); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  figure { margin: 0; }
+  figcaption { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: color-mix(in srgb, currentColor 55%, transparent); margin-bottom: .4rem; }
+  img, video { width: 100%; height: auto; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: 6px; display: block; background: #0001; }
+  .missing { display: grid; place-items: center; min-height: 160px; border: 1px dashed color-mix(in srgb, currentColor 30%, transparent); border-radius: 6px; color: color-mix(in srgb, currentColor 50%, transparent); font-size: .85rem; }
+  table.harness { width: 100%; border-collapse: collapse; font-size: .9rem; margin: .2rem 0 .6rem; }
+  table.harness th, table.harness td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+  table.harness th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: color-mix(in srgb, currentColor 55%, transparent); }
+  table.harness td:nth-child(n+2) { font-variant-numeric: tabular-nums; }
+  table.harness .verdict-cell { font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+  tr.p-diverged { background: color-mix(in srgb, #e0584a 16%, transparent); }
+  tr.p-within { background: color-mix(in srgb, #3fae6a 12%, transparent); }
+  tr.p-incomplete { background: color-mix(in srgb, #e0a800 16%, transparent); }
+  .verdict { font-size: .95rem; margin: .2rem 0 0; padding: .5rem .8rem; border-radius: 6px; display: inline-block; }
+  .verdict.v-within { background: color-mix(in srgb, #3fae6a 20%, transparent); }
+  .verdict.v-diverged { background: color-mix(in srgb, #e0584a 22%, transparent); }
+  .verdict.v-incomplete { background: color-mix(in srgb, #e0a800 22%, transparent); }
+  .note { font-size: .82rem; color: color-mix(in srgb, currentColor 60%, transparent); margin: .4rem 0 0; }
+  .appendix { margin: 1.4rem 0; }
+  .appendix summary { cursor: pointer; font-size: .9rem; font-weight: 600; }
+  .appendix pre { overflow-x: auto; font-size: .8rem; padding: .8rem; background: color-mix(in srgb, currentColor 6%, transparent); border-radius: 6px; }
+  .appendix ol { font-size: .9rem; }
+  footer { margin-top: 3rem; font-size: .8rem; color: color-mix(in srgb, currentColor 50%, transparent); }
+  @media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Add betterado_release_folder resource for organizing Azure DevOps release definitions</h1>
+  <div class="meta">
+    <code>INIT-2026-06-01-release-folder</code> · project <strong>terraform-provider-betterado</strong>
+    · before <code>main</code> → after <code>HEAD</code>
+    · generated 2026-06-01T22:02:02.321Z
+  </div>
+</header>
+
+<p class="essence">A new Terraform resource betterado_release_folder is now available, enabling practitioners to create, update, and delete release-definition folders in Azure DevOps. Before this change there was no Terraform-managed way to organise release definitions into folders; after it, the full CRUD lifecycle is covered with import support.</p>
+
+
+
+
+  <section class="checkpoint">
+    <h3><span class="step">1</span> All 5 canonical unit tests for the release_folder resource pass against the gomock-backed fake Release API client. <span class="kind">harness</span></h3>
+    <table class="harness">
+      <thead><tr><th>metric</th><th>before</th><th>after</th><th>Δ</th><th>parity</th></tr></thead>
+      <tbody><tr class="p-new"><td>TestReleaseFolder_ExpandFlatten_Roundtrip</td><td>N/A (file did not exist)</td><td>PASS</td><td>—</td><td class="verdict-cell">new</td></tr><tr class="p-new"><td>TestReleaseFolder_Create_DoesNotSwallowError</td><td>N/A (file did not exist)</td><td>PASS</td><td>—</td><td class="verdict-cell">new</td></tr><tr class="p-new"><td>TestReleaseFolder_Read_ClearsIdOn404</td><td>N/A (file did not exist)</td><td>PASS</td><td>—</td><td class="verdict-cell">new</td></tr><tr class="p-new"><td>TestReleaseFolder_Update_CallsSDKWithArgs</td><td>N/A (file did not exist)</td><td>PASS</td><td>—</td><td class="verdict-cell">new</td></tr><tr class="p-new"><td>TestReleaseFolder_Delete_SurfacesAPIError</td><td>N/A (file did not exist)</td><td>PASS</td><td>—</td><td class="verdict-cell">new</td></tr></tbody>
+    </table>
+    <p class="verdict v-within">Verdict: <strong>PARITY</strong></p>
+    <p class="note">No resource_release_folder package existed; no tests existed.</p><p class="note">5 tests pass: ExpandFlatten_Roundtrip, Create_DoesNotSwallowError, Read_ClearsIdOn404, Update_CallsSDKWithArgs, Delete_SurfacesAPIError.</p>
+  </section>
+
+
+
+<details class="appendix"><summary>Acceptance criteria this demo is grounded in (4)</summary><ol><li>AC1: Resource is registered and builds — go build -mod=vendor ./... succeeds</li><li>AC2: Schema matches build_folder pattern — path (Required, ForceNew), project_id (Required, ForceNew), name (Computed)</li><li>AC3: All 5 canonical unit tests pass</li><li>AC4: Documentation exists at docs/resources/release_folder.md</li></ol></details>
+<details class="appendix"><summary>Changed files (<code>git diff --stat main..HEAD</code>)</summary><pre> azuredevops/internal/service/release/resource_release_folder.go      | 151 +++++++++++++++
+ azuredevops/internal/service/release/resource_release_folder_test.go | 202 +++++++++++++++++++++
+ azuredevops/provider.go                                              |   1 +
+ docs/resources/release_folder.md                                     |  45 +++++
+ examples/release_folder/main.tf                                      |  28 +++
+ 5 files changed, 427 insertions(+)</pre></details>
+
+<footer>Before = the project's prior behaviour (a valid working state). After = behaviour with this initiative applied. The demo focuses on the behavioural delta that is the essence of the change — it is not exhaustive and is not a failure hunt.</footer>
+</body>
+</html>
