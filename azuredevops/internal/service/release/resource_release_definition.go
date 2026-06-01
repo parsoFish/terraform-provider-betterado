@@ -1272,10 +1272,10 @@ func flattenApprovalOptions(opts *releaseapi.ApprovalOptions) []interface{} {
 		return nil
 	}
 	optMap := map[string]interface{}{
-		"release_creator_can_be_approver":  false,
-		"enforce_identity_revalidation":    false,
-		"timeout_in_minutes":               0,
-		"execution_order":                  "beforeGates",
+		"release_creator_can_be_approver": false,
+		"enforce_identity_revalidation":   false,
+		"timeout_in_minutes":              0,
+		"execution_order":                 "beforeGates",
 		"auto_triggered_and_previous_environment_approved_can_be_skipped": false,
 	}
 	if opts.RequiredApproverCount != nil {
@@ -1503,15 +1503,15 @@ func flattenEnvironmentOptions(opts *releaseapi.EnvironmentOptions) []interface{
 		return nil
 	}
 	optMap := map[string]interface{}{
-		"email_notification_type":          "OnlyOnFailure",
-		"email_recipients":                 "",
-		"skip_artifacts_download":          false,
-		"timeout_in_minutes":               0,
-		"enable_access_token":              false,
-		"publish_deployment_status":        false,
-		"badge_enabled":                    false,
-		"auto_link_work_items":             false,
-		"pull_request_deployment_enabled":  false,
+		"email_notification_type":         "OnlyOnFailure",
+		"email_recipients":                "",
+		"skip_artifacts_download":         false,
+		"timeout_in_minutes":              0,
+		"enable_access_token":             false,
+		"publish_deployment_status":       false,
+		"badge_enabled":                   false,
+		"auto_link_work_items":            false,
+		"pull_request_deployment_enabled": false,
 	}
 	if opts.EmailNotificationType != nil {
 		optMap["email_notification_type"] = *opts.EmailNotificationType
@@ -1548,8 +1548,8 @@ func flattenExecutionPolicy(ep *releaseapi.EnvironmentExecutionPolicy) []interfa
 		return nil
 	}
 	epMap := map[string]interface{}{
-		"concurrency_count":  1,
-		"queue_depth_count":  0,
+		"concurrency_count": 1,
+		"queue_depth_count": 0,
 	}
 	if ep.ConcurrencyCount != nil {
 		epMap["concurrency_count"] = *ep.ConcurrencyCount

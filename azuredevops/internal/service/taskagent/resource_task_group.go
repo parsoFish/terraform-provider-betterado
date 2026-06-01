@@ -577,16 +577,16 @@ func flattenTaskGroupSteps(steps *[]taskagent.TaskGroupStep) []interface{} {
 	result := make([]interface{}, len(*steps))
 	for i, step := range *steps {
 		m := map[string]interface{}{
-			"display_name":               converter.ToString(step.DisplayName, ""),
-			"enabled":                    converter.ToBool(step.Enabled, true),
-			"always_run":                 converter.ToBool(step.AlwaysRun, false),
-			"continue_on_error":          converter.ToBool(step.ContinueOnError, false),
-			"condition":                  converter.ToString(step.Condition, "succeeded()"),
-			"timeout_in_minutes":         converter.ToInt(step.TimeoutInMinutes, 0),
+			"display_name":                converter.ToString(step.DisplayName, ""),
+			"enabled":                     converter.ToBool(step.Enabled, true),
+			"always_run":                  converter.ToBool(step.AlwaysRun, false),
+			"continue_on_error":           converter.ToBool(step.ContinueOnError, false),
+			"condition":                   converter.ToString(step.Condition, "succeeded()"),
+			"timeout_in_minutes":          converter.ToInt(step.TimeoutInMinutes, 0),
 			"retry_count_on_task_failure": converter.ToInt(step.RetryCountOnTaskFailure, 0),
-			"task_id":                    "",
-			"task_version":               "",
-			"task_definition_type":       "task",
+			"task_id":                     "",
+			"task_version":                "",
+			"task_definition_type":        "task",
 		}
 
 		if step.Task != nil {
