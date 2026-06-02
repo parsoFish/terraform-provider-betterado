@@ -42,13 +42,15 @@
 ## Changed files
 
 ```
- AGENT.md                                           | 51 +++++++++++++++
- .../resource_release_definition_test.go            |  8 +--
- .../service/release/resource_release_definition.go | 54 ++++++++--------
- .../service/taskagent/resource_task_group.go       | 52 +++-------------
- azuredevops/provider.go                            |  2 +-
- azuredevops/provider_test.go                       |  1 +
- demo/INIT-2026-06-01-ci-green/demo.json            | 72 ++++++++++++++++++++++
- fix_plan.md                                        |  8 +++
- 8 files changed, 174 insertions(+), 74 deletions(-)
+ AGENT.md                                           |  33 +++++++
+ .../resource_release_definition_test.go            |   8 +-
+ .../service/release/resource_release_definition.go |  54 +++++-----
+ .../service/taskagent/resource_task_group.go       |  52 ++--------
+ azuredevops/provider.go                            |   2 +-
+ azuredevops/provider_test.go                       |   1 +
+ demo/INIT-2026-06-01-ci-green/DEMO.html            | 109 +++++++++++++++++++++
+ demo/INIT-2026-06-01-ci-green/DEMO.md              |  54 ++++++++++
+ demo/INIT-2026-06-01-ci-green/demo.json            |  86 ++++++++++++++++
+ fix_plan.md                                        |   9 ++
+ 10 files changed, 334 insertions(+), 74 deletions(-)
 ```
