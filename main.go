@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops"
 )
@@ -17,8 +16,6 @@ func main() {
 	plugin.Serve(&plugin.ServeOpts{
 		Debug:        debug,
 		ProviderAddr: "registry.terraform.io/parsoFish/betterado",
-		ProviderFunc: func() *schema.Provider {
-			return azuredevops.Provider()
-		},
+		ProviderFunc: azuredevops.Provider,
 	})
 }

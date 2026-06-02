@@ -2,7 +2,6 @@ package taskagent
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -457,7 +456,7 @@ func expandTaskGroupSteps(input []interface{}) []taskagent.TaskGroupStep {
 	steps := make([]taskagent.TaskGroupStep, len(input))
 	for i, raw := range input {
 		m := raw.(map[string]interface{})
-		taskID, _ := uuid.Parse(m["task_id"].(string))
+		taskID, _ := uuid.Parse(m["task_id"].(string)) //nolint:errcheck
 
 		step := taskagent.TaskGroupStep{
 			DisplayName:     converter.String(m["display_name"].(string)),
@@ -577,16 +576,16 @@ func flattenTaskGroupSteps(steps *[]taskagent.TaskGroupStep) []interface{} {
 	result := make([]interface{}, len(*steps))
 	for i, step := range *steps {
 		m := map[string]interface{}{
-			"display_name":               converter.ToString(step.DisplayName, ""),
-			"enabled":                    converter.ToBool(step.Enabled, true),
-			"always_run":                 converter.ToBool(step.AlwaysRun, false),
-			"continue_on_error":          converter.ToBool(step.ContinueOnError, false),
-			"condition":                  converter.ToString(step.Condition, "succeeded()"),
-			"timeout_in_minutes":         converter.ToInt(step.TimeoutInMinutes, 0),
+			"display_name":                converter.ToString(step.DisplayName, ""),
+			"enabled":                     converter.ToBool(step.Enabled, true),
+			"always_run":                  converter.ToBool(step.AlwaysRun, false),
+			"continue_on_error":           converter.ToBool(step.ContinueOnError, false),
+			"condition":                   converter.ToString(step.Condition, "succeeded()"),
+			"timeout_in_minutes":          converter.ToInt(step.TimeoutInMinutes, 0),
 			"retry_count_on_task_failure": converter.ToInt(step.RetryCountOnTaskFailure, 0),
-			"task_id":                    "",
-			"task_version":               "",
-			"task_definition_type":       "task",
+			"task_id":                     "",
+			"task_version":                "",
+			"task_definition_type":        "task",
 		}
 
 		if step.Task != nil {
@@ -609,37 +608,6 @@ func flattenTaskGroupSteps(steps *[]taskagent.TaskGroupStep) []interface{} {
 		}
 
 		result[i] = m
-	}
-	return result
-}
-
-// importTaskGroupState handles importing a task group by "projectID/taskGroupID"
-func importTaskGroupState(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
-	// ID format: projectID/taskGroupID
-	parts := splitImportID(d.Id())
-	if len(parts) != 2 {
-		return nil, fmt.Errorf("invalid import ID %q, expected format: project_id/task_group_id", d.Id())
-	}
-
-	d.Set("project_id", parts[0])
-	d.SetId(parts[1])
-
-	return []*schema.ResourceData{d}, nil
-}
-
-func splitImportID(id string) []string {
-	result := []string{}
-	current := ""
-	for _, c := range id {
-		if c == '/' {
-			result = append(result, current)
-			current = ""
-		} else {
-			current += string(c)
-		}
-	}
-	if current != "" {
-		result = append(result, current)
 	}
 	return result
 }

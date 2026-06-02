@@ -5,6 +5,11 @@
     "./azuredevops/internal/service/release/...",
     "./azuredevops/internal/service/taskagent/..."
   ],
+  "$ci_gate_comment": "The project's FULL CI verification — mirrors the GitHub workflows (golint + terrafmt + unit-test). A 'make CI green' / quality initiative MUST use this as its per-WI quality_gate_cmd (NOT a narrow lint-only proxy), so forge's own gate goes red until CI is genuinely green. `make test` = gofmt-check + `go test ./...` (whole module, incl. provider_test.go resource-count). Auto-fixers for the formatting checks: `make fmt` (gofmt) + `make terrafmt`.",
+  "ci_gate": [
+    "bash", "-c",
+    "make test && golangci-lint run ./... && make terrafmt-check"
+  ],
   "demo": {
     "$shape_comment": "`harness` is the creds-free FLOOR (offline unit run, always available). betterado is NOT a no-web-UI project — it stands up real resources in a live ADO org (creds in secrets.env) visible via the REST API AND the dev.azure.com portal. The richer demo is LIVE EVIDENCE — terraform apply → API GET + portal screenshots → destroy — codified in the ado-demo skill. The forge demo phase should compose that skill; the shape vocab needs a 'live external system + portal screenshots' option (tracked in forge known-gaps).",
     "shape": "harness",

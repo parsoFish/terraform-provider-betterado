@@ -333,10 +333,10 @@ resource "betterado_release_definition" "test" {
       }
 
       approval_options {
-        release_creator_can_be_approver = false
-        enforce_identity_revalidation   = false
-        timeout_in_minutes              = 1440
-        execution_order                 = "beforeGates"
+        release_creator_can_be_approver                                 = false
+        enforce_identity_revalidation                                   = false
+        timeout_in_minutes                                              = 1440
+        execution_order                                                 = "beforeGates"
         auto_triggered_and_previous_environment_approved_can_be_skipped = false
       }
     }
