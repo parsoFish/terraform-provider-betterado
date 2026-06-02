@@ -42,7 +42,7 @@
 ## Changed files
 
 ```
- AGENT.md                                           |  78 +++++++++++++++
+ AGENT.md                                           |  94 +++++++++++++++++
  .../resource_release_definition_test.go            |   8 +-
  .../service/release/resource_release_definition.go |  54 +++++-----
  .../service/taskagent/resource_task_group.go       |  52 ++--------
@@ -52,5 +52,5 @@
  demo/INIT-2026-06-01-ci-green/DEMO.md              |  56 +++++++++++
  demo/INIT-2026-06-01-ci-green/demo.json            |  86 ++++++++++++++++
  fix_plan.md                                        |   9 ++
- 10 files changed, 383 insertions(+), 74 deletions(-)
+ 10 files changed, 399 insertions(+), 74 deletions(-)
 ```

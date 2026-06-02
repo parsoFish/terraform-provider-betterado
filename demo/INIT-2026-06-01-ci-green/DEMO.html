@@ -52,7 +52,7 @@
   <div class="meta">
     <code>INIT-2026-06-01-ci-green</code> · project <strong>terraform-provider-betterado</strong>
     · before <code>main</code> → after <code>HEAD</code>
-    · generated 2026-06-02T09:18:56.380Z
+    · generated 2026-06-02T09:20:29.677Z
   </div>
 </header>
 
@@ -94,7 +94,7 @@
 
 
 <details class="appendix"><summary>Acceptance criteria this demo is grounded in (4)</summary><ol><li>scripts/gofmtcheck.sh exits 0 with no diff output</li><li>make terrafmt-check exits 0 with no HCL formatting errors</li><li>golangci-lint run -v ./azuredevops/... exits 0</li><li>go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... exits 0</li></ol></details>
-<details class="appendix"><summary>Changed files (<code>git diff --stat main..HEAD</code>)</summary><pre> AGENT.md                                           |  78 +++++++++++++++
+<details class="appendix"><summary>Changed files (<code>git diff --stat main..HEAD</code>)</summary><pre> AGENT.md                                           |  94 +++++++++++++++++
  .../resource_release_definition_test.go            |   8 +-
  .../service/release/resource_release_definition.go |  54 +++++-----
  .../service/taskagent/resource_task_group.go       |  52 ++--------
@@ -104,7 +104,7 @@
  demo/INIT-2026-06-01-ci-green/DEMO.md              |  56 +++++++++++
  demo/INIT-2026-06-01-ci-green/demo.json            |  86 ++++++++++++++++
  fix_plan.md                                        |   9 ++
- 10 files changed, 383 insertions(+), 74 deletions(-)</pre></details>
+ 10 files changed, 399 insertions(+), 74 deletions(-)</pre></details>
 
 <footer>Before = the project's prior behaviour (a valid working state). After = behaviour with this initiative applied. The demo focuses on the behavioural delta that is the essence of the change — it is not exhaustive and is not a failure hunt.</footer>
 </body>
