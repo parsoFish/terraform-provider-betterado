@@ -6,6 +6,23 @@
 
 _(updated by each iteration — most recent at the top)_
 
+### Iteration 2 (unifier)
+
+- Read AGENT.md, fix_plan.md, and both existing demo/pr-description files from prior unifier iteration.
+- Confirmed branch had prior `feat(INIT-2026-06-01-ci-green): unify and demo` commit with all three demo files tracked.
+- Ran quality gate: `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...` → **PASS** (3 packages, all ok, exit 0).
+- Found `demo.json` had stale `diffStat` (8-file count from before DEMO.md+DEMO.html were committed; actual is 10 files).
+- Updated `diffStat` in `demo.json` to reflect the actual `git diff --stat main...HEAD` (10 files, 334 ins, 74 del).
+- Re-ran `forge demo render INIT-2026-06-01-ci-green --dir /home/parso/forge/_worktrees/INIT-2026-06-01-ci-green/demo/INIT-2026-06-01-ci-green` → DEMO.md + DEMO.html re-emitted successfully.
+- Committed the 3 updated demo files as `feat(INIT-2026-06-01-ci-green): unify and demo` (corrected diffStat, re-rendered derived artifacts).
+- Pushed branch — `origin/forge/INIT-2026-06-01-ci-green` == local HEAD.
+
+**Gate status after iteration 2:**
+- `initiative_gate`: PASS (quality gate exits 0)
+- `demo_runs_clean`: PASS (harness command exits 0)
+- `pr_self_contained`: PASS (demo.json valid with current diffStat, DEMO.md+DEMO.html re-rendered, pr-description.md complete with all sections)
+- `branches_in_sync`: PASS (pushed 0740c099)
+
 ### Iteration 1 (unifier)
 
 - Read initiative manifest (`_queue/in-flight/INIT-2026-06-01-ci-green.md`) and WI-1 spec.
