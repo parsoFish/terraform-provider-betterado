@@ -6,6 +6,21 @@
 
 _(updated by each iteration — most recent at the top)_
 
+### Iteration 3 (unifier)
+
+- Read AGENT.md and fix_plan.md from worktree — confirmed prior iters 1 and 2 completed all work.
+- Verified `git log --oneline main...HEAD`: branch HEAD is `12f0137a chore(loop): update AGENT.md — unifier iter 2 complete`; all prior demo, PR description, and fix commits are present.
+- Confirmed `demo/INIT-2026-06-01-ci-green/demo.json` is complete with 3 harness checkpoints and accurate diffStat.
+- Confirmed `.forge/pr-description.md` has substantive Why/What/How/Demo sections.
+- Ran quality gate: `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...` → **PASS** (3 packages, all ok, exit 0).
+- Verified `git status`: branch up to date with `origin/forge/INIT-2026-06-01-ci-green`, working tree clean — no changes needed, no new commit made.
+
+**Gate status after iteration 3:**
+- `initiative_gate`: PASS (quality gate exits 0)
+- `demo_runs_clean`: PASS (harness command exits 0)
+- `pr_self_contained`: PASS (demo.json valid, DEMO.md+DEMO.html present, pr-description.md complete)
+- `branches_in_sync`: PASS (branch up to date with origin, working tree clean)
+
 ### Iteration 2 (unifier)
 
 - Read AGENT.md, fix_plan.md, and both existing demo/pr-description files from prior unifier iteration.
