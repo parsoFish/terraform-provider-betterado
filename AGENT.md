@@ -6,6 +6,22 @@
 
 _(updated by each iteration — most recent at the top)_
 
+### Iteration 5 (unifier)
+
+- Read AGENT.md and fix_plan.md — confirmed all 4 ACs ticked green from prior iterations.
+- Ran quality gate: `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...` → **PASS** (3 packages, all ok, exit 0).
+- Found `.forge/pr-description.md` still had placeholder content (`<placeholder, fills in iter 2+>`) and wrong Demo link (pointing to a different initiative). Rewrote with substantive Why/What/How/Demo sections.
+- Found `demo.json` `diffStat` was stale (33 AGENT.md lines / 334 total ins) — AGENT.md grew to 78 lines across iterations 2–4, actual total is 383 insertions. Updated diffStat to reflect `git diff --stat main...HEAD`.
+- Re-ran `forge demo render INIT-2026-06-01-ci-green --dir /home/parso/forge/_worktrees/INIT-2026-06-01-ci-green/demo/INIT-2026-06-01-ci-green` → DEMO.md + DEMO.html re-emitted.
+- Committed 3 updated demo files as `feat(INIT-2026-06-01-ci-green): unify and demo`.
+- Pushed branch — `origin/forge/INIT-2026-06-01-ci-green` == local HEAD (a4e3b502).
+
+**Gate status after iteration 5:**
+- `initiative_gate`: PASS (quality gate exits 0 — 3 packages, all pass)
+- `demo_runs_clean`: PASS (harness command exits 0)
+- `pr_self_contained`: PASS (demo.json valid with current diffStat, DEMO.md+DEMO.html re-rendered, pr-description.md has substantive Why/What/How/Demo sections with correct Demo link)
+- `branches_in_sync`: PASS (pushed a4e3b502)
+
 ### Iteration 4 (unifier)
 
 - Read AGENT.md, fix_plan.md — confirmed prior iters 1–3 completed all work.
