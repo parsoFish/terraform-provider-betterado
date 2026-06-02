@@ -6,6 +6,23 @@
 
 _(updated by each iteration — most recent at the top)_
 
+### Iteration 8 (unifier)
+
+- Read AGENT.md and fix_plan.md — confirmed all 4 ACs ticked green from prior iterations.
+- Ran quality gate: `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...` → **PASS** (3 packages: service/release ok, service/taskagent ok, service/taskagent/validate ok, exit 0).
+- Found `demo.json` `diffStat` stale again: AGENT.md grew from 94 to 127 lines (iter 5–7 notes added 33 lines), changing total from 399 to 432 insertions.
+- Updated `diffStat` in `demo.json` to reflect current `git diff --stat main...HEAD` (10 files, 432 ins, 74 del).
+- Re-ran `forge demo render INIT-2026-06-01-ci-green --dir /home/parso/forge/_worktrees/INIT-2026-06-01-ci-green/demo/INIT-2026-06-01-ci-green` → DEMO.md + DEMO.html re-emitted.
+- Updated AGENT.md with this iteration's notes.
+- Committed 4 updated files (demo.json, DEMO.md, DEMO.html, AGENT.md) as `feat(INIT-2026-06-01-ci-green): unify and demo`.
+- Pushed branch — `origin/forge/INIT-2026-06-01-ci-green` == local HEAD.
+
+**Gate status after iteration 8:**
+- `initiative_gate`: PASS (quality gate exits 0 — 3 packages, all pass)
+- `demo_runs_clean`: PASS (harness command exits 0)
+- `pr_self_contained`: PASS (demo.json valid with current diffStat, DEMO.md+DEMO.html re-rendered, pr-description.md has substantive Why/What/How/Demo sections)
+- `branches_in_sync`: PASS (pushed)
+
 ### Iteration 7 (unifier)
 
 - Read AGENT.md, fix_plan.md — confirmed all 4 ACs ticked green from prior iterations.
