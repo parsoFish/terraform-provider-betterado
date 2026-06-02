@@ -5,7 +5,7 @@
   "initiativeId": "INIT-2026-06-01-ci-green",
   "baseRef": "main",
   "changedRef": "HEAD",
-  "diffStat": " AGENT.md                                           |  33 +++++++\n .../resource_release_definition_test.go            |   8 +-\n .../service/release/resource_release_definition.go |  54 +++++-----\n .../service/taskagent/resource_task_group.go       |  52 ++--------\n azuredevops/provider.go                            |   2 +-\n azuredevops/provider_test.go                       |   1 +\n demo/INIT-2026-06-01-ci-green/DEMO.html            | 109 +++++++++++++++++++++\n demo/INIT-2026-06-01-ci-green/DEMO.md              |  54 ++++++++++\n demo/INIT-2026-06-01-ci-green/demo.json            |  86 ++++++++++++++++\n fix_plan.md                                        |   9 ++\n 10 files changed, 334 insertions(+), 74 deletions(-)",
+  "diffStat": " AGENT.md                                           |  78 +++++++++++++++\n .../resource_release_definition_test.go            |   8 +-\n .../service/release/resource_release_definition.go |  54 +++++-----\n .../service/taskagent/resource_task_group.go       |  52 ++--------\n azuredevops/provider.go                            |   2 +-\n azuredevops/provider_test.go                       |   1 +\n demo/INIT-2026-06-01-ci-green/DEMO.html            | 111 +++++++++++++++++++++\n demo/INIT-2026-06-01-ci-green/DEMO.md              |  56 +++++++++++\n demo/INIT-2026-06-01-ci-green/demo.json            |  86 ++++++++++++++++\n fix_plan.md                                        |   9 ++\n 10 files changed, 383 insertions(+), 74 deletions(-)",
   "checkpoints": [
     {
       "label": "unit tests (quality gate)",
