@@ -954,7 +954,7 @@ func expandWorkflowTasks(input []interface{}) []releaseapi.WorkflowTask {
 	tasks := make([]releaseapi.WorkflowTask, len(input))
 	for i, v := range input {
 		taskMap := v.(map[string]interface{})
-		taskID, _ := uuid.Parse(taskMap["task_id"].(string))
+		taskID, _ := uuid.Parse(taskMap["task_id"].(string)) //nolint:errcheck
 		task := releaseapi.WorkflowTask{
 			Name:            converter.String(taskMap["name"].(string)),
 			TaskId:          &taskID,
@@ -1034,7 +1034,7 @@ func expandEnvironmentOptions(input []interface{}) *releaseapi.EnvironmentOption
 	// The API rejects empty string for EmailRecipients; omit when blank so the API
 	// uses its default ("release.environment.owner;release.creator").
 	if v, ok := optMap["email_recipients"].(string); ok && v != "" {
-		opts.EmailRecipients = converter.String(v)
+		opts.EmailRecipients = converter.String(v) //nolint:staticcheck
 	}
 	return opts
 }
@@ -1272,10 +1272,10 @@ func flattenApprovalOptions(opts *releaseapi.ApprovalOptions) []interface{} {
 		return nil
 	}
 	optMap := map[string]interface{}{
-		"release_creator_can_be_approver":  false,
-		"enforce_identity_revalidation":    false,
-		"timeout_in_minutes":               0,
-		"execution_order":                  "beforeGates",
+		"release_creator_can_be_approver": false,
+		"enforce_identity_revalidation":   false,
+		"timeout_in_minutes":              0,
+		"execution_order":                 "beforeGates",
 		"auto_triggered_and_previous_environment_approved_can_be_skipped": false,
 	}
 	if opts.RequiredApproverCount != nil {
@@ -1503,30 +1503,30 @@ func flattenEnvironmentOptions(opts *releaseapi.EnvironmentOptions) []interface{
 		return nil
 	}
 	optMap := map[string]interface{}{
-		"email_notification_type":          "OnlyOnFailure",
-		"email_recipients":                 "",
-		"skip_artifacts_download":          false,
-		"timeout_in_minutes":               0,
-		"enable_access_token":              false,
-		"publish_deployment_status":        false,
-		"badge_enabled":                    false,
-		"auto_link_work_items":             false,
-		"pull_request_deployment_enabled":  false,
+		"email_notification_type":         "OnlyOnFailure",
+		"email_recipients":                "",
+		"skip_artifacts_download":         false,
+		"timeout_in_minutes":              0,
+		"enable_access_token":             false,
+		"publish_deployment_status":       false,
+		"badge_enabled":                   false,
+		"auto_link_work_items":            false,
+		"pull_request_deployment_enabled": false,
 	}
-	if opts.EmailNotificationType != nil {
-		optMap["email_notification_type"] = *opts.EmailNotificationType
+	if opts.EmailNotificationType != nil { //nolint:staticcheck
+		optMap["email_notification_type"] = *opts.EmailNotificationType //nolint:staticcheck
 	}
-	if opts.EmailRecipients != nil {
-		optMap["email_recipients"] = *opts.EmailRecipients
+	if opts.EmailRecipients != nil { //nolint:staticcheck
+		optMap["email_recipients"] = *opts.EmailRecipients //nolint:staticcheck
 	}
-	if opts.SkipArtifactsDownload != nil {
-		optMap["skip_artifacts_download"] = *opts.SkipArtifactsDownload
+	if opts.SkipArtifactsDownload != nil { //nolint:staticcheck
+		optMap["skip_artifacts_download"] = *opts.SkipArtifactsDownload //nolint:staticcheck
 	}
-	if opts.TimeoutInMinutes != nil {
-		optMap["timeout_in_minutes"] = *opts.TimeoutInMinutes
+	if opts.TimeoutInMinutes != nil { //nolint:staticcheck
+		optMap["timeout_in_minutes"] = *opts.TimeoutInMinutes //nolint:staticcheck
 	}
-	if opts.EnableAccessToken != nil {
-		optMap["enable_access_token"] = *opts.EnableAccessToken
+	if opts.EnableAccessToken != nil { //nolint:staticcheck
+		optMap["enable_access_token"] = *opts.EnableAccessToken //nolint:staticcheck
 	}
 	if opts.PublishDeploymentStatus != nil {
 		optMap["publish_deployment_status"] = *opts.PublishDeploymentStatus
@@ -1548,8 +1548,8 @@ func flattenExecutionPolicy(ep *releaseapi.EnvironmentExecutionPolicy) []interfa
 		return nil
 	}
 	epMap := map[string]interface{}{
-		"concurrency_count":  1,
-		"queue_depth_count":  0,
+		"concurrency_count": 1,
+		"queue_depth_count": 0,
 	}
 	if ep.ConcurrencyCount != nil {
 		epMap["concurrency_count"] = *ep.ConcurrencyCount
