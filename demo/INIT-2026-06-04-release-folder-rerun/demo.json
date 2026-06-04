@@ -1,6 +1,6 @@
 {
   "title": "Add betterado_release_folder resource with full CRUD and acceptance test",
-  "essence": "Introduces the betterado_release_folder Terraform resource for managing Azure DevOps release-definition folders. Operators can now create, read, update, and destroy folder paths (e.g. \\Production\\Web) via Terraform. Includes 5 gomock unit tests, an acceptance test skeleton, and reference docs.",
+  "essence": "Introduces the betterado_release_folder Terraform resource for managing Azure DevOps release-definition folders. Operators can now create, read, update, and destroy folder paths (e.g. \\Production\\Web) via Terraform. Includes 5 gomock unit tests, an acceptance test (live ADO, self-skips without TF_ACC), and reference docs.",
   "project": "betterado",
   "initiativeId": "INIT-2026-06-04-release-folder-rerun",
   "baseRef": "main",
@@ -8,58 +8,64 @@
   "diffStat": " .../resource_release_folder_test.go                | 114 ++++++++++++\n .../service/release/resource_release_folder.go     | 207 +++++++++++++++++++++\n .../release/resource_release_folder_test.go        | 196 +++++++++++++++++++\n azuredevops/provider.go                            |   1 +\n website/docs/r/release_folder.html.markdown        |  46 +++++\n 5 files changed, 564 insertions(+)",
   "checkpoints": [
     {
-      "label": "unit-tests",
-      "caption": "5 gomock unit tests for betterado_release_folder all pass",
+      "label": "unit-gate",
+      "caption": "Full initiative quality gate: release + taskagent packages all pass",
       "kind": "harness",
-      "beforeNote": "No betterado_release_folder resource existed; no tests existed.",
-      "afterNote": "All 5 canonical unit tests pass: ExpandFlatten_Roundtrip, Create_Success, Create_Error, Read_NotFound, Delete_Error.",
+      "beforeNote": "No betterado_release_folder resource existed; TestReleaseFolder_* tests did not exist.",
+      "afterNote": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... exits 0: all 3 packages ok.",
       "metrics": [
         {
-          "label": "TestReleaseFolder_ExpandFlatten_Roundtrip",
-          "before": "N/A (file absent)",
-          "after": "PASS",
+          "label": "github.com/.../service/release",
+          "before": "FAIL (compile error — resource_release_folder.go absent)",
+          "after": "ok (0.012s)",
           "deltaPct": null,
           "parity": "incomplete"
         },
         {
-          "label": "TestReleaseFolder_Create_Success",
-          "before": "N/A (file absent)",
-          "after": "PASS",
+          "label": "github.com/.../service/taskagent",
+          "before": "ok",
+          "after": "ok (0.007s)",
           "deltaPct": null,
-          "parity": "incomplete"
+          "parity": "match"
         },
         {
-          "label": "TestReleaseFolder_Create_Error",
-          "before": "N/A (file absent)",
-          "after": "PASS",
+          "label": "github.com/.../service/taskagent/validate",
+          "before": "ok",
+          "after": "ok (0.003s)",
           "deltaPct": null,
-          "parity": "incomplete"
-        },
-        {
-          "label": "TestReleaseFolder_Read_NotFound",
-          "before": "N/A (file absent)",
-          "after": "PASS",
-          "deltaPct": null,
-          "parity": "incomplete"
-        },
-        {
-          "label": "TestReleaseFolder_Delete_Error",
-          "before": "N/A (file absent)",
-          "after": "PASS",
-          "deltaPct": null,
-          "parity": "incomplete"
+          "parity": "match"
         }
       ],
       "testEvidence": [
         {
-          "name": "TestReleaseFolder (release package)",
+          "name": "TestReleaseFolder_ExpandFlatten_Roundtrip",
           "result": "pass",
-          "delta": "+5 tests"
+          "delta": "new"
         },
         {
-          "name": "TestAccReleaseFolder (acceptancetests package, TF_ACC not set)",
+          "name": "TestReleaseFolder_Create_Success",
+          "result": "pass",
+          "delta": "new"
+        },
+        {
+          "name": "TestReleaseFolder_Create_Error",
+          "result": "pass",
+          "delta": "new"
+        },
+        {
+          "name": "TestReleaseFolder_Read_NotFound",
+          "result": "pass",
+          "delta": "new"
+        },
+        {
+          "name": "TestReleaseFolder_Delete_Error",
+          "result": "pass",
+          "delta": "new"
+        },
+        {
+          "name": "TestAccReleaseFolder_basic (acceptancetests, TF_ACC not set)",
           "result": "skip",
-          "delta": "+1 test (runs live with TF_ACC=1)"
+          "delta": "new — runs live with TF_ACC=1 + ADO creds"
         }
       ]
     }
