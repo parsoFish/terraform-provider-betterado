@@ -77,6 +77,30 @@ harness floor — state that in `essence` rather than fabricating a screenshot.
    Drop the media under the cycle's demo dir (NOT a `.forge/` shadow), per the
    forge demo skill's capture rules.
 
+7. **Make the demo INTERACTIVE (re-review #8, Stage 0/1 — non-executing).** Save the
+   step-3 "after" API GET response as `demo/<initiative-id>/live-resource.json` (a
+   plain file in the bundle), then declare these `interactiveSurfaces` in `demo.json`
+   so the operator can poke the real resource on `/review/<cycleId>` — confirming it
+   is real (live API, not green mocks) and learning what they can now create:
+
+   ```json
+   "interactiveSurfaces": [
+     { "kind": "live-query",
+       "label": "Show the live release folder (real ADO API response)",
+       "artifact": "live-resource.json",
+       "portalUrl": "https://dev.azure.com/{org}/{project}/_release?_a=releases" },
+     { "kind": "portal-link",
+       "label": "Open it in the Azure DevOps portal",
+       "portalUrl": "https://dev.azure.com/{org}/{project}/_release?_a=releases" }
+   ]
+   ```
+
+   These are **non-executing**: `live-query` serves the JSON you already captured,
+   `portal-link` is a deep link. No creds at review time — the UI degrades to a clear
+   "no live capture" message if the artifact is absent (a Mode-B / no-PAT run), so it
+   is always safe to declare. (Executing surfaces — live re-plan, etc. — are a later
+   forge stage; do not author those kinds yet.)
+
 ## Workflow — Mode B (tests-only + double-confirm)
 
 Use when the initiative only *adds tests* to existing, already-shipped behaviour
