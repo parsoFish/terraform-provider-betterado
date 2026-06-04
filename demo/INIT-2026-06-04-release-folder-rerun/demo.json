@@ -5,7 +5,7 @@
   "initiativeId": "INIT-2026-06-04-release-folder-rerun",
   "baseRef": "main",
   "changedRef": "HEAD",
-  "diffStat": " .../resource_release_folder_test.go                | 114 ++++++++++++\n .../service/release/resource_release_folder.go     | 207 +++++++++++++++++++++\n .../release/resource_release_folder_test.go        | 196 +++++++++++++++++++\n azuredevops/provider.go                            |   1 +\n website/docs/r/release_folder.html.markdown        |  46 +++++\n 5 files changed, 564 insertions(+)",
+  "diffStat": " .../resource_release_folder_test.go                | 114 ++++++++++++\n .../service/release/resource_release_folder.go     | 207 +++++++++++++++++++++\n .../release/resource_release_folder_test.go        | 196 +++++++++++++++++++\n azuredevops/provider.go                            |   1 +\n .../INIT-2026-06-04-release-folder-rerun/DEMO.html | 199 ++++++++++++++++++++\n demo/INIT-2026-06-04-release-folder-rerun/DEMO.md  |  63 +++++++\n .../INIT-2026-06-04-release-folder-rerun/demo.json | 108 +++++++++++\n website/docs/r/release_folder.html.markdown        |  46 +++++\n 8 files changed, 934 insertions(+)",
   "checkpoints": [
     {
       "label": "unit-gate",
@@ -77,7 +77,7 @@
     "Acceptance test TestAccReleaseFolder_basic present (runs live with TF_ACC=1)",
     "Reference docs at website/docs/r/release_folder.html.markdown"
   ],
-  "usage_example": "```hcl\nresource \"azuredevops_project\" \"example\" {\n  name = \"Example Project\"\n}\n\nresource \"betterado_release_folder\" \"example\" {\n  project_id  = azuredevops_project.example.id\n  path        = \"\\\\Production\\\\Web\"\n  description = \"Release definitions for the production web tier\"\n}\n```",
+  "usage_example": "resource \"azuredevops_project\" \"example\" {\n  name = \"Example Project\"\n}\n\nresource \"betterado_release_folder\" \"example\" {\n  project_id  = azuredevops_project.example.id\n  path        = \"\\\\Production\\\\Web\"\n  description = \"Release definitions for the production web tier\"\n}",
   "impact": [
     "Operators can now manage Azure DevOps release-definition folder hierarchies as Terraform resources",
     "Enables IaC-driven folder organisation for release pipelines without manual portal clicks",

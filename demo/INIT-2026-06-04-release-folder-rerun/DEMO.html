@@ -112,7 +112,7 @@
     <span><code>INIT-2026-06-04-release-folder-rerun</code></span>
     <span>project <strong>betterado</strong></span>
     <span>before <code>main</code> → after <code>HEAD</code></span>
-    <span>generated 2026-06-04T09:43:48.405Z</span>
+    <span>generated 2026-06-04T09:47:44.462Z</span>
   </div>
   <p class="essence">Introduces the betterado_release_folder Terraform resource for managing Azure DevOps release-definition folders. Operators can now create, read, update, and destroy folder paths (e.g. \Production\Web) via Terraform. Includes 5 gomock unit tests, an acceptance test (live ADO, self-skips without TF_ACC), and reference docs.</p>
 </header>
@@ -162,15 +162,17 @@
  .../service/release/resource_release_folder.go     | 207 +++++++++++++++++++++
  .../release/resource_release_folder_test.go        | 196 +++++++++++++++++++
  azuredevops/provider.go                            |   1 +
+ .../INIT-2026-06-04-release-folder-rerun/DEMO.html | 199 ++++++++++++++++++++
+ demo/INIT-2026-06-04-release-folder-rerun/DEMO.md  |  63 +++++++
+ .../INIT-2026-06-04-release-folder-rerun/demo.json | 108 +++++++++++
  website/docs/r/release_folder.html.markdown        |  46 +++++
- 5 files changed, 564 insertions(+)</pre></details>
+ 8 files changed, 934 insertions(+)</pre></details>
 </section>
 
 
 <section class="section" id="usage">
   <h2>Usage</h2>
-  <pre class="usage-block">```hcl
-resource &quot;azuredevops_project&quot; &quot;example&quot; {
+  <pre class="usage-block">resource &quot;azuredevops_project&quot; &quot;example&quot; {
   name = &quot;Example Project&quot;
 }
 
@@ -178,8 +180,7 @@ resource &quot;betterado_release_folder&quot; &quot;example&quot; {
   project_id  = azuredevops_project.example.id
   path        = &quot;\\Production\\Web&quot;
   description = &quot;Release definitions for the production web tier&quot;
-}
-```</pre>
+}</pre>
 </section>
 
 

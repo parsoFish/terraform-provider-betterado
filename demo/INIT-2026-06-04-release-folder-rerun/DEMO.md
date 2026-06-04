@@ -36,14 +36,16 @@
  .../service/release/resource_release_folder.go     | 207 +++++++++++++++++++++
  .../release/resource_release_folder_test.go        | 196 +++++++++++++++++++
  azuredevops/provider.go                            |   1 +
+ .../INIT-2026-06-04-release-folder-rerun/DEMO.html | 199 ++++++++++++++++++++
+ demo/INIT-2026-06-04-release-folder-rerun/DEMO.md  |  63 +++++++
+ .../INIT-2026-06-04-release-folder-rerun/demo.json | 108 +++++++++++
  website/docs/r/release_folder.html.markdown        |  46 +++++
- 5 files changed, 564 insertions(+)
+ 8 files changed, 934 insertions(+)
 ```
 
 ## Usage
 
 ```
-```hcl
 resource "azuredevops_project" "example" {
   name = "Example Project"
 }
@@ -53,7 +55,6 @@ resource "betterado_release_folder" "example" {
   path        = "\\Production\\Web"
   description = "Release definitions for the production web tier"
 }
-```
 ```
 
 ## Impact
