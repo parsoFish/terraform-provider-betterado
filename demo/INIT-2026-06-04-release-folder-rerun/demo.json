@@ -1,0 +1,102 @@
+{
+  "title": "Add betterado_release_folder resource with full CRUD and acceptance test",
+  "essence": "Introduces the betterado_release_folder Terraform resource for managing Azure DevOps release-definition folders. Operators can now create, read, update, and destroy folder paths (e.g. \\Production\\Web) via Terraform. Includes 5 gomock unit tests, an acceptance test skeleton, and reference docs.",
+  "project": "betterado",
+  "initiativeId": "INIT-2026-06-04-release-folder-rerun",
+  "baseRef": "main",
+  "changedRef": "HEAD",
+  "diffStat": " .../resource_release_folder_test.go                | 114 ++++++++++++\n .../service/release/resource_release_folder.go     | 207 +++++++++++++++++++++\n .../release/resource_release_folder_test.go        | 196 +++++++++++++++++++\n azuredevops/provider.go                            |   1 +\n website/docs/r/release_folder.html.markdown        |  46 +++++\n 5 files changed, 564 insertions(+)",
+  "checkpoints": [
+    {
+      "label": "unit-tests",
+      "caption": "5 gomock unit tests for betterado_release_folder all pass",
+      "kind": "harness",
+      "beforeNote": "No betterado_release_folder resource existed; no tests existed.",
+      "afterNote": "All 5 canonical unit tests pass: ExpandFlatten_Roundtrip, Create_Success, Create_Error, Read_NotFound, Delete_Error.",
+      "metrics": [
+        {
+          "label": "TestReleaseFolder_ExpandFlatten_Roundtrip",
+          "before": "N/A (file absent)",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "incomplete"
+        },
+        {
+          "label": "TestReleaseFolder_Create_Success",
+          "before": "N/A (file absent)",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "incomplete"
+        },
+        {
+          "label": "TestReleaseFolder_Create_Error",
+          "before": "N/A (file absent)",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "incomplete"
+        },
+        {
+          "label": "TestReleaseFolder_Read_NotFound",
+          "before": "N/A (file absent)",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "incomplete"
+        },
+        {
+          "label": "TestReleaseFolder_Delete_Error",
+          "before": "N/A (file absent)",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "incomplete"
+        }
+      ],
+      "testEvidence": [
+        {
+          "name": "TestReleaseFolder (release package)",
+          "result": "pass",
+          "delta": "+5 tests"
+        },
+        {
+          "name": "TestAccReleaseFolder (acceptancetests package, TF_ACC not set)",
+          "result": "skip",
+          "delta": "+1 test (runs live with TF_ACC=1)"
+        }
+      ]
+    }
+  ],
+  "acceptanceCriteria": [
+    "betterado_release_folder resource registered in provider.go, schema-valid, full CRUD implemented",
+    "5 canonical gomock unit tests pass: ExpandFlatten_Roundtrip, Create_Success, Create_Error, Read_NotFound, Delete_Error",
+    "Delete returns helpful error 'Cannot delete folder ... contains release definitions' when folder is non-empty",
+    "Acceptance test TestAccReleaseFolder_basic present (runs live with TF_ACC=1)",
+    "Reference docs at website/docs/r/release_folder.html.markdown"
+  ],
+  "usage_example": "```hcl\nresource \"azuredevops_project\" \"example\" {\n  name = \"Example Project\"\n}\n\nresource \"betterado_release_folder\" \"example\" {\n  project_id  = azuredevops_project.example.id\n  path        = \"\\\\Production\\\\Web\"\n  description = \"Release definitions for the production web tier\"\n}\n```",
+  "impact": [
+    "Operators can now manage Azure DevOps release-definition folder hierarchies as Terraform resources",
+    "Enables IaC-driven folder organisation for release pipelines without manual portal clicks",
+    "Safe delete: provider refuses to cascade-delete folders containing definitions, preventing accidental data loss"
+  ],
+  "filesChanged": [
+    {
+      "path": "azuredevops/internal/service/release/resource_release_folder.go",
+      "note": "New resource: full CRUD for betterado_release_folder"
+    },
+    {
+      "path": "azuredevops/internal/service/release/resource_release_folder_test.go",
+      "note": "5 canonical gomock unit tests"
+    },
+    {
+      "path": "azuredevops/internal/acceptancetests/resource_release_folder_test.go",
+      "note": "Acceptance test (requires TF_ACC=1 + live ADO creds)"
+    },
+    {
+      "path": "azuredevops/provider.go",
+      "note": "Register betterado_release_folder in provider resource map"
+    },
+    {
+      "path": "website/docs/r/release_folder.html.markdown",
+      "note": "Reference documentation"
+    }
+  ]
+}
