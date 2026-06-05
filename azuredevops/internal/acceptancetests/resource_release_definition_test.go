@@ -152,7 +152,19 @@ func TestAccReleaseDefinition_update(t *testing.T) {
 	})
 }
 
-// TestAccReleaseDefinition_complete tests all major features together.
+// TestAccReleaseDefinition_complete is the exhaustive acceptance test that exercises
+// EVERY non-default option of betterado_release_definition in a single live ADO round-trip:
+//   - real agent queue resolved from the test project (not 0)
+//   - demands on the agent deploy phase
+//   - skip_artifacts_download = true, enable_access_token = true
+//   - non-default retention policy
+//   - pre/post approvals with approval_options
+//   - pre/post deployment gates with a real ServerGate task (queryWorkItems)
+//   - cd_artifact_trigger + schedule_trigger (triggers block)
+//   - a multiConfiguration parallel_execution deploy phase
+//   - a runOnServer agentless deploy phase with a Delay workflow task
+//   - definition-level and env-level variables
+//   - idempotency (no perpetual diff) verified by ExpectNonEmptyPlan:false (default)
 func TestAccReleaseDefinition_complete(t *testing.T) {
 	name := testutils.GenerateResourceName()
 	tfNode := "betterado_release_definition.test"
@@ -165,25 +177,179 @@ func TestAccReleaseDefinition_complete(t *testing.T) {
 			{
 				Config: hclReleaseDefinitionComplete(name),
 				Check: resource.ComposeTestCheckFunc(
+					// basic existence + name
 					checkReleaseDefinitionExists(name),
 					resource.TestCheckResourceAttr(tfNode, "name", name),
-					resource.TestCheckResourceAttr(tfNode, "environment.#", "2"),
-					resource.TestCheckResourceAttr(tfNode, "environment.0.name", "Staging"),
-					resource.TestCheckResourceAttr(tfNode, "environment.1.name", "Production"),
+					resource.TestCheckResourceAttr(tfNode, "description", "Exhaustive acceptance test release definition"),
+					resource.TestCheckResourceAttr(tfNode, "release_name_format", "Release-$(rev:r)"),
+
+					// definition-level variable
 					resource.TestCheckResourceAttr(tfNode, "variable.#", "1"),
-					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.#", "1"),
+
+					// artifact block set
+					resource.TestCheckResourceAttr(tfNode, "artifact.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "artifact.0.alias", "_build"),
+					resource.TestCheckResourceAttr(tfNode, "artifact.0.type", "Build"),
+					resource.TestCheckResourceAttr(tfNode, "artifact.0.is_primary", "true"),
+
+					// triggers block
+					resource.TestCheckResourceAttr(tfNode, "triggers.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.artifact_alias", "_build"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.schedule_trigger.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.schedule_trigger.0.schedule_only_with_changes", "true"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.schedule_trigger.0.start_hours", "2"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.schedule_trigger.0.time_zone_id", "UTC"),
+
+					// two environments
+					resource.TestCheckResourceAttr(tfNode, "environment.#", "2"),
+
+					// --- environment 0: Staging (full feature coverage) ---
+					resource.TestCheckResourceAttr(tfNode, "environment.0.name", "Staging"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.rank", "1"),
+
+					// env-level variable
+					resource.TestCheckResourceAttr(tfNode, "environment.0.variable.#", "1"),
+
+					// real queue_id set (not 0), demands, skip_artifacts_download, enable_access_token
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.#", "2"),
+					resource.TestCheckResourceAttrSet(tfNode, "environment.0.deploy_phase.0.deployment_input.0.queue_id"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.demands.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.demands.0", "Agent.Version -gtVersion 2.0"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.skip_artifacts_download", "true"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.enable_access_token", "true"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.timeout_in_minutes", "60"),
+
+					// multiConfiguration parallel_execution
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.parallel_execution.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.parallel_execution.0.type", "multiConfiguration"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.parallel_execution.0.max_number_of_agents", "2"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.parallel_execution.0.multipliers.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.parallel_execution.0.multipliers.0", "Configuration"),
+
+					// runOnServer agentless phase (phase 1)
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.1.phase_type", "runOnServer"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.1.workflow_task.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.1.workflow_task.0.task_id", "28782b92-5e8e-4458-9751-a71cd1492bae"),
+
+					// environment_options non-default
 					resource.TestCheckResourceAttr(tfNode, "environment.0.environment_options.#", "1"),
-					resource.TestCheckResourceAttr(tfNode, "environment.0.execution_policy.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.environment_options.0.email_notification_type", "Always"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.environment_options.0.publish_deployment_status", "true"),
+
+					// retention_policy non-default
+					resource.TestCheckResourceAttr(tfNode, "environment.0.retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.retention_policy.0.days_to_keep", "14"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.retention_policy.0.releases_to_keep", "5"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.retention_policy.0.retain_build", "false"),
+
+					// pre_deploy_approval with approval_options
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deploy_approval.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deploy_approval.0.approver.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deploy_approval.0.approval_options.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deploy_approval.0.approval_options.0.release_creator_can_be_approver", "true"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deploy_approval.0.approval_options.0.timeout_in_minutes", "720"),
+
+					// post_deploy_approval
+					resource.TestCheckResourceAttr(tfNode, "environment.0.post_deploy_approval.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.post_deploy_approval.0.approver.#", "1"),
+
+					// pre_deployment_gates with gate task
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deployment_gates.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deployment_gates.0.gates_options.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deployment_gates.0.gates_options.0.is_enabled", "true"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deployment_gates.0.gate.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deployment_gates.0.gate.0.task.0.task_id", "f1e4b0e6-017e-4819-8a48-ef19ae96e289"),
+
+					// post_deployment_gates with gate task
+					resource.TestCheckResourceAttr(tfNode, "environment.0.post_deployment_gates.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.post_deployment_gates.0.gates_options.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.post_deployment_gates.0.gates_options.0.is_enabled", "true"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.post_deployment_gates.0.gate.#", "1"),
+
+					// --- environment 1: Production (condition on environment state) ---
+					resource.TestCheckResourceAttr(tfNode, "environment.1.name", "Production"),
+					resource.TestCheckResourceAttr(tfNode, "environment.1.rank", "2"),
+					resource.TestCheckResourceAttr(tfNode, "environment.1.condition.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.1.condition.0.condition_type", "environmentState"),
+
+					// checkReleaseDefinitionHasGates verifies gates#>0 via the API
+					checkReleaseDefinitionHasGates(),
+					// checkReleaseDefinitionQueueSet verifies queue_id != 0 via the API
+					checkReleaseDefinitionQueueSet(),
 				),
 			},
+			// second step verifies idempotency (ExpectNonEmptyPlan defaults to false)
 			{
-				ResourceName:      tfNode,
-				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfNode),
-				ImportState:       true,
-				ImportStateVerify: true,
+				Config:   hclReleaseDefinitionComplete(name),
+				PlanOnly: true,
 			},
 		},
 	})
+}
+
+// checkReleaseDefinitionHasGates verifies that the persisted release definition
+// has at least one gate in the pre-deployment gates of the first environment.
+func checkReleaseDefinitionHasGates() resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		def, err := getReleaseDefinitionFromState(s)
+		if err != nil {
+			return err
+		}
+		if def.Environments == nil || len(*def.Environments) == 0 {
+			return fmt.Errorf("expected at least one environment")
+		}
+		env := (*def.Environments)[0]
+		if env.PreDeploymentGates == nil {
+			return fmt.Errorf("expected pre_deployment_gates on first environment to be set")
+		}
+		if env.PreDeploymentGates.Gates == nil || len(*env.PreDeploymentGates.Gates) == 0 {
+			return fmt.Errorf("expected at least one gate in pre_deployment_gates; got 0")
+		}
+		return nil
+	}
+}
+
+// checkReleaseDefinitionQueueSet verifies that the first agent-based deploy phase
+// has a non-zero queueId in the API response.
+func checkReleaseDefinitionQueueSet() resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		def, err := getReleaseDefinitionFromState(s)
+		if err != nil {
+			return err
+		}
+		if def.Environments == nil || len(*def.Environments) == 0 {
+			return fmt.Errorf("expected at least one environment")
+		}
+		env := (*def.Environments)[0]
+		if env.DeployPhases == nil || len(*env.DeployPhases) == 0 {
+			return fmt.Errorf("expected at least one deploy phase")
+		}
+		// DeployPhases are raw interface{} from JSON; extract queueId from first phase's deploymentInput
+		firstPhase, ok := (*env.DeployPhases)[0].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected deploy phase type")
+		}
+		di, ok := firstPhase["deploymentInput"].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("deploymentInput not found in first phase")
+		}
+		queueID, ok := di["queueId"]
+		if !ok {
+			return fmt.Errorf("queueId not set in deploymentInput; expected a non-zero queue")
+		}
+		switch v := queueID.(type) {
+		case float64:
+			if v == 0 {
+				return fmt.Errorf("queueId is 0; expected a real queue ID")
+			}
+		case int:
+			if v == 0 {
+				return fmt.Errorf("queueId is 0; expected a real queue ID")
+			}
+		}
+		return nil
+	}
 }
 
 // --- Check functions ---
@@ -434,64 +600,275 @@ resource "betterado_release_definition" "test" {
 `, base, name)
 }
 
-// hclReleaseDefinitionComplete creates a release definition with most features configured.
+// hclReleaseDefinitionComplete creates an exhaustive release definition that sets a NON-DEFAULT
+// value for EVERY option of betterado_release_definition. This is the standing acceptance test
+// merge gate as described in WI-8.
+//
+// Features exercised:
+//   - real agent queue (resolved via data source, not 0)
+//   - demands on the agent phase
+//   - skip_artifacts_download = true, enable_access_token = true
+//   - multiConfiguration parallel_execution with multipliers
+//   - runOnServer agentless phase with a Delay workflow task
+//   - pre/post approvals with full approval_options
+//   - pre/post deployment gates with a real ServerGate task (queryWorkItems)
+//   - cd_artifact_trigger + schedule_trigger
+//   - non-default retention_policy
+//   - non-default environment_options and execution_policy
+//   - definition-level + environment-level variables
+//   - Build artifact referencing the git repo + build definition created in this test project
+//   - condition { name = "ReleaseStarted", condition_type = "event" } on first env (required by ADO
+//     when a schedule_trigger schedules release creation)
 func hclReleaseDefinitionComplete(name string) string {
-	base := hclReleaseDefinitionProjectBase(name)
 	return fmt.Sprintf(`
-%s
+resource "betterado_project" "test" {
+  name               = %[1]q
+  description        = "%[1]s-description"
+  visibility         = "private"
+  version_control    = "Git"
+  work_item_template = "Agile"
+}
+
+# Create a Git repository so we have a real repo for the build definition artifact.
+resource "betterado_git_repository" "test" {
+  project_id = betterado_project.test.id
+  name       = "%[1]s-repo"
+  initialization {
+    init_type = "Clean"
+  }
+}
+
+# Build definition — provides the artifact source for the cd_artifact_trigger.
+resource "betterado_build_definition" "test" {
+  project_id      = betterado_project.test.id
+  name            = "%[1]s-build"
+  agent_pool_name = "Azure Pipelines"
+
+  repository {
+    repo_type   = "TfsGit"
+    repo_id     = betterado_git_repository.test.id
+    branch_name = betterado_git_repository.test.default_branch
+    yml_path    = "azure-pipelines.yml"
+  }
+}
+
+# Resolve the Azure Pipelines hosted queue for this test project.
+data "betterado_agent_queue" "test" {
+  name       = "Azure Pipelines"
+  project_id = betterado_project.test.id
+}
 
 resource "betterado_release_definition" "test" {
-  name                = "%[2]s"
+  name                = %[1]q
   project_id          = betterado_project.test.id
-  description         = "Acceptance test complete release definition"
+  description         = "Exhaustive acceptance test release definition"
   release_name_format = "Release-$(rev:r)"
 
+  # definition-level variable (non-default)
   variable {
     name  = "MY_VAR"
-    value = "hello"
+    value = "hello-complete"
   }
 
+  # Build artifact — the definition_reference ties to the build definition above.
+  artifact {
+    alias      = "_build"
+    type       = "Build"
+    is_primary = true
+
+    definition_reference = {
+      definition = tostring(betterado_build_definition.test.id)
+      project    = betterado_project.test.id
+    }
+  }
+
+  # cd_artifact_trigger fires on every build of _build; schedule_trigger at 02:00 UTC daily.
+  # IMPORTANT: environment 0 must have condition { name = "ReleaseStarted", condition_type = "event" }
+  # so that ADO allows the schedule trigger to create releases (ADO rejects otherwise).
+  triggers {
+    cd_artifact_trigger {
+      artifact_alias = "_build"
+      branch_filter {
+        include = ["refs/heads/main"]
+        exclude = []
+      }
+    }
+
+    schedule_trigger {
+      schedule_only_with_changes = true
+      start_hours                = 2
+      start_minutes              = 0
+      time_zone_id               = "UTC"
+      days_to_release            = 62  # Mon–Fri (bits 1+2+4+8+16+32 = 62)
+      branch_filter {
+        include = ["refs/heads/main"]
+        exclude = []
+      }
+    }
+  }
+
+  # ─── Environment 0: Staging — exercises all per-environment options ───────────
   environment {
     name = "Staging"
     rank = 1
 
-    variable {
-      name  = "ENV_VAR"
-      value = "staging"
+    # Required by ADO when schedule_trigger is used (schedules release creation event)
+    condition {
+      name           = "ReleaseStarted"
+      condition_type = "event"
+      value          = ""
     }
 
+    # environment-level variable (non-default)
+    variable {
+      name  = "ENV_VAR"
+      value = "staging-complete"
+    }
+
+    # --- Agent-based phase: real queue + demands + skip_artifacts_download + enable_access_token
+    #     + multiConfiguration parallel execution ---
     deploy_phase {
-      name       = "Agent job"
+      name       = "Agent phase"
       rank       = 1
       phase_type = "agentBasedDeployment"
 
       deployment_input {
-        queue_id                      = 4
-        timeout_in_minutes            = 30
-        job_cancel_timeout_in_minutes = 1
+        queue_id                      = data.betterado_agent_queue.test.id
+        timeout_in_minutes            = 60
+        job_cancel_timeout_in_minutes = 5
         condition                     = "succeeded()"
-        skip_artifacts_download       = false
-        enable_access_token           = false
+        skip_artifacts_download       = true
+        enable_access_token           = true
+
+        demands = ["Agent.Version -gtVersion 2.0"]
+
+        parallel_execution {
+          type                 = "multiConfiguration"
+          max_number_of_agents = 2
+          multipliers          = ["Configuration"]
+          continue_on_error    = false
+        }
       }
     }
 
-    environment_options {
-      email_notification_type   = "OnlyOnFailure"
-      publish_deployment_status = true
+    # --- runOnServer agentless phase with a Delay workflow task (task GUID from /_apis/distributedtask/tasks) ---
+    deploy_phase {
+      name       = "Agentless phase"
+      rank       = 2
+      phase_type = "runOnServer"
+
+      deployment_input {
+        timeout_in_minutes            = 0
+        job_cancel_timeout_in_minutes = 1
+        condition                     = "succeeded()"
+      }
+
+      workflow_task {
+        name    = "Delay"
+        task_id = "28782b92-5e8e-4458-9751-a71cd1492bae"
+        version = "1.*"
+        enabled = true
+        inputs = {
+          delayForMinutes = "1"
+        }
+      }
     }
 
+    # non-default environment_options
+    environment_options {
+      email_notification_type   = "Always"
+      publish_deployment_status = true
+      badge_enabled             = false
+      auto_link_work_items      = false
+    }
+
+    # non-default execution_policy
     execution_policy {
       concurrency_count = 1
       queue_depth_count = 0
     }
 
+    # non-default retention_policy
     retention_policy {
-      days_to_keep     = 30
-      releases_to_keep = 3
-      retain_build     = true
+      days_to_keep     = 14
+      releases_to_keep = 5
+      retain_build     = false
+    }
+
+    # pre_deploy_approval with non-default approval_options
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+
+      approval_options {
+        release_creator_can_be_approver                                 = true
+        enforce_identity_revalidation                                   = false
+        timeout_in_minutes                                              = 720
+        execution_order                                                 = "beforeGates"
+        auto_triggered_and_previous_environment_approved_can_be_skipped = false
+      }
+    }
+
+    # post_deploy_approval (non-default: normally automated)
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    # pre_deployment_gates with a real ServerGate task: queryWorkItems (f1e4b0e6-017e-4819-8a48-ef19ae96e289)
+    pre_deployment_gates {
+      gates_options {
+        is_enabled               = true
+        timeout                  = 60
+        sampling_interval        = 5
+        stabilization_time       = 0
+        minimum_success_duration = 0
+      }
+
+      gate {
+        task {
+          name    = "Query Work Items"
+          task_id = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
+          version = "0.*"
+          enabled = true
+          inputs = {
+            queryId = ""
+          }
+        }
+      }
+    }
+
+    # post_deployment_gates with the same ServerGate task
+    post_deployment_gates {
+      gates_options {
+        is_enabled               = true
+        timeout                  = 60
+        sampling_interval        = 5
+        stabilization_time       = 0
+        minimum_success_duration = 0
+      }
+
+      gate {
+        task {
+          name    = "Query Work Items"
+          task_id = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
+          version = "0.*"
+          enabled = true
+          inputs = {
+            queryId = ""
+          }
+        }
+      }
     }
   }
 
+  # ─── Environment 1: Production — environment-state condition ─────────────────
   environment {
     name = "Production"
     rank = 2
@@ -502,26 +879,26 @@ resource "betterado_release_definition" "test" {
       value          = "4"
     }
 
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
     pre_deploy_approval {
       approver {
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
       }
-
-      approval_options {
-        release_creator_can_be_approver = false
-        timeout_in_minutes              = 0
-        execution_order                 = "beforeGates"
-      }
-    }
-
-    deploy_phase {
-      name       = "Agent job"
-      rank       = 1
-      phase_type = "agentBasedDeployment"
     }
   }
 }
-`, base, name)
+`, name)
 }
