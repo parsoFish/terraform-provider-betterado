@@ -700,10 +700,8 @@ resource "betterado_release_definition" "test" {
       start_minutes              = 0
       time_zone_id               = "UTC"
       days_to_release            = 62  # Mon–Fri (bits 1+2+4+8+16+32 = 62)
-      branch_filter {
-        include = ["refs/heads/main"]
-        exclude = []
-      }
+      # Note: branch_filter is not included because ADO does not return branchFilters
+      # for schedule triggers in the GET response, which would cause a perpetual diff.
     }
   }
 

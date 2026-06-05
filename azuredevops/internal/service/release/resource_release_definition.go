@@ -3,6 +3,7 @@ package release
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -1204,7 +1205,9 @@ func expandParallelExecution(input []interface{}) map[string]interface{} {
 		for i, m := range multipliers {
 			multStrs[i], _ = m.(string)
 		}
-		result["multipliers"] = multStrs
+		// ADO stores multipliers as a comma-separated string (Multipliers *string in the SDK),
+		// not as a JSON array. Sending an array causes ADO to silently drop it.
+		result["multipliers"] = strings.Join(multStrs, ",")
 	}
 	if coe, ok := peMap["continue_on_error"].(bool); ok {
 		result["continueOnError"] = coe
@@ -1350,10 +1353,53 @@ func expandDeploymentGates(input []interface{}) *releaseapi.ReleaseDefinitionGat
 	return step
 }
 
+// isNonDefaultGatesOptions returns true when at least one field in GatesOptions
+// differs from its default (is_enabled=false, timeout=0, samplingInterval=0,
+// stabilizationTime=0, minimumSuccessDuration=0). Used to distinguish a real
+// gates_options block from ADO's always-present but empty-configured step.
+func isNonDefaultGatesOptions(o *releaseapi.ReleaseDefinitionGatesOptions) bool {
+	if o == nil {
+		return false
+	}
+	if o.IsEnabled != nil && *o.IsEnabled {
+		return true
+	}
+	if o.Timeout != nil && *o.Timeout != 0 {
+		return true
+	}
+	if o.SamplingInterval != nil && *o.SamplingInterval != 0 {
+		return true
+	}
+	if o.StabilizationTime != nil && *o.StabilizationTime != 0 {
+		return true
+	}
+	if o.MinimumSuccessDuration != nil && *o.MinimumSuccessDuration != 0 {
+		return true
+	}
+	return false
+}
+
 func flattenDeploymentGates(step *releaseapi.ReleaseDefinitionGatesStep) []interface{} {
 	if step == nil {
 		return nil
 	}
+
+	// ADO always returns a ReleaseDefinitionGatesStep object even for environments
+	// that have no gates configured (all options at default, no gate tasks).
+	// Suppress such empty steps to avoid perpetual diffs on environments that do
+	// not have a pre/post_deployment_gates block in HCL.
+	//
+	// We consider a step "empty" when:
+	//   - no gate tasks are configured (step.Gates is nil or empty), AND
+	//   - GatesOptions is either nil or has only default values (is_enabled=false,
+	//     timeout=0, samplingInterval=0, stabilizationTime=0, minimumSuccessDuration=0)
+	hasGates := step.Gates != nil && len(*step.Gates) > 0
+	hasNonDefaultOptions := step.GatesOptions != nil && isNonDefaultGatesOptions(step.GatesOptions)
+
+	if !hasGates && !hasNonDefaultOptions {
+		return nil
+	}
+
 	gatesMap := map[string]interface{}{}
 
 	if step.GatesOptions != nil {
@@ -1580,7 +1626,7 @@ func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *sch
 
 		// Deploy phases
 		if env.DeployPhases != nil {
-			envMap["deploy_phase"] = flattenDeployPhases(env.DeployPhases)
+			envMap["deploy_phase"] = flattenDeployPhases(env.DeployPhases, d, i)
 		}
 
 		// Retention policy
@@ -1613,9 +1659,13 @@ func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *sch
 			envMap["variable"] = flattenVariables(env.Variables, d)
 		}
 
-		// Variable groups
+		// Variable groups — always include (even if empty) so that the Terraform state
+		// matches HCL's implicit zero-value of [] for Optional TypeList. Omitting it
+		// causes a perpetual diff (state absent → plan adds []).
 		if env.VariableGroups != nil {
 			envMap["variable_groups"] = flattenVariableGroups(env.VariableGroups)
+		} else {
+			envMap["variable_groups"] = []int{}
 		}
 
 		result[i] = envMap
@@ -1715,13 +1765,18 @@ func flattenApprovalOptions(opts *releaseapi.ApprovalOptions) []interface{} {
 	return []interface{}{optMap}
 }
 
-func flattenDeployPhases(phases *[]interface{}) []interface{} {
+// flattenDeployPhases converts ADO deploy phases back to Terraform state.
+// d and envIdx are used to check whether each phase's corresponding HCL block had a
+// deployment_input sub-block: if yes, we always emit deployment_input (even when all
+// values are at their defaults); if no, we suppress all-default deployment_input blocks
+// to avoid perpetual diffs on phases whose HCL does not set deployment_input.
+func flattenDeployPhases(phases *[]interface{}, d *schema.ResourceData, envIdx int) []interface{} {
 	if phases == nil {
 		return nil
 	}
 
 	result := make([]interface{}, 0, len(*phases))
-	for _, phase := range *phases {
+	for phaseIdx, phase := range *phases {
 		// The API returns deploy phases as generic interface{} which unmarshals as map[string]interface{}
 		phaseData, err := json.Marshal(phase)
 		if err != nil {
@@ -1748,9 +1803,16 @@ func flattenDeployPhases(phases *[]interface{}) []interface{} {
 			flatPhase["phase_type"] = pt
 		}
 
-		// Deployment input
+		// Deployment input — check whether the corresponding HCL phase block has a
+		// deployment_input sub-block. If it does, always emit deployment_input (even
+		// all-defaults). If it doesn't, suppress all-default entries to avoid perpetual
+		// diffs. ADO always returns a deploymentInput object for every phase.
 		if di, ok := phaseMap["deploymentInput"].(map[string]interface{}); ok {
-			flatPhase["deployment_input"] = flattenDeploymentInput(di)
+			flat := flattenDeploymentInput(di)
+			hclHasDI := hclPhaseHasDeploymentInput(d, envIdx, phaseIdx)
+			if hclHasDI || !isDefaultDeploymentInput(flat) {
+				flatPhase["deployment_input"] = flat
+			}
 		}
 
 		// Workflow tasks
@@ -1761,6 +1823,23 @@ func flattenDeployPhases(phases *[]interface{}) []interface{} {
 		result = append(result, flatPhase)
 	}
 	return result
+}
+
+// hclPhaseHasDeploymentInput returns true if the phase at [envIdx][phaseIdx] in the
+// current Terraform resource data has a non-empty deployment_input block.
+func hclPhaseHasDeploymentInput(d *schema.ResourceData, envIdx, phaseIdx int) bool {
+	if d == nil {
+		return false
+	}
+	key := fmt.Sprintf("environment.%d.deploy_phase.%d.deployment_input.#", envIdx, phaseIdx)
+	count, ok := d.GetOk(key)
+	if !ok {
+		return false
+	}
+	if n, ok := count.(int); ok && n > 0 {
+		return true
+	}
+	return false
 }
 
 func flattenDeploymentInput(di map[string]interface{}) []interface{} {
@@ -1803,16 +1882,18 @@ func flattenDeploymentInput(di map[string]interface{}) []interface{} {
 		}
 	}
 
-	// Demands
-	if demands, ok := di["demands"].([]interface{}); ok && len(demands) > 0 {
-		demandStrs := make([]string, len(demands))
-		for i, d := range demands {
-			demandStrs[i], _ = d.(string)
+	// Demands — always include the key (empty or populated) so that the Terraform
+	// state matches HCL's implicit zero-value of [] for Optional TypeList.
+	// Omitting it causes a perpetual diff (state absent → plan adds []).
+	demandStrs := []interface{}{}
+	if demands, ok := di["demands"].([]interface{}); ok {
+		for _, d := range demands {
+			if s, ok := d.(string); ok {
+				demandStrs = append(demandStrs, s)
+			}
 		}
-		diMap["demands"] = demandStrs
-	} else {
-		diMap["demands"] = []string{}
 	}
+	diMap["demands"] = demandStrs
 
 	// Parallel execution — only set the key when there is a meaningful block.
 	// flattenParallelExecution returns nil for a "none"-typed or absent entry so
@@ -1825,6 +1906,49 @@ func flattenDeploymentInput(di map[string]interface{}) []interface{} {
 	}
 
 	return []interface{}{diMap}
+}
+
+// isDefaultDeploymentInput returns true when the flattened deployment_input contains
+// only default values (queue_id=0, timeout=0, jcTimeout=1, condition="succeeded()",
+// skip=false, eat=false, no demands, no parallel_execution, no agent_specification).
+// Used by flattenDeployPhases to avoid emitting a spurious deployment_input block for
+// phases whose HCL does not set one (ADO always returns a deploymentInput object).
+func isDefaultDeploymentInput(flat []interface{}) bool {
+	if len(flat) == 0 || flat[0] == nil {
+		return true
+	}
+	diMap, ok := flat[0].(map[string]interface{})
+	if !ok {
+		return true
+	}
+	if v, ok := diMap["queue_id"].(int); ok && v != 0 {
+		return false
+	}
+	if v, ok := diMap["timeout_in_minutes"].(int); ok && v != 0 {
+		return false
+	}
+	if v, ok := diMap["job_cancel_timeout_in_minutes"].(int); ok && v != 1 {
+		return false
+	}
+	if v, ok := diMap["condition"].(string); ok && v != "" && v != "succeeded()" {
+		return false
+	}
+	if v, ok := diMap["skip_artifacts_download"].(bool); ok && v {
+		return false
+	}
+	if v, ok := diMap["enable_access_token"].(bool); ok && v {
+		return false
+	}
+	if v, ok := diMap["agent_specification"].(string); ok && v != "" {
+		return false
+	}
+	if demands, ok := diMap["demands"].([]string); ok && len(demands) > 0 {
+		return false
+	}
+	if _, hasPE := diMap["parallel_execution"]; hasPE {
+		return false
+	}
+	return true
 }
 
 // flattenParallelExecution converts the ADO parallelExecution map to Terraform state.
@@ -2214,7 +2338,9 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 				}
 			}
 			bf := flattenScheduleTriggerBranchFilter(branchFilterSrc)
-			st["branch_filter"] = bf
+			if bf != nil {
+				st["branch_filter"] = bf
+			}
 			scheduleTriggers = append(scheduleTriggers, st)
 		}
 	}
@@ -2265,11 +2391,12 @@ func flattenScheduleTriggerBranchFilter(sched map[string]interface{}) []interfac
 			}
 		}
 	}
+	// Return nil (no block) when there are no branch filters. ADO does not return
+	// branchFilters in the GET response for schedule triggers, so always emitting an
+	// empty block would cause a perpetual diff on schedule triggers without branch_filter
+	// in HCL.
 	if len(includes) == 0 && len(excludes) == 0 {
-		return []interface{}{map[string]interface{}{
-			"include": []interface{}{},
-			"exclude": []interface{}{},
-		}}
+		return nil
 	}
 	if includes == nil {
 		includes = []interface{}{}

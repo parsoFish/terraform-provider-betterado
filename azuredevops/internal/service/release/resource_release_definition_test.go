@@ -919,7 +919,7 @@ func TestReleaseDefinition_DeployPhases_JSONMarshalUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	phases := []interface{}{phaseIface}
-	result := flattenDeployPhases(&phases)
+	result := flattenDeployPhases(&phases, nil, 0)
 	require.Len(t, result, 1)
 
 	flatPhase := result[0].(map[string]interface{})
@@ -2188,9 +2188,11 @@ func TestReleaseDefinition_ParallelExecution_ExpandFlatten(t *testing.T) {
 			"parallelExecutionType must be 'multiConfiguration'")
 		require.Equal(t, 3, pe["maxNumberOfAgents"],
 			"maxNumberOfAgents must be 3")
-		multipliers, ok := pe["multipliers"].([]string)
-		require.True(t, ok, "multipliers must be []string")
-		require.Equal(t, []string{"Configuration"}, multipliers)
+		// ADO stores multipliers as a comma-separated string (Multipliers *string in the SDK);
+		// expandParallelExecution must send a string, not an array, so ADO stores it correctly.
+		multipliersStr, ok := pe["multipliers"].(string)
+		require.True(t, ok, "multipliers must be a comma-separated string (ADO wire format)")
+		require.Equal(t, "Configuration", multipliersStr)
 	})
 
 	t.Run("AC2_flatten_multiMachine", func(t *testing.T) {
@@ -2377,7 +2379,7 @@ func TestReleaseDefinition_AgentlessPhase_ExpandFlatten(t *testing.T) {
 		var roundTripped []interface{}
 		require.NoError(t, json.Unmarshal(expandedJSON, &roundTripped))
 
-		flattened := flattenDeployPhases(&roundTripped)
+		flattened := flattenDeployPhases(&roundTripped, nil, 0)
 		require.Len(t, flattened, 2)
 
 		flatAgent := flattened[0].(map[string]interface{})
