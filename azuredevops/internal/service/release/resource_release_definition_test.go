@@ -1205,3 +1205,149 @@ func TestReleaseDefinition_AccRefresh_PreDeployApproval(t *testing.T) {
 	require.Equal(t, 1, approverMap["rank"],
 		"rank must survive expand/flatten round-trip")
 }
+
+// ── Gates: expand/flatten round-trip ──────────────────────────────────────
+
+// TestReleaseDefinition_Gates_ExpandFlatten verifies that an environment with
+// pre_deployment_gates and post_deployment_gates blocks (each containing a
+// gates_options sub-block with all five fields) round-trips through
+// expandReleaseDefinition → flattenReleaseDefinition with all GatesOptions
+// fields correctly populated in both directions (AC1, AC2, AC3).
+func TestReleaseDefinition_Gates_ExpandFlatten(t *testing.T) {
+	timeout := 10
+	samplingInterval := 5
+	stabilizationTime := 3
+	minimumSuccessDuration := 2
+
+	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "GatesRoundTripDef",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{},
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"environment": []interface{}{
+			map[string]interface{}{
+				"id":                   0,
+				"name":                 "Production",
+				"rank":                 1,
+				"owner":                "",
+				"variable":             []interface{}{},
+				"variable_groups":      []interface{}{},
+				"condition":            []interface{}{},
+				"pre_deploy_approval":  []interface{}{},
+				"post_deploy_approval": []interface{}{},
+				"deploy_phase": []interface{}{
+					map[string]interface{}{
+						"name":             "Agent phase",
+						"rank":             1,
+						"phase_type":       "agentBasedDeployment",
+						"deployment_input": []interface{}{},
+						"workflow_task":    []interface{}{},
+					},
+				},
+				"retention_policy":    []interface{}{},
+				"environment_options": []interface{}{},
+				"execution_policy":    []interface{}{},
+				"pre_deployment_gates": []interface{}{
+					map[string]interface{}{
+						"gates_options": []interface{}{
+							map[string]interface{}{
+								"is_enabled":               true,
+								"timeout":                  timeout,
+								"sampling_interval":        samplingInterval,
+								"stabilization_time":       stabilizationTime,
+								"minimum_success_duration": minimumSuccessDuration,
+							},
+						},
+					},
+				},
+				"post_deployment_gates": []interface{}{
+					map[string]interface{}{
+						"gates_options": []interface{}{
+							map[string]interface{}{
+								"is_enabled":               false,
+								"timeout":                  timeout * 2,
+								"sampling_interval":        samplingInterval * 2,
+								"stabilization_time":       stabilizationTime * 2,
+								"minimum_success_duration": minimumSuccessDuration * 2,
+							},
+						},
+					},
+				},
+			},
+		},
+		"artifact": []interface{}{},
+	})
+
+	// AC1: Verify expand correctly populates PreDeploymentGates and PostDeploymentGates
+	expanded, projectID, err := expandReleaseDefinition(resourceData)
+	require.NoError(t, err)
+	require.Equal(t, testReleaseDefinitionProjectID.String(), projectID)
+	require.NotNil(t, expanded.Environments)
+	require.Len(t, *expanded.Environments, 1)
+
+	env := (*expanded.Environments)[0]
+
+	// Pre-deployment gates assertions
+	require.NotNil(t, env.PreDeploymentGates, "PreDeploymentGates must be set after expand")
+	require.NotNil(t, env.PreDeploymentGates.GatesOptions, "PreDeploymentGates.GatesOptions must be set after expand")
+	preOpts := env.PreDeploymentGates.GatesOptions
+	require.Equal(t, true, *preOpts.IsEnabled, "pre IsEnabled must match")
+	require.Equal(t, timeout, *preOpts.Timeout, "pre Timeout must match")
+	require.Equal(t, samplingInterval, *preOpts.SamplingInterval, "pre SamplingInterval must match")
+	require.Equal(t, stabilizationTime, *preOpts.StabilizationTime, "pre StabilizationTime must match")
+	require.Equal(t, minimumSuccessDuration, *preOpts.MinimumSuccessDuration, "pre MinimumSuccessDuration must match")
+
+	// Post-deployment gates assertions
+	require.NotNil(t, env.PostDeploymentGates, "PostDeploymentGates must be set after expand")
+	require.NotNil(t, env.PostDeploymentGates.GatesOptions, "PostDeploymentGates.GatesOptions must be set after expand")
+	postOpts := env.PostDeploymentGates.GatesOptions
+	require.Equal(t, false, *postOpts.IsEnabled, "post IsEnabled must match")
+	require.Equal(t, timeout*2, *postOpts.Timeout, "post Timeout must match")
+	require.Equal(t, samplingInterval*2, *postOpts.SamplingInterval, "post SamplingInterval must match")
+	require.Equal(t, stabilizationTime*2, *postOpts.StabilizationTime, "post StabilizationTime must match")
+	require.Equal(t, minimumSuccessDuration*2, *postOpts.MinimumSuccessDuration, "post MinimumSuccessDuration must match")
+
+	// AC2: Flatten back and verify Terraform state contains correct blocks
+	expandedID := testReleaseDefinitionID
+	expanded.Id = &expandedID
+	flattenReleaseDefinition(resourceData, expanded, projectID)
+
+	envList := resourceData.Get("environment").([]interface{})
+	require.Len(t, envList, 1)
+	envMap := envList[0].(map[string]interface{})
+
+	// Verify pre_deployment_gates round-trip
+	preGatesList, ok := envMap["pre_deployment_gates"].([]interface{})
+	require.True(t, ok, "pre_deployment_gates should be present after flatten")
+	require.Len(t, preGatesList, 1)
+	preGatesMap := preGatesList[0].(map[string]interface{})
+
+	preGatesOpts := preGatesMap["gates_options"].([]interface{})
+	require.Len(t, preGatesOpts, 1)
+	preOptsMap := preGatesOpts[0].(map[string]interface{})
+	require.Equal(t, true, preOptsMap["is_enabled"], "pre is_enabled must survive flatten")
+	require.Equal(t, timeout, preOptsMap["timeout"], "pre timeout must survive flatten")
+	require.Equal(t, samplingInterval, preOptsMap["sampling_interval"], "pre sampling_interval must survive flatten")
+	require.Equal(t, stabilizationTime, preOptsMap["stabilization_time"], "pre stabilization_time must survive flatten")
+	require.Equal(t, minimumSuccessDuration, preOptsMap["minimum_success_duration"], "pre minimum_success_duration must survive flatten")
+
+	// Verify post_deployment_gates round-trip
+	postGatesList, ok := envMap["post_deployment_gates"].([]interface{})
+	require.True(t, ok, "post_deployment_gates should be present after flatten")
+	require.Len(t, postGatesList, 1)
+	postGatesMap := postGatesList[0].(map[string]interface{})
+
+	postGatesOpts := postGatesMap["gates_options"].([]interface{})
+	require.Len(t, postGatesOpts, 1)
+	postOptsMap := postGatesOpts[0].(map[string]interface{})
+	require.Equal(t, false, postOptsMap["is_enabled"], "post is_enabled must survive flatten")
+	require.Equal(t, timeout*2, postOptsMap["timeout"], "post timeout must survive flatten")
+	require.Equal(t, samplingInterval*2, postOptsMap["sampling_interval"], "post sampling_interval must survive flatten")
+	require.Equal(t, stabilizationTime*2, postOptsMap["stabilization_time"], "post stabilization_time must survive flatten")
+	require.Equal(t, minimumSuccessDuration*2, postOptsMap["minimum_success_duration"], "post minimum_success_duration must survive flatten")
+}

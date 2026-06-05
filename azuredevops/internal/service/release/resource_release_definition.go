@@ -403,6 +403,22 @@ func ResourceReleaseDefinition() *schema.Resource {
 								},
 							},
 						},
+						"pre_deployment_gates": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: deploymentGatesSchema(),
+							},
+						},
+						"post_deployment_gates": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: deploymentGatesSchema(),
+							},
+						},
 					},
 				},
 			},
@@ -504,6 +520,49 @@ func approvalSchema() map[string]*schema.Schema {
 						Type:     schema.TypeBool,
 						Optional: true,
 						Default:  false,
+					},
+				},
+			},
+		},
+	}
+}
+
+func deploymentGatesSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"gates_options": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"is_enabled": {
+						Type:     schema.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"timeout": {
+						Type:         schema.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+					"sampling_interval": {
+						Type:         schema.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+					"stabilization_time": {
+						Type:         schema.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+					"minimum_success_duration": {
+						Type:         schema.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(0),
 					},
 				},
 			},
@@ -808,6 +867,16 @@ func expandEnvironments(input []interface{}) ([]releaseapi.ReleaseDefinitionEnvi
 			env.ExecutionPolicy = expandExecutionPolicy(execPolicy)
 		}
 
+		// Pre-deployment gates
+		if preGates, ok := envMap["pre_deployment_gates"].([]interface{}); ok && len(preGates) > 0 {
+			env.PreDeploymentGates = expandDeploymentGates(preGates)
+		}
+
+		// Post-deployment gates
+		if postGates, ok := envMap["post_deployment_gates"].([]interface{}); ok && len(postGates) > 0 {
+			env.PostDeploymentGates = expandDeploymentGates(postGates)
+		}
+
 		// Variables
 		if vars, ok := envMap["variable"]; ok {
 			env.Variables = expandVariables(vars.(*schema.Set).List())
@@ -1050,6 +1119,63 @@ func expandExecutionPolicy(input []interface{}) *releaseapi.EnvironmentExecution
 	}
 }
 
+func expandDeploymentGates(input []interface{}) *releaseapi.ReleaseDefinitionGatesStep {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	gatesMap := input[0].(map[string]interface{})
+	step := &releaseapi.ReleaseDefinitionGatesStep{}
+
+	if opts, ok := gatesMap["gates_options"].([]interface{}); ok && len(opts) > 0 && opts[0] != nil {
+		optMap := opts[0].(map[string]interface{})
+		step.GatesOptions = &releaseapi.ReleaseDefinitionGatesOptions{
+			IsEnabled:              converter.Bool(optMap["is_enabled"].(bool)),
+			Timeout:                converter.Int(optMap["timeout"].(int)),
+			SamplingInterval:       converter.Int(optMap["sampling_interval"].(int)),
+			StabilizationTime:      converter.Int(optMap["stabilization_time"].(int)),
+			MinimumSuccessDuration: converter.Int(optMap["minimum_success_duration"].(int)),
+		}
+	}
+
+	return step
+}
+
+func flattenDeploymentGates(step *releaseapi.ReleaseDefinitionGatesStep) []interface{} {
+	if step == nil {
+		return nil
+	}
+	gatesMap := map[string]interface{}{}
+
+	if step.GatesOptions != nil {
+		o := step.GatesOptions
+		optMap := map[string]interface{}{
+			"is_enabled":               false,
+			"timeout":                  0,
+			"sampling_interval":        0,
+			"stabilization_time":       0,
+			"minimum_success_duration": 0,
+		}
+		if o.IsEnabled != nil {
+			optMap["is_enabled"] = *o.IsEnabled
+		}
+		if o.Timeout != nil {
+			optMap["timeout"] = *o.Timeout
+		}
+		if o.SamplingInterval != nil {
+			optMap["sampling_interval"] = *o.SamplingInterval
+		}
+		if o.StabilizationTime != nil {
+			optMap["stabilization_time"] = *o.StabilizationTime
+		}
+		if o.MinimumSuccessDuration != nil {
+			optMap["minimum_success_duration"] = *o.MinimumSuccessDuration
+		}
+		gatesMap["gates_options"] = []interface{}{optMap}
+	}
+
+	return []interface{}{gatesMap}
+}
+
 // Flatten functions: API response → Terraform state
 
 func flattenReleaseDefinition(d *schema.ResourceData, def *releaseapi.ReleaseDefinition, projectID string) {
@@ -1190,6 +1316,16 @@ func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *sch
 		// Execution policy
 		if env.ExecutionPolicy != nil {
 			envMap["execution_policy"] = flattenExecutionPolicy(env.ExecutionPolicy)
+		}
+
+		// Pre-deployment gates
+		if env.PreDeploymentGates != nil {
+			envMap["pre_deployment_gates"] = flattenDeploymentGates(env.PreDeploymentGates)
+		}
+
+		// Post-deployment gates
+		if env.PostDeploymentGates != nil {
+			envMap["post_deployment_gates"] = flattenDeploymentGates(env.PostDeploymentGates)
 		}
 
 		// Variables
