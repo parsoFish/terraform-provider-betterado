@@ -1,4 +1,4 @@
-# Agent Memory — WI-4
+# Agent Memory — WI-5
 
 > Institutional memory for this work item across Ralph iterations. Read at the start of every iteration; updated at the end.
 
@@ -8,33 +8,30 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 ## What I've tried
 
-### Iteration 1 (complete)
+### Iteration 1 (COMPLETE — all ACs done in one pass)
 
-1. Added `parallel_execution` TypeList/MaxItems:1 schema block inside `deployment_input` with fields: `type` (string, default "none"), `max_number_of_agents` (int), `multipliers` (TypeList string), `continue_on_error` (bool).
+**Approach taken:**
+1. Changed `queue_id` schema from `Required: true, ValidateFunc: IntAtLeast(1)` to `Optional: true, Default: 0` — agentless phases have no queue.
+2. Modified `expandDeploymentInput` to accept a variadic `phaseType ...string` parameter. When `phaseType[0] == "runOnServer"` OR `queueID == 0`, the `queueId` key is omitted from the output map.
+3. Modified `expandDeployPhases` to pass `phaseMap["phase_type"].(string)` as the second argument to `expandDeploymentInput`.
+4. `flattenDeploymentInput` already handled absent `queueId` safely (guarded by `if queueID, ok := di["queueId"].(float64); ok`), defaulting to 0.
+5. Added `TestReleaseDefinition_AgentlessPhase_ExpandFlatten` with three sub-tests:
+   - `AC1_expand_runOnServer_no_queueId` — verifies queueId absent, timeouts present
+   - `AC2_flatten_runOnServer_no_queueId_no_panic` — verifies flatten doesn't panic, queue_id=0
+   - `AC3_roundtrip_agent_and_agentless_phases` — full roundtrip through expandDeployPhases + JSON marshal/unmarshal + flattenDeployPhases
 
-2. Discovered type mismatch: `AgentDeploymentInput.ParallelExecution *ExecutionInput` only has `ParallelExecutionType` — `maxNumberOfAgents` / `multipliers` / `continueOnError` are on `MultiConfigInput`/`MultiMachineInput` subtypes and cannot be assigned via the typed struct.
-
-3. **Fix**: Changed `expandDeploymentInput` to return `map[string]interface{}` (raw ADO camelCase map) instead of `*releaseapi.AgentDeploymentInput`. Updated `expandDeployPhases` to build phases as `map[string]interface{}` so `deploymentInput` value is set from the raw map (not the typed struct field). This lets the full `parallelExecution` payload flow through to the API.
-
-4. Added `expandParallelExecution(input []interface{}) map[string]interface{}` — builds ADO camelCase keys from TF snake_case.
-
-5. Added `flattenParallelExecution(pe map[string]interface{}) []interface{}` — reads ADO camelCase from the JSON-decoded API response and produces TF snake_case.
-
-6. Wired both into `expandDeploymentInput` / `flattenDeploymentInput`.
-
-7. Added `TestReleaseDefinition_ParallelExecution_ExpandFlatten` with three sub-tests (AC1, AC2, AC3). All pass.
-
-8. Full package test suite still passes (`go test -tags all ./azuredevops/internal/service/release/`).
+**Test results:**
+- `go test -tags all -count=1 -run TestReleaseDefinition_AgentlessPhase ./internal/service/release/` → PASS
+- `go test -tags all -count=1 -run TestReleaseDefinition ./internal/service/release/` → PASS (full CI gate)
 
 ## What worked
 
-- Changing `expandDeploymentInput` to `map[string]interface{}` return type avoids the polymorphic subtype problem in the ADO Go SDK.
-- Building `expandDeployPhases` phases as raw maps (not typed `AgentBasedDeployPhase` structs) keeps the deploy-phase JSON round-trip working via existing `flattenDeployPhases` (which already JSON-marshals/unmarshals each phase).
-- AC3 test: when `parallel_execution` is an empty slice (`[]interface{}{}`), the `len(pe) > 0` guard ensures the key is absent from the result — verified in test.
+- Variadic `phaseType ...string` parameter on `expandDeploymentInput` — backward-compatible signature change; existing callers without the arg get default empty-string behavior (queueId still included when non-zero).
+- The condition `pt != "runOnServer" && queueID != 0` covers both explicit agentless (phase_type=runOnServer) and implicit (queue_id=0 with any phase type).
 
 ## What didn't work
 
-- Trying to set `di.ParallelExecution = expandParallelExecution(pe)` where `ParallelExecution *releaseapi.ExecutionInput` — type mismatch since `ExecutionInput` only has `ParallelExecutionType`, loses `maxNumberOfAgents`.
+_(none — completed in one iteration)_
 
 ## Open questions
 
@@ -42,4 +39,5 @@ _(none)_
 
 ## Notes for reflection
 
-- Pattern: when the ADO Go SDK uses polymorphic structs with limited base fields, use raw `map[string]interface{}` for the expand path so all JSON keys flow through. The flatten path already uses `map[string]interface{}` from JSON decode.
+- The schema change (Required→Optional for `queue_id`) is additive and backward-compatible; existing configs with queue_id set continue to work.
+- The `flattenDeploymentInput` already had safe handling for absent `queueId` from prior WI refactoring — no change needed there.
