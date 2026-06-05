@@ -111,14 +111,14 @@
 - `azuredevops/internal/service/release/resource_release_definition_test.go` — WI-1–7: 15 new top-level unit test functions covering all schema features and round-trip correctness (+1390 lines)
 
 ```
-azuredevops/internal/acceptancetests/resource_release_definition_test.go   |  501 +++++++
- azuredevops/internal/acceptancetests/testutils/commons.go                  |    4 +-
- azuredevops/internal/service/release/resource_release_definition.go        |  924 +++++++++++-
- azuredevops/internal/service/release/resource_release_definition_test.go   | 1390 ++++++++++++++++++++
- demo/INIT-2026-06-05-complete-release-definition/DEMO.html                 |  405 ++++++
- demo/INIT-2026-06-05-complete-release-definition/DEMO.md                   |  206 +++
- demo/INIT-2026-06-05-complete-release-definition/demo.json                 |  257 ++++
- 9 files changed, 3685 insertions(+), 76 deletions(-)
+azuredevops/internal/acceptancetests/resource_release_definition_test.go                        |  501 ++++++-
+ azuredevops/internal/acceptancetests/testutils/commons.go                                       |    4 +-
+ azuredevops/internal/service/release/resource_release_definition.go                             |  924 ++++++++++++-
+ azuredevops/internal/service/release/resource_release_definition_test.go                        | 1390 +++++++++++++++++++-
+ demo/INIT-2026-06-05-complete-release-definition/DEMO.html                                      |  501 +++++++
+ demo/INIT-2026-06-05-complete-release-definition/DEMO.md                                        |  299 +++++
+ demo/INIT-2026-06-05-complete-release-definition/demo.json                                      |  301 +++++
+ 9 files changed, 3898 insertions(+), 76 deletions(-)
 ```
 
 ## Usage

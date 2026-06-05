@@ -112,7 +112,7 @@
     <span><code>INIT-2026-06-05-complete-release-definition</code></span>
     <span>project <strong>terraform-provider-betterado</strong></span>
     <span>before <code>main</code> → after <code>HEAD</code></span>
-    <span>generated 2026-06-05T14:13:23.229Z</span>
+    <span>generated 2026-06-05T14:21:46.357Z</span>
   </div>
   <p class="essence">Eight work items completed the betterado_release_definition Terraform resource to cover the full ADO REST 7.2 release-pipeline surface. WI-1–5 (prior pass) added acceptance-test refresh, deployment gates schema, triggers, parallel execution, and agentless phases. WI-6 fixed the #1 live-review gap: deployment gates had zero actual gate checks (only timing options) — now each gate block carries workflow task(s), so gates#&gt;0 live. WI-7 fixed three flatten round-trip bugs that caused a perpetual diff (multipliers comma-string, spurious empty parallel_execution block, schedule_trigger branch_filter location). WI-8 proves correctness end-to-end: TestAccReleaseDefinition_complete is an exhaustive live acceptance test setting a non-default value for every schema option — real agent pool, demands, real gate tasks, cd_artifact + schedule triggers, multiConfiguration parallel phase, runOnServer agentless phase — that asserts round-trip + idempotency (ExpectNonEmptyPlan: false) against live ADO. The initiative quality gate (offline unit suite: release + taskagent packages) exits 0 with 26 tests passing. Live acceptance test (WI-8) ran in-cycle and passed.</p>
 </header>
@@ -303,14 +303,14 @@
       <li><code>azuredevops/internal/service/release/resource_release_definition.go</code> <span class="muted">— WI-1–8: schema additions (gates+tasks, triggers, parallel_execution, agentless) + expand/flatten helpers + idempotency fixes (+924/-76 lines)</span></li>
       <li><code>azuredevops/internal/service/release/resource_release_definition_test.go</code> <span class="muted">— WI-1–7: 15 new top-level unit test functions covering all schema features and round-trip correctness (+1390 lines)</span></li>
     </ul>
-  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>HEAD</code></summary><pre class="diff-stat">azuredevops/internal/acceptancetests/resource_release_definition_test.go   |  501 +++++++
- azuredevops/internal/acceptancetests/testutils/commons.go                  |    4 +-
- azuredevops/internal/service/release/resource_release_definition.go        |  924 +++++++++++-
- azuredevops/internal/service/release/resource_release_definition_test.go   | 1390 ++++++++++++++++++++
- demo/INIT-2026-06-05-complete-release-definition/DEMO.html                 |  405 ++++++
- demo/INIT-2026-06-05-complete-release-definition/DEMO.md                   |  206 +++
- demo/INIT-2026-06-05-complete-release-definition/demo.json                 |  257 ++++
- 9 files changed, 3685 insertions(+), 76 deletions(-)</pre></details>
+  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>HEAD</code></summary><pre class="diff-stat">azuredevops/internal/acceptancetests/resource_release_definition_test.go                        |  501 ++++++-
+ azuredevops/internal/acceptancetests/testutils/commons.go                                       |    4 +-
+ azuredevops/internal/service/release/resource_release_definition.go                             |  924 ++++++++++++-
+ azuredevops/internal/service/release/resource_release_definition_test.go                        | 1390 +++++++++++++++++++-
+ demo/INIT-2026-06-05-complete-release-definition/DEMO.html                                      |  501 +++++++
+ demo/INIT-2026-06-05-complete-release-definition/DEMO.md                                        |  299 +++++
+ demo/INIT-2026-06-05-complete-release-definition/demo.json                                      |  301 +++++
+ 9 files changed, 3898 insertions(+), 76 deletions(-)</pre></details>
 </section>
 
 
