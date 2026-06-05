@@ -1,4 +1,4 @@
-# Agent Memory — WI-1
+# Agent Memory — WI-2
 
 > Institutional memory for this work item across Ralph iterations. Read at the start of every iteration; updated at the end.
 
@@ -8,29 +8,33 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 ## What I've tried
 
-### Iteration 1 (complete — all ACs done)
+_(updated by each iteration — most recent at the top)_
 
-1. Read WI-1.md, acceptance test file, unit test file, and resource_go source to understand structure.
-2. Updated three HCL fixture functions in `azuredevops/internal/acceptancetests/resource_release_definition_test.go`:
-   - `hclReleaseDefinitionBasic` — added `retention_policy` + `pre_deploy_approval` blocks
-   - `hclReleaseDefinitionWithDeploymentInput` — same additions
-   - `hclReleaseDefinitionWithEnvironmentOptions` — same additions
-3. Added two new unit tests to `azuredevops/internal/service/release/resource_release_definition_test.go`:
-   - `TestReleaseDefinition_AccRefresh_RetentionPolicy` — expand/flatten round-trip for retention_policy
-   - `TestReleaseDefinition_AccRefresh_PreDeployApproval` — expand/flatten round-trip for minimal automated pre_deploy_approval
-4. Ran quality gate: `go test -tags all -count=1 -run TestReleaseDefinition_AccRefresh ./azuredevops/internal/service/release/` → PASS
-5. Ran full suite: `go test -tags all -count=1 -run TestReleaseDefinition ./azuredevops/internal/service/release/` → 13 PASS
-6. Committed as: `test: fix VS402982/VS402877 – add retention_policy + pre_deploy_approval to acc-test HCL and add AccRefresh unit tests`
+### Iteration 2 (this iteration) — ALL ACs COMPLETE
+
+- Read existing resource file: `resource_release_definition.go` had no gates support.
+- Checked ADO SDK types via `go/pkg/mod/github.com/magodo/azure-devops-go-api/azuredevops/v7@.../release/models.go`.
+- Key types: `ReleaseDefinitionGatesStep { Gates, GatesOptions, Id }` and `ReleaseDefinitionGatesOptions { IsEnabled, MinimumSuccessDuration, SamplingInterval, StabilizationTime, Timeout }`.
+- `ReleaseDefinitionEnvironment` has `PreDeploymentGates *ReleaseDefinitionGatesStep` and `PostDeploymentGates *ReleaseDefinitionGatesStep`.
+- Used Python string replacement (not Edit tool) because the file uses hard tabs and Edit tool fails to match tab-indented strings.
+- Added `deploymentGatesSchema()` helper, schema blocks, `expandDeploymentGates()`, `flattenDeploymentGates()`, wired both directions.
+- Added `TestReleaseDefinition_Gates_ExpandFlatten` test covering AC1+AC2+AC3.
+- `go test -tags all -count=1 -run TestReleaseDefinition_Gates ./azuredevops/internal/service/release/` → PASS.
+- Full suite also passes (14 tests total).
+
+### Iteration 1 (prior) — wrong WI focus
+
+- Added retention_policy and pre_deploy_approval tests (TestReleaseDefinition_AccRefresh_*) — these were for WI-1, not WI-2 gates work. No gates schema was added.
 
 ## What worked
 
-- The expand/flatten functions for `retention_policy` and `pre_deploy_approval` already existed and were correct. Only test fixtures and unit tests needed to be added.
-- Using `schema.TestResourceDataRaw` with the exact same map shape as the existing 11 tests. Key: provide `deployment_input: []interface{}{}` (empty) rather than omitting the key when there's no deployment input — avoids nil panics in flatten.
-- The all-zeros UUID `"00000000-0000-0000-0000-000000000000"` is a valid UUID per Go's `uuid.Parse` so expandApprovals works correctly.
+- Python `str.replace()` for modifying tab-indented Go files (the Edit tool fails because its old_string matching doesn't handle tabs correctly when the file uses tab indentation).
+- Appending tests via bash `cat >>` for large new test blocks.
+- Following the exact same nested-block pattern as `pre_deploy_approval` / `post_deploy_approval` for the gates schema.
 
 ## What didn't work
 
-_(none — first iteration was successful)_
+- Edit tool on tab-indented Go source — `String to replace not found in file` even with exact-looking content. Use Python or `cat >>` instead.
 
 ## Open questions
 
@@ -38,5 +42,6 @@ _(none)_
 
 ## Notes for reflection
 
-- ADO REST 7.2 now mandates `retention_policy` (VS402982) and pre/post approvals (VS402877) on environments. The fix is test-HCL-only; schema fields remain Optional per esc-9.
-- The `hclReleaseDefinitionWithApprovalOptions` and `hclReleaseDefinitionComplete` functions already had the required blocks (approval options test had pre_deploy_approval, complete had retention_policy + pre_deploy_approval on Production env). Only the three basic/no-approval templates needed updating.
+- Gates schema follows the same pattern as approvals: `TypeList, MaxItems:1, Optional`, with a nested `gates_options` sub-block.
+- The ADO SDK replaced module is `github.com/magodo/azure-devops-go-api/azuredevops/v7` (via `replace` directive in go.mod).
+- `TestReleaseDefinition_Gates_ExpandFlatten` is the single test that satisfies AC3's prefix gate.
