@@ -1823,3 +1823,110 @@ func TestReleaseDefinition_Triggers_ExpandFlatten(t *testing.T) {
 	require.Equal(t, schedBranch, schedIncludes[0],
 		"schedule_trigger branch_filter include must survive expand/flatten")
 }
+
+// ── WI-4: parallel_execution expand/flatten ────────────────────────────────
+
+// TestReleaseDefinition_ParallelExecution_ExpandFlatten covers three sub-cases:
+//
+//   - AC1: multiConfiguration with maxNumberOfAgents=3 round-trips through
+//     expandDeploymentInput → the resulting map carries parallelExecution with the
+//     expected ADO camelCase keys.
+//   - AC2: flattenDeploymentInput with an ADO multiMachine payload populates
+//     parallel_execution.0.type and parallel_execution.0.max_number_of_agents.
+//   - AC3: a deployment_input without a parallel_execution block (type "none")
+//     does not panic and produces a nil or "none"-typed parallelExecution entry.
+func TestReleaseDefinition_ParallelExecution_ExpandFlatten(t *testing.T) {
+	t.Run("AC1_expand_multiConfiguration", func(t *testing.T) {
+		input := []interface{}{
+			map[string]interface{}{
+				"queue_id":                      5,
+				"demands":                       []interface{}{},
+				"timeout_in_minutes":            0,
+				"job_cancel_timeout_in_minutes": 1,
+				"condition":                     "succeeded()",
+				"skip_artifacts_download":       false,
+				"enable_access_token":           false,
+				"agent_specification":           "",
+				"parallel_execution": []interface{}{
+					map[string]interface{}{
+						"type":                 "multiConfiguration",
+						"max_number_of_agents": 3,
+						"multipliers":          []interface{}{"Configuration"},
+						"continue_on_error":    false,
+					},
+				},
+			},
+		}
+		result := expandDeploymentInput(input)
+		require.NotNil(t, result, "expandDeploymentInput must return a non-nil map")
+
+		// Verify top-level fields
+		require.Equal(t, 5, result["queueId"], "queueId must round-trip")
+
+		// Verify parallelExecution sub-map
+		pe, ok := result["parallelExecution"].(map[string]interface{})
+		require.True(t, ok, "parallelExecution must be a map[string]interface{}")
+		require.Equal(t, "multiConfiguration", pe["parallelExecutionType"],
+			"parallelExecutionType must be 'multiConfiguration'")
+		require.Equal(t, 3, pe["maxNumberOfAgents"],
+			"maxNumberOfAgents must be 3")
+		multipliers, ok := pe["multipliers"].([]string)
+		require.True(t, ok, "multipliers must be []string")
+		require.Equal(t, []string{"Configuration"}, multipliers)
+	})
+
+	t.Run("AC2_flatten_multiMachine", func(t *testing.T) {
+		// Simulate the ADO API response map for a multiMachine deployment input
+		adoMap := map[string]interface{}{
+			"queueId":                   float64(10),
+			"timeoutInMinutes":          float64(0),
+			"jobCancelTimeoutInMinutes": float64(1),
+			"condition":                 "succeeded()",
+			"skipArtifactsDownload":     false,
+			"enableAccessToken":         false,
+			"parallelExecution": map[string]interface{}{
+				"parallelExecutionType": "multiMachine",
+				"maxNumberOfAgents":     float64(2),
+				"continueOnError":       false,
+			},
+		}
+		result := flattenDeploymentInput(adoMap)
+		require.Len(t, result, 1, "flattenDeploymentInput must return a slice with one element")
+
+		diFlat := result[0].(map[string]interface{})
+
+		peList, ok := diFlat["parallel_execution"].([]interface{})
+		require.True(t, ok, "parallel_execution must be []interface{}")
+		require.Len(t, peList, 1, "parallel_execution must have exactly one element")
+
+		peMap := peList[0].(map[string]interface{})
+		require.Equal(t, "multiMachine", peMap["type"],
+			"deployment_input.0.parallel_execution.0.type must be 'multiMachine'")
+		require.Equal(t, 2, peMap["max_number_of_agents"],
+			"deployment_input.0.parallel_execution.0.max_number_of_agents must be 2")
+	})
+
+	t.Run("AC3_expand_none_no_panic", func(t *testing.T) {
+		// deployment_input without a parallel_execution block
+		input := []interface{}{
+			map[string]interface{}{
+				"queue_id":                      1,
+				"demands":                       []interface{}{},
+				"timeout_in_minutes":            0,
+				"job_cancel_timeout_in_minutes": 1,
+				"condition":                     "succeeded()",
+				"skip_artifacts_download":       false,
+				"enable_access_token":           false,
+				"agent_specification":           "",
+				"parallel_execution":            []interface{}{},
+			},
+		}
+		// Must not panic
+		result := expandDeploymentInput(input)
+		require.NotNil(t, result, "expandDeploymentInput must return non-nil map even without parallel_execution")
+
+		// parallelExecution key must be absent (not set when pe is empty)
+		_, hasPE := result["parallelExecution"]
+		require.False(t, hasPE, "parallelExecution must not be present when parallel_execution block is empty")
+	})
+}

@@ -284,6 +284,39 @@ func ResourceReleaseDefinition() *schema.Resource {
 													Optional: true,
 													// e.g. "ubuntu-latest", "windows-2022", "macOS-14"
 												},
+												"parallel_execution": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"type": {
+																Type:         schema.TypeString,
+																Optional:     true,
+																Default:      "none",
+																ValidateFunc: validation.StringInSlice([]string{"none", "multiConfiguration", "multiMachine"}, false),
+															},
+															"max_number_of_agents": {
+																Type:         schema.TypeInt,
+																Optional:     true,
+																Default:      0,
+																ValidateFunc: validation.IntAtLeast(0),
+															},
+															"multipliers": {
+																Type:     schema.TypeList,
+																Optional: true,
+																Elem: &schema.Schema{
+																	Type: schema.TypeString,
+																},
+															},
+															"continue_on_error": {
+																Type:     schema.TypeBool,
+																Optional: true,
+																Default:  false,
+															},
+														},
+													},
+												},
 											},
 										},
 									},
@@ -1070,56 +1103,88 @@ func expandDeployPhases(input []interface{}) ([]interface{}, error) {
 	phases := make([]interface{}, len(input))
 	for i, v := range input {
 		phaseMap := v.(map[string]interface{})
-		phaseType := releaseapi.DeployPhaseTypes(phaseMap["phase_type"].(string))
-		phase := releaseapi.AgentBasedDeployPhase{
-			Name:      converter.String(phaseMap["name"].(string)),
-			Rank:      converter.Int(phaseMap["rank"].(int)),
-			PhaseType: &phaseType,
+		phaseRaw := map[string]interface{}{
+			"name":      phaseMap["name"].(string),
+			"rank":      phaseMap["rank"].(int),
+			"phaseType": phaseMap["phase_type"].(string),
 		}
 
 		if deplInput, ok := phaseMap["deployment_input"].([]interface{}); ok && len(deplInput) > 0 {
-			phase.DeploymentInput = expandDeploymentInput(deplInput)
+			phaseRaw["deploymentInput"] = expandDeploymentInput(deplInput)
 		}
 
 		if tasks, ok := phaseMap["workflow_task"].([]interface{}); ok && len(tasks) > 0 {
 			wfTasks := expandWorkflowTasks(tasks)
-			phase.WorkflowTasks = &wfTasks
+			phaseRaw["workflowTasks"] = wfTasks
 		}
 
-		phases[i] = phase
+		phases[i] = phaseRaw
 	}
 	return phases, nil
 }
 
-func expandDeploymentInput(input []interface{}) *releaseapi.AgentDeploymentInput {
+func expandDeploymentInput(input []interface{}) map[string]interface{} {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	diMap := input[0].(map[string]interface{})
-	di := &releaseapi.AgentDeploymentInput{
-		QueueId:                   converter.Int(diMap["queue_id"].(int)),
-		TimeoutInMinutes:          converter.Int(diMap["timeout_in_minutes"].(int)),
-		JobCancelTimeoutInMinutes: converter.Int(diMap["job_cancel_timeout_in_minutes"].(int)),
-		Condition:                 converter.String(diMap["condition"].(string)),
-		SkipArtifactsDownload:     converter.Bool(diMap["skip_artifacts_download"].(bool)),
-		EnableAccessToken:         converter.Bool(diMap["enable_access_token"].(bool)),
+	di := map[string]interface{}{
+		"queueId":                   diMap["queue_id"].(int),
+		"timeoutInMinutes":          diMap["timeout_in_minutes"].(int),
+		"jobCancelTimeoutInMinutes": diMap["job_cancel_timeout_in_minutes"].(int),
+		"condition":                 diMap["condition"].(string),
+		"skipArtifactsDownload":     diMap["skip_artifacts_download"].(bool),
+		"enableAccessToken":         diMap["enable_access_token"].(bool),
 	}
 
 	if demands, ok := diMap["demands"].([]interface{}); ok && len(demands) > 0 {
-		demandStrs := make([]interface{}, len(demands))
+		demandStrs := make([]string, len(demands))
 		for j, d := range demands {
 			demandStrs[j] = d.(string)
 		}
-		di.Demands = &demandStrs
+		di["demands"] = demandStrs
 	}
 
 	if spec, ok := diMap["agent_specification"].(string); ok && spec != "" {
-		di.AgentSpecification = &releaseapi.AgentSpecification{
-			Identifier: converter.String(spec),
+		di["agentSpecification"] = map[string]interface{}{
+			"identifier": spec,
 		}
 	}
 
+	if pe, ok := diMap["parallel_execution"].([]interface{}); ok && len(pe) > 0 {
+		di["parallelExecution"] = expandParallelExecution(pe)
+	}
+
 	return di
+}
+
+// expandParallelExecution converts the parallel_execution block to the ADO map shape.
+func expandParallelExecution(input []interface{}) map[string]interface{} {
+	if len(input) == 0 || input[0] == nil {
+		return map[string]interface{}{"parallelExecutionType": "none"}
+	}
+	peMap := input[0].(map[string]interface{})
+	peType, _ := peMap["type"].(string)
+	if peType == "" {
+		peType = "none"
+	}
+	result := map[string]interface{}{
+		"parallelExecutionType": peType,
+	}
+	if maxAgents, ok := peMap["max_number_of_agents"].(int); ok && maxAgents > 0 {
+		result["maxNumberOfAgents"] = maxAgents
+	}
+	if multipliers, ok := peMap["multipliers"].([]interface{}); ok && len(multipliers) > 0 {
+		multStrs := make([]string, len(multipliers))
+		for i, m := range multipliers {
+			multStrs[i], _ = m.(string)
+		}
+		result["multipliers"] = multStrs
+	}
+	if coe, ok := peMap["continue_on_error"].(bool); ok {
+		result["continueOnError"] = coe
+	}
+	return result
 }
 
 func expandWorkflowTasks(input []interface{}) []releaseapi.WorkflowTask {
@@ -1642,7 +1707,45 @@ func flattenDeploymentInput(di map[string]interface{}) []interface{} {
 		diMap["demands"] = []string{}
 	}
 
+	// Parallel execution
+	if pe, ok := di["parallelExecution"].(map[string]interface{}); ok {
+		diMap["parallel_execution"] = flattenParallelExecution(pe)
+	} else {
+		diMap["parallel_execution"] = []interface{}{}
+	}
+
 	return []interface{}{diMap}
+}
+
+// flattenParallelExecution converts the ADO parallelExecution map to Terraform state.
+func flattenParallelExecution(pe map[string]interface{}) []interface{} {
+	if pe == nil {
+		return []interface{}{}
+	}
+	peType := "none"
+	if t, ok := pe["parallelExecutionType"].(string); ok {
+		peType = t
+	}
+	peFlat := map[string]interface{}{
+		"type":                 peType,
+		"max_number_of_agents": 0,
+		"continue_on_error":    false,
+		"multipliers":          []string{},
+	}
+	if maxAgents, ok := pe["maxNumberOfAgents"].(float64); ok {
+		peFlat["max_number_of_agents"] = int(maxAgents)
+	}
+	if coe, ok := pe["continueOnError"].(bool); ok {
+		peFlat["continue_on_error"] = coe
+	}
+	if multipliers, ok := pe["multipliers"].([]interface{}); ok && len(multipliers) > 0 {
+		multStrs := make([]string, len(multipliers))
+		for i, m := range multipliers {
+			multStrs[i], _ = m.(string)
+		}
+		peFlat["multipliers"] = multStrs
+	}
+	return []interface{}{peFlat}
 }
 
 func flattenWorkflowTasks(tasks []interface{}) []interface{} {
