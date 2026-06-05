@@ -529,25 +529,11 @@ func ResourceReleaseDefinition() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"branch_filter": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"include": {
-													Type:     schema.TypeList,
-													Optional: true,
-													Elem:     &schema.Schema{Type: schema.TypeString},
-												},
-												"exclude": {
-													Type:     schema.TypeList,
-													Optional: true,
-													Elem:     &schema.Schema{Type: schema.TypeString},
-												},
-											},
-										},
-									},
+									// branch_filter is intentionally NOT present for schedule_trigger.
+									// ADO classic schedule triggers are time-based and have no branch filter;
+									// ADO does not return branchFilters for schedule triggers in the GET
+									// response, so a branch_filter block would perpetually diff.
+									// (cd_artifact_trigger keeps its branch_filter — that one is real.)
 									"schedule_only_with_changes": {
 										Type:     schema.TypeBool,
 										Optional: true,
@@ -2219,16 +2205,9 @@ func expandTriggers(input []interface{}) []interface{} {
 				"triggerType": "schedule",
 				"schedule":    schedule,
 			}
-			// branchFilters belongs at the trigger top level, NOT inside schedule.
-			// ReleaseSchedule has no branchFilters field; placing it inside schedule
-			// causes ADO to silently drop it on store-and-return.
-			if bf, ok := stMap["branch_filter"].([]interface{}); ok && len(bf) > 0 && bf[0] != nil {
-				bfMap := bf[0].(map[string]interface{})
-				branches := expandBranchFiltersForScheduleTrigger(bfMap)
-				if branches != nil {
-					trigEntry["branchFilters"] = branches
-				}
-			}
+			// branch_filter was removed from schedule_trigger schema (AC1/WI-9):
+			// ADO classic schedule triggers are time-based; ADO does not return
+			// branchFilters in the GET response, so we never set them here.
 			result = append(result, trigEntry)
 		}
 	}
@@ -2250,22 +2229,6 @@ func expandBranchFiltersForTrigger(bfMap map[string]interface{}) []map[string]in
 	return filters
 }
 
-// expandBranchFiltersForScheduleTrigger converts a branch_filter block into a string
-// slice of include/exclude patterns used by schedule triggers.
-func expandBranchFiltersForScheduleTrigger(bfMap map[string]interface{}) []string {
-	var branches []string
-	if includes, ok := bfMap["include"].([]interface{}); ok {
-		for _, v := range includes {
-			branches = append(branches, "+"+v.(string))
-		}
-	}
-	if excludes, ok := bfMap["exclude"].([]interface{}); ok {
-		for _, v := range excludes {
-			branches = append(branches, "-"+v.(string))
-		}
-	}
-	return branches
-}
 
 // flattenTriggers converts the ADO polymorphic Triggers []interface{} back into
 // a Terraform "triggers" block.
@@ -2327,20 +2290,9 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 					st["days_to_release"] = int(v)
 				}
 			}
-			// branchFilters is at the trigger top level (not inside schedule).
-			// Fall back to inside schedule for definitions stored by older versions.
-			branchFilterSrc := trigMap
-			if _, hasBF := trigMap["branchFilters"]; !hasBF {
-				if sched, ok := trigMap["schedule"].(map[string]interface{}); ok {
-					if _, hasBFInSched := sched["branchFilters"]; hasBFInSched {
-						branchFilterSrc = sched
-					}
-				}
-			}
-			bf := flattenScheduleTriggerBranchFilter(branchFilterSrc)
-			if bf != nil {
-				st["branch_filter"] = bf
-			}
+			// branch_filter was removed from schedule_trigger schema (AC1/WI-9):
+			// ADO does not return branchFilters for schedule triggers, so we never
+			// populate branch_filter in state (it would perpetually diff otherwise).
 			scheduleTriggers = append(scheduleTriggers, st)
 		}
 	}
@@ -2377,38 +2329,6 @@ func flattenArtifactTriggerBranchFilter(trigMap map[string]interface{}) []interf
 	}}
 }
 
-// flattenScheduleTriggerBranchFilter converts a schedule trigger's branchFilters
-// ("+branch" / "-branch" prefixed strings) into a branch_filter block.
-func flattenScheduleTriggerBranchFilter(sched map[string]interface{}) []interface{} {
-	var includes, excludes []interface{}
-	if branches, ok := sched["branchFilters"].([]interface{}); ok {
-		for _, b := range branches {
-			s, _ := b.(string)
-			if len(s) > 1 && s[0] == '+' {
-				includes = append(includes, s[1:])
-			} else if len(s) > 1 && s[0] == '-' {
-				excludes = append(excludes, s[1:])
-			}
-		}
-	}
-	// Return nil (no block) when there are no branch filters. ADO does not return
-	// branchFilters in the GET response for schedule triggers, so always emitting an
-	// empty block would cause a perpetual diff on schedule triggers without branch_filter
-	// in HCL.
-	if len(includes) == 0 && len(excludes) == 0 {
-		return nil
-	}
-	if includes == nil {
-		includes = []interface{}{}
-	}
-	if excludes == nil {
-		excludes = []interface{}{}
-	}
-	return []interface{}{map[string]interface{}{
-		"include": includes,
-		"exclude": excludes,
-	}}
-}
 
 func flattenArtifacts(artifacts *[]releaseapi.Artifact, d *schema.ResourceData) []interface{} {
 	if artifacts == nil {
