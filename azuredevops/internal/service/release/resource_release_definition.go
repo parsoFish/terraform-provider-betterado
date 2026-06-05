@@ -3,6 +3,7 @@ package release
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -241,9 +242,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"queue_id": {
-													Type:         schema.TypeInt,
-													Required:     true,
-													ValidateFunc: validation.IntAtLeast(1),
+													Type:     schema.TypeInt,
+													Optional: true,
+													Default:  0,
 												},
 												"demands": {
 													Type:     schema.TypeList,
@@ -283,6 +284,39 @@ func ResourceReleaseDefinition() *schema.Resource {
 													Type:     schema.TypeString,
 													Optional: true,
 													// e.g. "ubuntu-latest", "windows-2022", "macOS-14"
+												},
+												"parallel_execution": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"type": {
+																Type:         schema.TypeString,
+																Optional:     true,
+																Default:      "none",
+																ValidateFunc: validation.StringInSlice([]string{"none", "multiConfiguration", "multiMachine"}, false),
+															},
+															"max_number_of_agents": {
+																Type:         schema.TypeInt,
+																Optional:     true,
+																Default:      0,
+																ValidateFunc: validation.IntAtLeast(0),
+															},
+															"multipliers": {
+																Type:     schema.TypeList,
+																Optional: true,
+																Elem: &schema.Schema{
+																	Type: schema.TypeString,
+																},
+															},
+															"continue_on_error": {
+																Type:     schema.TypeBool,
+																Optional: true,
+																Default:  false,
+															},
+														},
+													},
 												},
 											},
 										},
@@ -403,6 +437,22 @@ func ResourceReleaseDefinition() *schema.Resource {
 								},
 							},
 						},
+						"pre_deployment_gates": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: deploymentGatesSchema(),
+							},
+						},
+						"post_deployment_gates": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: deploymentGatesSchema(),
+							},
+						},
 					},
 				},
 			},
@@ -431,6 +481,89 @@ func ResourceReleaseDefinition() *schema.Resource {
 							Required: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+			"triggers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cd_artifact_trigger": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"artifact_alias": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+									},
+									"branch_filter": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"include": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem:     &schema.Schema{Type: schema.TypeString},
+												},
+												"exclude": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem:     &schema.Schema{Type: schema.TypeString},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"schedule_trigger": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									// branch_filter is intentionally NOT present for schedule_trigger.
+									// ADO classic schedule triggers are time-based and have no branch filter;
+									// ADO does not return branchFilters for schedule triggers in the GET
+									// response, so a branch_filter block would perpetually diff.
+									// (cd_artifact_trigger keeps its branch_filter — that one is real.)
+									"schedule_only_with_changes": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+									"start_hours": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 23),
+									},
+									"start_minutes": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 59),
+									},
+									"time_zone_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      "UTC",
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+									},
+									"days_to_release": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      127,
+										ValidateFunc: validation.IntBetween(0, 127),
+									},
+								},
 							},
 						},
 					},
@@ -504,6 +637,65 @@ func approvalSchema() map[string]*schema.Schema {
 						Type:     schema.TypeBool,
 						Optional: true,
 						Default:  false,
+					},
+				},
+			},
+		},
+	}
+}
+
+func deploymentGatesSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"gates_options": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"is_enabled": {
+						Type:     schema.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"timeout": {
+						Type:         schema.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+					"sampling_interval": {
+						Type:         schema.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+					"stabilization_time": {
+						Type:         schema.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+					"minimum_success_duration": {
+						Type:         schema.TypeInt,
+						Optional:     true,
+						Default:      0,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+				},
+			},
+		},
+		"gate": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"task": {
+						Type:     schema.TypeList,
+						Required: true,
+						MinItems: 1,
+						Elem: &schema.Resource{
+							Schema: workflowTaskSchema(),
+						},
 					},
 				},
 			},
@@ -719,6 +911,12 @@ func expandReleaseDefinition(d *schema.ResourceData) (*releaseapi.ReleaseDefinit
 		def.Artifacts = &artifacts
 	}
 
+	// Triggers
+	if v, ok := d.GetOk("triggers"); ok {
+		triggers := expandTriggers(v.([]interface{}))
+		def.Triggers = &triggers
+	}
+
 	return def, projectID, nil
 }
 
@@ -806,6 +1004,16 @@ func expandEnvironments(input []interface{}) ([]releaseapi.ReleaseDefinitionEnvi
 		// Execution policy
 		if execPolicy, ok := envMap["execution_policy"].([]interface{}); ok && len(execPolicy) > 0 {
 			env.ExecutionPolicy = expandExecutionPolicy(execPolicy)
+		}
+
+		// Pre-deployment gates
+		if preGates, ok := envMap["pre_deployment_gates"].([]interface{}); ok && len(preGates) > 0 {
+			env.PreDeploymentGates = expandDeploymentGates(preGates)
+		}
+
+		// Post-deployment gates
+		if postGates, ok := envMap["post_deployment_gates"].([]interface{}); ok && len(postGates) > 0 {
+			env.PostDeploymentGates = expandDeploymentGates(postGates)
 		}
 
 		// Variables
@@ -898,56 +1106,99 @@ func expandDeployPhases(input []interface{}) ([]interface{}, error) {
 	phases := make([]interface{}, len(input))
 	for i, v := range input {
 		phaseMap := v.(map[string]interface{})
-		phaseType := releaseapi.DeployPhaseTypes(phaseMap["phase_type"].(string))
-		phase := releaseapi.AgentBasedDeployPhase{
-			Name:      converter.String(phaseMap["name"].(string)),
-			Rank:      converter.Int(phaseMap["rank"].(int)),
-			PhaseType: &phaseType,
+		phaseRaw := map[string]interface{}{
+			"name":      phaseMap["name"].(string),
+			"rank":      phaseMap["rank"].(int),
+			"phaseType": phaseMap["phase_type"].(string),
 		}
 
 		if deplInput, ok := phaseMap["deployment_input"].([]interface{}); ok && len(deplInput) > 0 {
-			phase.DeploymentInput = expandDeploymentInput(deplInput)
+			phaseRaw["deploymentInput"] = expandDeploymentInput(deplInput, phaseMap["phase_type"].(string))
 		}
 
 		if tasks, ok := phaseMap["workflow_task"].([]interface{}); ok && len(tasks) > 0 {
 			wfTasks := expandWorkflowTasks(tasks)
-			phase.WorkflowTasks = &wfTasks
+			phaseRaw["workflowTasks"] = wfTasks
 		}
 
-		phases[i] = phase
+		phases[i] = phaseRaw
 	}
 	return phases, nil
 }
 
-func expandDeploymentInput(input []interface{}) *releaseapi.AgentDeploymentInput {
+func expandDeploymentInput(input []interface{}, phaseType ...string) map[string]interface{} {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	diMap := input[0].(map[string]interface{})
-	di := &releaseapi.AgentDeploymentInput{
-		QueueId:                   converter.Int(diMap["queue_id"].(int)),
-		TimeoutInMinutes:          converter.Int(diMap["timeout_in_minutes"].(int)),
-		JobCancelTimeoutInMinutes: converter.Int(diMap["job_cancel_timeout_in_minutes"].(int)),
-		Condition:                 converter.String(diMap["condition"].(string)),
-		SkipArtifactsDownload:     converter.Bool(diMap["skip_artifacts_download"].(bool)),
-		EnableAccessToken:         converter.Bool(diMap["enable_access_token"].(bool)),
+	di := map[string]interface{}{
+		"timeoutInMinutes":          diMap["timeout_in_minutes"].(int),
+		"jobCancelTimeoutInMinutes": diMap["job_cancel_timeout_in_minutes"].(int),
+		"condition":                 diMap["condition"].(string),
+		"skipArtifactsDownload":     diMap["skip_artifacts_download"].(bool),
+		"enableAccessToken":         diMap["enable_access_token"].(bool),
+	}
+
+	// Only include queueId for agent-based phases; agentless (runOnServer) phases do not use a queue.
+	pt := ""
+	if len(phaseType) > 0 {
+		pt = phaseType[0]
+	}
+	queueID := diMap["queue_id"].(int)
+	if pt != "runOnServer" && queueID != 0 {
+		di["queueId"] = queueID
 	}
 
 	if demands, ok := diMap["demands"].([]interface{}); ok && len(demands) > 0 {
-		demandStrs := make([]interface{}, len(demands))
+		demandStrs := make([]string, len(demands))
 		for j, d := range demands {
 			demandStrs[j] = d.(string)
 		}
-		di.Demands = &demandStrs
+		di["demands"] = demandStrs
 	}
 
 	if spec, ok := diMap["agent_specification"].(string); ok && spec != "" {
-		di.AgentSpecification = &releaseapi.AgentSpecification{
-			Identifier: converter.String(spec),
+		di["agentSpecification"] = map[string]interface{}{
+			"identifier": spec,
 		}
 	}
 
+	if pe, ok := diMap["parallel_execution"].([]interface{}); ok && len(pe) > 0 {
+		di["parallelExecution"] = expandParallelExecution(pe)
+	}
+
 	return di
+}
+
+// expandParallelExecution converts the parallel_execution block to the ADO map shape.
+func expandParallelExecution(input []interface{}) map[string]interface{} {
+	if len(input) == 0 || input[0] == nil {
+		return map[string]interface{}{"parallelExecutionType": "none"}
+	}
+	peMap := input[0].(map[string]interface{})
+	peType, _ := peMap["type"].(string)
+	if peType == "" {
+		peType = "none"
+	}
+	result := map[string]interface{}{
+		"parallelExecutionType": peType,
+	}
+	if maxAgents, ok := peMap["max_number_of_agents"].(int); ok && maxAgents > 0 {
+		result["maxNumberOfAgents"] = maxAgents
+	}
+	if multipliers, ok := peMap["multipliers"].([]interface{}); ok && len(multipliers) > 0 {
+		multStrs := make([]string, len(multipliers))
+		for i, m := range multipliers {
+			multStrs[i], _ = m.(string)
+		}
+		// ADO stores multipliers as a comma-separated string (Multipliers *string in the SDK),
+		// not as a JSON array. Sending an array causes ADO to silently drop it.
+		result["multipliers"] = strings.Join(multStrs, ",")
+	}
+	if coe, ok := peMap["continue_on_error"].(bool); ok {
+		result["continueOnError"] = coe
+	}
+	return result
 }
 
 func expandWorkflowTasks(input []interface{}) []releaseapi.WorkflowTask {
@@ -1050,6 +1301,188 @@ func expandExecutionPolicy(input []interface{}) *releaseapi.EnvironmentExecution
 	}
 }
 
+func expandDeploymentGates(input []interface{}) *releaseapi.ReleaseDefinitionGatesStep {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	gatesMap := input[0].(map[string]interface{})
+	step := &releaseapi.ReleaseDefinitionGatesStep{}
+
+	if opts, ok := gatesMap["gates_options"].([]interface{}); ok && len(opts) > 0 && opts[0] != nil {
+		optMap := opts[0].(map[string]interface{})
+		step.GatesOptions = &releaseapi.ReleaseDefinitionGatesOptions{
+			IsEnabled:              converter.Bool(optMap["is_enabled"].(bool)),
+			Timeout:                converter.Int(optMap["timeout"].(int)),
+			SamplingInterval:       converter.Int(optMap["sampling_interval"].(int)),
+			StabilizationTime:      converter.Int(optMap["stabilization_time"].(int)),
+			MinimumSuccessDuration: converter.Int(optMap["minimum_success_duration"].(int)),
+		}
+	}
+
+	if gateBlocks, ok := gatesMap["gate"].([]interface{}); ok && len(gateBlocks) > 0 {
+		gates := make([]releaseapi.ReleaseDefinitionGate, 0, len(gateBlocks))
+		for _, gb := range gateBlocks {
+			if gb == nil {
+				continue
+			}
+			gateMap := gb.(map[string]interface{})
+			gate := releaseapi.ReleaseDefinitionGate{}
+			if taskList, ok := gateMap["task"].([]interface{}); ok && len(taskList) > 0 {
+				tasks := expandWorkflowTasks(taskList)
+				gate.Tasks = &tasks
+			}
+			gates = append(gates, gate)
+		}
+		step.Gates = &gates
+	}
+
+	return step
+}
+
+// isNonDefaultGatesOptions returns true when at least one field in GatesOptions
+// differs from its default (is_enabled=false, timeout=0, samplingInterval=0,
+// stabilizationTime=0, minimumSuccessDuration=0). Used to distinguish a real
+// gates_options block from ADO's always-present but empty-configured step.
+func isNonDefaultGatesOptions(o *releaseapi.ReleaseDefinitionGatesOptions) bool {
+	if o == nil {
+		return false
+	}
+	if o.IsEnabled != nil && *o.IsEnabled {
+		return true
+	}
+	if o.Timeout != nil && *o.Timeout != 0 {
+		return true
+	}
+	if o.SamplingInterval != nil && *o.SamplingInterval != 0 {
+		return true
+	}
+	if o.StabilizationTime != nil && *o.StabilizationTime != 0 {
+		return true
+	}
+	if o.MinimumSuccessDuration != nil && *o.MinimumSuccessDuration != 0 {
+		return true
+	}
+	return false
+}
+
+func flattenDeploymentGates(step *releaseapi.ReleaseDefinitionGatesStep) []interface{} {
+	if step == nil {
+		return nil
+	}
+
+	// ADO always returns a ReleaseDefinitionGatesStep object even for environments
+	// that have no gates configured (all options at default, no gate tasks).
+	// Suppress such empty steps to avoid perpetual diffs on environments that do
+	// not have a pre/post_deployment_gates block in HCL.
+	//
+	// We consider a step "empty" when:
+	//   - no gate tasks are configured (step.Gates is nil or empty), AND
+	//   - GatesOptions is either nil or has only default values (is_enabled=false,
+	//     timeout=0, samplingInterval=0, stabilizationTime=0, minimumSuccessDuration=0)
+	hasGates := step.Gates != nil && len(*step.Gates) > 0
+	hasNonDefaultOptions := step.GatesOptions != nil && isNonDefaultGatesOptions(step.GatesOptions)
+
+	if !hasGates && !hasNonDefaultOptions {
+		return nil
+	}
+
+	gatesMap := map[string]interface{}{}
+
+	if step.GatesOptions != nil {
+		o := step.GatesOptions
+		optMap := map[string]interface{}{
+			"is_enabled":               false,
+			"timeout":                  0,
+			"sampling_interval":        0,
+			"stabilization_time":       0,
+			"minimum_success_duration": 0,
+		}
+		if o.IsEnabled != nil {
+			optMap["is_enabled"] = *o.IsEnabled
+		}
+		if o.Timeout != nil {
+			optMap["timeout"] = *o.Timeout
+		}
+		if o.SamplingInterval != nil {
+			optMap["sampling_interval"] = *o.SamplingInterval
+		}
+		if o.StabilizationTime != nil {
+			optMap["stabilization_time"] = *o.StabilizationTime
+		}
+		if o.MinimumSuccessDuration != nil {
+			optMap["minimum_success_duration"] = *o.MinimumSuccessDuration
+		}
+		gatesMap["gates_options"] = []interface{}{optMap}
+	}
+
+	if step.Gates != nil && len(*step.Gates) > 0 {
+		flatGates := make([]interface{}, 0, len(*step.Gates))
+		for _, g := range *step.Gates {
+			gateFlat := map[string]interface{}{
+				"task": []interface{}{},
+			}
+			if g.Tasks != nil && len(*g.Tasks) > 0 {
+				gateFlat["task"] = flattenWorkflowTasksFromAPI(g.Tasks)
+			}
+			flatGates = append(flatGates, gateFlat)
+		}
+		gatesMap["gate"] = flatGates
+	}
+
+	return []interface{}{gatesMap}
+}
+
+// flattenWorkflowTasksFromAPI converts a *[]releaseapi.WorkflowTask (from the ADO API response)
+// into a []interface{} suitable for setting in Terraform state.
+func flattenWorkflowTasksFromAPI(tasks *[]releaseapi.WorkflowTask) []interface{} {
+	if tasks == nil {
+		return nil
+	}
+	result := make([]interface{}, 0, len(*tasks))
+	for _, t := range *tasks {
+		flat := map[string]interface{}{
+			"name":              "",
+			"task_id":           "",
+			"version":           "1.*",
+			"enabled":           true,
+			"always_run":        false,
+			"continue_on_error": false,
+			"condition":         "succeeded()",
+			"definition_type":   "task",
+			"inputs":            map[string]string{},
+		}
+		if t.Name != nil {
+			flat["name"] = *t.Name
+		}
+		if t.TaskId != nil {
+			flat["task_id"] = t.TaskId.String()
+		}
+		if t.Version != nil {
+			flat["version"] = *t.Version
+		}
+		if t.Enabled != nil {
+			flat["enabled"] = *t.Enabled
+		}
+		if t.AlwaysRun != nil {
+			flat["always_run"] = *t.AlwaysRun
+		}
+		if t.ContinueOnError != nil {
+			flat["continue_on_error"] = *t.ContinueOnError
+		}
+		if t.Condition != nil {
+			flat["condition"] = *t.Condition
+		}
+		if t.DefinitionType != nil {
+			flat["definition_type"] = *t.DefinitionType
+		}
+		if t.Inputs != nil && len(*t.Inputs) > 0 {
+			flat["inputs"] = *t.Inputs
+		}
+		result = append(result, flat)
+	}
+	return result
+}
+
 // Flatten functions: API response → Terraform state
 
 func flattenReleaseDefinition(d *schema.ResourceData, def *releaseapi.ReleaseDefinition, projectID string) {
@@ -1084,6 +1517,11 @@ func flattenReleaseDefinition(d *schema.ResourceData, def *releaseapi.ReleaseDef
 	// Artifacts
 	if def.Artifacts != nil {
 		d.Set("artifact", flattenArtifacts(def.Artifacts, d))
+	}
+
+	// Triggers
+	if def.Triggers != nil && len(*def.Triggers) > 0 {
+		d.Set("triggers", flattenTriggers(def.Triggers))
 	}
 }
 
@@ -1174,7 +1612,7 @@ func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *sch
 
 		// Deploy phases
 		if env.DeployPhases != nil {
-			envMap["deploy_phase"] = flattenDeployPhases(env.DeployPhases)
+			envMap["deploy_phase"] = flattenDeployPhases(env.DeployPhases, d, i)
 		}
 
 		// Retention policy
@@ -1192,14 +1630,28 @@ func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *sch
 			envMap["execution_policy"] = flattenExecutionPolicy(env.ExecutionPolicy)
 		}
 
+		// Pre-deployment gates
+		if env.PreDeploymentGates != nil {
+			envMap["pre_deployment_gates"] = flattenDeploymentGates(env.PreDeploymentGates)
+		}
+
+		// Post-deployment gates
+		if env.PostDeploymentGates != nil {
+			envMap["post_deployment_gates"] = flattenDeploymentGates(env.PostDeploymentGates)
+		}
+
 		// Variables
 		if env.Variables != nil {
 			envMap["variable"] = flattenVariables(env.Variables, d)
 		}
 
-		// Variable groups
+		// Variable groups — always include (even if empty) so that the Terraform state
+		// matches HCL's implicit zero-value of [] for Optional TypeList. Omitting it
+		// causes a perpetual diff (state absent → plan adds []).
 		if env.VariableGroups != nil {
 			envMap["variable_groups"] = flattenVariableGroups(env.VariableGroups)
+		} else {
+			envMap["variable_groups"] = []int{}
 		}
 
 		result[i] = envMap
@@ -1299,13 +1751,18 @@ func flattenApprovalOptions(opts *releaseapi.ApprovalOptions) []interface{} {
 	return []interface{}{optMap}
 }
 
-func flattenDeployPhases(phases *[]interface{}) []interface{} {
+// flattenDeployPhases converts ADO deploy phases back to Terraform state.
+// d and envIdx are used to check whether each phase's corresponding HCL block had a
+// deployment_input sub-block: if yes, we always emit deployment_input (even when all
+// values are at their defaults); if no, we suppress all-default deployment_input blocks
+// to avoid perpetual diffs on phases whose HCL does not set deployment_input.
+func flattenDeployPhases(phases *[]interface{}, d *schema.ResourceData, envIdx int) []interface{} {
 	if phases == nil {
 		return nil
 	}
 
 	result := make([]interface{}, 0, len(*phases))
-	for _, phase := range *phases {
+	for phaseIdx, phase := range *phases {
 		// The API returns deploy phases as generic interface{} which unmarshals as map[string]interface{}
 		phaseData, err := json.Marshal(phase)
 		if err != nil {
@@ -1332,9 +1789,16 @@ func flattenDeployPhases(phases *[]interface{}) []interface{} {
 			flatPhase["phase_type"] = pt
 		}
 
-		// Deployment input
+		// Deployment input — check whether the corresponding HCL phase block has a
+		// deployment_input sub-block. If it does, always emit deployment_input (even
+		// all-defaults). If it doesn't, suppress all-default entries to avoid perpetual
+		// diffs. ADO always returns a deploymentInput object for every phase.
 		if di, ok := phaseMap["deploymentInput"].(map[string]interface{}); ok {
-			flatPhase["deployment_input"] = flattenDeploymentInput(di)
+			flat := flattenDeploymentInput(di)
+			hclHasDI := hclPhaseHasDeploymentInput(d, envIdx, phaseIdx)
+			if hclHasDI || !isDefaultDeploymentInput(flat) {
+				flatPhase["deployment_input"] = flat
+			}
 		}
 
 		// Workflow tasks
@@ -1345,6 +1809,23 @@ func flattenDeployPhases(phases *[]interface{}) []interface{} {
 		result = append(result, flatPhase)
 	}
 	return result
+}
+
+// hclPhaseHasDeploymentInput returns true if the phase at [envIdx][phaseIdx] in the
+// current Terraform resource data has a non-empty deployment_input block.
+func hclPhaseHasDeploymentInput(d *schema.ResourceData, envIdx, phaseIdx int) bool {
+	if d == nil {
+		return false
+	}
+	key := fmt.Sprintf("environment.%d.deploy_phase.%d.deployment_input.#", envIdx, phaseIdx)
+	count, ok := d.GetOk(key)
+	if !ok {
+		return false
+	}
+	if n, ok := count.(int); ok && n > 0 {
+		return true
+	}
+	return false
 }
 
 func flattenDeploymentInput(di map[string]interface{}) []interface{} {
@@ -1387,18 +1868,132 @@ func flattenDeploymentInput(di map[string]interface{}) []interface{} {
 		}
 	}
 
-	// Demands
-	if demands, ok := di["demands"].([]interface{}); ok && len(demands) > 0 {
-		demandStrs := make([]string, len(demands))
-		for i, d := range demands {
-			demandStrs[i], _ = d.(string)
+	// Demands — always include the key (empty or populated) so that the Terraform
+	// state matches HCL's implicit zero-value of [] for Optional TypeList.
+	// Omitting it causes a perpetual diff (state absent → plan adds []).
+	demandStrs := []interface{}{}
+	if demands, ok := di["demands"].([]interface{}); ok {
+		for _, d := range demands {
+			if s, ok := d.(string); ok {
+				demandStrs = append(demandStrs, s)
+			}
 		}
-		diMap["demands"] = demandStrs
-	} else {
-		diMap["demands"] = []string{}
+	}
+	diMap["demands"] = demandStrs
+
+	// Parallel execution — only set the key when there is a meaningful block.
+	// flattenParallelExecution returns nil for a "none"-typed or absent entry so
+	// that phases without an explicit parallel_execution block in HCL don't
+	// acquire a spurious empty block in state (which would cause a perpetual diff).
+	if pe, ok := di["parallelExecution"].(map[string]interface{}); ok {
+		if flat := flattenParallelExecution(pe); flat != nil {
+			diMap["parallel_execution"] = flat
+		}
 	}
 
 	return []interface{}{diMap}
+}
+
+// isDefaultDeploymentInput returns true when the flattened deployment_input contains
+// only default values (queue_id=0, timeout=0, jcTimeout=1, condition="succeeded()",
+// skip=false, eat=false, no demands, no parallel_execution, no agent_specification).
+// Used by flattenDeployPhases to avoid emitting a spurious deployment_input block for
+// phases whose HCL does not set one (ADO always returns a deploymentInput object).
+func isDefaultDeploymentInput(flat []interface{}) bool {
+	if len(flat) == 0 || flat[0] == nil {
+		return true
+	}
+	diMap, ok := flat[0].(map[string]interface{})
+	if !ok {
+		return true
+	}
+	if v, ok := diMap["queue_id"].(int); ok && v != 0 {
+		return false
+	}
+	if v, ok := diMap["timeout_in_minutes"].(int); ok && v != 0 {
+		return false
+	}
+	if v, ok := diMap["job_cancel_timeout_in_minutes"].(int); ok && v != 1 {
+		return false
+	}
+	if v, ok := diMap["condition"].(string); ok && v != "" && v != "succeeded()" {
+		return false
+	}
+	if v, ok := diMap["skip_artifacts_download"].(bool); ok && v {
+		return false
+	}
+	if v, ok := diMap["enable_access_token"].(bool); ok && v {
+		return false
+	}
+	if v, ok := diMap["agent_specification"].(string); ok && v != "" {
+		return false
+	}
+	if demands, ok := diMap["demands"].([]string); ok && len(demands) > 0 {
+		return false
+	}
+	if _, hasPE := diMap["parallel_execution"]; hasPE {
+		return false
+	}
+	return true
+}
+
+// flattenParallelExecution converts the ADO parallelExecution map to Terraform state.
+// Returns nil (not an empty slice) when the type is "none" so that phases that did
+// not declare a parallel_execution block in HCL don't get a spurious empty block
+// injected into state.
+func flattenParallelExecution(pe map[string]interface{}) []interface{} {
+	if pe == nil {
+		return nil
+	}
+	peType := "none"
+	if t, ok := pe["parallelExecutionType"].(string); ok {
+		peType = t
+	}
+	// Only emit a block when parallelExecution is meaningfully configured.
+	// A bare "none" type with all defaults is indistinguishable from "not set"
+	// from the HCL author's perspective, so suppress it to avoid perpetual diffs.
+	if peType == "none" {
+		return nil
+	}
+	peFlat := map[string]interface{}{
+		"type":                 peType,
+		"max_number_of_agents": 0,
+		"continue_on_error":    false,
+		"multipliers":          []string{},
+	}
+	if maxAgents, ok := pe["maxNumberOfAgents"].(float64); ok {
+		peFlat["max_number_of_agents"] = int(maxAgents)
+	}
+	if coe, ok := pe["continueOnError"].(bool); ok {
+		peFlat["continue_on_error"] = coe
+	}
+	// The ADO API stores multipliers as a comma-joined string (e.g. "x86,x64"),
+	// NOT as a JSON array. Handle both forms for robustness.
+	switch v := pe["multipliers"].(type) {
+	case string:
+		if v != "" {
+			parts := strings.Split(v, ",")
+			cleaned := make([]string, 0, len(parts))
+			for _, p := range parts {
+				p = strings.TrimSpace(p)
+				if p != "" {
+					cleaned = append(cleaned, p)
+				}
+			}
+			if len(cleaned) > 0 {
+				peFlat["multipliers"] = cleaned
+			}
+		}
+	case []interface{}:
+		if len(v) > 0 {
+			multStrs := make([]string, len(v))
+			for i, m := range v {
+				multStrs[i], _ = m.(string)
+			}
+			peFlat["multipliers"] = multStrs
+		}
+	}
+	return []interface{}{peFlat}
 }
 
 func flattenWorkflowTasks(tasks []interface{}) []interface{} {
@@ -1558,6 +2153,179 @@ func flattenExecutionPolicy(ep *releaseapi.EnvironmentExecutionPolicy) []interfa
 		epMap["queue_depth_count"] = *ep.QueueDepthCount
 	}
 	return []interface{}{epMap}
+}
+
+// expandTriggers converts a Terraform "triggers" block into a []interface{} that
+// matches ADO's polymorphic Triggers wire format.
+func expandTriggers(input []interface{}) []interface{} {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	trigMap := input[0].(map[string]interface{})
+	result := make([]interface{}, 0)
+
+	// CD artifact triggers — one entry per cd_artifact_trigger block
+	if cdTriggers, ok := trigMap["cd_artifact_trigger"].([]interface{}); ok {
+		for _, raw := range cdTriggers {
+			if raw == nil {
+				continue
+			}
+			ctMap := raw.(map[string]interface{})
+			trigEntry := map[string]interface{}{
+				"triggerType":   "artifactSource",
+				"artifactAlias": ctMap["artifact_alias"].(string),
+			}
+			// Branch filters
+			if bf, ok := ctMap["branch_filter"].([]interface{}); ok && len(bf) > 0 && bf[0] != nil {
+				bfMap := bf[0].(map[string]interface{})
+				filters := expandBranchFiltersForTrigger(bfMap)
+				if len(filters) > 0 {
+					trigEntry["triggerConditions"] = filters
+				}
+			}
+			result = append(result, trigEntry)
+		}
+	}
+
+	// Schedule triggers — one entry per schedule_trigger block
+	if schTriggers, ok := trigMap["schedule_trigger"].([]interface{}); ok {
+		for _, raw := range schTriggers {
+			if raw == nil {
+				continue
+			}
+			stMap := raw.(map[string]interface{})
+			schedule := map[string]interface{}{
+				"scheduleOnlyWithChanges": stMap["schedule_only_with_changes"].(bool),
+				"startHours":              stMap["start_hours"].(int),
+				"startMinutes":            stMap["start_minutes"].(int),
+				"timeZoneId":              stMap["time_zone_id"].(string),
+				"daysToRelease":           stMap["days_to_release"].(int),
+			}
+			trigEntry := map[string]interface{}{
+				"triggerType": "schedule",
+				"schedule":    schedule,
+			}
+			// branch_filter was removed from schedule_trigger schema (AC1/WI-9):
+			// ADO classic schedule triggers are time-based; ADO does not return
+			// branchFilters in the GET response, so we never set them here.
+			result = append(result, trigEntry)
+		}
+	}
+
+	return result
+}
+
+// expandBranchFiltersForTrigger converts a branch_filter block into a slice of
+// ArtifactFilter-style maps for the cd_artifact_trigger triggerConditions field.
+func expandBranchFiltersForTrigger(bfMap map[string]interface{}) []map[string]interface{} {
+	var filters []map[string]interface{}
+	if includes, ok := bfMap["include"].([]interface{}); ok {
+		for _, v := range includes {
+			filters = append(filters, map[string]interface{}{
+				"sourceBranch": v.(string),
+			})
+		}
+	}
+	return filters
+}
+
+// flattenTriggers converts the ADO polymorphic Triggers []interface{} back into
+// a Terraform "triggers" block.
+func flattenTriggers(triggers *[]interface{}) []interface{} {
+	if triggers == nil || len(*triggers) == 0 {
+		return nil
+	}
+
+	var cdArtifactTriggers []interface{}
+	var scheduleTriggers []interface{}
+
+	for _, raw := range *triggers {
+		// Marshal to JSON and back to get a clean map[string]interface{}
+		data, err := json.Marshal(raw)
+		if err != nil {
+			continue
+		}
+		var trigMap map[string]interface{}
+		if err := json.Unmarshal(data, &trigMap); err != nil {
+			continue
+		}
+
+		trigType, _ := trigMap["triggerType"].(string)
+		switch trigType {
+		case "artifactSource":
+			ct := map[string]interface{}{
+				"artifact_alias": "",
+			}
+			if alias, ok := trigMap["artifactAlias"].(string); ok {
+				ct["artifact_alias"] = alias
+			}
+			// Flatten triggerConditions → branch_filter include list
+			bf := flattenArtifactTriggerBranchFilter(trigMap)
+			ct["branch_filter"] = bf
+			cdArtifactTriggers = append(cdArtifactTriggers, ct)
+
+		case "schedule":
+			st := map[string]interface{}{
+				"schedule_only_with_changes": false,
+				"start_hours":                0,
+				"start_minutes":              0,
+				"time_zone_id":               "UTC",
+				"days_to_release":            127,
+			}
+			if sched, ok := trigMap["schedule"].(map[string]interface{}); ok {
+				if v, ok := sched["scheduleOnlyWithChanges"].(bool); ok {
+					st["schedule_only_with_changes"] = v
+				}
+				if v, ok := sched["startHours"].(float64); ok {
+					st["start_hours"] = int(v)
+				}
+				if v, ok := sched["startMinutes"].(float64); ok {
+					st["start_minutes"] = int(v)
+				}
+				if v, ok := sched["timeZoneId"].(string); ok {
+					st["time_zone_id"] = v
+				}
+				if v, ok := sched["daysToRelease"].(float64); ok {
+					st["days_to_release"] = int(v)
+				}
+			}
+			// branch_filter was removed from schedule_trigger schema (AC1/WI-9):
+			// ADO does not return branchFilters for schedule triggers, so we never
+			// populate branch_filter in state (it would perpetually diff otherwise).
+			scheduleTriggers = append(scheduleTriggers, st)
+		}
+	}
+
+	triggersMap := map[string]interface{}{
+		"cd_artifact_trigger": cdArtifactTriggers,
+		"schedule_trigger":    scheduleTriggers,
+	}
+	return []interface{}{triggersMap}
+}
+
+// flattenArtifactTriggerBranchFilter converts a cd artifact trigger's triggerConditions
+// into a branch_filter block.
+func flattenArtifactTriggerBranchFilter(trigMap map[string]interface{}) []interface{} {
+	var includes []interface{}
+	if conditions, ok := trigMap["triggerConditions"].([]interface{}); ok {
+		for _, c := range conditions {
+			if cMap, ok := c.(map[string]interface{}); ok {
+				if branch, ok := cMap["sourceBranch"].(string); ok && branch != "" {
+					includes = append(includes, branch)
+				}
+			}
+		}
+	}
+	if len(includes) == 0 {
+		return []interface{}{map[string]interface{}{
+			"include": []interface{}{},
+			"exclude": []interface{}{},
+		}}
+	}
+	return []interface{}{map[string]interface{}{
+		"include": includes,
+		"exclude": []interface{}{},
+	}}
 }
 
 func flattenArtifacts(artifacts *[]releaseapi.Artifact, d *schema.ResourceData) []interface{} {

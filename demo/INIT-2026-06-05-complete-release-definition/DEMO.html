@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Complete betterado_release_definition: gates+tasks, idempotency, agent_specification, real gate queryId, exhaustive live acceptance test — before / after</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body { font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 0 1.5rem 4rem; max-width: 1400px; margin-inline: auto; }
+
+  /* ── Header ── */
+  header { padding: 2rem 0 1rem; border-bottom: 2px solid color-mix(in srgb, currentColor 18%, transparent); }
+  h1 { font-size: 1.7rem; margin: 0 0 .5rem; }
+  .header-meta { color: color-mix(in srgb, currentColor 60%, transparent); font-size: .85rem; display: flex; flex-wrap: wrap; gap: .3rem .9rem; }
+  .header-meta code { font-size: .85rem; }
+  .header-meta a { color: inherit; }
+  .essence { font-size: 1.05rem; margin: 1.2rem 0 0; padding: 1rem 1.2rem; border-left: 3px solid color-mix(in srgb, currentColor 35%, transparent); background: color-mix(in srgb, currentColor 5%, transparent); border-radius: 0 6px 6px 0; }
+
+  /* ── Section chrome ── */
+  .section { margin: 2.8rem 0; }
+  .section h2 { font-size: 1.1rem; text-transform: uppercase; letter-spacing: .06em; color: color-mix(in srgb, currentColor 55%, transparent); margin: 0 0 1.2rem; padding-bottom: .4rem; border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+
+  /* ── Banners ── */
+  .banner { margin: 1rem 0; padding: .9rem 1.1rem; border-radius: 6px; background: color-mix(in srgb, #e0a800 22%, transparent); font-size: .9rem; }
+  .banner hr { border: none; border-top: 1px solid color-mix(in srgb, currentColor 25%, transparent); margin: .6rem 0; }
+
+  /* ── Summary ── */
+  .summary-bullets { margin: 0 0 .6rem 1.2rem; padding: 0; }
+  .summary-bullets li { margin: .25rem 0; }
+  .meta-row { font-size: .85rem; color: color-mix(in srgb, currentColor 60%, transparent); margin: .4rem 0 0; }
+  .meta-row a { color: inherit; }
+
+  /* ── Visual Changes ── */
+  .checkpoint { margin: 2rem 0; padding: 1.4rem; background: color-mix(in srgb, currentColor 3%, transparent); border-radius: 8px; border: 1px solid color-mix(in srgb, currentColor 10%, transparent); }
+  .checkpoint h3 { font-size: 1.0rem; margin: 0 0 .9rem; display: flex; align-items: center; gap: .6rem; }
+  .step { display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: color-mix(in srgb, currentColor 14%, transparent); font-size: .85rem; font-weight: 600; flex-shrink: 0; }
+  .kind { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em; padding: .15rem .5rem; border-radius: 999px; background: color-mix(in srgb, #4a9eff 30%, transparent); }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  figure { margin: 0; }
+  figcaption { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: color-mix(in srgb, currentColor 55%, transparent); margin-bottom: .4rem; }
+  img, video { width: 100%; max-width: 800px; height: auto; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: 6px; display: block; background: #0001; }
+  .missing { display: grid; place-items: center; min-height: 120px; border: 1px dashed color-mix(in srgb, currentColor 30%, transparent); border-radius: 6px; color: color-mix(in srgb, currentColor 50%, transparent); font-size: .85rem; }
+  .note { font-size: .82rem; color: color-mix(in srgb, currentColor 60%, transparent); margin: .4rem 0 0; }
+
+  /* ── Harness table ── */
+  table.harness { width: 100%; border-collapse: collapse; font-size: .9rem; margin: .2rem 0 .6rem; }
+  table.harness th, table.harness td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+  table.harness th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: color-mix(in srgb, currentColor 55%, transparent); }
+  table.harness td:nth-child(n+2) { font-variant-numeric: tabular-nums; }
+  table.harness .verdict-cell { font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+  tr.p-diverged { background: color-mix(in srgb, #e0584a 16%, transparent); }
+  tr.p-within { background: color-mix(in srgb, #3fae6a 12%, transparent); }
+  tr.p-incomplete { background: color-mix(in srgb, #e0a800 16%, transparent); }
+  .verdict { font-size: .95rem; margin: .2rem 0 0; padding: .5rem .8rem; border-radius: 6px; display: inline-block; }
+  .verdict.v-within { background: color-mix(in srgb, #3fae6a 20%, transparent); }
+  .verdict.v-diverged { background: color-mix(in srgb, #e0584a 22%, transparent); }
+  .verdict.v-incomplete { background: color-mix(in srgb, #e0a800 22%, transparent); }
+
+  /* ── API Diff ── */
+  .api-entry { margin: 1.2rem 0; }
+  .api-name { font-weight: 600; font-size: .95rem; margin-bottom: .5rem; }
+  .badge { font-size: .65rem; text-transform: uppercase; letter-spacing: .07em; padding: .15rem .5rem; border-radius: 999px; margin-left: .4rem; vertical-align: middle; }
+  .badge-added { background: color-mix(in srgb, #3fae6a 28%, transparent); }
+  .badge-removed { background: color-mix(in srgb, #e0584a 28%, transparent); }
+  .badge-changed { background: color-mix(in srgb, #e0a800 28%, transparent); }
+  .api-pair { align-items: start; }
+  .api-side-label { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: color-mix(in srgb, currentColor 55%, transparent); margin-bottom: .3rem; }
+  .code-block { overflow-x: auto; font-size: .82rem; padding: .7rem .9rem; background: color-mix(in srgb, currentColor 6%, transparent); border-radius: 6px; margin: 0; border: 1px solid color-mix(in srgb, currentColor 10%, transparent); white-space: pre; }
+  .missing-code { font-size: .85rem; color: color-mix(in srgb, currentColor 40%, transparent); padding: .4rem 0; }
+
+  /* ── Test Evidence ── */
+  table.test-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  table.test-table th, table.test-table td { text-align: left; padding: .4rem .7rem; border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent); }
+  table.test-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: color-mix(in srgb, currentColor 55%, transparent); }
+  .result-pass { color: #3fae6a; font-weight: 600; }
+  .result-fail { color: #e0584a; font-weight: 600; }
+  .result-skip { color: color-mix(in srgb, currentColor 55%, transparent); }
+
+  /* ── Files Changed ── */
+  .files-list { margin: 0 0 1rem 1.2rem; padding: 0; font-size: .9rem; }
+  .files-list code { font-size: .85rem; }
+  .diff-stat-toggle { margin-top: .8rem; }
+  .diff-stat-toggle summary { cursor: pointer; font-size: .85rem; color: color-mix(in srgb, currentColor 60%, transparent); }
+  .diff-stat { overflow-x: auto; font-size: .8rem; padding: .8rem; background: color-mix(in srgb, currentColor 6%, transparent); border-radius: 6px; margin-top: .4rem; }
+
+  /* ── Usage ── */
+  .usage-block { overflow-x: auto; font-size: .88rem; padding: .9rem 1.1rem; background: color-mix(in srgb, currentColor 6%, transparent); border-radius: 6px; margin: 0; border: 1px solid color-mix(in srgb, currentColor 10%, transparent); white-space: pre; }
+
+  /* ── Impact ── */
+  .impact-list { margin: 0 0 .6rem 1.2rem; padding: 0; }
+  .impact-list li { margin: .3rem 0; }
+
+  /* ── Parity rows (additional) ── */
+  tr.p-match { background: color-mix(in srgb, #3fae6a 7%, transparent); }
+
+  /* ── Appendix ── */
+  .appendix { margin: 1.4rem 0; }
+  .appendix summary { cursor: pointer; font-size: .9rem; font-weight: 600; }
+  .appendix ol { font-size: .9rem; }
+
+  /* ── Shared utils ── */
+  .muted { color: color-mix(in srgb, currentColor 55%, transparent); }
+  footer { margin-top: 3rem; font-size: .8rem; color: color-mix(in srgb, currentColor 50%, transparent); border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent); padding-top: 1rem; }
+  @media (max-width: 760px) { .pair { grid-template-columns: 1fr; } .api-pair { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Complete betterado_release_definition: gates+tasks, idempotency, agent_specification, real gate queryId, exhaustive live acceptance test</h1>
+  <div class="header-meta">
+    <span><code>INIT-2026-06-05-complete-release-definition</code></span>
+    <span>project <strong>terraform-provider-betterado</strong></span>
+    <span>before <code>main</code> → after <code>HEAD</code></span>
+    <span>generated 2026-06-05T15:25:30.296Z</span>
+  </div>
+  <p class="essence">Nine work items completed the betterado_release_definition Terraform resource to cover the full ADO REST 7.2 release-pipeline surface. WI-1–5 (prior pass) added acceptance-test refresh, deployment gates schema, triggers, parallel execution, and agentless phases. WI-6 fixed the #1 live-review gap: deployment gates had zero actual gate checks (only timing options) — now each gate block carries workflow task(s), so gates#&gt;0 live. WI-7 fixed three flatten round-trip bugs that caused a perpetual diff (multipliers comma-string, spurious empty parallel_execution block, schedule_trigger branch_filter location). WI-8 added TestAccReleaseDefinition_complete — an exhaustive live acceptance test setting a non-default value for every schema option. WI-9 (final cleanup) removed the stale branch_filter from schedule_trigger schema, set agent_specification in the acceptance test to a real non-default value (ubuntu-22.04), and created a real shared work-item query via betterado_workitemquery for the gate task queryId — so the gate is complete and the live acceptance test is fully idempotent.</p>
+</header>
+
+
+
+
+<section class="section" id="summary">
+  <h2>Summary</h2>
+  <ul class="summary-bullets">
+    <li>9 WIs completed: acceptance-test refresh, gates schema + tasks, triggers, parallel execution, agentless phases, idempotency fixes, exhaustive live acceptance test, and final cleanup (WI-9)</li>
+    <li>3 flatten round-trip bugs fixed (perpetual diff eliminated): multipliers comma-string, spurious empty parallel_execution block, schedule_trigger branch_filter removed entirely from schema</li>
+    <li>TestAccReleaseDefinition_complete (WI-8+WI-9): exhaustive live acceptance test with agent_specification=ubuntu-22.04, real gate queryId via betterado_workitemquery, and full idempotency (ExpectNonEmptyPlan:false)</li>
+    <li>22 top-level offline unit tests pass; live acceptance test passed in-cycle against real ADO org</li>
+  </ul>
+  
+</section>
+
+
+<section class="section" id="test-evidence-checkpoints">
+  <h2>Test Evidence</h2>
+  
+  <div class="checkpoint">
+    <h3><span class="step">1</span> Five WIs added the full ADO 7.2 schema surface; 20 unit tests pass; initiative quality gate exits 0 after the first pass <span class="kind">harness</span></h3>
+    <table class="harness">
+      <thead><tr><th>metric</th><th>before</th><th>after</th><th>Δ</th><th>parity</th></tr></thead>
+      <tbody><tr class="p-within"><td>Release package unit tests</td><td>11 PASS</td><td>22 PASS</td><td>+100.0%</td><td class="verdict-cell">within</td></tr><tr class="p-match"><td>Initiative quality gate (release + taskagent packages)</td><td>gate did not cover new test prefixes</td><td>exit 0 — all packages ok</td><td>=</td><td class="verdict-cell">match</td></tr></tbody>
+    </table>
+    <p class="verdict v-within">Verdict: <strong>PARITY</strong></p>
+    <p class="note">betterado_release_definition lacked pre/post_deployment_gates, triggers, parallel_execution, and runOnServer phase support; acceptance tests failed with VS402982/VS402877 against ADO REST 7.2 due to missing retention_policy and pre_deploy_approval</p><p class="note">Gates (gatesOptions), cd_artifact_trigger + schedule_trigger, multiConfiguration/multiMachine parallel_execution, and runOnServer agentless phase are fully modelled; acceptance test HCL is ADO 7.2-compatible; 20 release-package unit tests pass; quality gate exits 0</p>
+  </div>
+
+  <div class="checkpoint">
+    <h3><span class="step">2</span> deploymentGatesSchema() gains a repeatable gate{} block each with a task{} list; expand populates ReleaseDefinitionGatesStep.Gates; flatten round-trips them; new TestReleaseDefinition_GatesTasks_ExpandFlatten passes <span class="kind">harness</span></h3>
+    <table class="harness">
+      <thead><tr><th>metric</th><th>before</th><th>after</th><th>Δ</th><th>parity</th></tr></thead>
+      <tbody><tr class="p-incomplete"><td>TestReleaseDefinition_GatesTasks_ExpandFlatten</td><td>0 (prefix did not exist)</td><td>1 PASS</td><td>—</td><td class="verdict-cell">incomplete</td></tr></tbody>
+    </table>
+    <p class="verdict v-incomplete">Verdict: <strong>INCOMPLETE</strong></p>
+    <p class="note">Live ADO API showed gates#=0 — pre/post_deployment_gates persisted gatesOptions (timing) only; no actual gate checks were modelled; gates were present in HCL but had zero effect at deploy time</p><p class="note">Each gate{} block carries workflow task(s) via workflowTaskSchema(); expandDeploymentGates() populates ReleaseDefinitionGatesStep.Gates; flattenDeploymentGates() round-trips them back; TestReleaseDefinition_GatesTasks_ExpandFlatten exercises a serverGate task and verifies no drops in the round-trip; live acceptance test (WI-8) confirms gates#&gt;0 via checkReleaseDefinitionHasGates()</p>
+  </div>
+
+  <div class="checkpoint">
+    <h3><span class="step">3</span> Three flatten bugs caused a perpetual diff after every apply; all three fixed; TestReleaseDefinition_RoundTrip (4 subtests) proves flatten(expand(x))==x for every affected field <span class="kind">harness</span></h3>
+    <table class="harness">
+      <thead><tr><th>metric</th><th>before</th><th>after</th><th>Δ</th><th>parity</th></tr></thead>
+      <tbody><tr class="p-incomplete"><td>TestReleaseDefinition_RoundTrip (4 subtests)</td><td>0 (prefix did not exist)</td><td>1 PASS (4 subtests: multipliers_comma_string, multipliers_array, no_parallel_execution, schedule_trigger_no_branch_filter_no_residual_diff)</td><td>—</td><td class="verdict-cell">incomplete</td></tr><tr class="p-match"><td>Perpetual diff (terraform plan post-apply)</td><td>1 to change (three round-trip bugs)</td><td>No changes — infrastructure matches configuration</td><td>=</td><td class="verdict-cell">match</td></tr></tbody>
+    </table>
+    <p class="verdict v-incomplete">Verdict: <strong>INCOMPLETE</strong></p>
+    <p class="note">A second `terraform plan` reported 1 to change due to three bugs: (1) parallel_execution.multipliers: ADO SDK has Multipliers *string (comma-separated) not []string — flatten got the string back but expand sent a list, so ADO stored &#x27;TargetSlot,Production&#x27; while state had [&#x27;TargetSlot&#x27;,&#x27;Production&#x27;]; (2) a spurious empty parallel_execution block was emitted for non-parallel/agentless phases causing ADO to want to remove it every plan; (3) schedule_trigger.branch_filter.include was nested inside the schedule sub-object (which has no BranchFilters field in ADO) — it was silently dropped by ADO and re-added by Terraform on every plan</p><p class="note">Bug 1 fixed: expandParallelExecution joins multipliers with strings.Join so ADO persists the comma string; flattenParallelExecution handles both *string and []interface{} via type-switch. Bug 2 fixed: flattenParallelExecution returns nil for type:none; flattenDeploymentInput only sets the key when non-nil. Bug 3 fixed: branch_filter entirely removed from schedule_trigger schema (WI-9 final cleanup: ADO classic schedule triggers have no branch filter concept; the field was always silently dropped). TestReleaseDefinition_RoundTrip passes with 4 subtests asserting flatten(expand(x))==x for each case.</p>
+  </div>
+
+  <div class="checkpoint">
+    <h3><span class="step">4</span> TF_ACC=1 TestAccReleaseDefinition_complete applies a release definition with non-default values for every schema option; WI-9 added agent_specification=ubuntu-22.04, real gate queryId via betterado_workitemquery, and removed stale branch_filter assertions from unit tests <span class="kind">harness</span></h3>
+    <table class="harness">
+      <thead><tr><th>metric</th><th>before</th><th>after</th><th>Δ</th><th>parity</th></tr></thead>
+      <tbody><tr class="p-match"><td>TestAccReleaseDefinition_complete (live ADO)</td><td>1 PASS (WI-8, but agent_specification unset and gate queryId empty)</td><td>1 PASS (WI-9: agent_specification=ubuntu-22.04, real gate queryId, no schedule_trigger branch_filter diff)</td><td>=</td><td class="verdict-cell">match</td></tr><tr class="p-match"><td>agent_specification in live ADO resource</td><td>not set (default agent image)</td><td>ubuntu-22.04 (asserted by checkReleaseDefinitionAgentSpecification)</td><td>=</td><td class="verdict-cell">match</td></tr><tr class="p-match"><td>Gate queryId on live resource</td><td>empty string (gate task incomplete)</td><td>real shared query GUID (betterado_workitemquery.gate_query.id)</td><td>=</td><td class="verdict-cell">match</td></tr><tr class="p-match"><td>Idempotency re-plan (ExpectNonEmptyPlan:false)</td><td>1 to change (schedule_trigger branch_filter diff)</td><td>No changes (schedule_trigger has no branch_filter — fully idempotent)</td><td>=</td><td class="verdict-cell">match</td></tr></tbody>
+    </table>
+    <p class="verdict v-within">Verdict: <strong>PARITY</strong></p>
+    <p class="note">WI-8 introduced the exhaustive acceptance test but had three remaining gaps found in live review: agent_specification was never set (unset image), gate queryId was empty string (violates WI-9 AC), and schedule_trigger unit tests had stale branch_filter assertions that conflicted with the already-correct schema removal</p><p class="note">WI-9 closes all three: agent_specification = &#x27;ubuntu-22.04&#x27; set in deployment_input; betterado_workitemquery resource creates a real &#x27;All Work Items - Gate Check&#x27; query under Shared Queries in the test project, its .id used as queryId for both pre/post gate tasks; unit tests updated to assert schedule_trigger does NOT expose branch_filter in flattened state. checkReleaseDefinitionAgentSpecification() API-level check verifies agentSpecification.identifier persisted. ExpectNonEmptyPlan:false confirms full idempotency.</p>
+  </div>
+
+  <div class="checkpoint">
+    <h3><span class="step">5</span> go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... exits 0 with all 22 top-level test functions passing (11 pre-initiative + 11 new) <span class="kind">harness</span></h3>
+    <table class="harness">
+      <thead><tr><th>metric</th><th>before</th><th>after</th><th>Δ</th><th>parity</th></tr></thead>
+      <tbody><tr class="p-within"><td>go test ./service/release/... (top-level test functions)</td><td>11 PASS</td><td>22 PASS (11 new, including subtests for RoundTrip/ParallelExecution/AgentlessPhase)</td><td>+100.0%</td><td class="verdict-cell">within</td></tr><tr class="p-match"><td>go test ./service/taskagent/... (regression)</td><td>all PASS</td><td>all PASS (exit 0)</td><td>0.0%</td><td class="verdict-cell">match</td></tr></tbody>
+    </table>
+    <p class="verdict v-within">Verdict: <strong>PARITY</strong></p>
+    <p class="note">Quality gate covered 11 pre-initiative tests before this initiative started</p><p class="note">22 top-level test functions pass: 11 original + TestReleaseDefinition_AccRefresh_RetentionPolicy, _PreDeployApproval (WI-1), _Gates_ExpandFlatten (WI-2), _Triggers_Empty/_ArtifactOnly/_ScheduleOnly/_ExpandFlatten (WI-3), _ParallelExecution_ExpandFlatten (WI-4), _AgentlessPhase_ExpandFlatten (WI-5), _GatesTasks_ExpandFlatten (WI-6), _RoundTrip (WI-7, updated by WI-9 to assert no schedule_trigger branch_filter diff); all taskagent tests pass</p>
+  </div>
+  
+</section>
+
+
+
+
+<section class="section" id="test-evidence">
+  <h2>Test Evidence</h2>
+  <table class="test-table">
+    <thead><tr><th>test</th><th>result</th><th>delta</th></tr></thead>
+    <tbody><tr>
+        <td>TestReleaseDefinition_AccRefresh_RetentionPolicy</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">+1 (WI-1)</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_AccRefresh_PreDeployApproval</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">+1 (WI-1)</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_Gates_ExpandFlatten</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">+1 (WI-2)</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_GatesTasks_ExpandFlatten</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">+1 (WI-6)</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_Triggers_Empty</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">+1 (WI-3)</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_Triggers_ArtifactOnly</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">+1 (WI-3)</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_Triggers_ScheduleOnly</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">+1 (WI-3, updated by WI-9: asserts schedule_trigger has NO branch_filter in flattened state)</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_Triggers_ExpandFlatten</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">+1 (WI-3, updated by WI-9: stale branch_filter assertions removed)</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_RoundTrip (4 subtests)</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">+1 (WI-7 + WI-9: multipliers_comma_string, multipliers_array, no_parallel_execution_produces_no_block, schedule_trigger_no_branch_filter_no_residual_diff)</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_ParallelExecution_ExpandFlatten</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">+1 (3 subtests, WI-4)</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_AgentlessPhase_ExpandFlatten</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">+1 (3 subtests, WI-5)</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_ExpandFlatten_Roundtrip</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">0 (pre-initiative, no regression)</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_Create_DoesNotSwallowError</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">0</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_Read_ClearsIdOn404</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">0</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_Update_CallsSDKWithArgs</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">0</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_Update_RevisionRetryOnConflict</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">0</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_SecretVariables_PreserveOnFlatten</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">0</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_DeepNestedEnvironment_ExpandFlatten</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">0</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_Artifacts_DefinitionReferenceFiltering</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">0</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_ApprovalOptions_RoundTrip</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">0</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_DeployPhases_JSONMarshalUnmarshal</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">0</td>
+      </tr><tr>
+        <td>TestReleaseDefinition_Delete_SurfacesAPIError</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">0</td>
+      </tr><tr>
+        <td>taskagent package suite</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">0</td>
+      </tr><tr>
+        <td>TestAccReleaseDefinition_complete (live ADO, WI-8 + WI-9)</td>
+        <td class="result-pass">pass</td>
+        <td class="muted">+1 (apply + agent_specification check + real gate queryId + idempotency re-plan + destroy)</td>
+      </tr></tbody>
+  </table>
+</section>
+
+
+<section class="section" id="files-changed">
+  <h2>Files Changed</h2>
+  <ul class="files-list">
+      <li><code>azuredevops/internal/acceptancetests/resource_release_definition_test.go</code> <span class="muted">— WI-1: retention_policy + pre_deploy_approval in acceptance HCL fixtures; WI-8: TestAccReleaseDefinition_complete (exhaustive live acceptance test); WI-9: agent_specification=ubuntu-22.04, betterado_workitemquery for real gate queryId, checkReleaseDefinitionAgentSpecification check (+559 lines)</span></li>
+      <li><code>azuredevops/internal/acceptancetests/testutils/commons.go</code> <span class="muted">— WI-8: minor test utility update (-4/+4 lines)</span></li>
+      <li><code>azuredevops/internal/service/release/resource_release_definition.go</code> <span class="muted">— WI-1–9: schema additions (gates+tasks, triggers, parallel_execution, agentless, agent_specification) + expand/flatten helpers + idempotency fixes + schedule_trigger branch_filter removal (+844/-76 lines)</span></li>
+      <li><code>azuredevops/internal/service/release/resource_release_definition_test.go</code> <span class="muted">— WI-1–7 + WI-9: 11 new top-level unit test functions covering all schema features and round-trip correctness; WI-9: stale schedule_trigger branch_filter assertions removed from _Triggers_ScheduleOnly and _Triggers_ExpandFlatten (+1361 lines)</span></li>
+    </ul>
+  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>HEAD</code></summary><pre class="diff-stat">azuredevops/internal/acceptancetests/resource_release_definition_test.go                        |  559 +++++++-
+ azuredevops/internal/acceptancetests/testutils/commons.go                                       |    4 +-
+ azuredevops/internal/service/release/resource_release_definition.go                             |  844 +++++++++++-
+ azuredevops/internal/service/release/resource_release_definition_test.go                        | 1361 +++++++++++++++++++-
+ demo/INIT-2026-06-05-complete-release-definition/DEMO.html                                      |  501 +++++++
+ demo/INIT-2026-06-05-complete-release-definition/DEMO.md                                        |  299 +++++
+ demo/INIT-2026-06-05-complete-release-definition/demo.json                                      |  301 +++++
+ 9 files changed, 3868 insertions(+), 76 deletions(-)</pre></details>
+</section>
+
+
+<section class="section" id="usage">
+  <h2>Usage</h2>
+  <pre class="usage-block">```hcl
+# WI-9: betterado_workitemquery creates a real shared query for gate task queryId
+resource &quot;betterado_workitemquery&quot; &quot;gate_query&quot; {
+  project_id = var.project_id
+  name       = &quot;All Work Items - Gate Check&quot;
+  path       = &quot;Shared Queries&quot;
+  wiql       = &quot;SELECT [System.Id] FROM WorkItems&quot;
+}
+
+resource &quot;betterado_release_definition&quot; &quot;example&quot; {
+  name                = &quot;MyRelease&quot;
+  project_id          = var.project_id
+  description         = &quot;Exhaustive example&quot;
+  release_name_format = &quot;Release-$(rev:r)&quot;
+
+  artifact {
+    alias      = &quot;_build&quot;
+    type       = &quot;Build&quot;
+    is_primary = true
+    definition_reference {
+      key   = &quot;project&quot;
+      value = var.project_id
+    }
+    definition_reference {
+      key   = &quot;definition&quot;
+      value = var.build_definition_id
+    }
+  }
+
+  # WI-3: CD artifact + schedule triggers
+  # WI-9: schedule_trigger has NO branch_filter (ADO classic schedule triggers are time-based)
+  triggers {
+    cd_artifact_trigger {
+      artifact_alias = &quot;_build&quot;
+      branch_filter {
+        include = [&quot;refs/heads/main&quot;]
+        exclude = []
+      }
+    }
+    schedule_trigger {
+      schedule_only_with_changes = true
+      start_hours                = 2
+      start_minutes              = 0
+      time_zone_id               = &quot;UTC&quot;
+      days_to_release            = 127
+    }
+  }
+
+  environment {
+    name = &quot;Staging&quot;
+    rank = 1
+
+    # WI-1: retention policy (required by ADO REST 7.2)
+    retention_policy {
+      days_to_keep     = 14
+      releases_to_keep = 5
+      retain_build     = false
+    }
+
+    # WI-1: pre-deploy approval
+    pre_deploy_approval {
+      approval {
+        is_automated = false
+        rank         = 1
+        approver_id  = var.approver_id
+      }
+      approval_options {
+        release_creator_can_be_approver = true
+        timeout_in_minutes              = 720
+      }
+    }
+
+    # WI-2 + WI-6: deployment gates WITH real gate tasks (gates#&gt;0)
+    # WI-9: queryId = real shared query GUID from betterado_workitemquery
+    pre_deployment_gates {
+      gates_options {
+        is_enabled               = true
+        timeout                  = 60
+        sampling_interval        = 5
+        stabilization_time       = 0
+        minimum_success_duration = 0
+      }
+      # WI-6: gate block — each gate carries a workflow task
+      gate {
+        task {
+          task_id          = &quot;f1e4b0e6-017e-4819-8a48-ef19ae96e289&quot; # queryWorkItems
+          version          = &quot;2&quot;
+          name             = &quot;Query work items&quot;
+          is_enabled       = true
+          condition        = &quot;&quot;
+          always_run       = false
+          continue_on_error = false
+          inputs           = {
+            queryId = betterado_workitemquery.gate_query.id  # WI-9: real query GUID
+          }
+        }
+      }
+    }
+
+    deploy_phase {
+      name       = &quot;Agent phase&quot;
+      phase_type = &quot;agentBasedDeployment&quot;
+      rank       = 1
+
+      deployment_input {
+        queue_id                  = var.agent_pool_id  # real queue — never 0
+        skip_artifacts_download   = true
+        enable_access_token       = true
+        timeout_in_minutes        = 60
+        demands                   = [&quot;Agent.Version -gtVersion 2.0&quot;]
+        # WI-9: agent_specification sets the agent image explicitly
+        agent_specification       = &quot;ubuntu-22.04&quot;
+
+        # WI-4: parallel execution (WI-7: multipliers round-trips correctly)
+        parallel_execution {
+          type                 = &quot;multiConfiguration&quot;
+          max_number_of_agents = 2
+          multipliers          = [&quot;Configuration&quot;]
+          continue_on_error    = false
+        }
+      }
+    }
+
+    deploy_phase {
+      name       = &quot;Agentless phase&quot;
+      # WI-5: runOnServer — queueId omitted from ADO wire payload
+      phase_type = &quot;runOnServer&quot;
+      rank       = 2
+
+      workflow_task {
+        task_id   = &quot;28782b92-5e8e-4458-9751-a71cd1492bae&quot; # Delay task (v1)
+        version   = &quot;1&quot;
+        name      = &quot;Delay&quot;
+        is_enabled = true
+        inputs     = { delayForMinutes = &quot;1&quot; }
+      }
+
+      deployment_input {
+        timeout_in_minutes        = 120
+        cancel_timeout_in_minutes = 5
+      }
+    }
+  }
+
+  environment {
+    name = &quot;Production&quot;
+    rank = 2
+
+    condition {
+      name           = &quot;Staging&quot;
+      condition_type = &quot;environmentState&quot;
+      value          = &quot;4&quot;
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approval {
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    deploy_phase {
+      name       = &quot;Deploy&quot;
+      phase_type = &quot;agentBasedDeployment&quot;
+      rank       = 1
+      deployment_input {
+        queue_id = var.agent_pool_id
+      }
+    }
+  }
+}
+```</pre>
+</section>
+
+
+<section class="section" id="impact">
+  <h2>Impact</h2>
+  <ul class="impact-list">
+    <li>Deployment gates are now fully modelled: each gate block carries workflow tasks so gates#&gt;0 in live ADO — quality gates at deployment checkpoints actually run (WI-6)</li>
+    <li>Resource is idempotent: three flatten round-trip bugs eliminated including complete removal of schedule_trigger.branch_filter (ADO classic schedule triggers have no branch filter) — no more perpetual diff after apply (WI-7 + WI-9)</li>
+    <li>agent_specification is now first-class in deployment_input — operators can pin the agent image (e.g. ubuntu-22.04) and the value round-trips through ADO (WI-9)</li>
+    <li>Gate tasks use real queryIds via betterado_workitemquery — no more empty gate tasks that silently do nothing (WI-9)</li>
+    <li>Exhaustive live acceptance test (TestAccReleaseDefinition_complete) codified as a standing merge gate: every schema option proven against live ADO on every CI run (WI-8 + WI-9)</li>
+    <li>CD artifact triggers and schedule triggers are first-class HCL declarations — trigger logic version-controlled and diff-visible (WI-3)</li>
+    <li>Parallel execution (multiConfiguration / multiMachine) and agentless (runOnServer) deploy phases fully supported (WI-4, WI-5)</li>
+    <li>Acceptance tests ADO REST 7.2-compatible: retention_policy and pre_deploy_approval blocks prevent VS402982/VS402877 failures in live CI (WI-1)</li>
+  </ul>
+</section>
+
+<details class="appendix"><summary>Acceptance criteria this demo is grounded in (12)</summary><ol><li>TestReleaseDefinition_AccRefresh_RetentionPolicy and _PreDeployApproval pass (WI-1)</li><li>TestReleaseDefinition_Gates_ExpandFlatten passes (WI-2)</li><li>TestReleaseDefinition_Triggers_ExpandFlatten (and _Empty, _ArtifactOnly, _ScheduleOnly) passes (WI-3)</li><li>TestReleaseDefinition_ParallelExecution_ExpandFlatten passes (WI-4)</li><li>TestReleaseDefinition_AgentlessPhase_ExpandFlatten passes (WI-5)</li><li>TestReleaseDefinition_GatesTasks_ExpandFlatten passes — gates#&gt;0 expand/flatten round-trips (WI-6)</li><li>TestReleaseDefinition_RoundTrip passes (4 subtests) — multipliers, no-parallel-execution, schedule_trigger no branch_filter residual diff (WI-7 + WI-9)</li><li>schedule_trigger branch_filter removed from schema — no perpetual diff (WI-9 AC1)</li><li>agent_specification = ubuntu-22.04 in acceptance test + asserted via checkReleaseDefinitionAgentSpecification (WI-9 AC2)</li><li>betterado_workitemquery creates real shared query; gate task queryId = real GUID (WI-9 AC3)</li><li>TestAccReleaseDefinition_complete passes live ADO: apply + check + idempotency plan + destroy (WI-8 + WI-9 AC4)</li><li>go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... exits 0</li></ol></details>
+
+<footer>Before = the project's prior behaviour (a valid working state). After = behaviour with this initiative applied. The demo focuses on the behavioural delta that is the essence of the change — it is not exhaustive and is not a failure hunt.</footer>
+</body>
+</html>
