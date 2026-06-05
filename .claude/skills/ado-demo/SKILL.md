@@ -74,6 +74,24 @@ as part of the regular suite — it is not a thing the operator does by hand onc
 So: **one exhaustive live config → an acceptance test (regular testing) → the demo
 evidence.** They are the same artifact viewed two ways.
 
+### The demo page is the review surface — no re-stand-up
+
+The point of capturing live evidence in-cycle is that the operator reviews the real
+resource ON THE DEMO PAGE, never by asking for the resources to be re-stood-up:
+
+- **Always (headless, in the autonomous cycle):** during the live run, `GET` the
+  created object and save it as `demo/<id>/live-resource.json`; declare
+  `interactiveSurfaces` — a `live-query` serving that JSON + a `portal-link` deep
+  link. The operator inspects the real API response and opens the portal from the
+  `/review` screen. This is creds-only (PAT), so it always works in the cycle and
+  is the primary evidence.
+- **Portal screenshots (only when a browser session is connected):** compose
+  `ado-browser-inspector` (the Claude-in-Chrome MCP) to screenshot the resource and
+  embed `kind: screenshot` checkpoints. NOTE: that MCP is an operator-adjacent
+  browser session — it is **not available in a headless cycle**, so screenshots are
+  best-effort. The API evidence above is the always-available substitute; never
+  block the demo (or the merge) on a screenshot.
+
 ## Prerequisites (the live layer)
 
 - `AZDO_ORG_SERVICE_URL` + `AZDO_PERSONAL_ACCESS_TOKEN` (export
