@@ -1775,8 +1775,10 @@ func TestReleaseDefinition_Triggers_ScheduleOnly(t *testing.T) {
 	require.Equal(t, timeZoneID, sched["timeZoneId"])
 	require.Equal(t, daysToRelease, sched["daysToRelease"])
 
-	branchFilters, ok := sched["branchFilters"].([]string)
-	require.True(t, ok, "branchFilters must be []string")
+	// branchFilters is stored at the trigger top level (not inside schedule)
+	// so that ADO does not silently drop it (ReleaseSchedule has no branchFilters field).
+	branchFilters, ok := trigMap["branchFilters"].([]string)
+	require.True(t, ok, "branchFilters must be []string at trigger top level")
 	require.Len(t, branchFilters, 1)
 	require.Equal(t, "+"+branchInclude, branchFilters[0])
 
@@ -1982,6 +1984,162 @@ func TestReleaseDefinition_Triggers_ExpandFlatten(t *testing.T) {
 	require.Len(t, schedIncludes, 1)
 	require.Equal(t, schedBranch, schedIncludes[0],
 		"schedule_trigger branch_filter include must survive expand/flatten")
+}
+
+// ── WI-7: round-trip idempotency tests ────────────────────────────────────
+
+// TestReleaseDefinition_RoundTrip verifies that expand → JSON-marshal → JSON-unmarshal → flatten
+// produces the same state as the original HCL input (i.e., no perpetual diff).
+// This simulates the ADO API round-trip that the live demo proved was broken.
+//
+// Three sub-tests cover the three production bugs identified in WI-7:
+//  1. multipliers round-trips through a comma-joined string (ADO wire format).
+//  2. A phase without parallel_execution in HCL produces no parallel_execution block in state.
+//  3. schedule_trigger.branch_filter.include round-trips correctly.
+func TestReleaseDefinition_RoundTrip(t *testing.T) {
+	t.Run("multipliers_comma_string_round_trip", func(t *testing.T) {
+		// Simulate what ADO API returns: multipliers as a comma-joined string.
+		// The user set ["TargetSlot", "Production"] in HCL; ADO returns "TargetSlot,Production".
+		adoParallelExecution := map[string]interface{}{
+			"parallelExecutionType": "multiConfiguration",
+			"maxNumberOfAgents":     float64(2),
+			"continueOnError":       false,
+			"multipliers":           "TargetSlot,Production", // ADO wire format: comma-joined string
+		}
+		result := flattenParallelExecution(adoParallelExecution)
+		require.Len(t, result, 1, "flattenParallelExecution must return one element for multiConfiguration")
+
+		peMap := result[0].(map[string]interface{})
+		require.Equal(t, "multiConfiguration", peMap["type"])
+
+		multipliers, ok := peMap["multipliers"].([]string)
+		require.True(t, ok, "multipliers must be []string in state")
+		require.Equal(t, []string{"TargetSlot", "Production"}, multipliers,
+			"multipliers must be split from comma-joined string")
+	})
+
+	t.Run("multipliers_array_round_trip", func(t *testing.T) {
+		// Also verify that when ADO returns multipliers as a JSON array ([]interface{}),
+		// the flatten still works correctly (backward compat / other clients).
+		adoParallelExecution := map[string]interface{}{
+			"parallelExecutionType": "multiConfiguration",
+			"maxNumberOfAgents":     float64(1),
+			"continueOnError":       false,
+			"multipliers":           []interface{}{"x86", "x64"},
+		}
+		result := flattenParallelExecution(adoParallelExecution)
+		require.Len(t, result, 1)
+		peMap := result[0].(map[string]interface{})
+		multipliers, ok := peMap["multipliers"].([]string)
+		require.True(t, ok, "multipliers must be []string")
+		require.Equal(t, []string{"x86", "x64"}, multipliers)
+	})
+
+	t.Run("no_parallel_execution_produces_no_block", func(t *testing.T) {
+		// A deploy phase without parallel_execution in HCL expands with no parallelExecution
+		// key. ADO returns {parallelExecutionType: "none"} as the default. The flatten must
+		// NOT emit a parallel_execution block in state (which would create a perpetual diff
+		// vs HCL that has no parallel_execution block at all).
+		adoDeploymentInput := map[string]interface{}{
+			"queueId":                   float64(5),
+			"timeoutInMinutes":          float64(0),
+			"jobCancelTimeoutInMinutes": float64(1),
+			"condition":                 "succeeded()",
+			"skipArtifactsDownload":     false,
+			"enableAccessToken":         false,
+			// ADO returns a default parallelExecution even when not configured:
+			"parallelExecution": map[string]interface{}{
+				"parallelExecutionType": "none",
+			},
+		}
+		result := flattenDeploymentInput(adoDeploymentInput)
+		require.Len(t, result, 1)
+		diFlat := result[0].(map[string]interface{})
+
+		// parallel_execution must be absent (or empty) — no block should be emitted.
+		pe, hasPE := diFlat["parallel_execution"]
+		if hasPE {
+			// If the key exists it must be an empty/nil list — not a [{type:none}] block.
+			asList, ok := pe.([]interface{})
+			require.True(t, ok, "parallel_execution must be []interface{} if present")
+			require.Len(t, asList, 0,
+				"parallel_execution must be empty (no block) for a phase without parallel_execution in HCL")
+		}
+		// If hasPE is false, that's also correct — no key at all is ideal.
+	})
+
+	t.Run("schedule_trigger_branch_filter_include_round_trip", func(t *testing.T) {
+		// Simulate the full expand → JSON-marshal → JSON-unmarshal → flatten cycle for a
+		// schedule trigger with branch_filter.include set.
+		// This verifies Bug 3: branchFilters is stored at the trigger top level so ADO
+		// preserves it (ReleaseSchedule has no branchFilters field).
+		hclState := []interface{}{
+			map[string]interface{}{
+				"cd_artifact_trigger": []interface{}{},
+				"schedule_trigger": []interface{}{
+					map[string]interface{}{
+						"branch_filter": []interface{}{
+							map[string]interface{}{
+								"include": []interface{}{"refs/heads/main"},
+								"exclude": []interface{}{},
+							},
+						},
+						"schedule_only_with_changes": true,
+						"start_hours":                2,
+						"start_minutes":              0,
+						"time_zone_id":               "UTC",
+						"days_to_release":            127,
+					},
+				},
+			},
+		}
+
+		// Step 1: expand
+		expanded := expandTriggers(hclState)
+		require.Len(t, expanded, 1, "must produce one trigger entry")
+
+		trigMap, ok := expanded[0].(map[string]interface{})
+		require.True(t, ok)
+		require.Equal(t, "schedule", trigMap["triggerType"])
+
+		// branchFilters must be at the trigger TOP level, not inside schedule.
+		bfTopLevel, ok := trigMap["branchFilters"].([]string)
+		require.True(t, ok, "branchFilters must be []string at trigger top level after expand")
+		require.Equal(t, []string{"+refs/heads/main"}, bfTopLevel)
+		// Confirm it is NOT inside schedule (would be dropped by ADO)
+		schedMap, ok := trigMap["schedule"].(map[string]interface{})
+		require.True(t, ok)
+		_, insideSched := schedMap["branchFilters"]
+		require.False(t, insideSched, "branchFilters must NOT be inside schedule (ADO drops it)")
+
+		// Step 2: simulate ADO API round-trip via JSON marshal + unmarshal.
+		// branchFilters at top level → preserved; inside schedule → would be dropped.
+		jsonBytes, err := json.Marshal(expanded)
+		require.NoError(t, err)
+		var roundTripped []interface{}
+		require.NoError(t, json.Unmarshal(jsonBytes, &roundTripped))
+
+		// Step 3: flatten back
+		triggers := flattenTriggers(&roundTripped)
+		require.Len(t, triggers, 1)
+
+		trigsMap, ok := triggers[0].(map[string]interface{})
+		require.True(t, ok)
+		schTriggers, ok := trigsMap["schedule_trigger"].([]interface{})
+		require.True(t, ok)
+		require.Len(t, schTriggers, 1)
+
+		st := schTriggers[0].(map[string]interface{})
+		bfList, ok := st["branch_filter"].([]interface{})
+		require.True(t, ok)
+		require.Len(t, bfList, 1)
+		bfMap := bfList[0].(map[string]interface{})
+		includes, ok := bfMap["include"].([]interface{})
+		require.True(t, ok)
+		require.Len(t, includes, 1)
+		require.Equal(t, "refs/heads/main", includes[0],
+			"branch_filter.include must round-trip through expand→JSON→flatten")
+	})
 }
 
 // ── WI-4: parallel_execution expand/flatten ────────────────────────────────

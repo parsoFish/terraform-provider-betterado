@@ -1814,24 +1814,36 @@ func flattenDeploymentInput(di map[string]interface{}) []interface{} {
 		diMap["demands"] = []string{}
 	}
 
-	// Parallel execution
+	// Parallel execution — only set the key when there is a meaningful block.
+	// flattenParallelExecution returns nil for a "none"-typed or absent entry so
+	// that phases without an explicit parallel_execution block in HCL don't
+	// acquire a spurious empty block in state (which would cause a perpetual diff).
 	if pe, ok := di["parallelExecution"].(map[string]interface{}); ok {
-		diMap["parallel_execution"] = flattenParallelExecution(pe)
-	} else {
-		diMap["parallel_execution"] = []interface{}{}
+		if flat := flattenParallelExecution(pe); flat != nil {
+			diMap["parallel_execution"] = flat
+		}
 	}
 
 	return []interface{}{diMap}
 }
 
 // flattenParallelExecution converts the ADO parallelExecution map to Terraform state.
+// Returns nil (not an empty slice) when the type is "none" so that phases that did
+// not declare a parallel_execution block in HCL don't get a spurious empty block
+// injected into state.
 func flattenParallelExecution(pe map[string]interface{}) []interface{} {
 	if pe == nil {
-		return []interface{}{}
+		return nil
 	}
 	peType := "none"
 	if t, ok := pe["parallelExecutionType"].(string); ok {
 		peType = t
+	}
+	// Only emit a block when parallelExecution is meaningfully configured.
+	// A bare "none" type with all defaults is indistinguishable from "not set"
+	// from the HCL author's perspective, so suppress it to avoid perpetual diffs.
+	if peType == "none" {
+		return nil
 	}
 	peFlat := map[string]interface{}{
 		"type":                 peType,
@@ -1845,12 +1857,31 @@ func flattenParallelExecution(pe map[string]interface{}) []interface{} {
 	if coe, ok := pe["continueOnError"].(bool); ok {
 		peFlat["continue_on_error"] = coe
 	}
-	if multipliers, ok := pe["multipliers"].([]interface{}); ok && len(multipliers) > 0 {
-		multStrs := make([]string, len(multipliers))
-		for i, m := range multipliers {
-			multStrs[i], _ = m.(string)
+	// The ADO API stores multipliers as a comma-joined string (e.g. "x86,x64"),
+	// NOT as a JSON array. Handle both forms for robustness.
+	switch v := pe["multipliers"].(type) {
+	case string:
+		if v != "" {
+			parts := strings.Split(v, ",")
+			cleaned := make([]string, 0, len(parts))
+			for _, p := range parts {
+				p = strings.TrimSpace(p)
+				if p != "" {
+					cleaned = append(cleaned, p)
+				}
+			}
+			if len(cleaned) > 0 {
+				peFlat["multipliers"] = cleaned
+			}
 		}
-		peFlat["multipliers"] = multStrs
+	case []interface{}:
+		if len(v) > 0 {
+			multStrs := make([]string, len(v))
+			for i, m := range v {
+				multStrs[i], _ = m.(string)
+			}
+			peFlat["multipliers"] = multStrs
+		}
 	}
 	return []interface{}{peFlat}
 }
@@ -2060,17 +2091,19 @@ func expandTriggers(input []interface{}) []interface{} {
 				"timeZoneId":              stMap["time_zone_id"].(string),
 				"daysToRelease":           stMap["days_to_release"].(int),
 			}
-			// Branch filters stored as scheduleTriggerBranches
+			trigEntry := map[string]interface{}{
+				"triggerType": "schedule",
+				"schedule":    schedule,
+			}
+			// branchFilters belongs at the trigger top level, NOT inside schedule.
+			// ReleaseSchedule has no branchFilters field; placing it inside schedule
+			// causes ADO to silently drop it on store-and-return.
 			if bf, ok := stMap["branch_filter"].([]interface{}); ok && len(bf) > 0 && bf[0] != nil {
 				bfMap := bf[0].(map[string]interface{})
 				branches := expandBranchFiltersForScheduleTrigger(bfMap)
 				if branches != nil {
-					schedule["branchFilters"] = branches
+					trigEntry["branchFilters"] = branches
 				}
-			}
-			trigEntry := map[string]interface{}{
-				"triggerType": "schedule",
-				"schedule":    schedule,
 			}
 			result = append(result, trigEntry)
 		}
@@ -2169,10 +2202,19 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 				if v, ok := sched["daysToRelease"].(float64); ok {
 					st["days_to_release"] = int(v)
 				}
-				// branchFilters is a []string with "+" prefix for include, "-" for exclude
-				bf := flattenScheduleTriggerBranchFilter(sched)
-				st["branch_filter"] = bf
 			}
+			// branchFilters is at the trigger top level (not inside schedule).
+			// Fall back to inside schedule for definitions stored by older versions.
+			branchFilterSrc := trigMap
+			if _, hasBF := trigMap["branchFilters"]; !hasBF {
+				if sched, ok := trigMap["schedule"].(map[string]interface{}); ok {
+					if _, hasBFInSched := sched["branchFilters"]; hasBFInSched {
+						branchFilterSrc = sched
+					}
+				}
+			}
+			bf := flattenScheduleTriggerBranchFilter(branchFilterSrc)
+			st["branch_filter"] = bf
 			scheduleTriggers = append(scheduleTriggers, st)
 		}
 	}
