@@ -1006,3 +1006,202 @@ func TestReleaseDefinition_Delete_SurfacesAPIError(t *testing.T) {
 	require.NotEmpty(t, diags)
 	require.Contains(t, diags[0].Summary, "DeleteReleaseDefinition() Failed")
 }
+
+// ── AccRefresh: retention_policy round-trip ────────────────────────────────
+
+// TestReleaseDefinition_AccRefresh_RetentionPolicy verifies that an environment with a
+// retention_policy block round-trips through expandReleaseDefinition → flattenReleaseDefinition
+// with days_to_keep, releases_to_keep, and retain_build intact.
+// This test uses the same HCL fixture shape as hclReleaseDefinitionBasic (AC1 of WI-1).
+func TestReleaseDefinition_AccRefresh_RetentionPolicy(t *testing.T) {
+	daysToKeep := 30
+	releasesToKeep := 3
+
+	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "RetentionPolicyDef",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{},
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"environment": []interface{}{
+			map[string]interface{}{
+				"id":                   0,
+				"name":                 "Production",
+				"rank":                 1,
+				"owner":                "",
+				"variable":             []interface{}{},
+				"variable_groups":      []interface{}{},
+				"condition":            []interface{}{},
+				"pre_deploy_approval":  []interface{}{},
+				"post_deploy_approval": []interface{}{},
+				"deploy_phase": []interface{}{
+					map[string]interface{}{
+						"name":             "Agent job",
+						"rank":             1,
+						"phase_type":       "agentBasedDeployment",
+						"deployment_input": []interface{}{},
+						"workflow_task":    []interface{}{},
+					},
+				},
+				"retention_policy": []interface{}{
+					map[string]interface{}{
+						"days_to_keep":     daysToKeep,
+						"releases_to_keep": releasesToKeep,
+						"retain_build":     true,
+					},
+				},
+				"environment_options": []interface{}{},
+				"execution_policy":    []interface{}{},
+			},
+		},
+		"artifact": []interface{}{},
+	})
+
+	// Expand to API object
+	expanded, projectID, err := expandReleaseDefinition(resourceData)
+	require.NoError(t, err)
+	require.Equal(t, testReleaseDefinitionProjectID.String(), projectID)
+	require.NotNil(t, expanded.Environments)
+	require.Len(t, *expanded.Environments, 1)
+
+	env := (*expanded.Environments)[0]
+	require.NotNil(t, env.RetentionPolicy, "retention_policy must be expanded to API object")
+	require.Equal(t, daysToKeep, *env.RetentionPolicy.DaysToKeep)
+	require.Equal(t, releasesToKeep, *env.RetentionPolicy.ReleasesToKeep)
+	require.Equal(t, true, *env.RetentionPolicy.RetainBuild)
+
+	// Flatten back to ResourceData
+	expandedID := testReleaseDefinitionID
+	expanded.Id = &expandedID
+	flattenReleaseDefinition(resourceData, expanded, projectID)
+
+	// Verify retention_policy round-trip
+	envList := resourceData.Get("environment").([]interface{})
+	require.Len(t, envList, 1)
+	envMap := envList[0].(map[string]interface{})
+
+	retPolicyList, ok := envMap["retention_policy"].([]interface{})
+	require.True(t, ok, "retention_policy should be present after flatten")
+	require.Len(t, retPolicyList, 1)
+
+	retPolicy := retPolicyList[0].(map[string]interface{})
+	require.Equal(t, daysToKeep, retPolicy["days_to_keep"],
+		"days_to_keep must survive expand/flatten round-trip")
+	require.Equal(t, releasesToKeep, retPolicy["releases_to_keep"],
+		"releases_to_keep must survive expand/flatten round-trip")
+	require.Equal(t, true, retPolicy["retain_build"],
+		"retain_build must survive expand/flatten round-trip")
+}
+
+// ── AccRefresh: pre_deploy_approval automated approver round-trip ──────────
+
+// TestReleaseDefinition_AccRefresh_PreDeployApproval verifies that an environment with a
+// minimal automated pre_deploy_approval block round-trips through
+// expandReleaseDefinition → flattenReleaseDefinition with is_automated and rank intact.
+// This test uses the same automated-approver shape as hclReleaseDefinitionBasic (AC1 of WI-1).
+func TestReleaseDefinition_AccRefresh_PreDeployApproval(t *testing.T) {
+	automatedApproverID := "00000000-0000-0000-0000-000000000000"
+
+	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "PreDeployApprovalDef",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{},
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"environment": []interface{}{
+			map[string]interface{}{
+				"id":              0,
+				"name":            "Production",
+				"rank":            1,
+				"owner":           "",
+				"variable":        []interface{}{},
+				"variable_groups": []interface{}{},
+				"condition":       []interface{}{},
+				"pre_deploy_approval": []interface{}{
+					map[string]interface{}{
+						"approver": []interface{}{
+							map[string]interface{}{
+								"id":           automatedApproverID,
+								"is_automated": true,
+								"rank":         1,
+							},
+						},
+						"approval_options": []interface{}{},
+					},
+				},
+				"post_deploy_approval": []interface{}{},
+				"deploy_phase": []interface{}{
+					map[string]interface{}{
+						"name":             "Agent job",
+						"rank":             1,
+						"phase_type":       "agentBasedDeployment",
+						"deployment_input": []interface{}{},
+						"workflow_task":    []interface{}{},
+					},
+				},
+				"retention_policy": []interface{}{
+					map[string]interface{}{
+						"days_to_keep":     30,
+						"releases_to_keep": 3,
+						"retain_build":     true,
+					},
+				},
+				"environment_options": []interface{}{},
+				"execution_policy":    []interface{}{},
+			},
+		},
+		"artifact": []interface{}{},
+	})
+
+	// Expand to API object
+	expanded, projectID, err := expandReleaseDefinition(resourceData)
+	require.NoError(t, err)
+	require.Equal(t, testReleaseDefinitionProjectID.String(), projectID)
+	require.NotNil(t, expanded.Environments)
+	require.Len(t, *expanded.Environments, 1)
+
+	env := (*expanded.Environments)[0]
+	require.NotNil(t, env.PreDeployApprovals, "pre_deploy_approval must be expanded to API object")
+	require.NotNil(t, env.PreDeployApprovals.Approvals)
+	require.Len(t, *env.PreDeployApprovals.Approvals, 1)
+
+	step := (*env.PreDeployApprovals.Approvals)[0]
+	require.NotNil(t, step.Approver)
+	require.Equal(t, automatedApproverID, *step.Approver.Id)
+	require.Equal(t, true, *step.IsAutomated)
+	require.Equal(t, 1, *step.Rank)
+
+	// Flatten back to ResourceData
+	expandedID := testReleaseDefinitionID
+	expanded.Id = &expandedID
+	flattenReleaseDefinition(resourceData, expanded, projectID)
+
+	// Verify pre_deploy_approval round-trip
+	envList := resourceData.Get("environment").([]interface{})
+	require.Len(t, envList, 1)
+	envMap := envList[0].(map[string]interface{})
+
+	preApprovalList, ok := envMap["pre_deploy_approval"].([]interface{})
+	require.True(t, ok, "pre_deploy_approval should be present after flatten")
+	require.Len(t, preApprovalList, 1)
+
+	approvalMap := preApprovalList[0].(map[string]interface{})
+	approvers := approvalMap["approver"].([]interface{})
+	require.Len(t, approvers, 1, "approver count must survive round-trip")
+
+	approverMap := approvers[0].(map[string]interface{})
+	require.Equal(t, automatedApproverID, approverMap["id"],
+		"approver id must survive expand/flatten round-trip")
+	require.Equal(t, true, approverMap["is_automated"],
+		"is_automated must survive expand/flatten round-trip")
+	require.Equal(t, 1, approverMap["rank"],
+		"rank must survive expand/flatten round-trip")
+}

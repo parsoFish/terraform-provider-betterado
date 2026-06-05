@@ -251,6 +251,8 @@ resource "betterado_project" "test" {
 
 // hclReleaseDefinitionBasic creates a minimal release definition with one environment.
 // Uses the default agent queue (queue_id omitted from deployment_input since it is optional).
+// retention_policy and pre_deploy_approval are included because ADO REST 7.2 requires them
+// (VS402982 / VS402877). The schema fields remain Optional — only the test HCL is updated.
 func hclReleaseDefinitionBasic(name string) string {
 	base := hclReleaseDefinitionProjectBase(name)
 	return fmt.Sprintf(`
@@ -269,6 +271,20 @@ resource "betterado_release_definition" "test" {
       rank       = 1
       phase_type = "agentBasedDeployment"
     }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
   }
 }
 `, base, name)
@@ -276,6 +292,7 @@ resource "betterado_release_definition" "test" {
 
 // hclReleaseDefinitionWithDeploymentInput uses data source to get a queue ID for deployment_input.
 // Falls back to the "Azure Pipelines" hosted pool (queue 4 is the default in most orgs).
+// retention_policy and pre_deploy_approval are included to satisfy ADO REST 7.2 (VS402982/VS402877).
 func hclReleaseDefinitionWithDeploymentInput(name string) string {
 	base := hclReleaseDefinitionProjectBase(name)
 	return fmt.Sprintf(`
@@ -304,6 +321,20 @@ resource "betterado_release_definition" "test" {
         timeout_in_minutes            = 0
         job_cancel_timeout_in_minutes = 1
         condition                     = "succeeded()"
+      }
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
       }
     }
   }
@@ -353,6 +384,7 @@ resource "betterado_release_definition" "test" {
 
 // hclReleaseDefinitionWithEnvironmentOptions creates a release definition with environment_options
 // and execution_policy blocks.
+// retention_policy and pre_deploy_approval are included to satisfy ADO REST 7.2 (VS402982/VS402877).
 func hclReleaseDefinitionWithEnvironmentOptions(name string) string {
 	base := hclReleaseDefinitionProjectBase(name)
 	return fmt.Sprintf(`
@@ -382,6 +414,20 @@ resource "betterado_release_definition" "test" {
     execution_policy {
       concurrency_count = 1
       queue_depth_count = 0
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
     }
   }
 }
