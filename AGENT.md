@@ -1,40 +1,45 @@
-# AGENT.md — INIT-2026-06-05-complete-release-definition
+# Agent Memory — WI-6
 
-## Iteration 1 (unifier) — completed
+> Institutional memory for this work item across Ralph iterations. Read at the start of every iteration; updated at the end.
 
-### What was done
+## What I've tried
 
-1. **Read state**: AGENT.md and fix_plan.md were absent (first unifier iteration). Read all 5 WI specs and the initiative manifest to understand scope.
+### Iteration 0 (completed — all ACs done in one pass)
 
-2. **Quality gate**: `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...` — **green** (all packages ok, 20 release tests + taskagent suite).
+**Goal:** Add `gate {}` blocks (each with `task {}` items) to the deployment gates schema, expand, and flatten — then add the `TestReleaseDefinition_GatesTasks_ExpandFlatten` test.
 
-3. **Demo authored**: `demo/INIT-2026-06-05-complete-release-definition/demo.json` written with:
-   - 5 harness checkpoints (one per WI), each with beforeNote/afterNote describing the behavioural delta
-   - Accurate metrics scraped from the live gate run (11→20 release tests, +82%)
-   - Full `testEvidence[]` table (21 rows)
-   - `usage_example` (HCL showing all 5 new schema features)
-   - `impact[]` (5 bullets)
-   - `acceptanceCriteria[]`, `summary`, `filesChanged`
-   - Fixed `deltaPct` type bug (must be `number | null`, not string) before render succeeded
+**What was done:**
+1. Read existing `deploymentGatesSchema()` — it only had `gates_options`. No `gate {}` block.
+2. Read `expandDeploymentGates` — only populated `GatesOptions`; never touched `Gates []ReleaseDefinitionGate`.
+3. Read `flattenDeploymentGates` — only flattened `GatesOptions`.
+4. Read `ReleaseDefinitionGatesStep` API struct: has `Gates *[]ReleaseDefinitionGate` and `GatesOptions`.
+5. Read `ReleaseDefinitionGate` struct: only has `Tasks *[]WorkflowTask`.
+6. Existing `expandWorkflowTasks([]interface{}) []WorkflowTask` was reusable.
+7. Existing `flattenWorkflowTasks([]interface{})` takes `[]interface{}` (API response maps); not usable for `*[]WorkflowTask` typed return from ADO.
 
-4. **Demo rendered**: `forge demo render ... --dir <absolute-path>` (forge's `process.chdir(FORGE_ROOT)` means the `--dir` flag must be an absolute path).
-   - `DEMO.md` + `DEMO.html` written and committed.
+**Changes made (all in one commit `6a0e5d26`):**
+- `deploymentGatesSchema()`: added `"gate"` TypeList block with nested `"task"` TypeList using `workflowTaskSchema()`.
+- `expandDeploymentGates()`: added loop over `"gate"` blocks, calling `expandWorkflowTasks()` for each gate's tasks, building `[]ReleaseDefinitionGate` and setting `step.Gates`.
+- `flattenDeploymentGates()`: added loop over `step.Gates`, calling new `flattenWorkflowTasksFromAPI()` for each gate's tasks.
+- New `flattenWorkflowTasksFromAPI(*[]WorkflowTask) []interface{}`: converts typed ADO API slice to Terraform-state-friendly `[]interface{}`. Mirrors `flattenWorkflowTasks` but accepts the typed struct.
+- New test `TestReleaseDefinition_GatesTasks_ExpandFlatten`: exercises one pre-gate with one `serverGate` task, verifies expand (AC1) and flatten round-trip (AC2). Passed on first run.
 
-5. **PR description**: `.forge/pr-description.md` written (gitignored — read by orchestrator for `gh pr create --body-file`). Substantive Why/What/How sections. No `## Demo` section.
+## What worked
 
-6. **Committed**: `feat(INIT-2026-06-05-complete-release-definition): unify and demo` (3 files: demo.json, DEMO.md, DEMO.html).
+- Reusing `expandWorkflowTasks` for the gate's tasks (it already handles all WorkflowTask fields correctly).
+- Writing a separate `flattenWorkflowTasksFromAPI` helper for the typed-struct path (avoids contorting the existing `flattenWorkflowTasks` which is designed for JSON map inputs).
+- The `schema.TestResourceDataRaw` pattern for unit tests (consistent with all existing tests in this file).
 
-7. **Pushed**: `origin/forge/INIT-2026-06-05-complete-release-definition` == local HEAD.
+## What didn't work
 
-### Key findings
+_(nothing to record — clean first-pass implementation)_
 
-- `forge demo render` requires `--dir <absolute-path>` when called from a worktree, because `forge` changes its cwd to `FORGE_ROOT` (`/home/parso/forge`) at startup.
-- `deltaPct` in `HarnessMetricRow` must be `number | null` — string values cause a `toFixed is not a function` error in the renderer.
-- All 5 WIs were complete and committed before the unifier ran; no code changes needed.
+## Open questions
 
-### Gate status
+_(none)_
 
-- `initiative_gate`: ✅ green
-- `demo_runs_clean`: ✅ (harness shape — demo.command not applicable; `forge demo render` exited 0)
-- `pr_self_contained`: ✅ demo.json validates; .forge/pr-description.md has substantive Why/What/How; no ## Demo section
-- `branches_in_sync`: ✅ origin == local HEAD; main == merge-base
+## Notes for reflection
+
+- The `gate {}` block inside deployment gates maps to `ReleaseDefinitionGate.Tasks`. The nesting is: `deployment_gates → gate[] → task[]`.
+- `flattenWorkflowTasks` is used for deploy_phase workflow tasks (from JSON API response maps); `flattenWorkflowTasksFromAPI` is used for gate tasks (from strongly-typed struct). Both coexist cleanly.
+- WI-8 (live acceptance test) will exercise the full round-trip against a real ADO API. The implementation here is additive and should satisfy that.
