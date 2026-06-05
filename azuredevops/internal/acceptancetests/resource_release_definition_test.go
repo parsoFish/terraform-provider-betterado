@@ -155,12 +155,14 @@ func TestAccReleaseDefinition_update(t *testing.T) {
 // TestAccReleaseDefinition_complete is the exhaustive acceptance test that exercises
 // EVERY non-default option of betterado_release_definition in a single live ADO round-trip:
 //   - real agent queue resolved from the test project (not 0)
+//   - agent_specification set to "ubuntu-22.04" (non-default; AC2/WI-9)
 //   - demands on the agent deploy phase
 //   - skip_artifacts_download = true, enable_access_token = true
 //   - non-default retention policy
 //   - pre/post approvals with approval_options
-//   - pre/post deployment gates with a real ServerGate task (queryWorkItems)
-//   - cd_artifact_trigger + schedule_trigger (triggers block)
+//   - pre/post deployment gates with a real "Query Work Items" gate referencing a real shared query
+//     (AC3/WI-9: a betterado_workitemquery resource creates the query so queryId is non-empty)
+//   - cd_artifact_trigger + schedule_trigger with NO branch_filter (AC1/WI-9)
 //   - a multiConfiguration parallel_execution deploy phase
 //   - a runOnServer agentless deploy phase with a Delay workflow task
 //   - definition-level and env-level variables
@@ -211,9 +213,11 @@ func TestAccReleaseDefinition_complete(t *testing.T) {
 					// env-level variable
 					resource.TestCheckResourceAttr(tfNode, "environment.0.variable.#", "1"),
 
-					// real queue_id set (not 0), demands, skip_artifacts_download, enable_access_token
+					// real queue_id set (not 0), agent_specification, demands, skip_artifacts_download, enable_access_token
+					// AC2/WI-9: agent_specification persists as "ubuntu-22.04"
 					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.#", "2"),
 					resource.TestCheckResourceAttrSet(tfNode, "environment.0.deploy_phase.0.deployment_input.0.queue_id"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.agent_specification", "ubuntu-22.04"),
 					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.demands.#", "1"),
 					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.demands.0", "Agent.Version -gtVersion 2.0"),
 					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.skip_artifacts_download", "true"),
@@ -277,6 +281,8 @@ func TestAccReleaseDefinition_complete(t *testing.T) {
 					checkReleaseDefinitionHasGates(),
 					// checkReleaseDefinitionQueueSet verifies queue_id != 0 via the API
 					checkReleaseDefinitionQueueSet(),
+					// checkReleaseDefinitionAgentSpecification verifies agentSpecification.identifier persisted (AC2/WI-9)
+					checkReleaseDefinitionAgentSpecification("ubuntu-22.04"),
 				),
 			},
 			// second step verifies idempotency (ExpectNonEmptyPlan defaults to false)
@@ -347,6 +353,45 @@ func checkReleaseDefinitionQueueSet() resource.TestCheckFunc {
 			if v == 0 {
 				return fmt.Errorf("queueId is 0; expected a real queue ID")
 			}
+		}
+		return nil
+	}
+}
+
+// checkReleaseDefinitionAgentSpecification verifies that agentSpecification.identifier
+// persisted in the ADO API response for the first deploy phase of the first environment.
+// This is the API-level verification for AC2/WI-9.
+func checkReleaseDefinitionAgentSpecification(expectedIdentifier string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		def, err := getReleaseDefinitionFromState(s)
+		if err != nil {
+			return err
+		}
+		if def.Environments == nil || len(*def.Environments) == 0 {
+			return fmt.Errorf("expected at least one environment")
+		}
+		env := (*def.Environments)[0]
+		if env.DeployPhases == nil || len(*env.DeployPhases) == 0 {
+			return fmt.Errorf("expected at least one deploy phase")
+		}
+		firstPhase, ok := (*env.DeployPhases)[0].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected deploy phase type")
+		}
+		di, ok := firstPhase["deploymentInput"].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("deploymentInput not found in first phase")
+		}
+		agentSpec, ok := di["agentSpecification"].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("agentSpecification not found in deploymentInput; expected identifier %q", expectedIdentifier)
+		}
+		identifier, ok := agentSpec["identifier"].(string)
+		if !ok || identifier == "" {
+			return fmt.Errorf("agentSpecification.identifier is empty; expected %q", expectedIdentifier)
+		}
+		if identifier != expectedIdentifier {
+			return fmt.Errorf("agentSpecification.identifier = %q; want %q", identifier, expectedIdentifier)
 		}
 		return nil
 	}
@@ -606,13 +651,15 @@ resource "betterado_release_definition" "test" {
 //
 // Features exercised:
 //   - real agent queue (resolved via data source, not 0)
+//   - agent_specification set to "ubuntu-22.04" (non-default; AC2/WI-9)
 //   - demands on the agent phase
 //   - skip_artifacts_download = true, enable_access_token = true
 //   - multiConfiguration parallel_execution with multipliers
 //   - runOnServer agentless phase with a Delay workflow task
 //   - pre/post approvals with full approval_options
-//   - pre/post deployment gates with a real ServerGate task (queryWorkItems)
-//   - cd_artifact_trigger + schedule_trigger
+//   - pre/post deployment gates with a real ServerGate task (queryWorkItems) referencing a real
+//     shared query created by betterado_workitemquery (AC3/WI-9: non-empty queryId)
+//   - cd_artifact_trigger + schedule_trigger with NO branch_filter (AC1/WI-9)
 //   - non-default retention_policy
 //   - non-default environment_options and execution_policy
 //   - definition-level + environment-level variables
@@ -656,6 +703,15 @@ resource "betterado_build_definition" "test" {
 data "betterado_agent_queue" "test" {
   name       = "Azure Pipelines"
   project_id = betterado_project.test.id
+}
+
+# Create a shared work-item query so the "Query Work Items" gate task has a real queryId.
+# AC3/WI-9: betterado_workitemquery creates the query under "Shared Queries".
+resource "betterado_workitemquery" "gate_query" {
+  project_id = betterado_project.test.id
+  name       = "All Work Items - Gate Check"
+  area       = "Shared Queries"
+  wiql       = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @project ORDER BY [System.Id]"
 }
 
 resource "betterado_release_definition" "test" {
@@ -732,6 +788,7 @@ resource "betterado_release_definition" "test" {
 
       deployment_input {
         queue_id                      = data.betterado_agent_queue.test.id
+        agent_specification           = "ubuntu-22.04"
         timeout_in_minutes            = 60
         job_cancel_timeout_in_minutes = 5
         condition                     = "succeeded()"
@@ -820,6 +877,7 @@ resource "betterado_release_definition" "test" {
     }
 
     # pre_deployment_gates with a real ServerGate task: queryWorkItems (f1e4b0e6-017e-4819-8a48-ef19ae96e289)
+    # AC3/WI-9: betterado_workitemquery.gate_query provides a real shared query ID so queryId is not empty.
     pre_deployment_gates {
       gates_options {
         is_enabled               = true
@@ -836,7 +894,7 @@ resource "betterado_release_definition" "test" {
           version = "0.*"
           enabled = true
           inputs = {
-            queryId = ""
+            queryId = betterado_workitemquery.gate_query.id
           }
         }
       }
@@ -859,7 +917,7 @@ resource "betterado_release_definition" "test" {
           version = "0.*"
           enabled = true
           inputs = {
-            queryId = ""
+            queryId = betterado_workitemquery.gate_query.id
           }
         }
       }

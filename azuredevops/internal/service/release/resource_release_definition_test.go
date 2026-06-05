@@ -1691,12 +1691,13 @@ func TestReleaseDefinition_Triggers_ArtifactOnly(t *testing.T) {
 // schedule_trigger block in the triggers container (AC1) expands into a
 // ReleaseDefinition.Triggers slice containing exactly one schedule entry with
 // all schedule fields correctly set, and that flattenTriggers (AC2) round-trips it.
+// Note: branch_filter was removed from schedule_trigger schema (AC1/WI-9) because
+// ADO classic schedule triggers are time-based and ADO does not return branchFilters.
 func TestReleaseDefinition_Triggers_ScheduleOnly(t *testing.T) {
 	startHours := 2
 	startMinutes := 30
 	timeZoneID := "UTC"
 	daysToRelease := 62 // Mon–Fri (1+2+4+8+16+32 = no, 1+2+4+8+16 = 31... use 62 as arbitrary value)
-	branchInclude := "refs/heads/release"
 
 	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
 		"project_id":          testReleaseDefinitionProjectID.String(),
@@ -1739,12 +1740,7 @@ func TestReleaseDefinition_Triggers_ScheduleOnly(t *testing.T) {
 				"cd_artifact_trigger": []interface{}{},
 				"schedule_trigger": []interface{}{
 					map[string]interface{}{
-						"branch_filter": []interface{}{
-							map[string]interface{}{
-								"include": []interface{}{branchInclude},
-								"exclude": []interface{}{},
-							},
-						},
+						// branch_filter removed from schedule_trigger schema (AC1/WI-9)
 						"schedule_only_with_changes": true,
 						"start_hours":                startHours,
 						"start_minutes":              startMinutes,
@@ -1775,12 +1771,10 @@ func TestReleaseDefinition_Triggers_ScheduleOnly(t *testing.T) {
 	require.Equal(t, timeZoneID, sched["timeZoneId"])
 	require.Equal(t, daysToRelease, sched["daysToRelease"])
 
-	// branchFilters is stored at the trigger top level (not inside schedule)
-	// so that ADO does not silently drop it (ReleaseSchedule has no branchFilters field).
-	branchFilters, ok := trigMap["branchFilters"].([]string)
-	require.True(t, ok, "branchFilters must be []string at trigger top level")
-	require.Len(t, branchFilters, 1)
-	require.Equal(t, "+"+branchInclude, branchFilters[0])
+	// AC1/WI-9: branch_filter was REMOVED from schedule_trigger schema.
+	// branchFilters must NOT appear in the expanded trigger (no branch filter in schedule triggers).
+	_, hasBF := trigMap["branchFilters"]
+	require.False(t, hasBF, "branchFilters must NOT appear in expanded schedule trigger (AC1/WI-9)")
 
 	// AC2: flattenTriggers must round-trip back
 	expandedID := testReleaseDefinitionID
@@ -1804,14 +1798,10 @@ func TestReleaseDefinition_Triggers_ScheduleOnly(t *testing.T) {
 	require.Equal(t, timeZoneID, stMap["time_zone_id"])
 	require.Equal(t, daysToRelease, stMap["days_to_release"])
 
-	bfList, ok := stMap["branch_filter"].([]interface{})
-	require.True(t, ok)
-	require.Len(t, bfList, 1)
-	bfMap := bfList[0].(map[string]interface{})
-	includes, ok := bfMap["include"].([]interface{})
-	require.True(t, ok)
-	require.Len(t, includes, 1)
-	require.Equal(t, branchInclude, includes[0])
+	// AC1/WI-9: branch_filter must NOT appear in flattened schedule_trigger state (no perpetual diff).
+	_, hasBFInState := stMap["branch_filter"]
+	require.False(t, hasBFInState,
+		"branch_filter must NOT appear in flattened schedule_trigger state (AC1/WI-9)")
 }
 
 // ── 15. Triggers: both artifact and schedule triggers ─────────────────────
@@ -1824,7 +1814,6 @@ func TestReleaseDefinition_Triggers_ScheduleOnly(t *testing.T) {
 func TestReleaseDefinition_Triggers_ExpandFlatten(t *testing.T) {
 	artifactAlias := "_myBuild"
 	cdBranch := "refs/heads/main"
-	schedBranch := "refs/heads/main"
 	startHours := 2
 	startMinutes := 0
 	timeZoneID := "UTC"
@@ -1881,12 +1870,8 @@ func TestReleaseDefinition_Triggers_ExpandFlatten(t *testing.T) {
 				},
 				"schedule_trigger": []interface{}{
 					map[string]interface{}{
-						"branch_filter": []interface{}{
-							map[string]interface{}{
-								"include": []interface{}{schedBranch},
-								"exclude": []interface{}{},
-							},
-						},
+						// branch_filter removed from schedule_trigger schema (AC1/WI-9):
+						// ADO classic schedule triggers are time-based and have no branch filter.
 						"schedule_only_with_changes": true,
 						"start_hours":                startHours,
 						"start_minutes":              startMinutes,
@@ -1975,15 +1960,10 @@ func TestReleaseDefinition_Triggers_ExpandFlatten(t *testing.T) {
 	require.Equal(t, daysToRelease, schMap["days_to_release"],
 		"days_to_release must survive expand/flatten")
 
-	schedBfList, ok := schMap["branch_filter"].([]interface{})
-	require.True(t, ok)
-	require.Len(t, schedBfList, 1)
-	schedBfMap := schedBfList[0].(map[string]interface{})
-	schedIncludes, ok := schedBfMap["include"].([]interface{})
-	require.True(t, ok)
-	require.Len(t, schedIncludes, 1)
-	require.Equal(t, schedBranch, schedIncludes[0],
-		"schedule_trigger branch_filter include must survive expand/flatten")
+	// AC1/WI-9: branch_filter must NOT appear in flattened schedule_trigger state.
+	_, hasBFSched := schMap["branch_filter"]
+	require.False(t, hasBFSched,
+		"branch_filter must NOT appear in flattened schedule_trigger state (AC1/WI-9)")
 }
 
 // ── WI-7: round-trip idempotency tests ────────────────────────────────────
@@ -1992,10 +1972,10 @@ func TestReleaseDefinition_Triggers_ExpandFlatten(t *testing.T) {
 // produces the same state as the original HCL input (i.e., no perpetual diff).
 // This simulates the ADO API round-trip that the live demo proved was broken.
 //
-// Three sub-tests cover the three production bugs identified in WI-7:
+// Three sub-tests cover production bugs:
 //  1. multipliers round-trips through a comma-joined string (ADO wire format).
 //  2. A phase without parallel_execution in HCL produces no parallel_execution block in state.
-//  3. schedule_trigger.branch_filter.include round-trips correctly.
+//  3. schedule_trigger with NO branch_filter round-trips with no residual diff (AC1/WI-9).
 func TestReleaseDefinition_RoundTrip(t *testing.T) {
 	t.Run("multipliers_comma_string_round_trip", func(t *testing.T) {
 		// Simulate what ADO API returns: multipliers as a comma-joined string.
@@ -2068,27 +2048,22 @@ func TestReleaseDefinition_RoundTrip(t *testing.T) {
 		// If hasPE is false, that's also correct — no key at all is ideal.
 	})
 
-	t.Run("schedule_trigger_branch_filter_include_round_trip", func(t *testing.T) {
-		// Simulate the full expand → JSON-marshal → JSON-unmarshal → flatten cycle for a
-		// schedule trigger with branch_filter.include set.
-		// This verifies Bug 3: branchFilters is stored at the trigger top level so ADO
-		// preserves it (ReleaseSchedule has no branchFilters field).
+	t.Run("schedule_trigger_no_branch_filter_no_residual_diff", func(t *testing.T) {
+		// AC1 / WI-9: branch_filter was REMOVED from schedule_trigger schema because ADO
+		// classic schedule triggers are time-based and ADO does NOT return branchFilters
+		// in the GET response. This test verifies that a schedule_trigger without any
+		// branch_filter round-trips through expand → JSON → flatten with NO residual diff
+		// (i.e., no unexpected branch_filter key appears in the flattened state).
 		hclState := []interface{}{
 			map[string]interface{}{
 				"cd_artifact_trigger": []interface{}{},
 				"schedule_trigger": []interface{}{
 					map[string]interface{}{
-						"branch_filter": []interface{}{
-							map[string]interface{}{
-								"include": []interface{}{"refs/heads/main"},
-								"exclude": []interface{}{},
-							},
-						},
 						"schedule_only_with_changes": true,
 						"start_hours":                2,
 						"start_minutes":              0,
 						"time_zone_id":               "UTC",
-						"days_to_release":            127,
+						"days_to_release":            62,
 					},
 				},
 			},
@@ -2102,24 +2077,17 @@ func TestReleaseDefinition_RoundTrip(t *testing.T) {
 		require.True(t, ok)
 		require.Equal(t, "schedule", trigMap["triggerType"])
 
-		// branchFilters must be at the trigger TOP level, not inside schedule.
-		bfTopLevel, ok := trigMap["branchFilters"].([]string)
-		require.True(t, ok, "branchFilters must be []string at trigger top level after expand")
-		require.Equal(t, []string{"+refs/heads/main"}, bfTopLevel)
-		// Confirm it is NOT inside schedule (would be dropped by ADO)
-		schedMap, ok := trigMap["schedule"].(map[string]interface{})
-		require.True(t, ok)
-		_, insideSched := schedMap["branchFilters"]
-		require.False(t, insideSched, "branchFilters must NOT be inside schedule (ADO drops it)")
+		// branchFilters must NOT appear in the expanded trigger (schema removed it).
+		_, hasBF := trigMap["branchFilters"]
+		require.False(t, hasBF, "branchFilters must NOT appear in expanded schedule trigger (AC1/WI-9)")
 
-		// Step 2: simulate ADO API round-trip via JSON marshal + unmarshal.
-		// branchFilters at top level → preserved; inside schedule → would be dropped.
+		// Step 2: simulate ADO API round-trip (ADO returns schedule trigger without branchFilters).
 		jsonBytes, err := json.Marshal(expanded)
 		require.NoError(t, err)
 		var roundTripped []interface{}
 		require.NoError(t, json.Unmarshal(jsonBytes, &roundTripped))
 
-		// Step 3: flatten back
+		// Step 3: flatten back — no branch_filter key must appear in the schedule_trigger map.
 		triggers := flattenTriggers(&roundTripped)
 		require.Len(t, triggers, 1)
 
@@ -2130,15 +2098,18 @@ func TestReleaseDefinition_RoundTrip(t *testing.T) {
 		require.Len(t, schTriggers, 1)
 
 		st := schTriggers[0].(map[string]interface{})
-		bfList, ok := st["branch_filter"].([]interface{})
-		require.True(t, ok)
-		require.Len(t, bfList, 1)
-		bfMap := bfList[0].(map[string]interface{})
-		includes, ok := bfMap["include"].([]interface{})
-		require.True(t, ok)
-		require.Len(t, includes, 1)
-		require.Equal(t, "refs/heads/main", includes[0],
-			"branch_filter.include must round-trip through expand→JSON→flatten")
+
+		// No branch_filter key at all — absence = no residual diff.
+		_, hasBFInState := st["branch_filter"]
+		require.False(t, hasBFInState,
+			"branch_filter must NOT appear in flattened schedule_trigger state (no perpetual diff)")
+
+		// Verify the time-based fields survived the round-trip.
+		require.Equal(t, true, st["schedule_only_with_changes"],
+			"schedule_only_with_changes must round-trip")
+		require.Equal(t, 2, st["start_hours"], "start_hours must round-trip")
+		require.Equal(t, "UTC", st["time_zone_id"], "time_zone_id must round-trip")
+		require.Equal(t, 62, st["days_to_release"], "days_to_release must round-trip")
 	})
 }
 
