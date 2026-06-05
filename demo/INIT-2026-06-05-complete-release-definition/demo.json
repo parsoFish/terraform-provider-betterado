@@ -1,0 +1,257 @@
+{
+  "title": "Complete betterado_release_definition: gates, triggers, parallel execution, agentless phases",
+  "essence": "Five work items extended the betterado_release_definition Terraform resource to cover the full ADO REST 7.2 release-pipeline surface: pre/post deployment gates with gatesOptions, definition-level CD artifact and schedule triggers, parallel_execution inside deployment_input, and runOnServer (agentless) phase support. Acceptance tests are now ADO 7.2-compatible (retention_policy + pre_deploy_approval blocks). All 20 release-package unit tests pass; the full initiative quality gate exits 0.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-06-05-complete-release-definition",
+  "baseRef": "main",
+  "changedRef": "HEAD",
+  "diffStat": " azuredevops/internal/acceptancetests/resource_release_definition_test.go |   46 +\n azuredevops/internal/service/release/resource_release_definition.go      |  629 +++++++++++-\n azuredevops/internal/service/release/resource_release_definition_test.go | 1068 ++++++++++++++++++++\n 5 files changed, 1771 insertions(+), 23 deletions(-)",
+  "checkpoints": [
+    {
+      "label": "WI-1: Acceptance-test refresh (retention_policy + pre_deploy_approval)",
+      "caption": "Unit tests covering the acceptance HCL round-trip with retention_policy and pre_deploy_approval blocks; all 11 pre-initiative tests still pass",
+      "beforeNote": "TestReleaseDefinition_AccRefresh_* tests did not exist; acceptance tests failed with VS402982/VS402877 errors against ADO REST 7.2 when retention_policy and pre_deploy_approval blocks were absent from the HCL fixtures",
+      "afterNote": "TestReleaseDefinition_AccRefresh_RetentionPolicy and TestReleaseDefinition_AccRefresh_PreDeployApproval pass; acceptance HCL includes the required blocks; all 11 pre-initiative unit tests still pass",
+      "kind": "harness",
+      "metrics": [
+        {
+          "label": "TestReleaseDefinition_AccRefresh tests",
+          "before": "0 (prefix did not exist)",
+          "after": "2 PASS",
+          "deltaPct": null,
+          "parity": "incomplete"
+        },
+        {
+          "label": "Pre-initiative tests (TestReleaseDefinition baseline)",
+          "before": "11 PASS",
+          "after": "11 PASS",
+          "deltaPct": 0,
+          "parity": "match"
+        }
+      ]
+    },
+    {
+      "label": "WI-2: Deployment gates (pre/post_deployment_gates + gatesOptions)",
+      "caption": "expand/flatten round-trip for pre_deployment_gates and post_deployment_gates schema blocks with all gatesOptions sub-fields",
+      "beforeNote": "pre_deployment_gates / post_deployment_gates blocks were absent from the provider schema; operators could not manage ADO deployment quality gates via Terraform",
+      "afterNote": "TestReleaseDefinition_Gates_ExpandFlatten passes; both gate blocks with gatesOptions sub-fields (is_enabled, timeout, sampling_interval, stabilization_time, minimum_success_duration) expand and flatten correctly with ADO wire-format fidelity",
+      "kind": "harness",
+      "metrics": [
+        {
+          "label": "TestReleaseDefinition_Gates tests",
+          "before": "0 (prefix did not exist)",
+          "after": "1 PASS",
+          "deltaPct": null,
+          "parity": "incomplete"
+        }
+      ]
+    },
+    {
+      "label": "WI-3: Definition triggers (cd_artifact_trigger + schedule_trigger)",
+      "caption": "expand/flatten round-trip for the triggers block at definition level, covering 4 cases: empty, artifact-only, schedule-only, both",
+      "beforeNote": "triggers block was absent; CD artifact triggers and schedule triggers on release definitions could not be declared in Terraform HCL, requiring manual ADO portal configuration",
+      "afterNote": "TestReleaseDefinition_Triggers_Empty, _ArtifactOnly, _ScheduleOnly, and _ExpandFlatten all pass; triggers block supports cd_artifact_trigger (artifact alias + branch filter) and schedule_trigger (cron/branch/timezone/days) with ADO-correct triggerType enum casing (artifactSource, schedule)",
+      "kind": "harness",
+      "metrics": [
+        {
+          "label": "TestReleaseDefinition_Triggers tests",
+          "before": "0 (prefix did not exist)",
+          "after": "4 PASS",
+          "deltaPct": null,
+          "parity": "incomplete"
+        }
+      ]
+    },
+    {
+      "label": "WI-4: Parallel execution (deployment_input.parallel_execution)",
+      "caption": "expand/flatten for parallel_execution sub-block inside deployment_input, covering none/multiConfiguration/multiMachine",
+      "beforeNote": "parallel_execution was absent; multiConfiguration and multiMachine deploy phases could not be configured from Terraform; the type defaulted to none without an explicit schema block",
+      "afterNote": "TestReleaseDefinition_ParallelExecution_ExpandFlatten passes with 3 subtests (AC1 expand multiConfiguration, AC2 flatten multiMachine, AC3 expand none no-panic); ADO camelCase enum casing preserved (none, multiConfiguration, multiMachine)",
+      "kind": "harness",
+      "metrics": [
+        {
+          "label": "TestReleaseDefinition_ParallelExecution tests",
+          "before": "0 (prefix did not exist)",
+          "after": "1 PASS (3 subtests)",
+          "deltaPct": null,
+          "parity": "incomplete"
+        }
+      ]
+    },
+    {
+      "label": "WI-5: Agentless phase (runOnServer) + full initiative gate",
+      "caption": "runOnServer phase_type support without queueId; full TestReleaseDefinition suite (20 tests) passes; initiative quality gate exits 0",
+      "beforeNote": "phase_type = runOnServer emitted queueId: 0 causing ADO rejection; flattenDeploymentInput panicked on missing queueId key in agentless ADO responses",
+      "afterNote": "TestReleaseDefinition_AgentlessPhase_ExpandFlatten passes with 3 subtests; expand omits queueId for runOnServer phases; flatten handles absent queueId key safely without panic; `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...` exits 0 with all 20 release tests + all taskagent tests passing",
+      "kind": "harness",
+      "metrics": [
+        {
+          "label": "TestReleaseDefinition_AgentlessPhase tests",
+          "before": "0 (prefix did not exist)",
+          "after": "1 PASS (3 subtests)",
+          "deltaPct": null,
+          "parity": "incomplete"
+        },
+        {
+          "label": "Full release package suite (go test ./service/release/...)",
+          "before": "11 PASS",
+          "after": "20 PASS",
+          "deltaPct": 82,
+          "parity": "within"
+        },
+        {
+          "label": "Initiative quality gate (release + taskagent packages)",
+          "before": "gate did not cover new test prefixes",
+          "after": "exit 0 — all packages ok",
+          "deltaPct": null,
+          "parity": "match"
+        }
+      ]
+    }
+  ],
+  "acceptanceCriteria": [
+    "TestReleaseDefinition_AccRefresh_RetentionPolicy and TestReleaseDefinition_AccRefresh_PreDeployApproval pass (WI-1)",
+    "TestReleaseDefinition_Gates_ExpandFlatten passes (WI-2)",
+    "TestReleaseDefinition_Triggers_ExpandFlatten (and _Empty, _ArtifactOnly, _ScheduleOnly) passes (WI-3)",
+    "TestReleaseDefinition_ParallelExecution_ExpandFlatten passes (WI-4)",
+    "TestReleaseDefinition_AgentlessPhase_ExpandFlatten passes (WI-5)",
+    "Full go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... exits 0"
+  ],
+  "summary": {
+    "bullets": [
+      "20 release-package unit tests pass (11 pre-initiative + 9 new top-level, with subtests bringing the total executed to 26)",
+      "5 new schema features: pre/post deployment gates, definition-level triggers, parallel execution, agentless phases",
+      "Acceptance tests now ADO REST 7.2-compatible — VS402982/VS402877 failures resolved",
+      "All schema additions are Optional (no Required flips); ADO camelCase enum casing preserved throughout"
+    ]
+  },
+  "testEvidence": [
+    {
+      "name": "TestReleaseDefinition_AccRefresh_RetentionPolicy",
+      "result": "pass",
+      "delta": "+1"
+    },
+    {
+      "name": "TestReleaseDefinition_AccRefresh_PreDeployApproval",
+      "result": "pass",
+      "delta": "+1"
+    },
+    {
+      "name": "TestReleaseDefinition_Gates_ExpandFlatten",
+      "result": "pass",
+      "delta": "+1"
+    },
+    {
+      "name": "TestReleaseDefinition_Triggers_Empty",
+      "result": "pass",
+      "delta": "+1"
+    },
+    {
+      "name": "TestReleaseDefinition_Triggers_ArtifactOnly",
+      "result": "pass",
+      "delta": "+1"
+    },
+    {
+      "name": "TestReleaseDefinition_Triggers_ScheduleOnly",
+      "result": "pass",
+      "delta": "+1"
+    },
+    {
+      "name": "TestReleaseDefinition_Triggers_ExpandFlatten",
+      "result": "pass",
+      "delta": "+1"
+    },
+    {
+      "name": "TestReleaseDefinition_ParallelExecution_ExpandFlatten",
+      "result": "pass",
+      "delta": "+1 (3 subtests)"
+    },
+    {
+      "name": "TestReleaseDefinition_AgentlessPhase_ExpandFlatten",
+      "result": "pass",
+      "delta": "+1 (3 subtests)"
+    },
+    {
+      "name": "TestReleaseDefinition_ExpandFlatten_Roundtrip",
+      "result": "pass",
+      "delta": "0"
+    },
+    {
+      "name": "TestReleaseDefinition_Create_DoesNotSwallowError",
+      "result": "pass",
+      "delta": "0"
+    },
+    {
+      "name": "TestReleaseDefinition_Read_ClearsIdOn404",
+      "result": "pass",
+      "delta": "0"
+    },
+    {
+      "name": "TestReleaseDefinition_Update_CallsSDKWithArgs",
+      "result": "pass",
+      "delta": "0"
+    },
+    {
+      "name": "TestReleaseDefinition_Update_RevisionRetryOnConflict",
+      "result": "pass",
+      "delta": "0"
+    },
+    {
+      "name": "TestReleaseDefinition_SecretVariables_PreserveOnFlatten",
+      "result": "pass",
+      "delta": "0"
+    },
+    {
+      "name": "TestReleaseDefinition_DeepNestedEnvironment_ExpandFlatten",
+      "result": "pass",
+      "delta": "0"
+    },
+    {
+      "name": "TestReleaseDefinition_Artifacts_DefinitionReferenceFiltering",
+      "result": "pass",
+      "delta": "0"
+    },
+    {
+      "name": "TestReleaseDefinition_ApprovalOptions_RoundTrip",
+      "result": "pass",
+      "delta": "0"
+    },
+    {
+      "name": "TestReleaseDefinition_DeployPhases_JSONMarshalUnmarshal",
+      "result": "pass",
+      "delta": "0"
+    },
+    {
+      "name": "TestReleaseDefinition_Delete_SurfacesAPIError",
+      "result": "pass",
+      "delta": "0"
+    },
+    {
+      "name": "taskagent package suite",
+      "result": "pass",
+      "delta": "0"
+    }
+  ],
+  "usage_example": "```hcl\nresource \"betterado_release_definition\" \"example\" {\n  name       = \"MyRelease\"\n  project_id = var.project_id\n\n  # WI-3: CD artifact + schedule triggers\n  triggers {\n    cd_artifact_trigger {\n      artifact_alias = \"_myBuild\"\n      branch_filter {\n        include = [\"refs/heads/main\"]\n        exclude = []\n      }\n    }\n    schedule_trigger {\n      branch_filter {\n        include = [\"refs/heads/main\"]\n      }\n      schedule_only_with_changes = true\n      start_hours                = 2\n      start_minutes              = 0\n      time_zone_id               = \"UTC\"\n      days_to_release            = 127\n    }\n  }\n\n  environment {\n    name = \"Production\"\n\n    # WI-1: retention policy (required by ADO REST 7.2)\n    retention_policy {\n      days_to_keep     = 30\n      releases_to_keep = 3\n      retain_build     = true\n    }\n\n    # WI-1: pre-deploy approval (required by ADO REST 7.2)\n    pre_deploy_approval {\n      approval {\n        is_automated = true\n        rank         = 1\n      }\n    }\n\n    # WI-2: deployment gates\n    pre_deployment_gates {\n      gates_options {\n        is_enabled               = true\n        timeout                  = 60\n        sampling_interval        = 5\n        stabilization_time       = 0\n        minimum_success_duration = 0\n      }\n    }\n\n    deploy_phase {\n      name       = \"Agent phase\"\n      phase_type = \"agentBasedDeployment\"\n\n      deployment_input {\n        queue_id = var.agent_pool_id\n\n        # WI-4: parallel execution\n        parallel_execution {\n          type                 = \"multiConfiguration\"\n          max_number_of_agents = 3\n          multipliers          = [\"Configuration\"]\n          continue_on_error    = false\n        }\n      }\n    }\n\n    deploy_phase {\n      name       = \"Agentless phase\"\n      # WI-5: runOnServer (agentless) — queueId is omitted from ADO wire payload\n      phase_type = \"runOnServer\"\n\n      deployment_input {\n        timeout_in_minutes        = 120\n        cancel_timeout_in_minutes = 5\n      }\n    }\n  }\n}\n```",
+  "impact": [
+    "Operators can declare pre/post deployment gates with full gatesOptions on release environments, managing ADO quality gates from Terraform state and drift detection",
+    "CD artifact triggers and schedule triggers are first-class HCL declarations — trigger logic is now version-controlled and diff-visible",
+    "Parallel execution (multiConfiguration / multiMachine) can be specified per deploy phase, enabling configuration-matrix and multi-machine deployments from Terraform",
+    "Agentless (runOnServer) deploy phases are handled safely — no spurious queueId:0 ADO errors and no panics on flatten",
+    "Acceptance tests are ADO REST 7.2-compatible: retention_policy and pre_deploy_approval blocks in the HCL fixtures prevent VS402982/VS402877 failures in live CI runs"
+  ],
+  "filesChanged": [
+    {
+      "path": "azuredevops/internal/acceptancetests/resource_release_definition_test.go",
+      "note": "WI-1: added retention_policy + pre_deploy_approval to acceptance HCL fixtures (hclReleaseDefinitionBasic, hclReleaseDefinitionWithDeploymentInput, hclReleaseDefinitionWithEnvironmentOptions)"
+    },
+    {
+      "path": "azuredevops/internal/service/release/resource_release_definition.go",
+      "note": "WI-1 through WI-5: schema additions (gates, triggers, parallel_execution, agentless) + expand/flatten helpers (+629/-23 lines)"
+    },
+    {
+      "path": "azuredevops/internal/service/release/resource_release_definition_test.go",
+      "note": "WI-1 through WI-5: 9 new top-level unit test functions covering all new schema features (+1068 lines)"
+    }
+  ]
+}
