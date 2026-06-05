@@ -1351,3 +1351,475 @@ func TestReleaseDefinition_Gates_ExpandFlatten(t *testing.T) {
 	require.Equal(t, stabilizationTime*2, postOptsMap["stabilization_time"], "post stabilization_time must survive flatten")
 	require.Equal(t, minimumSuccessDuration*2, postOptsMap["minimum_success_duration"], "post minimum_success_duration must survive flatten")
 }
+
+// ── 12. Triggers: empty triggers block (no panic) ─────────────────────────
+
+// TestReleaseDefinition_Triggers_Empty verifies that a definition with no triggers
+// block expands without error and that flattenTriggers handles a nil/empty Triggers
+// slice gracefully (no panic).
+func TestReleaseDefinition_Triggers_Empty(t *testing.T) {
+	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "NoTriggersDef",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{},
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"environment": []interface{}{
+			map[string]interface{}{
+				"id":                   0,
+				"name":                 "Staging",
+				"rank":                 1,
+				"owner":                "",
+				"variable":             []interface{}{},
+				"variable_groups":      []interface{}{},
+				"condition":            []interface{}{},
+				"pre_deploy_approval":  []interface{}{},
+				"post_deploy_approval": []interface{}{},
+				"deploy_phase": []interface{}{
+					map[string]interface{}{
+						"name":             "Agent phase",
+						"rank":             1,
+						"phase_type":       "agentBasedDeployment",
+						"deployment_input": []interface{}{},
+						"workflow_task":    []interface{}{},
+					},
+				},
+				"retention_policy":    []interface{}{},
+				"environment_options": []interface{}{},
+				"execution_policy":    []interface{}{},
+			},
+		},
+		"artifact": []interface{}{},
+		// No "triggers" key — omitted.
+	})
+
+	expanded, _, err := expandReleaseDefinition(resourceData)
+	require.NoError(t, err)
+	require.Nil(t, expanded.Triggers, "Triggers must be nil when no triggers block is provided")
+
+	// flattenTriggers with nil must not panic
+	require.NotPanics(t, func() {
+		result := flattenTriggers(nil)
+		require.Nil(t, result)
+	})
+
+	// flattenTriggers with empty slice must not panic
+	require.NotPanics(t, func() {
+		empty := []interface{}{}
+		result := flattenTriggers(&empty)
+		require.Nil(t, result)
+	})
+}
+
+// ── 13. Triggers: CD artifact trigger only ────────────────────────────────
+
+// TestReleaseDefinition_Triggers_ArtifactOnly verifies that a definition with a
+// cd_artifact_trigger block in the triggers container (AC1) expands into a
+// ReleaseDefinition.Triggers slice containing exactly one artifactSource entry
+// with the correct artifactAlias and triggerConditions, and that flattenTriggers
+// (AC2) round-trips it back correctly.
+func TestReleaseDefinition_Triggers_ArtifactOnly(t *testing.T) {
+	artifactAlias := "_myBuild"
+	branchInclude := "refs/heads/main"
+
+	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "ArtifactTriggerDef",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{},
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"environment": []interface{}{
+			map[string]interface{}{
+				"id":                   0,
+				"name":                 "Production",
+				"rank":                 1,
+				"owner":                "",
+				"variable":             []interface{}{},
+				"variable_groups":      []interface{}{},
+				"condition":            []interface{}{},
+				"pre_deploy_approval":  []interface{}{},
+				"post_deploy_approval": []interface{}{},
+				"deploy_phase": []interface{}{
+					map[string]interface{}{
+						"name":             "Agent phase",
+						"rank":             1,
+						"phase_type":       "agentBasedDeployment",
+						"deployment_input": []interface{}{},
+						"workflow_task":    []interface{}{},
+					},
+				},
+				"retention_policy":    []interface{}{},
+				"environment_options": []interface{}{},
+				"execution_policy":    []interface{}{},
+			},
+		},
+		"artifact": []interface{}{},
+		"triggers": []interface{}{
+			map[string]interface{}{
+				"cd_artifact_trigger": []interface{}{
+					map[string]interface{}{
+						"artifact_alias": artifactAlias,
+						"branch_filter": []interface{}{
+							map[string]interface{}{
+								"include": []interface{}{branchInclude},
+								"exclude": []interface{}{},
+							},
+						},
+					},
+				},
+				"schedule_trigger": []interface{}{},
+			},
+		},
+	})
+
+	// AC1: expandReleaseDefinition must produce one artifactSource trigger
+	expanded, _, err := expandReleaseDefinition(resourceData)
+	require.NoError(t, err)
+	require.NotNil(t, expanded.Triggers)
+	require.Len(t, *expanded.Triggers, 1)
+
+	trigRaw := (*expanded.Triggers)[0]
+	trigMap, ok := trigRaw.(map[string]interface{})
+	require.True(t, ok, "trigger entry must be a map")
+	require.Equal(t, "artifactSource", trigMap["triggerType"])
+	require.Equal(t, artifactAlias, trigMap["artifactAlias"])
+
+	conditions, ok := trigMap["triggerConditions"].([]map[string]interface{})
+	require.True(t, ok, "triggerConditions must be set")
+	require.Len(t, conditions, 1)
+	require.Equal(t, branchInclude, conditions[0]["sourceBranch"])
+
+	// AC2: flattenTriggers must round-trip back
+	expandedID := testReleaseDefinitionID
+	expanded.Id = &expandedID
+	flattenReleaseDefinition(resourceData, expanded, testReleaseDefinitionProjectID.String())
+
+	triggersRaw, ok := resourceData.GetOk("triggers")
+	require.True(t, ok, "triggers block must be present in state after flatten")
+	triggersList := triggersRaw.([]interface{})
+	require.Len(t, triggersList, 1)
+
+	trigsMap := triggersList[0].(map[string]interface{})
+	cdTriggers, ok := trigsMap["cd_artifact_trigger"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, cdTriggers, 1)
+
+	ctMap := cdTriggers[0].(map[string]interface{})
+	require.Equal(t, artifactAlias, ctMap["artifact_alias"])
+
+	bfList, ok := ctMap["branch_filter"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, bfList, 1)
+	bfMap := bfList[0].(map[string]interface{})
+	includes, ok := bfMap["include"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, includes, 1)
+	require.Equal(t, branchInclude, includes[0])
+}
+
+// ── 14. Triggers: schedule trigger only ───────────────────────────────────
+
+// TestReleaseDefinition_Triggers_ScheduleOnly verifies that a definition with a
+// schedule_trigger block in the triggers container (AC1) expands into a
+// ReleaseDefinition.Triggers slice containing exactly one schedule entry with
+// all schedule fields correctly set, and that flattenTriggers (AC2) round-trips it.
+func TestReleaseDefinition_Triggers_ScheduleOnly(t *testing.T) {
+	startHours := 2
+	startMinutes := 30
+	timeZoneID := "UTC"
+	daysToRelease := 62 // Mon–Fri (1+2+4+8+16+32 = no, 1+2+4+8+16 = 31... use 62 as arbitrary value)
+	branchInclude := "refs/heads/release"
+
+	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "ScheduleTriggerDef",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{},
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"environment": []interface{}{
+			map[string]interface{}{
+				"id":                   0,
+				"name":                 "Production",
+				"rank":                 1,
+				"owner":                "",
+				"variable":             []interface{}{},
+				"variable_groups":      []interface{}{},
+				"condition":            []interface{}{},
+				"pre_deploy_approval":  []interface{}{},
+				"post_deploy_approval": []interface{}{},
+				"deploy_phase": []interface{}{
+					map[string]interface{}{
+						"name":             "Agent phase",
+						"rank":             1,
+						"phase_type":       "agentBasedDeployment",
+						"deployment_input": []interface{}{},
+						"workflow_task":    []interface{}{},
+					},
+				},
+				"retention_policy":    []interface{}{},
+				"environment_options": []interface{}{},
+				"execution_policy":    []interface{}{},
+			},
+		},
+		"artifact": []interface{}{},
+		"triggers": []interface{}{
+			map[string]interface{}{
+				"cd_artifact_trigger": []interface{}{},
+				"schedule_trigger": []interface{}{
+					map[string]interface{}{
+						"branch_filter": []interface{}{
+							map[string]interface{}{
+								"include": []interface{}{branchInclude},
+								"exclude": []interface{}{},
+							},
+						},
+						"schedule_only_with_changes": true,
+						"start_hours":                startHours,
+						"start_minutes":              startMinutes,
+						"time_zone_id":               timeZoneID,
+						"days_to_release":            daysToRelease,
+					},
+				},
+			},
+		},
+	})
+
+	// AC1: expandReleaseDefinition must produce one schedule trigger
+	expanded, _, err := expandReleaseDefinition(resourceData)
+	require.NoError(t, err)
+	require.NotNil(t, expanded.Triggers)
+	require.Len(t, *expanded.Triggers, 1)
+
+	trigRaw := (*expanded.Triggers)[0]
+	trigMap, ok := trigRaw.(map[string]interface{})
+	require.True(t, ok, "trigger entry must be a map")
+	require.Equal(t, "schedule", trigMap["triggerType"])
+
+	sched, ok := trigMap["schedule"].(map[string]interface{})
+	require.True(t, ok, "schedule field must be present")
+	require.Equal(t, true, sched["scheduleOnlyWithChanges"])
+	require.Equal(t, startHours, sched["startHours"])
+	require.Equal(t, startMinutes, sched["startMinutes"])
+	require.Equal(t, timeZoneID, sched["timeZoneId"])
+	require.Equal(t, daysToRelease, sched["daysToRelease"])
+
+	branchFilters, ok := sched["branchFilters"].([]string)
+	require.True(t, ok, "branchFilters must be []string")
+	require.Len(t, branchFilters, 1)
+	require.Equal(t, "+"+branchInclude, branchFilters[0])
+
+	// AC2: flattenTriggers must round-trip back
+	expandedID := testReleaseDefinitionID
+	expanded.Id = &expandedID
+	flattenReleaseDefinition(resourceData, expanded, testReleaseDefinitionProjectID.String())
+
+	triggersRaw, ok := resourceData.GetOk("triggers")
+	require.True(t, ok, "triggers block must be present in state after flatten")
+	triggersList := triggersRaw.([]interface{})
+	require.Len(t, triggersList, 1)
+
+	trigsMap := triggersList[0].(map[string]interface{})
+	schTriggers, ok := trigsMap["schedule_trigger"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, schTriggers, 1)
+
+	stMap := schTriggers[0].(map[string]interface{})
+	require.Equal(t, true, stMap["schedule_only_with_changes"])
+	require.Equal(t, startHours, stMap["start_hours"])
+	require.Equal(t, startMinutes, stMap["start_minutes"])
+	require.Equal(t, timeZoneID, stMap["time_zone_id"])
+	require.Equal(t, daysToRelease, stMap["days_to_release"])
+
+	bfList, ok := stMap["branch_filter"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, bfList, 1)
+	bfMap := bfList[0].(map[string]interface{})
+	includes, ok := bfMap["include"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, includes, 1)
+	require.Equal(t, branchInclude, includes[0])
+}
+
+// ── 15. Triggers: both artifact and schedule triggers ─────────────────────
+
+// TestReleaseDefinition_Triggers_ExpandFlatten verifies that a definition with BOTH a
+// cd_artifact_trigger and a schedule_trigger in the triggers container correctly
+// expands to a Triggers slice containing one artifactSource and one schedule entry
+// (AC1), and that flattenReleaseDefinition (AC2) restores both sub-blocks in state.
+// This test satisfies AC3 via the `go test -run TestReleaseDefinition_Triggers` prefix match.
+func TestReleaseDefinition_Triggers_ExpandFlatten(t *testing.T) {
+	artifactAlias := "_myBuild"
+	cdBranch := "refs/heads/main"
+	schedBranch := "refs/heads/main"
+	startHours := 2
+	startMinutes := 0
+	timeZoneID := "UTC"
+	daysToRelease := 127
+
+	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "BothTriggersDef",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{},
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"environment": []interface{}{
+			map[string]interface{}{
+				"id":                   0,
+				"name":                 "Production",
+				"rank":                 1,
+				"owner":                "",
+				"variable":             []interface{}{},
+				"variable_groups":      []interface{}{},
+				"condition":            []interface{}{},
+				"pre_deploy_approval":  []interface{}{},
+				"post_deploy_approval": []interface{}{},
+				"deploy_phase": []interface{}{
+					map[string]interface{}{
+						"name":             "Agent phase",
+						"rank":             1,
+						"phase_type":       "agentBasedDeployment",
+						"deployment_input": []interface{}{},
+						"workflow_task":    []interface{}{},
+					},
+				},
+				"retention_policy":    []interface{}{},
+				"environment_options": []interface{}{},
+				"execution_policy":    []interface{}{},
+			},
+		},
+		"artifact": []interface{}{},
+		"triggers": []interface{}{
+			map[string]interface{}{
+				"cd_artifact_trigger": []interface{}{
+					map[string]interface{}{
+						"artifact_alias": artifactAlias,
+						"branch_filter": []interface{}{
+							map[string]interface{}{
+								"include": []interface{}{cdBranch},
+								"exclude": []interface{}{},
+							},
+						},
+					},
+				},
+				"schedule_trigger": []interface{}{
+					map[string]interface{}{
+						"branch_filter": []interface{}{
+							map[string]interface{}{
+								"include": []interface{}{schedBranch},
+								"exclude": []interface{}{},
+							},
+						},
+						"schedule_only_with_changes": true,
+						"start_hours":                startHours,
+						"start_minutes":              startMinutes,
+						"time_zone_id":               timeZoneID,
+						"days_to_release":            daysToRelease,
+					},
+				},
+			},
+		},
+	})
+
+	// AC1: expandReleaseDefinition must produce two triggers (artifact + schedule)
+	expanded, projectID, err := expandReleaseDefinition(resourceData)
+	require.NoError(t, err)
+	require.Equal(t, testReleaseDefinitionProjectID.String(), projectID)
+	require.NotNil(t, expanded.Triggers)
+	require.Len(t, *expanded.Triggers, 2, "Triggers slice must have exactly 2 entries")
+
+	// Verify artifact trigger
+	artifactTrigRaw := (*expanded.Triggers)[0]
+	atMap, ok := artifactTrigRaw.(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, "artifactSource", atMap["triggerType"], "first trigger must be artifactSource")
+	require.Equal(t, artifactAlias, atMap["artifactAlias"])
+	conditions, ok := atMap["triggerConditions"].([]map[string]interface{})
+	require.True(t, ok)
+	require.Len(t, conditions, 1)
+	require.Equal(t, cdBranch, conditions[0]["sourceBranch"])
+
+	// Verify schedule trigger
+	schedTrigRaw := (*expanded.Triggers)[1]
+	stMap, ok := schedTrigRaw.(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, "schedule", stMap["triggerType"], "second trigger must be schedule")
+	sched, ok := stMap["schedule"].(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, true, sched["scheduleOnlyWithChanges"])
+	require.Equal(t, startHours, sched["startHours"])
+	require.Equal(t, startMinutes, sched["startMinutes"])
+	require.Equal(t, timeZoneID, sched["timeZoneId"])
+	require.Equal(t, daysToRelease, sched["daysToRelease"])
+
+	// AC2: flattenReleaseDefinition must restore both sub-blocks
+	expandedID := testReleaseDefinitionID
+	expanded.Id = &expandedID
+	flattenReleaseDefinition(resourceData, expanded, projectID)
+
+	triggersRaw, ok := resourceData.GetOk("triggers")
+	require.True(t, ok, "triggers block must be present in Terraform state after flatten")
+	triggersList := triggersRaw.([]interface{})
+	require.Len(t, triggersList, 1)
+
+	trigsMap := triggersList[0].(map[string]interface{})
+
+	// Verify cd_artifact_trigger in state
+	cdTriggers, ok := trigsMap["cd_artifact_trigger"].([]interface{})
+	require.True(t, ok, "cd_artifact_trigger must be present in state")
+	require.Len(t, cdTriggers, 1, "must have exactly one cd_artifact_trigger")
+	ctMap := cdTriggers[0].(map[string]interface{})
+	require.Equal(t, artifactAlias, ctMap["artifact_alias"],
+		"artifact_alias must survive expand/flatten")
+
+	cdBfList, ok := ctMap["branch_filter"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, cdBfList, 1)
+	cdBfMap := cdBfList[0].(map[string]interface{})
+	cdIncludes, ok := cdBfMap["include"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, cdIncludes, 1)
+	require.Equal(t, cdBranch, cdIncludes[0],
+		"cd_artifact_trigger branch_filter include must survive expand/flatten")
+
+	// Verify schedule_trigger in state
+	schTriggers, ok := trigsMap["schedule_trigger"].([]interface{})
+	require.True(t, ok, "schedule_trigger must be present in state")
+	require.Len(t, schTriggers, 1, "must have exactly one schedule_trigger")
+	schMap := schTriggers[0].(map[string]interface{})
+	require.Equal(t, true, schMap["schedule_only_with_changes"],
+		"schedule_only_with_changes must survive expand/flatten")
+	require.Equal(t, startHours, schMap["start_hours"],
+		"start_hours must survive expand/flatten")
+	require.Equal(t, startMinutes, schMap["start_minutes"],
+		"start_minutes must survive expand/flatten")
+	require.Equal(t, timeZoneID, schMap["time_zone_id"],
+		"time_zone_id must survive expand/flatten")
+	require.Equal(t, daysToRelease, schMap["days_to_release"],
+		"days_to_release must survive expand/flatten")
+
+	schedBfList, ok := schMap["branch_filter"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, schedBfList, 1)
+	schedBfMap := schedBfList[0].(map[string]interface{})
+	schedIncludes, ok := schedBfMap["include"].([]interface{})
+	require.True(t, ok)
+	require.Len(t, schedIncludes, 1)
+	require.Equal(t, schedBranch, schedIncludes[0],
+		"schedule_trigger branch_filter include must survive expand/flatten")
+}

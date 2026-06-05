@@ -452,6 +452,103 @@ func ResourceReleaseDefinition() *schema.Resource {
 					},
 				},
 			},
+			"triggers": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cd_artifact_trigger": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"artifact_alias": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+									},
+									"branch_filter": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"include": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem:     &schema.Schema{Type: schema.TypeString},
+												},
+												"exclude": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem:     &schema.Schema{Type: schema.TypeString},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"schedule_trigger": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"branch_filter": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"include": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem:     &schema.Schema{Type: schema.TypeString},
+												},
+												"exclude": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem:     &schema.Schema{Type: schema.TypeString},
+												},
+											},
+										},
+									},
+									"schedule_only_with_changes": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+									"start_hours": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 23),
+									},
+									"start_minutes": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 59),
+									},
+									"time_zone_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      "UTC",
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+									},
+									"days_to_release": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      127,
+										ValidateFunc: validation.IntBetween(0, 127),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -776,6 +873,12 @@ func expandReleaseDefinition(d *schema.ResourceData) (*releaseapi.ReleaseDefinit
 	if v, ok := d.GetOk("artifact"); ok {
 		artifacts := expandArtifacts(v.([]interface{}))
 		def.Artifacts = &artifacts
+	}
+
+	// Triggers
+	if v, ok := d.GetOk("triggers"); ok {
+		triggers := expandTriggers(v.([]interface{}))
+		def.Triggers = &triggers
 	}
 
 	return def, projectID, nil
@@ -1210,6 +1313,11 @@ func flattenReleaseDefinition(d *schema.ResourceData, def *releaseapi.ReleaseDef
 	// Artifacts
 	if def.Artifacts != nil {
 		d.Set("artifact", flattenArtifacts(def.Artifacts, d))
+	}
+
+	// Triggers
+	if def.Triggers != nil && len(*def.Triggers) > 0 {
+		d.Set("triggers", flattenTriggers(def.Triggers))
 	}
 }
 
@@ -1694,6 +1802,233 @@ func flattenExecutionPolicy(ep *releaseapi.EnvironmentExecutionPolicy) []interfa
 		epMap["queue_depth_count"] = *ep.QueueDepthCount
 	}
 	return []interface{}{epMap}
+}
+
+// expandTriggers converts a Terraform "triggers" block into a []interface{} that
+// matches ADO's polymorphic Triggers wire format.
+func expandTriggers(input []interface{}) []interface{} {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	trigMap := input[0].(map[string]interface{})
+	result := make([]interface{}, 0)
+
+	// CD artifact triggers — one entry per cd_artifact_trigger block
+	if cdTriggers, ok := trigMap["cd_artifact_trigger"].([]interface{}); ok {
+		for _, raw := range cdTriggers {
+			if raw == nil {
+				continue
+			}
+			ctMap := raw.(map[string]interface{})
+			trigEntry := map[string]interface{}{
+				"triggerType":   "artifactSource",
+				"artifactAlias": ctMap["artifact_alias"].(string),
+			}
+			// Branch filters
+			if bf, ok := ctMap["branch_filter"].([]interface{}); ok && len(bf) > 0 && bf[0] != nil {
+				bfMap := bf[0].(map[string]interface{})
+				filters := expandBranchFiltersForTrigger(bfMap)
+				if len(filters) > 0 {
+					trigEntry["triggerConditions"] = filters
+				}
+			}
+			result = append(result, trigEntry)
+		}
+	}
+
+	// Schedule triggers — one entry per schedule_trigger block
+	if schTriggers, ok := trigMap["schedule_trigger"].([]interface{}); ok {
+		for _, raw := range schTriggers {
+			if raw == nil {
+				continue
+			}
+			stMap := raw.(map[string]interface{})
+			schedule := map[string]interface{}{
+				"scheduleOnlyWithChanges": stMap["schedule_only_with_changes"].(bool),
+				"startHours":              stMap["start_hours"].(int),
+				"startMinutes":            stMap["start_minutes"].(int),
+				"timeZoneId":              stMap["time_zone_id"].(string),
+				"daysToRelease":           stMap["days_to_release"].(int),
+			}
+			// Branch filters stored as scheduleTriggerBranches
+			if bf, ok := stMap["branch_filter"].([]interface{}); ok && len(bf) > 0 && bf[0] != nil {
+				bfMap := bf[0].(map[string]interface{})
+				branches := expandBranchFiltersForScheduleTrigger(bfMap)
+				if branches != nil {
+					schedule["branchFilters"] = branches
+				}
+			}
+			trigEntry := map[string]interface{}{
+				"triggerType": "schedule",
+				"schedule":    schedule,
+			}
+			result = append(result, trigEntry)
+		}
+	}
+
+	return result
+}
+
+// expandBranchFiltersForTrigger converts a branch_filter block into a slice of
+// ArtifactFilter-style maps for the cd_artifact_trigger triggerConditions field.
+func expandBranchFiltersForTrigger(bfMap map[string]interface{}) []map[string]interface{} {
+	var filters []map[string]interface{}
+	if includes, ok := bfMap["include"].([]interface{}); ok {
+		for _, v := range includes {
+			filters = append(filters, map[string]interface{}{
+				"sourceBranch": v.(string),
+			})
+		}
+	}
+	return filters
+}
+
+// expandBranchFiltersForScheduleTrigger converts a branch_filter block into a string
+// slice of include/exclude patterns used by schedule triggers.
+func expandBranchFiltersForScheduleTrigger(bfMap map[string]interface{}) []string {
+	var branches []string
+	if includes, ok := bfMap["include"].([]interface{}); ok {
+		for _, v := range includes {
+			branches = append(branches, "+"+v.(string))
+		}
+	}
+	if excludes, ok := bfMap["exclude"].([]interface{}); ok {
+		for _, v := range excludes {
+			branches = append(branches, "-"+v.(string))
+		}
+	}
+	return branches
+}
+
+// flattenTriggers converts the ADO polymorphic Triggers []interface{} back into
+// a Terraform "triggers" block.
+func flattenTriggers(triggers *[]interface{}) []interface{} {
+	if triggers == nil || len(*triggers) == 0 {
+		return nil
+	}
+
+	var cdArtifactTriggers []interface{}
+	var scheduleTriggers []interface{}
+
+	for _, raw := range *triggers {
+		// Marshal to JSON and back to get a clean map[string]interface{}
+		data, err := json.Marshal(raw)
+		if err != nil {
+			continue
+		}
+		var trigMap map[string]interface{}
+		if err := json.Unmarshal(data, &trigMap); err != nil {
+			continue
+		}
+
+		trigType, _ := trigMap["triggerType"].(string)
+		switch trigType {
+		case "artifactSource":
+			ct := map[string]interface{}{
+				"artifact_alias": "",
+			}
+			if alias, ok := trigMap["artifactAlias"].(string); ok {
+				ct["artifact_alias"] = alias
+			}
+			// Flatten triggerConditions → branch_filter include list
+			bf := flattenArtifactTriggerBranchFilter(trigMap)
+			ct["branch_filter"] = bf
+			cdArtifactTriggers = append(cdArtifactTriggers, ct)
+
+		case "schedule":
+			st := map[string]interface{}{
+				"schedule_only_with_changes": false,
+				"start_hours":                0,
+				"start_minutes":              0,
+				"time_zone_id":               "UTC",
+				"days_to_release":            127,
+			}
+			if sched, ok := trigMap["schedule"].(map[string]interface{}); ok {
+				if v, ok := sched["scheduleOnlyWithChanges"].(bool); ok {
+					st["schedule_only_with_changes"] = v
+				}
+				if v, ok := sched["startHours"].(float64); ok {
+					st["start_hours"] = int(v)
+				}
+				if v, ok := sched["startMinutes"].(float64); ok {
+					st["start_minutes"] = int(v)
+				}
+				if v, ok := sched["timeZoneId"].(string); ok {
+					st["time_zone_id"] = v
+				}
+				if v, ok := sched["daysToRelease"].(float64); ok {
+					st["days_to_release"] = int(v)
+				}
+				// branchFilters is a []string with "+" prefix for include, "-" for exclude
+				bf := flattenScheduleTriggerBranchFilter(sched)
+				st["branch_filter"] = bf
+			}
+			scheduleTriggers = append(scheduleTriggers, st)
+		}
+	}
+
+	triggersMap := map[string]interface{}{
+		"cd_artifact_trigger": cdArtifactTriggers,
+		"schedule_trigger":    scheduleTriggers,
+	}
+	return []interface{}{triggersMap}
+}
+
+// flattenArtifactTriggerBranchFilter converts a cd artifact trigger's triggerConditions
+// into a branch_filter block.
+func flattenArtifactTriggerBranchFilter(trigMap map[string]interface{}) []interface{} {
+	var includes []interface{}
+	if conditions, ok := trigMap["triggerConditions"].([]interface{}); ok {
+		for _, c := range conditions {
+			if cMap, ok := c.(map[string]interface{}); ok {
+				if branch, ok := cMap["sourceBranch"].(string); ok && branch != "" {
+					includes = append(includes, branch)
+				}
+			}
+		}
+	}
+	if len(includes) == 0 {
+		return []interface{}{map[string]interface{}{
+			"include": []interface{}{},
+			"exclude": []interface{}{},
+		}}
+	}
+	return []interface{}{map[string]interface{}{
+		"include": includes,
+		"exclude": []interface{}{},
+	}}
+}
+
+// flattenScheduleTriggerBranchFilter converts a schedule trigger's branchFilters
+// ("+branch" / "-branch" prefixed strings) into a branch_filter block.
+func flattenScheduleTriggerBranchFilter(sched map[string]interface{}) []interface{} {
+	var includes, excludes []interface{}
+	if branches, ok := sched["branchFilters"].([]interface{}); ok {
+		for _, b := range branches {
+			s, _ := b.(string)
+			if len(s) > 1 && s[0] == '+' {
+				includes = append(includes, s[1:])
+			} else if len(s) > 1 && s[0] == '-' {
+				excludes = append(excludes, s[1:])
+			}
+		}
+	}
+	if len(includes) == 0 && len(excludes) == 0 {
+		return []interface{}{map[string]interface{}{
+			"include": []interface{}{},
+			"exclude": []interface{}{},
+		}}
+	}
+	if includes == nil {
+		includes = []interface{}{}
+	}
+	if excludes == nil {
+		excludes = []interface{}{}
+	}
+	return []interface{}{map[string]interface{}{
+		"include": includes,
+		"exclude": excludes,
+	}}
 }
 
 func flattenArtifacts(artifacts *[]releaseapi.Artifact, d *schema.ResourceData) []interface{} {
