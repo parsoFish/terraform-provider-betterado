@@ -697,6 +697,22 @@ func deploymentGatesSchema() map[string]*schema.Schema {
 				},
 			},
 		},
+		"gate": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"task": {
+						Type:     schema.TypeList,
+						Required: true,
+						MinItems: 1,
+						Elem: &schema.Resource{
+							Schema: workflowTaskSchema(),
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -1314,6 +1330,23 @@ func expandDeploymentGates(input []interface{}) *releaseapi.ReleaseDefinitionGat
 		}
 	}
 
+	if gateBlocks, ok := gatesMap["gate"].([]interface{}); ok && len(gateBlocks) > 0 {
+		gates := make([]releaseapi.ReleaseDefinitionGate, 0, len(gateBlocks))
+		for _, gb := range gateBlocks {
+			if gb == nil {
+				continue
+			}
+			gateMap := gb.(map[string]interface{})
+			gate := releaseapi.ReleaseDefinitionGate{}
+			if taskList, ok := gateMap["task"].([]interface{}); ok && len(taskList) > 0 {
+				tasks := expandWorkflowTasks(taskList)
+				gate.Tasks = &tasks
+			}
+			gates = append(gates, gate)
+		}
+		step.Gates = &gates
+	}
+
 	return step
 }
 
@@ -1350,7 +1383,72 @@ func flattenDeploymentGates(step *releaseapi.ReleaseDefinitionGatesStep) []inter
 		gatesMap["gates_options"] = []interface{}{optMap}
 	}
 
+	if step.Gates != nil && len(*step.Gates) > 0 {
+		flatGates := make([]interface{}, 0, len(*step.Gates))
+		for _, g := range *step.Gates {
+			gateFlat := map[string]interface{}{
+				"task": []interface{}{},
+			}
+			if g.Tasks != nil && len(*g.Tasks) > 0 {
+				gateFlat["task"] = flattenWorkflowTasksFromAPI(g.Tasks)
+			}
+			flatGates = append(flatGates, gateFlat)
+		}
+		gatesMap["gate"] = flatGates
+	}
+
 	return []interface{}{gatesMap}
+}
+
+// flattenWorkflowTasksFromAPI converts a *[]releaseapi.WorkflowTask (from the ADO API response)
+// into a []interface{} suitable for setting in Terraform state.
+func flattenWorkflowTasksFromAPI(tasks *[]releaseapi.WorkflowTask) []interface{} {
+	if tasks == nil {
+		return nil
+	}
+	result := make([]interface{}, 0, len(*tasks))
+	for _, t := range *tasks {
+		flat := map[string]interface{}{
+			"name":              "",
+			"task_id":           "",
+			"version":           "1.*",
+			"enabled":           true,
+			"always_run":        false,
+			"continue_on_error": false,
+			"condition":         "succeeded()",
+			"definition_type":   "task",
+			"inputs":            map[string]string{},
+		}
+		if t.Name != nil {
+			flat["name"] = *t.Name
+		}
+		if t.TaskId != nil {
+			flat["task_id"] = t.TaskId.String()
+		}
+		if t.Version != nil {
+			flat["version"] = *t.Version
+		}
+		if t.Enabled != nil {
+			flat["enabled"] = *t.Enabled
+		}
+		if t.AlwaysRun != nil {
+			flat["always_run"] = *t.AlwaysRun
+		}
+		if t.ContinueOnError != nil {
+			flat["continue_on_error"] = *t.ContinueOnError
+		}
+		if t.Condition != nil {
+			flat["condition"] = *t.Condition
+		}
+		if t.DefinitionType != nil {
+			flat["definition_type"] = *t.DefinitionType
+		}
+		if t.Inputs != nil && len(*t.Inputs) > 0 {
+			flat["inputs"] = *t.Inputs
+		}
+		result = append(result, flat)
+	}
+	return result
 }
 
 // Flatten functions: API response → Terraform state

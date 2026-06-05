@@ -1352,6 +1352,166 @@ func TestReleaseDefinition_Gates_ExpandFlatten(t *testing.T) {
 	require.Equal(t, minimumSuccessDuration*2, postOptsMap["minimum_success_duration"], "post minimum_success_duration must survive flatten")
 }
 
+// ── 12b. Gates with tasks: gate {} blocks carrying task {} items ──────────
+
+// TestReleaseDefinition_GatesTasks_ExpandFlatten verifies that pre/post_deployment_gates
+// blocks that declare one or more gate {} blocks each carrying task {} items
+// round-trip correctly through expandReleaseDefinition → flattenReleaseDefinition
+// (AC1, AC2, AC3 for WI-6).
+func TestReleaseDefinition_GatesTasks_ExpandFlatten(t *testing.T) {
+	gateTaskID := "9a5d4f4e-f7d7-4e6a-a4c5-1b2d4e3f1234"
+	gateTaskName := "InvokeRestAPI"
+	gateTaskVersion := "0.*"
+	gateTaskDefType := "serverGate"
+
+	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "GatesTasksRoundTripDef",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{},
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"environment": []interface{}{
+			map[string]interface{}{
+				"id":                   0,
+				"name":                 "Production",
+				"rank":                 1,
+				"owner":                "",
+				"variable":             []interface{}{},
+				"variable_groups":      []interface{}{},
+				"condition":            []interface{}{},
+				"pre_deploy_approval":  []interface{}{},
+				"post_deploy_approval": []interface{}{},
+				"deploy_phase": []interface{}{
+					map[string]interface{}{
+						"name":             "Agent phase",
+						"rank":             1,
+						"phase_type":       "agentBasedDeployment",
+						"deployment_input": []interface{}{},
+						"workflow_task":    []interface{}{},
+					},
+				},
+				"retention_policy":    []interface{}{},
+				"environment_options": []interface{}{},
+				"execution_policy":    []interface{}{},
+				"pre_deployment_gates": []interface{}{
+					map[string]interface{}{
+						"gates_options": []interface{}{
+							map[string]interface{}{
+								"is_enabled":               true,
+								"timeout":                  600,
+								"sampling_interval":        60,
+								"stabilization_time":       0,
+								"minimum_success_duration": 0,
+							},
+						},
+						"gate": []interface{}{
+							map[string]interface{}{
+								"task": []interface{}{
+									map[string]interface{}{
+										"name":              gateTaskName,
+										"task_id":           gateTaskID,
+										"version":           gateTaskVersion,
+										"enabled":           true,
+										"always_run":        false,
+										"continue_on_error": false,
+										"condition":         "succeeded()",
+										"definition_type":   gateTaskDefType,
+										"inputs":            map[string]interface{}{},
+									},
+								},
+							},
+						},
+					},
+				},
+				"post_deployment_gates": []interface{}{
+					map[string]interface{}{
+						"gates_options": []interface{}{
+							map[string]interface{}{
+								"is_enabled":               false,
+								"timeout":                  0,
+								"sampling_interval":        0,
+								"stabilization_time":       0,
+								"minimum_success_duration": 0,
+							},
+						},
+						"gate": []interface{}{},
+					},
+				},
+			},
+		},
+		"artifact": []interface{}{},
+	})
+
+	// ── AC1: expand populates Gates ──────────────────────────────────────────
+	expanded, projectID, err := expandReleaseDefinition(resourceData)
+	require.NoError(t, err)
+	require.Equal(t, testReleaseDefinitionProjectID.String(), projectID)
+	require.NotNil(t, expanded.Environments)
+	require.Len(t, *expanded.Environments, 1)
+
+	env := (*expanded.Environments)[0]
+
+	// Pre-deployment gates: Gates array must be non-empty
+	require.NotNil(t, env.PreDeploymentGates, "PreDeploymentGates must be set")
+	require.NotNil(t, env.PreDeploymentGates.Gates, "PreDeploymentGates.Gates must be non-nil")
+	require.Len(t, *env.PreDeploymentGates.Gates, 1, "one gate block expected")
+
+	preGate := (*env.PreDeploymentGates.Gates)[0]
+	require.NotNil(t, preGate.Tasks, "gate.Tasks must be non-nil")
+	require.Len(t, *preGate.Tasks, 1, "one task expected in gate")
+
+	preTask := (*preGate.Tasks)[0]
+	require.NotNil(t, preTask.Name)
+	require.Equal(t, gateTaskName, *preTask.Name, "task name must match")
+	require.NotNil(t, preTask.TaskId)
+	require.Equal(t, gateTaskID, preTask.TaskId.String(), "task_id must match")
+	require.NotNil(t, preTask.Version)
+	require.Equal(t, gateTaskVersion, *preTask.Version, "version must match")
+	require.NotNil(t, preTask.DefinitionType)
+	require.Equal(t, gateTaskDefType, *preTask.DefinitionType, "definition_type must match")
+
+	// Post-deployment gates: no gate blocks declared, Gates should be nil/empty
+	require.NotNil(t, env.PostDeploymentGates, "PostDeploymentGates must be set (has gates_options)")
+	// An empty gate list means Gates is not populated
+	if env.PostDeploymentGates.Gates != nil {
+		require.Len(t, *env.PostDeploymentGates.Gates, 0, "no gate blocks → empty gates array")
+	}
+
+	// ── AC2: flatten round-trips gate {} blocks + tasks ───────────────────
+	expandedID := testReleaseDefinitionID
+	expanded.Id = &expandedID
+	flattenReleaseDefinition(resourceData, expanded, projectID)
+
+	envList := resourceData.Get("environment").([]interface{})
+	require.Len(t, envList, 1)
+	envMap := envList[0].(map[string]interface{})
+
+	// pre_deployment_gates should contain gate blocks
+	preGatesList, ok := envMap["pre_deployment_gates"].([]interface{})
+	require.True(t, ok, "pre_deployment_gates should be present after flatten")
+	require.Len(t, preGatesList, 1)
+	preGatesMap := preGatesList[0].(map[string]interface{})
+
+	flatGates, ok := preGatesMap["gate"].([]interface{})
+	require.True(t, ok, "gate key must be present after flatten")
+	require.Len(t, flatGates, 1, "one gate block expected after flatten")
+
+	flatGate := flatGates[0].(map[string]interface{})
+	flatTasks, ok := flatGate["task"].([]interface{})
+	require.True(t, ok, "task key must be present inside gate after flatten")
+	require.Len(t, flatTasks, 1, "one task expected inside gate after flatten")
+
+	flatTask := flatTasks[0].(map[string]interface{})
+	require.Equal(t, gateTaskName, flatTask["name"], "task name must survive flatten")
+	require.Equal(t, gateTaskID, flatTask["task_id"], "task_id must survive flatten")
+	require.Equal(t, gateTaskVersion, flatTask["version"], "version must survive flatten")
+	require.Equal(t, gateTaskDefType, flatTask["definition_type"], "definition_type must survive flatten")
+}
+
 // ── 12. Triggers: empty triggers block (no panic) ─────────────────────────
 
 // TestReleaseDefinition_Triggers_Empty verifies that a definition with no triggers
