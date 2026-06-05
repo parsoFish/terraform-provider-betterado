@@ -1,58 +1,50 @@
-# Agent Memory — WI-9
+# Unifier Agent Memory — INIT-2026-06-05-complete-release-definition
 
-> Institutional memory for this work item across Ralph iterations. Read at the start of every iteration; updated at the end.
+> Institutional memory across unifier-Ralph iterations. Read at the start of every iteration; updated at the end.
 
-## Brain context (loaded at iteration 1)
-
-_(no brain context seeded — read theme files yourself if needed; the system prompt has the navigation index.)_
-
-## What I've tried
+## What I tried
 
 _(updated by each iteration — most recent at the top)_
 
-### Iteration 0 (this iteration)
+### Iteration 1 (2026-06-06) — unifier pass after WI-9
 
-**AC1 — schedule_trigger branch_filter removal:**
-- The schema (`resource_release_definition.go` ~line 527-568) was already correct: `schedule_trigger` has NO `branch_filter` field. cd_artifact_trigger keeps its branch_filter.
-- The expand (`expandTriggers`) and flatten (`flattenTriggers`) logic was already correct: no branchFilters in schedule triggers.
-- The unit tests however still had STALE code:
-  - `TestReleaseDefinition_Triggers_ScheduleOnly`: still asserted `branchFilters` was in the expanded trigger AND `branch_filter` was in the flattened state — both wrong, and referencing undefined `branchInclude` variable (compile error)
-  - `TestReleaseDefinition_Triggers_ExpandFlatten`: still had `branch_filter` in the `schedule_trigger` input data AND asserted `branch_filter` survived flatten — both wrong
-- **Fix**: Removed stale branch_filter assertions, replaced with correct AC1 assertions (absent branch_filter). Used Python for tab-based replacements since the Edit tool struggled with tab indentation.
-- All three relevant tests now pass: ScheduleOnly, ExpandFlatten, RoundTrip/schedule_trigger_no_branch_filter
+**Context:** Previous unifier pass (feat(INIT-2026-06-05-complete-release-definition): unify and demo) was authored after WI-8 but before WI-9. WI-9 added three final cleanup fixes: schedule_trigger.branch_filter removal, agent_specification in acceptance test, and betterado_workitemquery for real gate queryId.
 
-**AC2 — agent_specification in acceptance test:**
-- `agent_specification` schema field already exists (`resource_release_definition.go` ~line 283)
-- expand: already sets `agentSpecification: { identifier: spec }` when non-empty
-- flatten: already reads `agentSpecification.identifier` → `agent_specification`
-- Just needed to ADD `agent_specification = "ubuntu-22.04"` to the HCL template and checks
-- Added `checkReleaseDefinitionAgentSpecification("ubuntu-22.04")` API-level check
+**What I did:**
+1. Read AGENT.md and fix_plan.md (both were stubs with no prior unifier iteration notes).
+2. Read WI-9.md to understand the scope of changes since the last unifier pass.
+3. Ran quality gate: `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...` → **exits 0**, 22 top-level test functions pass.
+4. Confirmed WI-9 changes via `git log` and `git show`: ce11e6ba (fix(WI-9)), 79e068e6 (chore), cd664939 (forge-autocommit safety-net).
+5. Updated `demo/INIT-2026-06-05-complete-release-definition/demo.json`:
+   - Updated title/essence to reflect 9 WIs (was 8).
+   - Updated WI-7 checkpoint afterNote to reflect branch_filter removed from schedule_trigger schema entirely (WI-9 final resolution).
+   - Updated WI-8 checkpoint to WI-8+WI-9 covering agent_specification, betterado_workitemquery queryId, and full idempotency.
+   - Updated test count: 22 top-level test functions (was 26 total including subtests — clarified counting method).
+   - Updated acceptanceCriteria and summary bullets to include WI-9 ACs.
+   - Updated testEvidence rows for Triggers_ScheduleOnly, Triggers_ExpandFlatten, RoundTrip subtests to note WI-9 updates.
+   - Updated usage_example with agent_specification and betterado_workitemquery.
+   - Updated impact bullets: added agent_specification and gate queryId bullets.
+   - Updated filesChanged notes to reflect WI-9 additions.
+6. Updated `.forge/pr-description.md`:
+   - Added WI-9 section to `## What`.
+   - Updated `## Why` to include agent_specification and empty queryId as gaps.
+   - Updated `## How` to include WI-9 file changes.
+   - Updated summary to 22 top-level tests.
+7. Ran `forge demo render INIT-2026-06-05-complete-release-definition --dir <worktree>/demo/INIT-...` → DEMO.md and DEMO.html written.
+8. Updated fix_plan.md: ticked AC1/AC2/AC3 with proof notes; AC4 still pending (requires live TF_ACC=1).
+9. Updated AGENT.md (this file).
+10. Committed as `feat(INIT-2026-06-05-complete-release-definition): unify and demo` and pushed.
 
-**AC3 — real shared query for gate queryId:**
-- `betterado_workitemquery` resource EXISTS in the provider (`azuredevops/internal/service/workitemtracking/resource_workitemquery.go`)
-- Supports `area = "Shared Queries"` to create a shared query
-- Added `betterado_workitemquery "gate_query"` resource to `hclReleaseDefinitionComplete`
-- Both pre_deployment_gates and post_deployment_gates now reference `betterado_workitemquery.gate_query.id` as queryId
+**Gate status:**
+- `initiative_gate`: PASS (go test exits 0)
+- `demo_runs_clean`: N/A for harness shape (no demo.command)
+- `pr_self_contained`: demo.json exists and renders; pr-description.md has substantive Why/What/How
+- `branches_in_sync`: will be satisfied after push
 
-**AC4 — live acceptance test:**
-- Not testable without TF_ACC=1 environment
-- All code changes are in place; needs live ADO run
-
-## What worked
-
-- Python string replacement for tab-indented Go test files (Edit tool fails to match tab patterns)
-- `betterado_workitemquery` with `area = "Shared Queries"` is the right TF resource for AC3
-- The schema/expand/flatten for agent_specification was already correct; just the HCL template was missing the field
-
-## What didn't work
-
-- Edit tool with tabs in the test file — the `old_string` patterns didn't match even when visually correct; had to use Python replacement
-
-## Open questions
-
-_(nothing blocking)_
+**Forge demo render invocation note:** `forge demo render <id>` looks for `demo/<id>/demo.json` relative to the current working directory. Must be run with `--dir <absolute-path-to-demo-dir>` when cwd is not the project root, OR run from the worktree root where `demo/` exists.
 
 ## Notes for reflection
 
-- Prior iterations left stale test code that still asserted `branch_filter` in `schedule_trigger` after the schema was fixed — a pattern to watch for in future WIs
-- The `betterado_workitemquery` resource for creating shared queries is a useful test pattern when gate tasks need ADO-side state
+- WI-9 was a "final cleanup" WI added after the first unifier pass; the unifier correctly identifies delta between last unifier commit and HEAD, updates demo.json and pr-description.md, and re-renders.
+- The `forge demo render` command expects `demo/<id>/demo.json` relative to cwd; needs `--dir` flag if invoked from outside the worktree with `demo/` at root.
+- Test count disambiguation: there are 22 top-level test *functions* in the release package, but more individual sub-tests (RoundTrip has 4, ParallelExecution has 3, AgentlessPhase has 3). Future demos should be explicit about top-level vs. total.
