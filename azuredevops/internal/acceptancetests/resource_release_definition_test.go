@@ -755,7 +755,7 @@ resource "betterado_release_definition" "test" {
       start_hours                = 2
       start_minutes              = 0
       time_zone_id               = "UTC"
-      days_to_release            = 62  # Mon–Fri (bits 1+2+4+8+16+32 = 62)
+      days_to_release            = 62 # Mon–Fri (bits 1+2+4+8+16+32 = 62)
       # Note: branch_filter is not included because ADO does not return branchFilters
       # for schedule triggers in the GET response, which would cause a perpetual diff.
     }
@@ -829,7 +829,7 @@ resource "betterado_release_definition" "test" {
       }
     }
 
-    # non-default environment_options
+    # environment options (non-default)
     environment_options {
       email_notification_type   = "Always"
       publish_deployment_status = true
@@ -837,13 +837,13 @@ resource "betterado_release_definition" "test" {
       auto_link_work_items      = false
     }
 
-    # non-default execution_policy
+    # execution policy (non-default)
     execution_policy {
       concurrency_count = 1
       queue_depth_count = 0
     }
 
-    # non-default retention_policy
+    # retention policy (non-default)
     retention_policy {
       days_to_keep     = 14
       releases_to_keep = 5

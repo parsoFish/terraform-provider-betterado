@@ -2229,7 +2229,6 @@ func expandBranchFiltersForTrigger(bfMap map[string]interface{}) []map[string]in
 	return filters
 }
 
-
 // flattenTriggers converts the ADO polymorphic Triggers []interface{} back into
 // a Terraform "triggers" block.
 func flattenTriggers(triggers *[]interface{}) []interface{} {
@@ -2328,7 +2327,6 @@ func flattenArtifactTriggerBranchFilter(trigMap map[string]interface{}) []interf
 		"exclude": []interface{}{},
 	}}
 }
-
 
 func flattenArtifacts(artifacts *[]releaseapi.Artifact, d *schema.ResourceData) []interface{} {
 	if artifacts == nil {
