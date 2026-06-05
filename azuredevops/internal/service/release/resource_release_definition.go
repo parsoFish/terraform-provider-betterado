@@ -241,9 +241,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"queue_id": {
-													Type:         schema.TypeInt,
-													Required:     true,
-													ValidateFunc: validation.IntAtLeast(1),
+													Type:     schema.TypeInt,
+													Optional: true,
+													Default:  0,
 												},
 												"demands": {
 													Type:     schema.TypeList,
@@ -1110,7 +1110,7 @@ func expandDeployPhases(input []interface{}) ([]interface{}, error) {
 		}
 
 		if deplInput, ok := phaseMap["deployment_input"].([]interface{}); ok && len(deplInput) > 0 {
-			phaseRaw["deploymentInput"] = expandDeploymentInput(deplInput)
+			phaseRaw["deploymentInput"] = expandDeploymentInput(deplInput, phaseMap["phase_type"].(string))
 		}
 
 		if tasks, ok := phaseMap["workflow_task"].([]interface{}); ok && len(tasks) > 0 {
@@ -1123,18 +1123,27 @@ func expandDeployPhases(input []interface{}) ([]interface{}, error) {
 	return phases, nil
 }
 
-func expandDeploymentInput(input []interface{}) map[string]interface{} {
+func expandDeploymentInput(input []interface{}, phaseType ...string) map[string]interface{} {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	diMap := input[0].(map[string]interface{})
 	di := map[string]interface{}{
-		"queueId":                   diMap["queue_id"].(int),
 		"timeoutInMinutes":          diMap["timeout_in_minutes"].(int),
 		"jobCancelTimeoutInMinutes": diMap["job_cancel_timeout_in_minutes"].(int),
 		"condition":                 diMap["condition"].(string),
 		"skipArtifactsDownload":     diMap["skip_artifacts_download"].(bool),
 		"enableAccessToken":         diMap["enable_access_token"].(bool),
+	}
+
+	// Only include queueId for agent-based phases; agentless (runOnServer) phases do not use a queue.
+	pt := ""
+	if len(phaseType) > 0 {
+		pt = phaseType[0]
+	}
+	queueID := diMap["queue_id"].(int)
+	if pt != "runOnServer" && queueID != 0 {
+		di["queueId"] = queueID
 	}
 
 	if demands, ok := diMap["demands"].([]interface{}); ok && len(demands) > 0 {

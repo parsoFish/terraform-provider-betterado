@@ -1930,3 +1930,147 @@ func TestReleaseDefinition_ParallelExecution_ExpandFlatten(t *testing.T) {
 		require.False(t, hasPE, "parallelExecution must not be present when parallel_execution block is empty")
 	})
 }
+
+// TestReleaseDefinition_AgentlessPhase_ExpandFlatten covers the runOnServer (agentless)
+// deploy-phase variant:
+//
+//   - AC1: expandDeploymentInput with phase_type=runOnServer produces phaseType: runOnServer
+//     in the parent deploy-phase map and the deploymentInput map carries timeout fields
+//     but NO queueId key.
+//   - AC2: flattenDeploymentInput with an ADO runOnServer payload (no queueId) populates
+//     phase_type=runOnServer and timeout_in_minutes without panicking.
+//   - AC3: a roundtrip through expandDeployPhases + flattenDeployPhases preserves phaseType
+//     and timeout fields for a runOnServer phase alongside a regular agentBasedDeployment.
+func TestReleaseDefinition_AgentlessPhase_ExpandFlatten(t *testing.T) {
+	t.Run("AC1_expand_runOnServer_no_queueId", func(t *testing.T) {
+		// Simulate a deployment_input block for an agentless phase (no queue needed).
+		input := []interface{}{
+			map[string]interface{}{
+				"queue_id":                      0,
+				"demands":                       []interface{}{},
+				"timeout_in_minutes":            120,
+				"job_cancel_timeout_in_minutes": 5,
+				"condition":                     "succeeded()",
+				"skip_artifacts_download":       false,
+				"enable_access_token":           false,
+				"agent_specification":           "",
+				"parallel_execution":            []interface{}{},
+			},
+		}
+		result := expandDeploymentInput(input, "runOnServer")
+		require.NotNil(t, result, "expandDeploymentInput must return a non-nil map for runOnServer")
+
+		// queueId must NOT be present for agentless phases.
+		_, hasQueue := result["queueId"]
+		require.False(t, hasQueue, "queueId must be absent for runOnServer phase")
+
+		// Timeout fields must be present.
+		require.Equal(t, 120, result["timeoutInMinutes"], "timeoutInMinutes must be 120")
+		require.Equal(t, 5, result["jobCancelTimeoutInMinutes"], "jobCancelTimeoutInMinutes must be 5")
+	})
+
+	t.Run("AC2_flatten_runOnServer_no_queueId_no_panic", func(t *testing.T) {
+		// Simulate the ADO API response for a runOnServer phase — no queueId key.
+		adoMap := map[string]interface{}{
+			"timeoutInMinutes":          float64(120),
+			"jobCancelTimeoutInMinutes": float64(5),
+			"condition":                 "succeeded()",
+			"skipArtifactsDownload":     false,
+			"enableAccessToken":         false,
+		}
+		// Must not panic even though queueId is absent.
+		result := flattenDeploymentInput(adoMap)
+		require.Len(t, result, 1, "flattenDeploymentInput must return a single-element slice")
+
+		diFlat := result[0].(map[string]interface{})
+
+		// queue_id defaults to 0 when not present in ADO response.
+		require.Equal(t, 0, diFlat["queue_id"], "queue_id must default to 0 for agentless phase")
+
+		// Timeout must be populated from the ADO response.
+		require.Equal(t, 120, diFlat["timeout_in_minutes"], "timeout_in_minutes must be 120")
+	})
+
+	t.Run("AC3_roundtrip_agent_and_agentless_phases", func(t *testing.T) {
+		// Build a slice with two phases: one agent-based, one runOnServer.
+		phases := []interface{}{
+			map[string]interface{}{
+				"name":       "Agent Phase",
+				"rank":       1,
+				"phase_type": "agentBasedDeployment",
+				"deployment_input": []interface{}{
+					map[string]interface{}{
+						"queue_id":                      7,
+						"demands":                       []interface{}{},
+						"timeout_in_minutes":            30,
+						"job_cancel_timeout_in_minutes": 1,
+						"condition":                     "succeeded()",
+						"skip_artifacts_download":       false,
+						"enable_access_token":           false,
+						"agent_specification":           "",
+						"parallel_execution":            []interface{}{},
+					},
+				},
+				"workflow_task": []interface{}{},
+			},
+			map[string]interface{}{
+				"name":       "Agentless Phase",
+				"rank":       2,
+				"phase_type": "runOnServer",
+				"deployment_input": []interface{}{
+					map[string]interface{}{
+						"queue_id":                      0,
+						"demands":                       []interface{}{},
+						"timeout_in_minutes":            120,
+						"job_cancel_timeout_in_minutes": 5,
+						"condition":                     "succeeded()",
+						"skip_artifacts_download":       false,
+						"enable_access_token":           false,
+						"agent_specification":           "",
+						"parallel_execution":            []interface{}{},
+					},
+				},
+				"workflow_task": []interface{}{},
+			},
+		}
+
+		expanded, err := expandDeployPhases(phases)
+		require.NoError(t, err, "expandDeployPhases must not error")
+		require.Len(t, expanded, 2)
+
+		// Verify agent-based phase retains queueId.
+		agentPhase := expanded[0].(map[string]interface{})
+		require.Equal(t, "agentBasedDeployment", agentPhase["phaseType"])
+		agentDI := agentPhase["deploymentInput"].(map[string]interface{})
+		require.Equal(t, 7, agentDI["queueId"], "agent phase must retain queueId=7")
+
+		// Verify agentless phase has no queueId.
+		agentlessPhase := expanded[1].(map[string]interface{})
+		require.Equal(t, "runOnServer", agentlessPhase["phaseType"])
+		agentlessDI := agentlessPhase["deploymentInput"].(map[string]interface{})
+		_, hasQueue := agentlessDI["queueId"]
+		require.False(t, hasQueue, "agentless phase must not have queueId in expanded output")
+		require.Equal(t, 120, agentlessDI["timeoutInMinutes"], "agentless timeout must be 120")
+
+		// Now marshal the expanded phases and flatten them (simulating the ADO round-trip).
+		// Re-marshal through JSON to simulate what ADO would return.
+		expandedJSON, err := json.Marshal(expanded)
+		require.NoError(t, err)
+		var roundTripped []interface{}
+		require.NoError(t, json.Unmarshal(expandedJSON, &roundTripped))
+
+		flattened := flattenDeployPhases(&roundTripped)
+		require.Len(t, flattened, 2)
+
+		flatAgent := flattened[0].(map[string]interface{})
+		require.Equal(t, "agentBasedDeployment", flatAgent["phase_type"])
+		flatAgentDI := flatAgent["deployment_input"].([]interface{})[0].(map[string]interface{})
+		require.Equal(t, 7, flatAgentDI["queue_id"], "agent phase queue_id must round-trip to 7")
+
+		flatAgentless := flattened[1].(map[string]interface{})
+		require.Equal(t, "runOnServer", flatAgentless["phase_type"])
+		flatAgentlessDI := flatAgentless["deployment_input"].([]interface{})[0].(map[string]interface{})
+		require.Equal(t, 0, flatAgentlessDI["queue_id"], "agentless phase queue_id must be 0")
+		require.Equal(t, 120, flatAgentlessDI["timeout_in_minutes"], "agentless timeout must round-trip to 120")
+	})
+}
