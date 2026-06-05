@@ -898,6 +898,14 @@ resource "betterado_release_definition" "test" {
         rank         = 1
       }
     }
+
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
   }
 }
 `, name)

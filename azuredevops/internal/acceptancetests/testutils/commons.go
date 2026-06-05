@@ -25,7 +25,7 @@ func GetProvider() *schema.Provider {
 func GetProviderFactories() map[string]func() (*schema.Provider, error) {
 	return map[string]func() (*schema.Provider, error){
 		//nolint:unparam
-		"azuredevops": func() (*schema.Provider, error) {
+		"betterado": func() (*schema.Provider, error) {
 			return GetProvider(), nil
 		},
 	}
@@ -34,7 +34,7 @@ func GetProviderFactories() map[string]func() (*schema.Provider, error) {
 // GetProviders returns a map of all providers needed for the project
 func GetProviders() map[string]*schema.Provider {
 	return map[string]*schema.Provider{
-		"azuredevops": GetProvider(),
+		"betterado": GetProvider(),
 	}
 }
 
