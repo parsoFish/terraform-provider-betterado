@@ -1,43 +1,40 @@
-# Agent Memory — WI-5
+# AGENT.md — INIT-2026-06-05-complete-release-definition
 
-> Institutional memory for this work item across Ralph iterations. Read at the start of every iteration; updated at the end.
+## Iteration 1 (unifier) — completed
 
-## Brain context (loaded at iteration 1)
+### What was done
 
-_(no brain context seeded — read theme files yourself if needed; the system prompt has the navigation index.)_
+1. **Read state**: AGENT.md and fix_plan.md were absent (first unifier iteration). Read all 5 WI specs and the initiative manifest to understand scope.
 
-## What I've tried
+2. **Quality gate**: `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...` — **green** (all packages ok, 20 release tests + taskagent suite).
 
-### Iteration 1 (COMPLETE — all ACs done in one pass)
+3. **Demo authored**: `demo/INIT-2026-06-05-complete-release-definition/demo.json` written with:
+   - 5 harness checkpoints (one per WI), each with beforeNote/afterNote describing the behavioural delta
+   - Accurate metrics scraped from the live gate run (11→20 release tests, +82%)
+   - Full `testEvidence[]` table (21 rows)
+   - `usage_example` (HCL showing all 5 new schema features)
+   - `impact[]` (5 bullets)
+   - `acceptanceCriteria[]`, `summary`, `filesChanged`
+   - Fixed `deltaPct` type bug (must be `number | null`, not string) before render succeeded
 
-**Approach taken:**
-1. Changed `queue_id` schema from `Required: true, ValidateFunc: IntAtLeast(1)` to `Optional: true, Default: 0` — agentless phases have no queue.
-2. Modified `expandDeploymentInput` to accept a variadic `phaseType ...string` parameter. When `phaseType[0] == "runOnServer"` OR `queueID == 0`, the `queueId` key is omitted from the output map.
-3. Modified `expandDeployPhases` to pass `phaseMap["phase_type"].(string)` as the second argument to `expandDeploymentInput`.
-4. `flattenDeploymentInput` already handled absent `queueId` safely (guarded by `if queueID, ok := di["queueId"].(float64); ok`), defaulting to 0.
-5. Added `TestReleaseDefinition_AgentlessPhase_ExpandFlatten` with three sub-tests:
-   - `AC1_expand_runOnServer_no_queueId` — verifies queueId absent, timeouts present
-   - `AC2_flatten_runOnServer_no_queueId_no_panic` — verifies flatten doesn't panic, queue_id=0
-   - `AC3_roundtrip_agent_and_agentless_phases` — full roundtrip through expandDeployPhases + JSON marshal/unmarshal + flattenDeployPhases
+4. **Demo rendered**: `forge demo render ... --dir <absolute-path>` (forge's `process.chdir(FORGE_ROOT)` means the `--dir` flag must be an absolute path).
+   - `DEMO.md` + `DEMO.html` written and committed.
 
-**Test results:**
-- `go test -tags all -count=1 -run TestReleaseDefinition_AgentlessPhase ./internal/service/release/` → PASS
-- `go test -tags all -count=1 -run TestReleaseDefinition ./internal/service/release/` → PASS (full CI gate)
+5. **PR description**: `.forge/pr-description.md` written (gitignored — read by orchestrator for `gh pr create --body-file`). Substantive Why/What/How sections. No `## Demo` section.
 
-## What worked
+6. **Committed**: `feat(INIT-2026-06-05-complete-release-definition): unify and demo` (3 files: demo.json, DEMO.md, DEMO.html).
 
-- Variadic `phaseType ...string` parameter on `expandDeploymentInput` — backward-compatible signature change; existing callers without the arg get default empty-string behavior (queueId still included when non-zero).
-- The condition `pt != "runOnServer" && queueID != 0` covers both explicit agentless (phase_type=runOnServer) and implicit (queue_id=0 with any phase type).
+7. **Pushed**: `origin/forge/INIT-2026-06-05-complete-release-definition` == local HEAD.
 
-## What didn't work
+### Key findings
 
-_(none — completed in one iteration)_
+- `forge demo render` requires `--dir <absolute-path>` when called from a worktree, because `forge` changes its cwd to `FORGE_ROOT` (`/home/parso/forge`) at startup.
+- `deltaPct` in `HarnessMetricRow` must be `number | null` — string values cause a `toFixed is not a function` error in the renderer.
+- All 5 WIs were complete and committed before the unifier ran; no code changes needed.
 
-## Open questions
+### Gate status
 
-_(none)_
-
-## Notes for reflection
-
-- The schema change (Required→Optional for `queue_id`) is additive and backward-compatible; existing configs with queue_id set continue to work.
-- The `flattenDeploymentInput` already had safe handling for absent `queueId` from prior WI refactoring — no change needed there.
+- `initiative_gate`: ✅ green
+- `demo_runs_clean`: ✅ (harness shape — demo.command not applicable; `forge demo render` exited 0)
+- `pr_self_contained`: ✅ demo.json validates; .forge/pr-description.md has substantive Why/What/How; no ## Demo section
+- `branches_in_sync`: ✅ origin == local HEAD; main == merge-base
