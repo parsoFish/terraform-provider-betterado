@@ -1,12 +1,17 @@
-# Fix Plan — unifier sub-phase
+# Fix Plan
 
-> Initiative-level acceptance criteria. Tick each as you prove it against branch tip. Iteration 1 is initial prep; iterations 2+ react to either gate failures or send-back feedback.
+> Checklist for WI-9. Tick items as you complete them; add items as you discover sub-problems.
 
-- [x] AC1 (WI-6): GIVEN a pre/post_deployment_gates block that, beyond gates_options, declares one or more `gate {}` blocks each carrying a `task {}` (workflow task) WHEN expandDeploymentGates processes the resource data THEN ReleaseDefinitionGatesStep.Gates is a non-empty []ReleaseDefinitionGate, each gate carrying its workflow task(s) — the gate CHECKS, not just timing
-- [x] AC2 (WI-6): GIVEN a ReleaseDefinitionGatesStep from ADO whose Gates array is populated WHEN flattenDeploymentGates processes it THEN the Terraform state round-trips the `gate {}` blocks + tasks (no drops)
-- [x] AC3 (WI-6): GIVEN new unit tests TestReleaseDefinition_GatesTasks_ExpandFlatten WHEN go test -tags all -count=1 -run TestReleaseDefinition_GatesTasks ./azuredevops/internal/service/release/ runs THEN the tests pass and exit 0
-- [x] AC4 (WI-7): GIVEN HCL setting parallel_execution.multipliers, a schedule_trigger branch_filter.include, and a deploy phase with NO parallel_execution WHEN the resource is expanded then flattened (round-trip) THEN multipliers round-trips to the same list, branch_filter.include round-trips to the same list, and NO empty parallel_execution block is emitted for the phase that did not declare one
-- [x] AC5 (WI-7): GIVEN new offline round-trip tests TestReleaseDefinition_RoundTrip WHEN go test -tags all -count=1 -run TestReleaseDefinition_RoundTrip ./azuredevops/internal/service/release/ runs THEN tests pass asserting flatten(expand(x))==x for the affected fields
-- [x] AC6 (WI-7): GIVEN the full release-package unit suite WHEN go test -tags all -count=1 -run TestReleaseDefinition ./azuredevops/internal/service/release/ runs THEN all existing tests still pass (no regression)
-- [x] AC7 (WI-8): GIVEN an exhaustive TestAccReleaseDefinition_complete whose HCL sets a NON-DEFAULT value for EVERY option of betterado_release_definition — a real agent pool (queue_id resolved from the test project, NOT 0), demands, skip_artifacts_download, enable_access_token, retention, pre/post approvals, pre/post deployment gates WITH a real gate task (WI-6), cd_artifact + schedule triggers, a multiConfiguration parallel phase, a runOnServer phase WHEN TF_ACC=1 go test -run TestAccReleaseDefinition_complete -timeout 30m runs against live ADO (creds in env) THEN it applies, the Check funcs confirm every option persisted via the provider read, the default ExpectNonEmptyPlan:false idempotency check passes (NO perpetual diff), and it destroys cleanly
-- [x] AC8 (WI-8): GIVEN the live acceptance gate WHEN the dev-loop runs this WI's quality_gate_cmd THEN the gate exits 0 (live round-trip + idempotency proven in-cycle)
+- [x] AC1: GIVEN the schedule_trigger schema currently exposes a branch_filter block WHEN a schedule_trigger is configured with a branch_filter and applied THEN it must NOT perpetually diff — ADO classic schedule triggers are time-based and have no branch filter, so REMOVE branch_filter from the schedule_trigger schema (and its expand/flatten). cd_artifact_trigger keeps its branch_filter. Add/extend TestReleaseDefinition_RoundTrip to assert a schedule_trigger round-trips with no residual diff.
+  - Schema already correct (branch_filter absent from schedule_trigger)
+  - Fixed unit tests: removed stale branchInclude/branch_filter assertions, replaced with AC1 assertions (no branchFilters in expanded trigger, no branch_filter in flattened state)
+  - TestReleaseDefinition_Triggers_ScheduleOnly, TestReleaseDefinition_Triggers_ExpandFlatten, TestReleaseDefinition_RoundTrip/schedule_trigger_no_branch_filter_no_residual_diff all PASS
+- [x] AC2: GIVEN a deploy phase deployment_input WHEN the exhaustive acceptance test (TestAccReleaseDefinition_complete) configures it THEN it sets agent_specification to a real non-default value (e.g. "ubuntu-22.04") and the live read confirms it persisted (agentSpecification.identifier)
+  - Added agent_specification = "ubuntu-22.04" to hclReleaseDefinitionComplete deployment_input
+  - Added TestCheckResourceAttr check for agent_specification
+  - Added checkReleaseDefinitionAgentSpecification("ubuntu-22.04") API-level check
+- [x] AC3: GIVEN the pre/post deployment gate "Query Work Items" task needs a real queryId WHEN the exhaustive acceptance test builds the gate THEN a real shared work-item query is created in the test project (via the ADO API in the test setup, or a provider resource if one exists) and its id is set as the gate task's queryId input — so the gate is complete (not an empty queryId).
+  - Added betterado_workitemquery "gate_query" resource under "Shared Queries" in hclReleaseDefinitionComplete
+  - Both pre_deployment_gates and post_deployment_gates now use betterado_workitemquery.gate_query.id as queryId
+- [ ] AC4: GIVEN the live acceptance gate WHEN TF_ACC=1 go test -run TestAccReleaseDefinition_complete -timeout 30m runs THEN it applies, every option (incl. agent_specification + a real gate queryId) persists, the idempotency check (ExpectNonEmptyPlan:false) passes with NO residual schedule_trigger diff, and it destroys cleanly
+  - Requires live ADO environment (TF_ACC=1)
