@@ -30,15 +30,104 @@ package permissions
 
 import (
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	securityhelper "github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 )
 
 // releaseDefinitionTokenFormat is the confirmed token format for ReleaseManagement2.
 // Use fmt.Sprintf(releaseDefinitionTokenFormat, projectID, releaseDefinitionID) to produce
 // a definition-scoped token, or just projectID alone for a project-scoped token.
 const releaseDefinitionTokenFormat = "%s/%d"
+
+// ResourceReleaseDefinitionPermissions schema and implementation for release definition permission resource
+func ResourceReleaseDefinitionPermissions() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceReleaseDefinitionPermissionsCreateOrUpdate,
+		Read:   resourceReleaseDefinitionPermissionsRead,
+		Update: resourceReleaseDefinitionPermissionsCreateOrUpdate,
+		Delete: resourceReleaseDefinitionPermissionsDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(10 * time.Minute),
+		},
+		Schema: securityhelper.CreatePermissionResourceSchema(map[string]*schema.Schema{
+			"project_id": {
+				Type:         schema.TypeString,
+				ValidateFunc: validation.IsUUID,
+				Required:     true,
+				ForceNew:     true,
+			},
+			"release_definition_id": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				ForceNew: true,
+			},
+		}),
+	}
+}
+
+func resourceReleaseDefinitionPermissionsCreateOrUpdate(d *schema.ResourceData, m interface{}) error {
+	clients := m.(*client.AggregatedClient)
+
+	sn, err := securityhelper.NewSecurityNamespace(d, clients, securityhelper.SecurityNamespaceIDValues.ReleaseManagement2, createReleaseDefinitionToken)
+	if err != nil {
+		return err
+	}
+
+	if err := securityhelper.SetPrincipalPermissions(d, sn, nil, false); err != nil {
+		return err
+	}
+
+	return resourceReleaseDefinitionPermissionsRead(d, m)
+}
+
+func resourceReleaseDefinitionPermissionsRead(d *schema.ResourceData, m interface{}) error {
+	clients := m.(*client.AggregatedClient)
+
+	sn, err := securityhelper.NewSecurityNamespace(d, clients, securityhelper.SecurityNamespaceIDValues.ReleaseManagement2, createReleaseDefinitionToken)
+	if err != nil {
+		if utils.ResponseWasNotFound(err) {
+			d.SetId("")
+			return nil
+		}
+		return err
+	}
+
+	principalPermissions, err := securityhelper.GetPrincipalPermissions(d, sn)
+	if err != nil {
+		return err
+	}
+	if principalPermissions == nil {
+		d.SetId("")
+		log.Printf("[INFO] Permissions for ACL token %q not found. Removing from state", sn.GetToken())
+		return nil
+	}
+
+	d.Set("permissions", principalPermissions.Permissions)
+	return nil
+}
+
+func resourceReleaseDefinitionPermissionsDelete(d *schema.ResourceData, m interface{}) error {
+	clients := m.(*client.AggregatedClient)
+
+	sn, err := securityhelper.NewSecurityNamespace(d, clients, securityhelper.SecurityNamespaceIDValues.ReleaseManagement2, createReleaseDefinitionToken)
+	if err != nil {
+		return err
+	}
+
+	if err := securityhelper.SetPrincipalPermissions(d, sn, &securityhelper.PermissionTypeValues.NotSet, true); err != nil {
+		return err
+	}
+	return nil
+}
 
 // createReleaseDefinitionToken creates the ACL token for a release definition permission
 // in the ReleaseManagement2 security namespace.
