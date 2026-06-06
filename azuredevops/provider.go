@@ -178,6 +178,8 @@ func Provider() *schema.Provider {
 			"betterado_workitemtrackingprocess_rule":                workitemtrackingprocess.ResourceRule(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
+			"betterado_release_definition":                    release.DataReleaseDefinition(),
+			"betterado_release_definitions":                   release.DataReleaseDefinitions(),
 			"betterado_agent_pool":                            taskagent.DataAgentPool(),
 			"betterado_agent_pools":                           taskagent.DataAgentPools(),
 			"betterado_agent_queue":                           taskagent.DataAgentQueue(),
