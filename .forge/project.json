@@ -15,6 +15,18 @@
     "bash", "-c",
     "make fmt && make terrafmt"
   ],
+  "$ci_gate_unset_env_comment": "Env vars STRIPPED before ci_gate/ci_fix_cmd run, so the final CI delivery gate mirrors GitHub CI (a clean env) regardless of the cycle env. The serve env sets TF_ACC=1 so per-WI live-acceptance gates run; without stripping it here, `make test` would run the WHOLE live acc suite (env-dependent failures GitHub never sees, because GitHub runs make test without TF_ACC → acc tests skip → green). See forge contract A3.",
+  "ci_gate_unset_env": ["TF_ACC"],
+  "$acceptance_gate_comment": "Live-acceptance-WI requirement (contract C7). betterado behaviour can only be proven against live ADO, so every initiative MUST include ≥1 work item whose quality_gate_cmd targets the acceptance suite (path contains `acceptancetests`). The PM phase HARD-FAILS the cycle if no such WI is emitted — this closes the INIT-2 gap where a resource shipped with no live-acc test. The live test runs as that WI's own per-WI gate (TF_ACC + PAT from the serve env).",
+  "acceptance_gate": {
+    "match": "acceptancetests",
+    "required": true
+  },
+  "$standing_work_item_acs_comment": "Static testing invariants forge appends to EVERY work item (contract A2). Encodes the two-gate model as standing ACs so it no longer depends on per-WI PM judgment. The dev-loop must satisfy both; the reviewer must confirm both.",
+  "standing_work_item_acs": [
+    "Live acceptance: the change is exercised by a TF_ACC acceptance test against real ADO — `terraform apply` → assert the object via the provider read → mandatory idempotency re-plan (`ExpectNonEmptyPlan: false`) → clean `destroy`. New resource/data-source ⇒ a new `TestAcc*`; change to an existing one ⇒ an updated `TestAcc*`.",
+    "CI-equivalent (push-green): the same checks GitHub runs must pass — `make test` (gofmt + whole-module `go test`, NO TF_ACC) + `golangci-lint run ./...` + `make terrafmt-check`. The production resource `.go` carries NO build tag; only `_test.go` files carry `//go:build`; `provider_test.go`'s resource-count list includes any new resource."
+  ],
   "demo": {
     "$shape_comment": "`harness` is the creds-free FLOOR (offline unit run, always available). betterado is NOT a no-web-UI project — it stands up real resources in a live ADO org (creds in secrets.env) visible via the REST API AND the dev.azure.com portal. The richer demo is LIVE EVIDENCE — terraform apply → API GET + portal screenshots → destroy — codified in the ado-demo skill. The forge demo phase should compose that skill; the shape vocab needs a 'live external system + portal screenshots' option (tracked in forge known-gaps).",
     "shape": "harness",
