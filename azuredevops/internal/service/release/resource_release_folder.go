@@ -44,22 +44,17 @@ func ResourceReleaseFolder() *schema.Resource {
 
 func resourceReleaseFolderCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clients := m.(*client.AggregatedClient)
-	projectID := d.Get("project_id").(string)
-	path := d.Get("path").(string)
-	description := d.Get("description").(string)
+	folder, projectID := expandReleaseFolder(d)
 
 	_, err := clients.ReleaseClient.CreateFolder(clients.Ctx, releaseapi.CreateFolderArgs{
-		Folder: &releaseapi.Folder{
-			Path:        converter.String(path),
-			Description: converter.String(description),
-		},
+		Folder:  folder,
 		Project: &projectID,
 	})
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("creating release folder: %w", err))
 	}
 
-	d.SetId(path)
+	d.SetId(*folder.Path)
 	return resourceReleaseFolderRead(ctx, d, m)
 }
 
@@ -121,6 +116,18 @@ func resourceReleaseFolderDelete(ctx context.Context, d *schema.ResourceData, m 
 	}
 
 	return nil
+}
+
+// expandReleaseFolder builds a Folder struct from Terraform resource data.
+func expandReleaseFolder(d *schema.ResourceData) (*releaseapi.Folder, string) {
+	projectID := d.Get("project_id").(string)
+	path := d.Get("path").(string)
+	description := d.Get("description").(string)
+
+	return &releaseapi.Folder{
+		Path:        converter.String(path),
+		Description: converter.String(description),
+	}, projectID
 }
 
 // flattenReleaseFolder writes an API Folder back into Terraform resource data.
