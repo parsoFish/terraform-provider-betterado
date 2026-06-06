@@ -1,7 +1,3 @@
-//go:build (all || resource_release_folder) && !exclude_resource_release_folder
-// +build all resource_release_folder
-// +build !exclude_resource_release_folder
-
 package release
 
 import (
