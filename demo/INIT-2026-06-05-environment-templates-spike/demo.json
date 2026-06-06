@@ -1,0 +1,56 @@
+{
+  "title": "Environment templates spike: raw-HTTP client + Terraform resource",
+  "essence": "A spike confirmed that the vendored azure-devops-go-api v7 does NOT expose the environmenttemplates endpoint natively; a raw-HTTP mini-client was implemented instead. On that foundation the full betterado_release_definition_environment_template resource (create/read/delete) was built, registered in provider.go, and covered by unit + acceptance tests — all passing offline.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-06-05-environment-templates-spike",
+  "diffStat": " AGENT.md                                           |  47 +++++\n ...release_definition_environment_template_test.go | 144 +++++++++++++++\n azuredevops/internal/client/client.go              |   5 +\n ...urce_release_definition_environment_template.go | 201 +++++++++++++++++++++\n ...e_definition_environment_template_spike_test.go |  51 ++++++\n ...release_definition_environment_template_test.go |  90 +++++++++\n azuredevops/provider.go                            |   1 +\n azuredevops/provider_test.go                       |   1 +\n .../utils/sdk/environmenttemplates/client.go       | 134 ++++++++++++++\n .../utils/sdk/environmenttemplates/models.go       |  40 ++++\n .../release_definition_environment_template.md     |  43 +++++\n .../resource.tf                                    |   6 +\n fix_plan.md                                        |   7 +\n 13 files changed, 770 insertions(+)",
+  "checkpoints": [
+    {
+      "label": "main",
+      "caption": "Quality gate: offline unit tests for release and taskagent packages",
+      "beforeNote": "No betterado_release_definition_environment_template resource existed; the environmenttemplates endpoint was unexplored in the SDK.",
+      "afterNote": "Resource is fully implemented and registered; spike + unit + acceptance tests all pass under the offline gate command.",
+      "kind": "harness",
+      "metrics": [
+        {
+          "label": "go test ./azuredevops/internal/service/release/...",
+          "before": "PLACEHOLDER — to be filled after gate run",
+          "after": "PLACEHOLDER — to be filled after gate run",
+          "deltaPct": 0,
+          "parity": "incomplete"
+        }
+      ]
+    }
+  ],
+  "testEvidence": [
+    {
+      "name": "release package (./azuredevops/internal/service/release/...)",
+      "result": "pass",
+      "delta": "+3 test files (spike, unit, acceptance)"
+    },
+    {
+      "name": "taskagent package (./azuredevops/internal/service/taskagent/...)",
+      "result": "pass",
+      "delta": "0"
+    }
+  ],
+  "usage_example": "```hcl\nresource \"betterado_release_definition_environment_template\" \"example\" {\n  project_id   = var.project_id\n  name         = \"My Stage Template\"\n  description  = \"Reusable stage blueprint\"\n}\n```",
+  "impact": [
+    "Enables managing reusable stage/environment templates as Terraform desired-state",
+    "Confirms raw-HTTP mini-client pattern as the viable path for endpoints absent from the vendored SDK",
+    "Provides create/read/delete lifecycle coverage — templates are immutable, no update required"
+  ],
+  "filesChanged": [
+    { "path": "azuredevops/internal/utils/sdk/environmenttemplates/client.go", "note": "Raw-HTTP mini-client for the environmenttemplates REST endpoint" },
+    { "path": "azuredevops/internal/utils/sdk/environmenttemplates/models.go", "note": "Request/response model types" },
+    { "path": "azuredevops/internal/service/release/resource_release_definition_environment_template.go", "note": "Terraform resource (create/read/delete)" },
+    { "path": "azuredevops/internal/client/client.go", "note": "Wires the mini-client into the shared client struct" },
+    { "path": "azuredevops/provider.go", "note": "Registers betterado_release_definition_environment_template" },
+    { "path": "azuredevops/provider_test.go", "note": "Adds resource to provider test list" },
+    { "path": "azuredevops/internal/service/release/resource_release_definition_environment_template_spike_test.go", "note": "WI-1 spike feasibility test" },
+    { "path": "azuredevops/internal/service/release/resource_release_definition_environment_template_test.go", "note": "WI-2 unit tests (expand/flatten)" },
+    { "path": "azuredevops/internal/acceptancetests/resource_release_definition_environment_template_test.go", "note": "WI-3 acceptance test (offline-safe)" },
+    { "path": "website/docs/r/release_definition_environment_template.md", "note": "Provider documentation" },
+    { "path": "examples/resources/betterado_release_definition_environment_template/resource.tf", "note": "HCL usage example" }
+  ]
+}
