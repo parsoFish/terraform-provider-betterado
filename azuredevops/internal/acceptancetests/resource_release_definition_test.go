@@ -496,6 +496,20 @@ resource "betterado_release_definition" "test" {
         rank         = 1
       }
     }
+
+    # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
+    # stage, else create fails with VS402877 ("Pre-approvals or post-approvals
+    # … are empty"). The exhaustive _complete test always carried both; the
+    # minimal fixtures carried only pre and were never live-run (only _complete
+    # was INIT-1's merge gate), so the gap surfaced when every test was finally
+    # run with TF_ACC.
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
   }
 }
 `, base, name)
@@ -548,6 +562,20 @@ resource "betterado_release_definition" "test" {
         rank         = 1
       }
     }
+
+    # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
+    # stage, else create fails with VS402877 ("Pre-approvals or post-approvals
+    # … are empty"). The exhaustive _complete test always carried both; the
+    # minimal fixtures carried only pre and were never live-run (only _complete
+    # was INIT-1's merge gate), so the gap surfaced when every test was finally
+    # run with TF_ACC.
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
   }
 }
 `, base, name)
@@ -583,10 +611,27 @@ resource "betterado_release_definition" "test" {
       }
     }
 
+    # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
+    # stage (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
     deploy_phase {
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
+    }
+
+    # ADO REST 7.2 requires a stage-level retention policy (VS402982).
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
     }
   }
 }
@@ -634,6 +679,20 @@ resource "betterado_release_definition" "test" {
     }
 
     pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
+    # stage, else create fails with VS402877 ("Pre-approvals or post-approvals
+    # … are empty"). The exhaustive _complete test always carried both; the
+    # minimal fixtures carried only pre and were never live-run (only _complete
+    # was INIT-1's merge gate), so the gap surfaced when every test was finally
+    # run with TF_ACC.
+    post_deploy_approval {
       approver {
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true

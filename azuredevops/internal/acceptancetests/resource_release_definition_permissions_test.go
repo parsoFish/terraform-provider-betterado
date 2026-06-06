@@ -12,10 +12,10 @@ import (
 func TestAccReleaseDefinitionPermissions_SetPermissions(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	config := hclReleaseDefinitionPermissions(projectName, map[string]string{
-		"ViewReleases":     "Allow",
-		"EditReleaseStage": "NotSet",
-		"DeleteReleases":   "Deny",
-		"CreateReleases":   "Deny",
+		"ViewReleases":           "Allow",
+		"EditReleaseEnvironment": "NotSet",
+		"DeleteReleases":         "Deny",
+		"CreateReleases":         "Deny",
 	})
 	tfNodeRoot := "betterado_release_definition_permissions.permissions"
 
@@ -33,7 +33,7 @@ func TestAccReleaseDefinitionPermissions_SetPermissions(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "release_definition_id"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.%", "4"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.ViewReleases", "allow"),
-					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.EditReleaseStage", "notset"),
+					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.EditReleaseEnvironment", "notset"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.DeleteReleases", "deny"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.CreateReleases", "deny"),
 				),
@@ -51,16 +51,16 @@ func TestAccReleaseDefinitionPermissions_SetPermissions(t *testing.T) {
 func TestAccReleaseDefinitionPermissions_UpdatePermissions(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	config1 := hclReleaseDefinitionPermissions(projectName, map[string]string{
-		"ViewReleases":     "Deny",
-		"EditReleaseStage": "NotSet",
-		"DeleteReleases":   "Deny",
-		"CreateReleases":   "Deny",
+		"ViewReleases":           "Deny",
+		"EditReleaseEnvironment": "NotSet",
+		"DeleteReleases":         "Deny",
+		"CreateReleases":         "Deny",
 	})
 	config2 := hclReleaseDefinitionPermissions(projectName, map[string]string{
-		"ViewReleases":     "Allow",
-		"EditReleaseStage": "Allow",
-		"DeleteReleases":   "Deny",
-		"CreateReleases":   "NotSet",
+		"ViewReleases":           "Allow",
+		"EditReleaseEnvironment": "Allow",
+		"DeleteReleases":         "Deny",
+		"CreateReleases":         "NotSet",
 	})
 	tfNodeRoot := "betterado_release_definition_permissions.permissions"
 
@@ -78,7 +78,7 @@ func TestAccReleaseDefinitionPermissions_UpdatePermissions(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "release_definition_id"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.%", "4"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.ViewReleases", "deny"),
-					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.EditReleaseStage", "notset"),
+					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.EditReleaseEnvironment", "notset"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.DeleteReleases", "deny"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.CreateReleases", "deny"),
 				),
@@ -98,7 +98,7 @@ func TestAccReleaseDefinitionPermissions_UpdatePermissions(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "release_definition_id"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.%", "4"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.ViewReleases", "allow"),
-					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.EditReleaseStage", "allow"),
+					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.EditReleaseEnvironment", "allow"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.DeleteReleases", "deny"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.CreateReleases", "notset"),
 				),
@@ -150,6 +150,16 @@ resource "betterado_release_definition" "release" {
     }
 
     pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
+    # stage (VS402877) — see resource_release_definition_test.go.
+    post_deploy_approval {
       approver {
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
