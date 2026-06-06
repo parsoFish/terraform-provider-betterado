@@ -1,0 +1,63 @@
+package permissions
+
+// ReleaseDefinitionPermissions — security namespace token format (confirmed via live ADO probe)
+//
+// Namespace: ReleaseManagement2
+// Namespace ID: c788c23e-1b46-4162-8f5e-d7585343b5de
+//
+// Spike methodology (2026-06-06):
+//   - Queried _apis/accesscontrollists/c788c23e-1b46-4162-8f5e-d7585343b5de on org
+//     davidgparsonson; project-level tokens are plain project UUIDs.
+//   - Created a release definition (ID=1) in project 21cff396-a36f-4d05-bccf-91e3a2a8b4bb.
+//   - Verified via POST to _apis/accesscontrolentries/{namespaceId} with
+//     token="21cff396-a36f-4d05-bccf-91e3a2a8b4bb/1" — the API accepted it and
+//     returned a valid ACE (HTTP 200). Subsequent GET confirmed the token exists in the ACL.
+//   - Conclusion: definition-level token = "{projectId}/{releaseDefinitionId}"
+//     (identical structure to the Build namespace, no "ReleaseManagement2/Project/" prefix).
+//
+// Token format:
+//
+//	Project-level:    {projectId}
+//	Definition-level: {projectId}/{releaseDefinitionId}
+//
+// Examples:
+//
+//	"21cff396-a36f-4d05-bccf-91e3a2a8b4bb"    → project-level
+//	"21cff396-a36f-4d05-bccf-91e3a2a8b4bb/7"  → definition ID 7 in that project
+//
+// Note: The "ReleaseManagement2/Project/{projectId}/{definitionId}" format suggested
+// in the WI spec was NOT observed in the live API; the actual format is simpler.
+
+import (
+	"fmt"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+)
+
+// releaseDefinitionTokenFormat is the confirmed token format for ReleaseManagement2.
+// Use fmt.Sprintf(releaseDefinitionTokenFormat, projectID, releaseDefinitionID) to produce
+// a definition-scoped token, or just projectID alone for a project-scoped token.
+const releaseDefinitionTokenFormat = "%s/%d"
+
+// createReleaseDefinitionToken creates the ACL token for a release definition permission
+// in the ReleaseManagement2 security namespace.
+//
+// Token format (confirmed via live probe): "{projectId}/{releaseDefinitionId}"
+// Examples:
+//
+//	projectID="abc123", definitionID=7  →  "abc123/7"
+func createReleaseDefinitionToken(d *schema.ResourceData, _ *client.AggregatedClient) (string, error) {
+	projectID, ok := d.GetOk("project_id")
+	if !ok {
+		return "", fmt.Errorf("failed to get 'project_id' from schema")
+	}
+
+	releaseDefinitionID, ok := d.GetOk("release_definition_id")
+	if !ok {
+		// project-level token (no definition scoping)
+		return projectID.(string), nil
+	}
+
+	return fmt.Sprintf(releaseDefinitionTokenFormat, projectID.(string), releaseDefinitionID.(int)), nil
+}
