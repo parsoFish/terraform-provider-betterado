@@ -122,6 +122,25 @@ func TestSharedReleaseFixture(t *testing.T) {
 		t.Errorf("QA phase types = %v, want runOnServer (agentless)", phaseTypes(qa))
 	}
 
+	// Agent jobs must have a real pool (queue) AND a workflow task (not empty).
+	if agentQueueID(dev) <= 0 {
+		t.Errorf("Dev agent job has no pool/queue assigned (queueId=%d)", agentQueueID(dev))
+	}
+	if !contains(phaseTaskNames(dev), "Command Line") {
+		t.Errorf("Dev agent job has no Command Line task (tasks: %v)", phaseTaskNames(dev))
+	}
+	if !contains(phaseTaskNames(qa), "Delay") {
+		t.Errorf("QA agentless job has no Delay task (tasks: %v)", phaseTaskNames(qa))
+	}
+
+	// Tags: exercise the option; log whether ADO persisted them (the definitions
+	// endpoint is known not to persist tags — informational, not a failure).
+	if def.Tags == nil || len(*def.Tags) == 0 {
+		t.Logf("definition tags did not persist (known ADO definitions-endpoint limitation)")
+	} else {
+		t.Logf("definition tags persisted: %v", *def.Tags)
+	}
+
 	// Non-default, per-stage-distinct retention (default is 30/3/true).
 	assertRetention(t, dev, 7, 2, false)
 	assertRetention(t, qa, 14, 5, true)
@@ -141,6 +160,31 @@ func TestSharedReleaseFixture(t *testing.T) {
 		t.Error("Dev stage has no variables")
 	} else if sec, ok := (*dev.Variables)["STAGE_SECRET"]; !ok || sec.IsSecret == nil || !*sec.IsSecret {
 		t.Error("Dev stage variable STAGE_SECRET missing or not secret")
+	}
+
+	// Env-level (stage-scoped) variable group on QA — the SECOND group.
+	if result.VariableGroup2ID == 0 {
+		t.Error("fixture did not create a second variable group")
+	} else if !containsInt(qa.VariableGroups, result.VariableGroup2ID) {
+		t.Errorf("QA stage variable_groups %v does not link the 2nd group #%d", deref(qa.VariableGroups), result.VariableGroup2ID)
+	}
+
+	// Deployment gates: QA has a pre-deployment gate, Prod has a post-deployment gate.
+	assertHasGate(t, "QA pre", qa.PreDeploymentGates)
+	assertHasGate(t, "Prod post", prod.PostDeploymentGates)
+}
+
+func assertHasGate(t *testing.T, label string, gs *releaseapi.ReleaseDefinitionGatesStep) {
+	t.Helper()
+	if gs == nil {
+		t.Errorf("%s: deployment gates step is nil", label)
+		return
+	}
+	if gs.GatesOptions == nil || gs.GatesOptions.IsEnabled == nil || !*gs.GatesOptions.IsEnabled {
+		t.Errorf("%s: gates not enabled", label)
+	}
+	if gs.Gates == nil || len(*gs.Gates) == 0 {
+		t.Errorf("%s: no gate tasks configured", label)
 	}
 }
 
@@ -227,6 +271,51 @@ func phaseTypes(env releaseapi.ReleaseDefinitionEnvironment) []string {
 		if m, ok := p.(map[string]interface{}); ok {
 			if pt, ok := m["phaseType"].(string); ok {
 				out = append(out, pt)
+			}
+		}
+	}
+	return out
+}
+
+func agentQueueID(env releaseapi.ReleaseDefinitionEnvironment) int {
+	if env.DeployPhases == nil {
+		return 0
+	}
+	for _, p := range *env.DeployPhases {
+		m, ok := p.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		di, ok := m["deploymentInput"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if q, ok := di["queueId"].(float64); ok {
+			return int(q)
+		}
+	}
+	return 0
+}
+
+func phaseTaskNames(env releaseapi.ReleaseDefinitionEnvironment) []string {
+	var out []string
+	if env.DeployPhases == nil {
+		return out
+	}
+	for _, p := range *env.DeployPhases {
+		m, ok := p.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		tasks, ok := m["workflowTasks"].([]interface{})
+		if !ok {
+			continue
+		}
+		for _, tk := range tasks {
+			if tm, ok := tk.(map[string]interface{}); ok {
+				if n, ok := tm["name"].(string); ok {
+					out = append(out, n)
+				}
 			}
 		}
 	}

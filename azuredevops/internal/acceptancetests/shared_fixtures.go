@@ -32,6 +32,7 @@ import (
 	releaseapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/release"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
@@ -46,10 +47,16 @@ type SharedFixtureResult struct {
 	BuildDefinitionID   int
 	VariableGroupID     int
 	ReleaseDefinitionID int
-	// ApproverID is a REAL Azure DevOps identity (the authenticated PAT user),
-	// used as a genuine manual approver on the canonical release definition — not
-	// the zero-UUID automated placeholder. Consumers can assert against it.
+	// ApproverID is a REAL Azure DevOps identity (a project group), used as a
+	// genuine manual approver on the canonical release definition — not the
+	// zero-UUID automated placeholder. Consumers can assert against it.
 	ApproverID string
+	// VariableGroup2ID is a second variable group, linked at STAGE scope (QA) so
+	// the env-level variable_groups option is exercised (ADO forbids linking the
+	// same group at both pipeline and stage scope).
+	VariableGroup2ID int
+	// WorkItemQueryID backs the "Query Work Items" deployment-gate task.
+	WorkItemQueryID string
 }
 
 // Non-default fixture constants. These are deliberately NOT the ADO defaults
@@ -141,14 +148,29 @@ func SharedReleaseFixture(t *testing.T) SharedFixtureResult {
 		}
 	})
 
-	// ── 5. Resolve a REAL approver identity ──────────────────────────────────
+	// ── 5. Create a SECOND variable group (linked at stage scope on QA) ───────
+	vg2 := createFixtureVariableGroup(t, clients, projectID, name+"-2")
+	vg2ID := *vg2.Id
+	t.Cleanup(func() {
+		if err := clients.TaskAgentClient.DeleteVariableGroup(clients.Ctx, taskagent.DeleteVariableGroupArgs{
+			ProjectIds: &[]string{projectID},
+			GroupId:    &vg2ID,
+		}); err != nil {
+			t.Logf("fixture cleanup: DeleteVariableGroup(%d): %v", vg2ID, err)
+		}
+	})
+
+	// ── 6. Create a work-item query (backs the deployment-gate task) ──────────
+	queryID := createFixtureWorkItemQuery(t, clients, projectID, name)
+
+	// ── 7. Resolve a REAL approver identity ───────────────────────────────────
 	// Use a real project group (Project Administrators) as a genuine manual
 	// approver instead of the zero-UUID automated placeholder, so the canonical
 	// definition demonstrates a real approval gate a read-back can prove.
 	approverID := resolveApproverIdentity(t, clients, projectID)
 
-	// ── 6. Create canonical multi-stage release definition ───────────────────
-	relDef := createFixtureReleaseDefinition(t, clients, projectID, buildDefID, vgID, approverID, name)
+	// ── 8. Create canonical multi-stage release definition ────────────────────
+	relDef := createFixtureReleaseDefinition(t, clients, projectID, buildDefID, vgID, vg2ID, approverID, queryID, name)
 	relDefID := *relDef.Id
 
 	t.Cleanup(func() {
@@ -167,6 +189,8 @@ func SharedReleaseFixture(t *testing.T) SharedFixtureResult {
 		VariableGroupID:     vgID,
 		ReleaseDefinitionID: relDefID,
 		ApproverID:          approverID,
+		VariableGroup2ID:    vg2ID,
+		WorkItemQueryID:     queryID,
 	}
 }
 
@@ -202,6 +226,77 @@ func resolveApproverIdentity(t *testing.T, clients *client.AggregatedClient, pro
 		t.Fatalf("SharedReleaseFixture: no usable project group identity found")
 	}
 	return fallback
+}
+
+// resolveAgentQueueID returns the project's "Azure Pipelines" (Microsoft-hosted)
+// agent queue id, for use as the agent job's pool. Every project gets this queue.
+func resolveAgentQueueID(t *testing.T, clients *client.AggregatedClient, projectID string) int {
+	t.Helper()
+	const poolName = "Azure Pipelines"
+	queues, err := clients.TaskAgentClient.GetAgentQueues(clients.Ctx, taskagent.GetAgentQueuesArgs{
+		Project:   &projectID,
+		QueueName: converter.String(poolName),
+	})
+	if err != nil {
+		t.Fatalf("SharedReleaseFixture: GetAgentQueues(%q): %v", poolName, err)
+	}
+	if queues == nil || len(*queues) == 0 || (*queues)[0].Id == nil {
+		t.Fatalf("SharedReleaseFixture: agent queue %q not found in project", poolName)
+	}
+	return *(*queues)[0].Id
+}
+
+// createFixtureWorkItemQuery creates a shared work-item query (under "Shared
+// Queries") whose id backs the "Query Work Items" deployment gate. Deleted with
+// the project, so no separate cleanup is registered.
+func createFixtureWorkItemQuery(t *testing.T, clients *client.AggregatedClient, projectID, name string) string {
+	t.Helper()
+	parent := "Shared Queries"
+	q, err := clients.WorkItemTrackingClient.CreateQuery(clients.Ctx, workitemtracking.CreateQueryArgs{
+		Project: &projectID,
+		Query:   &parent,
+		PostedQuery: &workitemtracking.QueryHierarchyItem{
+			Name:     converter.String(name + "-gate-query"),
+			Wiql:     converter.String("SELECT [System.Id] FROM WorkItems WHERE [System.WorkItemType] = 'Bug'"),
+			IsFolder: converter.Bool(false),
+		},
+	})
+	if err != nil {
+		t.Fatalf("SharedReleaseFixture: CreateQuery: %v", err)
+	}
+	if q == nil || q.Id == nil {
+		t.Fatalf("SharedReleaseFixture: CreateQuery returned no id")
+	}
+	return q.Id.String()
+}
+
+// gatesStep builds a deployment-gates step (a "Query Work Items" gate) with
+// non-default gate options. Used for both pre- and post-deployment gates.
+func gatesStep(queryID string) *releaseapi.ReleaseDefinitionGatesStep {
+	queryTaskID := uuid.MustParse("f1e4b0e6-017e-4819-8a48-ef19ae96e289") // built-in "Query Work Items" gate
+	return &releaseapi.ReleaseDefinitionGatesStep{
+		GatesOptions: &releaseapi.ReleaseDefinitionGatesOptions{
+			IsEnabled:              converter.Bool(true),
+			Timeout:                converter.Int(60),
+			SamplingInterval:       converter.Int(5),
+			StabilizationTime:      converter.Int(0),
+			MinimumSuccessDuration: converter.Int(0),
+		},
+		Gates: &[]releaseapi.ReleaseDefinitionGate{
+			{
+				Tasks: &[]releaseapi.WorkflowTask{
+					{
+						Name:           converter.String("Query Work Items"),
+						TaskId:         &queryTaskID,
+						Version:        converter.String("0.*"),
+						Enabled:        converter.Bool(true),
+						DefinitionType: converter.String("task"),
+						Inputs:         &map[string]string{"queryId": queryID},
+					},
+				},
+			},
+		},
+	}
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -520,14 +615,18 @@ func releaseVariable(value string, isSecret, allowOverride bool) releaseapi.Conf
 }
 
 // agentPhase builds an agentBasedDeployment phase exercising the rich
-// deployment_input surface: agent specification, demands, timeouts, the
-// skip/enable flags, and multiConfiguration parallel execution.
-func agentPhase() map[string]interface{} {
+// deployment_input surface: a real agent POOL/queue, an agent specification (only
+// meaningful on the Microsoft-hosted pool the queue points at), demands, timeouts,
+// the skip/enable flags, multiConfiguration parallel execution, AND a real
+// workflow task (Command Line) so the job is not empty.
+func agentPhase(queueID int) map[string]interface{} {
+	cmdLineTaskID := uuid.MustParse("d9bafed4-0b18-4f58-968d-86655b4d2ce9") // built-in "Command Line" (CmdLine@2)
 	return map[string]interface{}{
 		"name":      "Agent job",
 		"rank":      1,
 		"phaseType": "agentBasedDeployment",
 		"deploymentInput": map[string]interface{}{
+			"queueId":                   queueID,
 			"timeoutInMinutes":          60,
 			"jobCancelTimeoutInMinutes": 5,
 			"condition":                 "succeeded()",
@@ -540,6 +639,19 @@ func agentPhase() map[string]interface{} {
 				"maxNumberOfAgents":     2,
 				"multipliers":           "Configuration",
 				"continueOnError":       false,
+			},
+		},
+		"workflowTasks": []releaseapi.WorkflowTask{
+			{
+				Name:            converter.String("Command Line"),
+				TaskId:          &cmdLineTaskID,
+				Version:         converter.String("2.*"),
+				Enabled:         converter.Bool(true),
+				AlwaysRun:       converter.Bool(false),
+				ContinueOnError: converter.Bool(false),
+				Condition:       converter.String("succeeded()"),
+				DefinitionType:  converter.String("task"),
+				Inputs:          &map[string]string{"script": `echo "Hello from the canonical fixture"`},
 			},
 		},
 	}
@@ -581,18 +693,21 @@ func agentlessPhase() map[string]interface{} {
 // manual approvals with varied approval options, per-stage non-default retention,
 // environment options, execution policy, definition + environment variables, a
 // linked variable group, an artifact, and CD + scheduled triggers.
-func createFixtureReleaseDefinition(t *testing.T, clients *client.AggregatedClient, projectID string, buildDefID, vgID int, approverID, name string) *releaseapi.ReleaseDefinition {
+func createFixtureReleaseDefinition(t *testing.T, clients *client.AggregatedClient, projectID string, buildDefID, vgID, vg2ID int, approverID, queryID, name string) *releaseapi.ReleaseDefinition {
 	t.Helper()
 
 	defName := name + "-release"
 	buildDefIDStr := fmt.Sprintf("%d", buildDefID)
 
-	// ── Stage 1: Dev — agent job (parallel multiConfig), event-triggered, rich env ──
+	// Resolve the hosted agent queue once — used as the agent job pool on Dev/Prod.
+	queueID := resolveAgentQueueID(t, clients, projectID)
+
+	// ── Stage 1: Dev — agent job (pool + spec + task, parallel multiConfig), event-triggered, rich env ──
 	devVars := map[string]releaseapi.ConfigurationVariableValue{
 		"STAGE_PLAIN":  releaseVariable("dev-value", false, true),
 		"STAGE_SECRET": releaseVariable("s3cr3t", true, false),
 	}
-	devPhases := []interface{}{agentPhase()}
+	devPhases := []interface{}{agentPhase(queueID)}
 	devConds := []releaseapi.Condition{stageCondition("ReleaseStarted", "event", "")}
 	// NOTE: the variable group is linked at the DEFINITION level (below). ADO forbids
 	// linking the same group at both pipeline and stage scope, so the stage-level
@@ -611,23 +726,27 @@ func createFixtureReleaseDefinition(t *testing.T, clients *client.AggregatedClie
 		ExecutionPolicy:     executionPolicy(2, 1),
 	}
 
-	// ── Stage 2: QA — agentless job, depends on Dev succeeding ──
+	// ── Stage 2: QA — agentless job, depends on Dev succeeding; pre-deploy GATE +
+	//    a stage-scoped (env-level) variable group ──
 	qaPhases := []interface{}{agentlessPhase()}
 	qaConds := []releaseapi.Condition{stageCondition("Dev", "environmentState", "4")} // 4 = succeeded
+	qaVGs := []int{vg2ID}
 	qa := releaseapi.ReleaseDefinitionEnvironment{
 		Name:                converter.String("QA"),
 		Rank:                converter.Int(2),
 		Conditions:          &qaConds,
+		VariableGroups:      &qaVGs,
 		DeployPhases:        &qaPhases,
 		PreDeployApprovals:  realManualApproval(approverID, 1, approvalOptions("afterGatesAlways", 60, 1, false, true)),
 		PostDeployApprovals: realManualApproval(approverID, 1, nil),
+		PreDeploymentGates:  gatesStep(queryID),
 		RetentionPolicy:     retention(14, 5, true),
 		EnvironmentOptions:  environmentOptions("OnlyOnFailure", false, false, true),
 		ExecutionPolicy:     executionPolicy(1, 0),
 	}
 
 	// ── Stage 3: Prod — agent job, depends on QA succeeding ──
-	prodPhases := []interface{}{agentPhase()}
+	prodPhases := []interface{}{agentPhase(queueID)}
 	prodConds := []releaseapi.Condition{stageCondition("QA", "environmentState", "4")}
 	prod := releaseapi.ReleaseDefinitionEnvironment{
 		Name:                converter.String("Prod"),
@@ -636,6 +755,7 @@ func createFixtureReleaseDefinition(t *testing.T, clients *client.AggregatedClie
 		DeployPhases:        &prodPhases,
 		PreDeployApprovals:  realManualApproval(approverID, 1, approvalOptions("beforeGates", 2880, 1, false, true)),
 		PostDeployApprovals: realManualApproval(approverID, 1, nil),
+		PostDeploymentGates: gatesStep(queryID),
 		RetentionPolicy:     retention(90, 10, true),
 		EnvironmentOptions:  environmentOptions("Never", false, true, false),
 		ExecutionPolicy:     executionPolicy(1, 1),
@@ -682,6 +802,11 @@ func createFixtureReleaseDefinition(t *testing.T, clients *client.AggregatedClie
 		},
 	}
 
+	// Tags — set them to exercise the option. NOTE: ADO's release *definitions*
+	// endpoint is known not to persist tags (they round-trip empty); the read-back
+	// in the smoke test logs whether they survived rather than failing.
+	tags := []string{"fixture", "canonical-release"}
+
 	relDef := &releaseapi.ReleaseDefinition{
 		Name:              converter.String(defName),
 		Path:              converter.String(`\fixtures`), // non-default path
@@ -692,6 +817,7 @@ func createFixtureReleaseDefinition(t *testing.T, clients *client.AggregatedClie
 		Environments:      &envs,
 		Artifacts:         &[]releaseapi.Artifact{artifact},
 		Triggers:          &triggers,
+		Tags:              &tags,
 	}
 
 	created, err := clients.ReleaseClient.CreateReleaseDefinition(clients.Ctx, releaseapi.CreateReleaseDefinitionArgs{
