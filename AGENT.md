@@ -1,41 +1,41 @@
-# Agent Memory — WI-4
+# Unifier Agent Memory — INIT-2026-06-05-release-definition-permissions
 
-> Institutional memory for this work item across Ralph iterations. Read at the start of every iteration; updated at the end.
+> Institutional memory across unifier-Ralph iterations. Read at the start of every iteration; updated at the end.
 
-## Brain context (loaded at iteration 1)
-
-_(no brain context seeded — read theme files yourself if needed; the system prompt has the navigation index.)_
-
-## What I've tried
+## What I tried
 
 _(updated by each iteration — most recent at the top)_
 
-### Iteration 0 (WI-4)
+### Iteration 1 (2026-06-06) — unifier
 
-- Created `azuredevops/internal/acceptancetests/resource_release_definition_permissions_test.go`
-- Modelled on `resource_build_definition_permissions_test.go` (same package, testutils pattern)
-- `TestAccReleaseDefinitionPermissions_SetPermissions`: apply step + idempotency PlanOnly step; 4 permissions on Readers group
-- `TestAccReleaseDefinitionPermissions_UpdatePermissions`: two apply steps (initial + changed values), each followed by idempotency PlanOnly step
-- `hclReleaseDefinitionPermissions` helper: project → betterado_release_definition → Readers group data source → permissions resource
-- Release definition HCL cloned from `hclReleaseDefinitionBasic` (requires retention_policy + pre_deploy_approval for ADO REST 7.2)
-- `release_definition_id = betterado_release_definition.release.id` — the release definition resource's Terraform `id` IS the numeric definition ID as a string; SDK v2 coerces to TypeInt
+**Actions taken:**
 
-## What worked
+1. Read initiative manifest + WI-1 through WI-4 specs. All 4 WIs status: complete.
+2. Verified 5 per-WI commits on branch via `git log --oneline main...HEAD`.
+3. Ran quality gate: `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...` → **GREEN** (release 0.023s, taskagent 0.009s, taskagent/validate 0.004s).
+4. Read impl + test files to confirm actual behaviour (important correction vs spec):
+   - Token format confirmed as `{projectId}/{releaseDefinitionId}` — NOT the `ReleaseManagement2/Project/…` prefix the WI spec hypothesised. Spike proved simpler format.
+   - Unit tests: only `TestReleaseDefinitionPermissions_TokenFormatSpike` exists (no separate CreateToken/error-path tests).
+   - Acceptance tests: only `TestAccReleaseDefinitionPermissions_SetPermissions` (with idempotency step); `UpdatePermissions` was not committed.
+   - `release_definition_id` schema field is `Optional` (supports project-scope and definition-scope tokens).
+5. Authored `demo/INIT-2026-06-05-release-definition-permissions/demo.json` (harness shape, 2 checkpoints, metrics, testEvidence, usage_example, impact, apiDiff, filesChanged, summary).
+6. Ran `forge demo render INIT-2026-06-05-release-definition-permissions --dir demo/…` → DEMO.md + DEMO.html emitted.
+7. Wrote `.forge/pr-description.md` (gitignored; substantive Why/What/How; no `## Demo` section).
+8. Committed skeleton early (`wip: unifier skeleton — demo.json` → ce7a016d), then updated demo.json with accurate facts + re-rendered.
+9. Committed final unifier output + AGENT.md as `feat(INIT-2026-06-05-release-definition-permissions): unify and demo`.
+10. Pushed branch.
 
-- `gofmt -w` cleaned up whitespace in permissions map
-- `go test -list TestAccReleaseDefinitionPermissions ./azuredevops/internal/acceptancetests/` lists both test functions
-- `go build ./azuredevops/internal/acceptancetests/` compiles cleanly
-- `make fmtcheck` and `./scripts/terrafmt.sh` both pass
+**Gate results:**
+- `initiative_gate`: ✅ GREEN
+- `demo_runs_clean`: ✅ (forge demo render exits 0)
+- `pr_self_contained`: expected ✅ (demo.json has all required fields; pr-description.md has substantive sections)
+- `branches_in_sync`: ✅ after push
 
-## What didn't work
-
-- `betterado_release_definition.release.definition_id` — does NOT exist on the release definition resource; the only attribute carrying the integer ID is `.id` (the standard Terraform resource ID)
-
-## Open questions
-
-- Will the live ADO gate confirm that `ViewReleases`, `EditReleaseStage`, `DeleteReleases`, `CreateReleases` are valid permission action names for the ReleaseManagement2 namespace? The live gate will confirm (or reject with the correct names).
+**Scope compliance:** Only touched `demo/INIT-2026-06-05-release-definition-permissions/**` and `AGENT.md`. No out-of-scope files modified.
 
 ## Notes for reflection
 
-- The release definition resource does NOT expose a separate `definition_id` computed attribute — the Terraform `.id` carries the integer definition ID as a string. Future agents must NOT look for `definition_id` on `betterado_release_definition`.
-- Pre-existing build failures in `azuredevops/internal/service/graph` and `azuredevops/internal/service/serviceendpoint` packages are NOT introduced by this initiative (verified on stash).
+- **Token format correction:** The WI spec's initial token hypothesis (`ReleaseManagement2/Project/{projectId}/{definitionId}`) was wrong. The spike proved the correct format is `{projectId}/{releaseDefinitionId}` (no namespace prefix, identical to Build namespace). Brain should update any assumptions about ReleaseManagement2 token format.
+- **Spike-before-build discipline works:** The WI-1 spike WI pattern correctly prevented building on an incorrect token assumption. The pivot cost was zero because the spike ran first.
+- **Acceptance test gap:** WI-4 spec required both `SetPermissions` + `UpdatePermissions` tests, but per-WI agent only committed `SetPermissions`. The unifier does not add scope — flag for the operator to decide if `UpdatePermissions` needs a follow-up initiative.
+- **release_definition_id Optional vs Required:** Schema has `Optional` for `release_definition_id`, supporting both project-scope and definition-scope tokens. This is more flexible than the spec stated (spec said Required). Could be intentional design or a gap — worth noting in the PR for operator review.
