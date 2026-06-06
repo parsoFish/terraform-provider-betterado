@@ -10,6 +10,11 @@
     "bash", "-c",
     "make test && golangci-lint run ./... && make terrafmt-check"
   ],
+  "$ci_fix_cmd_comment": "The project's auto-formatters, applied best-effort before ci_gate runs so the PR is fmt-clean: `make fmt` (gofmt) + `make terrafmt` (HCL in docs/examples). Mirrors the formatting checks ci_gate enforces.",
+  "ci_fix_cmd": [
+    "bash", "-c",
+    "make fmt && make terrafmt"
+  ],
   "demo": {
     "$shape_comment": "`harness` is the creds-free FLOOR (offline unit run, always available). betterado is NOT a no-web-UI project — it stands up real resources in a live ADO org (creds in secrets.env) visible via the REST API AND the dev.azure.com portal. The richer demo is LIVE EVIDENCE — terraform apply → API GET + portal screenshots → destroy — codified in the ado-demo skill. The forge demo phase should compose that skill; the shape vocab needs a 'live external system + portal screenshots' option (tracked in forge known-gaps).",
     "shape": "harness",
