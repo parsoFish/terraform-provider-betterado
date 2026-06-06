@@ -19,7 +19,7 @@
 | metric | before | after | Δ | parity |
 |---|---|---|---|---|
 | TestReleaseFolder suite (5 cases) | N/A — resource did not exist | 5/5 PASS | — | incomplete |
-| go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... | package had 0 folder tests; gate passed on pre-existing tests only | ok (release 0.020s, taskagent 0.007s, taskagent/validate 0.004s) | — | within |
+| go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... | package had 0 folder tests; gate passed on pre-existing tests only | ok (release 0.020s, taskagent 0.008s, taskagent/validate 0.004s) | — | within |
 
 ## API / Behaviour Diff
 
@@ -65,11 +65,11 @@ azuredevops/internal/service/release/resource_release_folder.go    | 145 +++++++
  azuredevops/internal/service/release/resource_release_folder_test.go | 198 +++++++++++++++++
  azuredevops/provider.go                                            |   1 +
  azuredevops/provider_test.go                                       |   1 +
- demo/INIT-2026-06-05-release-folder/DEMO.html                      | 243 +++++++++++++++++++++
- demo/INIT-2026-06-05-release-folder/DEMO.md                        |  90 ++++++++
+ demo/INIT-2026-06-05-release-folder/DEMO.html                      | 244 +++++++++++++++++++++
+ demo/INIT-2026-06-05-release-folder/DEMO.md                        |  91 ++++++++
  demo/INIT-2026-06-05-release-folder/demo.json                      | 109 +++++++++
  examples/resources/betterado_release_folder/main.tf                |   9 +
- 10 files changed, 813 insertions(+), 56 deletions(-)
+ 10 files changed, 809 insertions(+), 55 deletions(-)
 ```
 
 ## Usage
