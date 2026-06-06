@@ -61,11 +61,14 @@ resource with project_id (Required), path (Required), description (Optional) —
 - `examples/resources/betterado_release_folder/main.tf` — HCL usage example
 
 ```
-azuredevops/internal/service/release/resource_release_folder.go     | 154 ++++++++++++++++
- azuredevops/internal/service/release/resource_release_folder_test.go | 198 +++++++++++++++++++++
+azuredevops/internal/service/release/resource_release_folder.go     | 150 +++++++++++++
+ azuredevops/internal/service/release/resource_release_folder_test.go | 198 +++++++++++++++++
  azuredevops/provider.go                            |   1 +
+ demo/INIT-2026-06-05-release-folder/DEMO.html      | 240 +++++++++++++++++++++
+ demo/INIT-2026-06-05-release-folder/DEMO.md        |  87 ++++++++
+ demo/INIT-2026-06-05-release-folder/demo.json      | 109 ++++++++++
  examples/resources/betterado_release_folder/main.tf |   9 +
- 6 files changed, 405 insertions(+), 65 deletions(-)
+ 9 files changed, 823 insertions(+), 56 deletions(-)
 ```
 
 ## Usage
