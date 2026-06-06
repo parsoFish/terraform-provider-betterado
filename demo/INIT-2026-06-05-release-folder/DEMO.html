@@ -112,7 +112,7 @@
     <span><code>INIT-2026-06-05-release-folder</code></span>
     <span>project <strong>terraform-provider-betterado</strong></span>
     <span>before <code>main</code> → after <code>HEAD</code></span>
-    <span>generated 2026-06-06T00:54:22.737Z</span>
+    <span>generated 2026-06-06T01:48:17.474Z</span>
   </div>
   <p class="essence">Adds a new Terraform resource `betterado_release_folder` that manages Azure DevOps release folder hierarchy. Before this change, release folders could not be managed as Terraform desired-state. After this change, operators can create, read, update and delete ADO release folders via HCL; 5 canonical gomock unit tests are green and the full release+taskagent test suite passes.</p>
 </header>
@@ -204,14 +204,15 @@
       <li><code>azuredevops/provider.go</code> <span class="muted">— One-line registration of betterado_release_folder in resource registry</span></li>
       <li><code>examples/resources/betterado_release_folder/main.tf</code> <span class="muted">— HCL usage example</span></li>
     </ul>
-  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>HEAD</code></summary><pre class="diff-stat">azuredevops/internal/service/release/resource_release_folder.go     | 150 +++++++++++++
+  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>HEAD</code></summary><pre class="diff-stat">azuredevops/internal/service/release/resource_release_folder.go    | 145 ++++++++++++
  azuredevops/internal/service/release/resource_release_folder_test.go | 198 +++++++++++++++++
- azuredevops/provider.go                            |   1 +
- demo/INIT-2026-06-05-release-folder/DEMO.html      | 240 +++++++++++++++++++++
- demo/INIT-2026-06-05-release-folder/DEMO.md        |  87 ++++++++
- demo/INIT-2026-06-05-release-folder/demo.json      | 109 ++++++++++
- examples/resources/betterado_release_folder/main.tf |   9 +
- 9 files changed, 823 insertions(+), 56 deletions(-)</pre></details>
+ azuredevops/provider.go                                            |   1 +
+ azuredevops/provider_test.go                                       |   1 +
+ demo/INIT-2026-06-05-release-folder/DEMO.html                      | 243 +++++++++++++++++++++
+ demo/INIT-2026-06-05-release-folder/DEMO.md                        |  90 ++++++++
+ demo/INIT-2026-06-05-release-folder/demo.json                      | 109 +++++++++
+ examples/resources/betterado_release_folder/main.tf                |   9 +
+ 10 files changed, 813 insertions(+), 56 deletions(-)</pre></details>
 </section>
 
 
