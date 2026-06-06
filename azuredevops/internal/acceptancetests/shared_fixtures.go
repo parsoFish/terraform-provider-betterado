@@ -17,6 +17,7 @@ package acceptancetests
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -26,6 +27,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/identity"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/operations"
 	releaseapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/release"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
@@ -44,7 +46,18 @@ type SharedFixtureResult struct {
 	BuildDefinitionID   int
 	VariableGroupID     int
 	ReleaseDefinitionID int
+	// ApproverID is a REAL Azure DevOps identity (the authenticated PAT user),
+	// used as a genuine manual approver on the canonical release definition — not
+	// the zero-UUID automated placeholder. Consumers can assert against it.
+	ApproverID string
 }
+
+// Non-default fixture constants. These are deliberately NOT the ADO defaults
+// (30 days / 3 releases / retain=true, concurrency 1, etc.) so a read-back can
+// PROVE the option was actually configured rather than left at its default.
+const (
+	fixtureApproverTimeoutMin = 1440 // 24h — non-default (default is 43200/30d)
+)
 
 // SharedReleaseFixture provisions a canonical multi-stage release definition
 // and all its prerequisites in a fresh ADO project.
@@ -128,8 +141,14 @@ func SharedReleaseFixture(t *testing.T) SharedFixtureResult {
 		}
 	})
 
-	// ── 5. Create canonical multi-stage release definition ───────────────────
-	relDef := createFixtureReleaseDefinition(t, clients, projectID, buildDefID, name)
+	// ── 5. Resolve a REAL approver identity ──────────────────────────────────
+	// Use a real project group (Project Administrators) as a genuine manual
+	// approver instead of the zero-UUID automated placeholder, so the canonical
+	// definition demonstrates a real approval gate a read-back can prove.
+	approverID := resolveApproverIdentity(t, clients, projectID)
+
+	// ── 6. Create canonical multi-stage release definition ───────────────────
+	relDef := createFixtureReleaseDefinition(t, clients, projectID, buildDefID, vgID, approverID, name)
 	relDefID := *relDef.Id
 
 	t.Cleanup(func() {
@@ -147,7 +166,42 @@ func SharedReleaseFixture(t *testing.T) SharedFixtureResult {
 		BuildDefinitionID:   buildDefID,
 		VariableGroupID:     vgID,
 		ReleaseDefinitionID: relDefID,
+		ApproverID:          approverID,
 	}
+}
+
+// resolveApproverIdentity returns a real Azure DevOps group identity GUID for the
+// project — preferring "Project Administrators" — to use as a genuine manual
+// approver. Uses IdentityClient.ListGroups (a registered location that works with
+// a PAT; GetSelf's location is not registered on this org's vssps host).
+func resolveApproverIdentity(t *testing.T, clients *client.AggregatedClient, projectID string) string {
+	t.Helper()
+	groups, err := clients.IdentityClient.ListGroups(clients.Ctx, identity.ListGroupsArgs{
+		ScopeIds: &projectID,
+	})
+	if err != nil {
+		t.Fatalf("SharedReleaseFixture: IdentityClient.ListGroups: %v", err)
+	}
+	if groups == nil || len(*groups) == 0 {
+		t.Fatalf("SharedReleaseFixture: no project groups found to use as an approver")
+	}
+	fallback := ""
+	for _, g := range *groups {
+		if g.Id == nil {
+			continue
+		}
+		id := g.Id.String()
+		if fallback == "" {
+			fallback = id
+		}
+		if g.ProviderDisplayName != nil && strings.Contains(*g.ProviderDisplayName, "Project Administrators") {
+			return id
+		}
+	}
+	if fallback == "" {
+		t.Fatalf("SharedReleaseFixture: no usable project group identity found")
+	}
+	return fallback
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -385,75 +439,216 @@ func createFixtureVariableGroup(t *testing.T, clients *client.AggregatedClient, 
 	return created
 }
 
-// canonicalApproval returns a ReleaseDefinitionApprovals with a single automated approver.
-// The automated-approver pattern (UUID all-zeros + IsAutomated=true) is the pattern
-// already used throughout the existing HCL acceptance tests.
-// AC2: this is used for BOTH pre- and post-deploy approvals to satisfy VS402877.
-func canonicalApproval() *releaseapi.ReleaseDefinitionApprovals {
-	automated := true
-	rank := 1
+// ── canonical release-definition building blocks ─────────────────────────────
+//
+// Each helper sets DELIBERATELY NON-DEFAULT values so a read-back can prove the
+// option was actually configured. Where ADO requires an approval to satisfy
+// VS402877, we use a REAL manual approver (a genuine identity, IsAutomated=false)
+// — not the zero-UUID automated placeholder — so the definition demonstrates a
+// real approval gate.
+
+// realManualApproval builds an approval step with a real approver identity
+// (IsAutomated=false → a genuine manual gate) plus the supplied approval options.
+func realManualApproval(approverID string, rank int, opts *releaseapi.ApprovalOptions) *releaseapi.ReleaseDefinitionApprovals {
 	return &releaseapi.ReleaseDefinitionApprovals{
 		Approvals: &[]releaseapi.ReleaseDefinitionApprovalStep{
 			{
-				Approver: &webapi.IdentityRef{
-					Id: converter.String("00000000-0000-0000-0000-000000000000"),
-				},
-				IsAutomated: &automated,
-				Rank:        &rank,
+				Approver:    &webapi.IdentityRef{Id: converter.String(approverID)},
+				IsAutomated: converter.Bool(false),
+				Rank:        converter.Int(rank),
+			},
+		},
+		ApprovalOptions: opts,
+	}
+}
+
+func approvalOptions(order string, timeoutMin int, requiredCount int, creatorCanApprove, enforceRevalidation bool) *releaseapi.ApprovalOptions {
+	eo := releaseapi.ApprovalExecutionOrder(order)
+	return &releaseapi.ApprovalOptions{
+		ExecutionOrder:              &eo,
+		TimeoutInMinutes:            converter.Int(timeoutMin),
+		RequiredApproverCount:       converter.Int(requiredCount),
+		ReleaseCreatorCanBeApprover: converter.Bool(creatorCanApprove),
+		EnforceIdentityRevalidation: converter.Bool(enforceRevalidation),
+		AutoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped: converter.Bool(false),
+	}
+}
+
+func retention(days, releases int, retainBuild bool) *releaseapi.EnvironmentRetentionPolicy {
+	return &releaseapi.EnvironmentRetentionPolicy{
+		DaysToKeep:     converter.Int(days),
+		ReleasesToKeep: converter.Int(releases),
+		RetainBuild:    converter.Bool(retainBuild),
+	}
+}
+
+func environmentOptions(emailType string, badge, autoLink, publishStatus bool) *releaseapi.EnvironmentOptions {
+	return &releaseapi.EnvironmentOptions{
+		EmailNotificationType:        converter.String(emailType),
+		SkipArtifactsDownload:        converter.Bool(false),
+		TimeoutInMinutes:             converter.Int(0),
+		EnableAccessToken:            converter.Bool(true),
+		PublishDeploymentStatus:      converter.Bool(publishStatus),
+		BadgeEnabled:                 converter.Bool(badge),
+		AutoLinkWorkItems:            converter.Bool(autoLink),
+		PullRequestDeploymentEnabled: converter.Bool(false),
+	}
+}
+
+func executionPolicy(concurrency, queueDepth int) *releaseapi.EnvironmentExecutionPolicy {
+	return &releaseapi.EnvironmentExecutionPolicy{
+		ConcurrencyCount: converter.Int(concurrency),
+		QueueDepthCount:  converter.Int(queueDepth),
+	}
+}
+
+func stageCondition(name, conditionType, value string) releaseapi.Condition {
+	ct := releaseapi.ConditionType(conditionType)
+	return releaseapi.Condition{
+		Name:          converter.String(name),
+		ConditionType: &ct,
+		Value:         converter.String(value),
+	}
+}
+
+func releaseVariable(value string, isSecret, allowOverride bool) releaseapi.ConfigurationVariableValue {
+	return releaseapi.ConfigurationVariableValue{
+		Value:         converter.String(value),
+		IsSecret:      converter.Bool(isSecret),
+		AllowOverride: converter.Bool(allowOverride),
+	}
+}
+
+// agentPhase builds an agentBasedDeployment phase exercising the rich
+// deployment_input surface: agent specification, demands, timeouts, the
+// skip/enable flags, and multiConfiguration parallel execution.
+func agentPhase() map[string]interface{} {
+	return map[string]interface{}{
+		"name":      "Agent job",
+		"rank":      1,
+		"phaseType": "agentBasedDeployment",
+		"deploymentInput": map[string]interface{}{
+			"timeoutInMinutes":          60,
+			"jobCancelTimeoutInMinutes": 5,
+			"condition":                 "succeeded()",
+			"skipArtifactsDownload":     true,
+			"enableAccessToken":         true,
+			"demands":                   []string{"Agent.Version -gtVersion 2.0"},
+			"agentSpecification":        map[string]interface{}{"identifier": "ubuntu-22.04"},
+			"parallelExecution": map[string]interface{}{
+				"parallelExecutionType": "multiConfiguration",
+				"maxNumberOfAgents":     2,
+				"multipliers":           "Configuration",
+				"continueOnError":       false,
 			},
 		},
 	}
 }
 
-// canonicalRetentionPolicy returns the default retention policy for a stage.
-// AC2: every stage must carry a retention_policy to satisfy VS402982.
-func canonicalRetentionPolicy() *releaseapi.EnvironmentRetentionPolicy {
-	return &releaseapi.EnvironmentRetentionPolicy{
-		DaysToKeep:     converter.Int(30),
-		ReleasesToKeep: converter.Int(3),
-		RetainBuild:    converter.Bool(true),
+// agentlessPhase builds a runOnServer (agentless) phase carrying a server-side
+// Delay workflow task — showcasing a different kind of job. queueId is omitted
+// (agentless jobs have no agent queue).
+func agentlessPhase() map[string]interface{} {
+	delayTaskID := uuid.MustParse("28782b92-5e8e-4458-9751-a71cd1492bae") // built-in "Delay" task
+	return map[string]interface{}{
+		"name":      "Agentless job",
+		"rank":      1,
+		"phaseType": "runOnServer",
+		"deploymentInput": map[string]interface{}{
+			"timeoutInMinutes":          0,
+			"jobCancelTimeoutInMinutes": 1,
+			"condition":                 "succeeded()",
+		},
+		"workflowTasks": []releaseapi.WorkflowTask{
+			{
+				Name:            converter.String("Delay"),
+				TaskId:          &delayTaskID,
+				Version:         converter.String("1.*"),
+				Enabled:         converter.Bool(true),
+				AlwaysRun:       converter.Bool(false),
+				ContinueOnError: converter.Bool(false),
+				Condition:       converter.String("succeeded()"),
+				DefinitionType:  converter.String("task"),
+				Inputs:          &map[string]string{"delayForMinutes": "1"},
+			},
+		},
 	}
 }
 
-// canonicalStage builds a single ReleaseDefinitionEnvironment that satisfies
-// all ADO REST API 7.x validity constraints:
-//   - pre AND post deploy approvals (VS402877)
-//   - retention_policy (VS402982)
-//   - agentBasedDeployment phase (no queue needed — ADO defaults to any available)
-func canonicalStage(stageName string, rank int) releaseapi.ReleaseDefinitionEnvironment {
-	agentPhaseType := "agentBasedDeployment"
-	phaseName := "Agent job"
-	phaseRank := 1
-
-	phase := map[string]interface{}{
-		"name":      phaseName,
-		"rank":      phaseRank,
-		"phaseType": agentPhaseType,
-	}
-	phases := []interface{}{phase}
-
-	return releaseapi.ReleaseDefinitionEnvironment{
-		Name:                converter.String(stageName),
-		Rank:                converter.Int(rank),
-		PreDeployApprovals:  canonicalApproval(),
-		PostDeployApprovals: canonicalApproval(),
-		RetentionPolicy:     canonicalRetentionPolicy(),
-		DeployPhases:        &phases,
-	}
-}
-
-func createFixtureReleaseDefinition(t *testing.T, clients *client.AggregatedClient, projectID string, buildDefID int, name string) *releaseapi.ReleaseDefinition {
+// createFixtureReleaseDefinition builds a MINIMAL-resource, MAXIMAL-option canonical
+// release definition: three stages chained by environmentState conditions (Dev →
+// QA → Prod), exercising agent + agentless jobs, parallel execution, demands, real
+// manual approvals with varied approval options, per-stage non-default retention,
+// environment options, execution policy, definition + environment variables, a
+// linked variable group, an artifact, and CD + scheduled triggers.
+func createFixtureReleaseDefinition(t *testing.T, clients *client.AggregatedClient, projectID string, buildDefID, vgID int, approverID, name string) *releaseapi.ReleaseDefinition {
 	t.Helper()
 
 	defName := name + "-release"
 	buildDefIDStr := fmt.Sprintf("%d", buildDefID)
 
-	// Two-stage canonical release definition: Staging → Production.
-	// AC2: each stage has both pre/post approvals AND a retention_policy.
-	stagingStage := canonicalStage("Staging", 1)
-	productionStage := canonicalStage("Production", 2)
+	// ── Stage 1: Dev — agent job (parallel multiConfig), event-triggered, rich env ──
+	devVars := map[string]releaseapi.ConfigurationVariableValue{
+		"STAGE_PLAIN":  releaseVariable("dev-value", false, true),
+		"STAGE_SECRET": releaseVariable("s3cr3t", true, false),
+	}
+	devPhases := []interface{}{agentPhase()}
+	devConds := []releaseapi.Condition{stageCondition("ReleaseStarted", "event", "")}
+	// NOTE: the variable group is linked at the DEFINITION level (below). ADO forbids
+	// linking the same group at both pipeline and stage scope, so the stage-level
+	// variable_groups option would need a SECOND variable group to showcase — left as
+	// a minimal-resource trade-off (def-level link already proves the capability).
+	dev := releaseapi.ReleaseDefinitionEnvironment{
+		Name:                converter.String("Dev"),
+		Rank:                converter.Int(1),
+		Conditions:          &devConds,
+		Variables:           &devVars,
+		DeployPhases:        &devPhases,
+		PreDeployApprovals:  realManualApproval(approverID, 1, approvalOptions("beforeGates", fixtureApproverTimeoutMin, 1, true, false)),
+		PostDeployApprovals: realManualApproval(approverID, 1, approvalOptions("afterSuccessfulGates", 720, 1, false, false)),
+		RetentionPolicy:     retention(7, 2, false),
+		EnvironmentOptions:  environmentOptions("Always", true, true, true),
+		ExecutionPolicy:     executionPolicy(2, 1),
+	}
 
-	envs := []releaseapi.ReleaseDefinitionEnvironment{stagingStage, productionStage}
+	// ── Stage 2: QA — agentless job, depends on Dev succeeding ──
+	qaPhases := []interface{}{agentlessPhase()}
+	qaConds := []releaseapi.Condition{stageCondition("Dev", "environmentState", "4")} // 4 = succeeded
+	qa := releaseapi.ReleaseDefinitionEnvironment{
+		Name:                converter.String("QA"),
+		Rank:                converter.Int(2),
+		Conditions:          &qaConds,
+		DeployPhases:        &qaPhases,
+		PreDeployApprovals:  realManualApproval(approverID, 1, approvalOptions("afterGatesAlways", 60, 1, false, true)),
+		PostDeployApprovals: realManualApproval(approverID, 1, nil),
+		RetentionPolicy:     retention(14, 5, true),
+		EnvironmentOptions:  environmentOptions("OnlyOnFailure", false, false, true),
+		ExecutionPolicy:     executionPolicy(1, 0),
+	}
+
+	// ── Stage 3: Prod — agent job, depends on QA succeeding ──
+	prodPhases := []interface{}{agentPhase()}
+	prodConds := []releaseapi.Condition{stageCondition("QA", "environmentState", "4")}
+	prod := releaseapi.ReleaseDefinitionEnvironment{
+		Name:                converter.String("Prod"),
+		Rank:                converter.Int(3),
+		Conditions:          &prodConds,
+		DeployPhases:        &prodPhases,
+		PreDeployApprovals:  realManualApproval(approverID, 1, approvalOptions("beforeGates", 2880, 1, false, true)),
+		PostDeployApprovals: realManualApproval(approverID, 1, nil),
+		RetentionPolicy:     retention(90, 10, true),
+		EnvironmentOptions:  environmentOptions("Never", false, true, false),
+		ExecutionPolicy:     executionPolicy(1, 1),
+	}
+
+	envs := []releaseapi.ReleaseDefinitionEnvironment{dev, qa, prod}
+
+	// Definition-level variables + linked variable group.
+	defVars := map[string]releaseapi.ConfigurationVariableValue{
+		"GLOBAL_PLAIN":  releaseVariable("global-value", false, true),
+		"GLOBAL_SECRET": releaseVariable("global-s3cr3t", true, false),
+	}
+	defVGs := []int{vgID}
 
 	// Build artifact ties the release definition to the build definition.
 	artifact := releaseapi.Artifact{
@@ -466,11 +661,37 @@ func createFixtureReleaseDefinition(t *testing.T, clients *client.AggregatedClie
 		},
 	}
 
+	// CD artifact trigger (on new build of _build, main branch) + a scheduled trigger.
+	triggers := []interface{}{
+		map[string]interface{}{
+			"triggerType":   "artifactSource",
+			"artifactAlias": "_build",
+			"triggerConditions": []map[string]interface{}{
+				{"sourceBranch": "refs/heads/main"},
+			},
+		},
+		map[string]interface{}{
+			"triggerType": "schedule",
+			"schedule": map[string]interface{}{
+				"scheduleOnlyWithChanges": true,
+				"startHours":              2,
+				"startMinutes":            0,
+				"timeZoneId":              "UTC",
+				"daysToRelease":           62, // Mon-Fri bitmask
+			},
+		},
+	}
+
 	relDef := &releaseapi.ReleaseDefinition{
-		Name:         converter.String(defName),
-		Path:         converter.String(`\`),
-		Environments: &envs,
-		Artifacts:    &[]releaseapi.Artifact{artifact},
+		Name:              converter.String(defName),
+		Path:              converter.String(`\fixtures`), // non-default path
+		Description:       converter.String("Canonical exhaustive fixture: 3 chained stages, agent + agentless jobs, real approvals, non-default options."),
+		ReleaseNameFormat: converter.String("Release-$(rev:r)"),
+		Variables:         &defVars,
+		VariableGroups:    &defVGs,
+		Environments:      &envs,
+		Artifacts:         &[]releaseapi.Artifact{artifact},
+		Triggers:          &triggers,
 	}
 
 	created, err := clients.ReleaseClient.CreateReleaseDefinition(clients.Ctx, releaseapi.CreateReleaseDefinitionArgs{
