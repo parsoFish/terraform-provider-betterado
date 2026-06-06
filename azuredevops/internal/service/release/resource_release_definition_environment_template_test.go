@@ -24,12 +24,12 @@ func TestReleaseDefinitionEnvironmentTemplate_Expand(t *testing.T) {
 	require.Nil(t, d)
 
 	resourceData := schema.TestResourceDataRaw(t, r.Schema, map[string]interface{}{
-		"project_id":  "00000000-0000-0000-0000-000000000001",
-		"name":        "My Template",
-		"description": "A test template",
-		"category":    "Deploy",
+		"project_id":   "00000000-0000-0000-0000-000000000001",
+		"name":         "My Template",
+		"description":  "A test template",
+		"category":     "Deploy",
 		"icon_task_id": "00000000-0000-0000-0000-000000000002",
-		"environment": "",
+		"environment":  "",
 	})
 
 	template := expandEnvironmentTemplate(resourceData)

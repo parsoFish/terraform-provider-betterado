@@ -14,7 +14,7 @@ import (
 // locationId for the release/definitions/environmenttemplates ADO REST endpoint.
 // Source: ADO REST reference — release resource area, environmenttemplates location.
 // Confirmed by the WI pre-research (WI-1.md §Known context).
-var environmentTemplatesLocationId, _ = uuid.Parse("6b3ad47a-2a42-4e24-9785-e3a0a8e3e64d")
+var environmentTemplatesLocationId, _ = uuid.Parse("6b3ad47a-2a42-4e24-9785-e3a0a8e3e64d") //nolint:errcheck
 
 const apiVersion = "7.1-preview.1"
 

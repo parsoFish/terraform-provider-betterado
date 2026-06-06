@@ -75,10 +75,10 @@ type AggregatedClient struct {
 	WikiClient                    wiki.Client
 	WorkItemTrackingClient        workitemtracking.Client
 	WorkItemTrackingProcessClient workitemtrackingprocess.Client
-	ServiceHooksClient              servicehooks.Client
-	Ctx                             context.Context
-	SecurityRolesClient             securityroles.Client
-	EnvironmentTemplatesClient      environmenttemplates.Client
+	ServiceHooksClient            servicehooks.Client
+	Ctx                           context.Context
+	SecurityRolesClient           securityroles.Client
+	EnvironmentTemplatesClient    environmenttemplates.Client
 }
 
 // GetAzdoClient builds and provides a connection to the Azure DevOps API
@@ -262,10 +262,10 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 		WikiClient:                    wikiClient,
 		WorkItemTrackingClient:        workitemtrackingClient,
 		WorkItemTrackingProcessClient: workitemtrackingprocessClient,
-		ServiceHooksClient:             serviceHooksClient,
-		SecurityRolesClient:            securityRolesClient,
-		EnvironmentTemplatesClient:     environmentTemplatesClient,
-		Ctx:                            ctx,
+		ServiceHooksClient:            serviceHooksClient,
+		SecurityRolesClient:           securityRolesClient,
+		EnvironmentTemplatesClient:    environmentTemplatesClient,
+		Ctx:                           ctx,
 	}
 
 	log.Printf("getAzdoClient(): Created core, build, operations, and serviceendpoint clients successfully!")

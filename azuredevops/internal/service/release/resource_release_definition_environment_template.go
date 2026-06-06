@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/tfhelper"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/environmenttemplates"
 )
 
@@ -22,6 +23,7 @@ func ResourceReleaseDefinitionEnvironmentTemplate() *schema.Resource {
 		CreateContext: resourceReleaseDefinitionEnvironmentTemplateCreate,
 		ReadContext:   resourceReleaseDefinitionEnvironmentTemplateRead,
 		DeleteContext: resourceReleaseDefinitionEnvironmentTemplateDelete,
+		Importer:      tfhelper.ImportProjectQualifiedResourceUUID(),
 		Schema: map[string]*schema.Schema{
 			"project_id": {
 				Type:         schema.TypeString,
