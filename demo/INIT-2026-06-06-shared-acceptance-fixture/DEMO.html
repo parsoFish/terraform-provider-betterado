@@ -117,7 +117,7 @@
     <span><code>INIT-2026-06-06-shared-acceptance-fixture</code></span>
     <span>project <strong>terraform-provider-betterado</strong></span>
     <span>before <code>main</code> → after <code>HEAD</code></span>
-    <span>generated 2026-06-06T09:24:45.310Z</span>
+    <span>generated 2026-06-06T09:34:08.604Z</span>
   </div>
   <p class="essence">A new SharedReleaseFixture helper centralises Azure DevOps project, repo, build-definition, variable-group, and canonical multi-stage release-definition bootstrap that every acceptance test previously hand-rolled inline. The fixture enforces all known ADO REST API 7.x validity constraints (VS402877: both pre- and post-deploy approvals per stage; VS402982: per-stage retention_policy; correct permission key EditReleaseEnvironment). TestAccReleaseDefinition_basic is refactored to consume the shared fixture rather than declaring its own betterado_project inline. All 37 unit tests across the release and taskagent service packages pass.</p>
 </header>
@@ -221,14 +221,20 @@
 <section class="section" id="files-changed">
   <h2>Files Changed</h2>
   <ul class="files-list">
-      <li><code>azuredevops/internal/acceptancetests/shared_fixtures.go</code> <span class="muted">— New: SharedReleaseFixture helper (464 lines) — provisions and cleans up a full ADO object graph valid against ADO REST API 7.x</span></li>
+      <li><code>azuredevops/internal/acceptancetests/shared_fixtures.go</code> <span class="muted">— New: SharedReleaseFixture helper (484 lines) — provisions and cleans up a full ADO object graph valid against ADO REST API 7.x</span></li>
       <li><code>azuredevops/internal/acceptancetests/shared_fixtures_test.go</code> <span class="muted">— New: TestSharedReleaseFixture smoke test (82 lines) — verifies non-zero IDs and per-stage approval/retention correctness via API read-back</span></li>
       <li><code>azuredevops/internal/acceptancetests/resource_release_definition_test.go</code> <span class="muted">— Updated: TestAccReleaseDefinition_basic now calls SharedReleaseFixture(t) and uses hclReleaseDefinitionBasicFixture; adds 56 lines, removes 1</span></li>
+      <li><code>demo/INIT-2026-06-06-shared-acceptance-fixture/demo.json</code> <span class="muted">— New: structured demo source (115 lines) — authored by unifier</span></li>
+      <li><code>demo/INIT-2026-06-06-shared-acceptance-fixture/DEMO.md</code> <span class="muted">— New: derived demo markdown (103 lines) — rendered from demo.json</span></li>
+      <li><code>demo/INIT-2026-06-06-shared-acceptance-fixture/DEMO.html</code> <span class="muted">— New: derived demo HTML (278 lines) — rendered from demo.json</span></li>
     </ul>
-  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>HEAD</code></summary><pre class="diff-stat">azuredevops/internal/acceptancetests/resource_release_definition_test.go |  56 ++-
- azuredevops/internal/acceptancetests/shared_fixtures.go                   | 464 +++++++++++++++++++++
- azuredevops/internal/acceptancetests/shared_fixtures_test.go              |  82 ++++
- 3 files changed, 601 insertions(+), 1 deletion(-)</pre></details>
+  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>HEAD</code></summary><pre class="diff-stat">.../resource_release_definition_test.go            |  56 +++
+ .../internal/acceptancetests/shared_fixtures.go    | 484 +++++++++++++++++++++
+ .../acceptancetests/shared_fixtures_test.go        |  82 ++++
+ .../DEMO.html                                      | 278 ++++++++++++
+ .../DEMO.md                                        | 103 +++++
+ .../demo.json                                      | 115 +++++
+ 6 files changed, 1117 insertions(+), 1 deletion(-)</pre></details>
 </section>
 
 

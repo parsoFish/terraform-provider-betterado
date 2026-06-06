@@ -5,7 +5,7 @@
   "initiativeId": "INIT-2026-06-06-shared-acceptance-fixture",
   "baseRef": "main",
   "changedRef": "HEAD",
-  "diffStat": " azuredevops/internal/acceptancetests/resource_release_definition_test.go |  56 ++-\n azuredevops/internal/acceptancetests/shared_fixtures.go                   | 464 +++++++++++++++++++++\n azuredevops/internal/acceptancetests/shared_fixtures_test.go              |  82 ++++\n 3 files changed, 601 insertions(+), 1 deletion(-)",
+  "diffStat": " .../resource_release_definition_test.go            |  56 +++\n .../internal/acceptancetests/shared_fixtures.go    | 484 +++++++++++++++++++++\n .../acceptancetests/shared_fixtures_test.go        |  82 ++++\n .../DEMO.html                                      | 278 ++++++++++++\n .../DEMO.md                                        | 103 +++++\n .../demo.json                                      | 115 +++++\n 6 files changed, 1117 insertions(+), 1 deletion(-)",
   "checkpoints": [
     {
       "label": "Quality gate — release + taskagent service packages",
@@ -93,7 +93,7 @@
   "filesChanged": [
     {
       "path": "azuredevops/internal/acceptancetests/shared_fixtures.go",
-      "note": "New: SharedReleaseFixture helper (464 lines) — provisions and cleans up a full ADO object graph valid against ADO REST API 7.x"
+      "note": "New: SharedReleaseFixture helper (484 lines) — provisions and cleans up a full ADO object graph valid against ADO REST API 7.x"
     },
     {
       "path": "azuredevops/internal/acceptancetests/shared_fixtures_test.go",
@@ -102,6 +102,18 @@
     {
       "path": "azuredevops/internal/acceptancetests/resource_release_definition_test.go",
       "note": "Updated: TestAccReleaseDefinition_basic now calls SharedReleaseFixture(t) and uses hclReleaseDefinitionBasicFixture; adds 56 lines, removes 1"
+    },
+    {
+      "path": "demo/INIT-2026-06-06-shared-acceptance-fixture/demo.json",
+      "note": "New: structured demo source (115 lines) — authored by unifier"
+    },
+    {
+      "path": "demo/INIT-2026-06-06-shared-acceptance-fixture/DEMO.md",
+      "note": "New: derived demo markdown (103 lines) — rendered from demo.json"
+    },
+    {
+      "path": "demo/INIT-2026-06-06-shared-acceptance-fixture/DEMO.html",
+      "note": "New: derived demo HTML (278 lines) — rendered from demo.json"
     }
   ],
   "summary": {

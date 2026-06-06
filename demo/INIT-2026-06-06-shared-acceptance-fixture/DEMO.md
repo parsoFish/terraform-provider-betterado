@@ -55,15 +55,21 @@
 
 ## Files Changed
 
-- `azuredevops/internal/acceptancetests/shared_fixtures.go` — New: SharedReleaseFixture helper (464 lines) — provisions and cleans up a full ADO object graph valid against ADO REST API 7.x
+- `azuredevops/internal/acceptancetests/shared_fixtures.go` — New: SharedReleaseFixture helper (484 lines) — provisions and cleans up a full ADO object graph valid against ADO REST API 7.x
 - `azuredevops/internal/acceptancetests/shared_fixtures_test.go` — New: TestSharedReleaseFixture smoke test (82 lines) — verifies non-zero IDs and per-stage approval/retention correctness via API read-back
 - `azuredevops/internal/acceptancetests/resource_release_definition_test.go` — Updated: TestAccReleaseDefinition_basic now calls SharedReleaseFixture(t) and uses hclReleaseDefinitionBasicFixture; adds 56 lines, removes 1
+- `demo/INIT-2026-06-06-shared-acceptance-fixture/demo.json` — New: structured demo source (115 lines) — authored by unifier
+- `demo/INIT-2026-06-06-shared-acceptance-fixture/DEMO.md` — New: derived demo markdown (103 lines) — rendered from demo.json
+- `demo/INIT-2026-06-06-shared-acceptance-fixture/DEMO.html` — New: derived demo HTML (278 lines) — rendered from demo.json
 
 ```
-azuredevops/internal/acceptancetests/resource_release_definition_test.go |  56 ++-
- azuredevops/internal/acceptancetests/shared_fixtures.go                   | 464 +++++++++++++++++++++
- azuredevops/internal/acceptancetests/shared_fixtures_test.go              |  82 ++++
- 3 files changed, 601 insertions(+), 1 deletion(-)
+.../resource_release_definition_test.go            |  56 +++
+ .../internal/acceptancetests/shared_fixtures.go    | 484 +++++++++++++++++++++
+ .../acceptancetests/shared_fixtures_test.go        |  82 ++++
+ .../DEMO.html                                      | 278 ++++++++++++
+ .../DEMO.md                                        | 103 +++++
+ .../demo.json                                      | 115 +++++
+ 6 files changed, 1117 insertions(+), 1 deletion(-)
 ```
 
 ## Usage
