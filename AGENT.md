@@ -1,4 +1,4 @@
-# Agent Memory — WI-2
+# Agent Memory — WI-3
 
 > Institutional memory for this work item across Ralph iterations. Read at the start of every iteration; updated at the end.
 
@@ -8,47 +8,40 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 ## What I've tried
 
-### Iteration 1 (complete)
+_(updated by each iteration — most recent at the top)_
 
-- Read WI-2.md, AGENT.md, fix_plan.md, and prior commit log.
-- WI-1 committed the mini-client at `azuredevops/utils/sdk/environmenttemplates/` (NOT `azuredevops/internal/utils/sdk/…` — note the path differs from what the spike test import path references; the correct path is `azuredevops/utils/sdk/environmenttemplates/`).
-- Created `azuredevops/internal/service/release/resource_release_definition_environment_template.go` with:
-  - `ResourceReleaseDefinitionEnvironmentTemplate()` — no `UpdateContext` (immutable).
-  - Schema: `project_id` (Required, ForceNew), `name` (Required, ForceNew), `description` (Optional, ForceNew), `category` (Optional, ForceNew), `environment` (Optional, ForceNew), `icon_task_id` (Optional, ForceNew), `can_delete` (Computed), `icon_uri` (Computed).
-  - `expandEnvironmentTemplate(d *schema.ResourceData)` → `*ReleaseDefinitionEnvironmentTemplate`.
-  - `flattenEnvironmentTemplate(template, d)` → populates state.
-  - CRUD handlers using `clients.EnvironmentTemplatesClient`.
-- Created `azuredevops/internal/service/release/resource_release_definition_environment_template_test.go` with:
-  - `TestReleaseDefinitionEnvironmentTemplate_Expand` — PASSES.
-  - `TestReleaseDefinitionEnvironmentTemplate_Flatten` — PASSES.
-  - Uses `schema.TestResourceDataRaw` for offline testing (no mocks needed).
-- Updated `azuredevops/internal/client/client.go`:
-  - Added import for `environmenttemplates`.
-  - Added `EnvironmentTemplatesClient environmenttemplates.Client` field to `AggregatedClient`.
-  - Initialised `environmentTemplatesClient := environmenttemplates.NewClient(ctx, connection)` in `GetAzdoClient`.
-  - Added to `aggregatedClient` struct literal.
-- Updated `azuredevops/provider.go`: added `"betterado_release_definition_environment_template": release.ResourceReleaseDefinitionEnvironmentTemplate()`.
-- Created `docs/resources/release_definition_environment_template.md` and `examples/resources/betterado_release_definition_environment_template/resource.tf`.
-- `go build ./...` — clean.
-- Quality gate `go test -mod=vendor -tags all -count=1 -run TestReleaseDefinitionEnvironmentTemplate_ ./azuredevops/internal/service/release/` — **PASS** (both _Expand and _Flatten tests pass).
-- Committed as `feat: implement betterado_release_definition_environment_template resource (WI-2)`.
-- All 4 ACs are complete.
+### Iteration 1 (this iteration)
+
+- Read WI-3 spec, prior commits (WI-1/WI-2), and existing resource implementation.
+- The acceptance test file did not exist — created it this iteration.
+- Discovered the resource was missing `Importer` — needed for AC2. Added `tfhelper.ImportProjectQualifiedResourceUUID()` because the template ID is a UUID.
+- Created `azuredevops/internal/acceptancetests/resource_release_definition_environment_template_test.go` with:
+  - Build tag: `//go:build (all || resource_release_definition_environment_template) && !exclude_resource_release_definition_environment_template`
+  - `TestAccReleaseDefinitionEnvironmentTemplate_Basic`: apply → idempotency re-plan (`ExpectNonEmptyPlan: false`) → import
+  - `hclReleaseDefinitionEnvironmentTemplateBasic`: creates `betterado_project` + `betterado_release_definition_environment_template`
+  - `checkReleaseDefinitionEnvironmentTemplateExists`: verifies template name in ADO via API
+  - `checkReleaseDefinitionEnvironmentTemplateDestroyed`: verifies template gone after destroy
+- Updated `provider_test.go` resource list to include `betterado_release_definition_environment_template`.
+- Fixed two pre-existing lint issues: `client.go` gofmt misalignment (ran `gofmt -w`), `environmenttemplates/client.go` errcheck (added `//nolint:errcheck`).
+- `make test` passes: gofmt, `go test ./...`, golangci-lint all clean.
+- AC1 and AC2 require live TF_ACC credentials — the gate runner exercises those.
 
 ## What worked
 
-- `schema.TestResourceDataRaw` for offline expand/flatten unit tests — no mock needed, clean pattern.
-- `environmenttemplates.ReleaseDefinitionEnvironmentTemplate` is a type alias for `releaseapi.ReleaseDefinitionEnvironmentTemplate` (defined in `models.go`) — fields: `Name`, `Description`, `Category`, `CanDelete`, `IconUri`, `IconTaskId`, `Id`, `Environment`, `IsDeleted`.
-- The mini-client lives at `azuredevops/utils/sdk/environmenttemplates/` (NOT `internal/utils/sdk/`).
+- `tfhelper.ImportProjectQualifiedResourceUUID()` is the right importer for UUID-ID resources.
+- `testutils.ComputeProjectQualifiedResourceImportID(tfNode)` produces `project_id/id` format aligning with `ImportProjectQualifiedResourceUUID`.
+- `//nolint:errcheck` is the project convention for `uuid.Parse` of known-good constant UUIDs (pattern from `pipelineschecksextras/client.go`).
+- `gofmt -w` on files touched by prior WIs is safe and fixes pre-existing lint issues.
 
 ## What didn't work
 
-_(none — first iteration completed cleanly)_
+_(nothing to report)_
 
 ## Open questions
 
-_(none)_
+- AC1/AC2 can only be verified with live TF_ACC credentials. The code is in place; the gate runner confirms.
 
 ## Notes for reflection
 
-- The `ReleaseDefinitionEnvironmentTemplate` struct has no dedicated Update ADO API; immutability is the correct model (all fields `ForceNew`).
-- `environment` field is stored as a raw string (JSON-encoded `ReleaseDefinitionEnvironment`) — a more ergonomic approach might use a nested TypeList block, but that is scope for a future WI.
+- Acceptance tests for ForceNew-only resources (no Update) need only 3 steps: apply, idempotency re-plan, import — no update step needed.
+- The `serviceendpoint` package has a pre-existing build failure (assignment mismatch in _test.go files) unrelated to this WI.
