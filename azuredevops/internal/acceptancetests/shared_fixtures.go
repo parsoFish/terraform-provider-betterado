@@ -95,9 +95,11 @@ func SharedReleaseFixture(t *testing.T) SharedFixtureResult {
 		if err != nil {
 			return
 		}
-		_ = clients.GitReposClient.DeleteRepository(clients.Ctx, git.DeleteRepositoryArgs{
+		if err := clients.GitReposClient.DeleteRepository(clients.Ctx, git.DeleteRepositoryArgs{
 			RepositoryId: &repoUUID,
-		})
+		}); err != nil {
+			t.Logf("fixture cleanup: DeleteRepository(%s): %v", repoID, err)
+		}
 	})
 
 	// ── 3. Create build definition ───────────────────────────────────────────
@@ -105,10 +107,12 @@ func SharedReleaseFixture(t *testing.T) SharedFixtureResult {
 	buildDefID := *buildDef.Id
 
 	t.Cleanup(func() {
-		_ = clients.BuildClient.DeleteDefinition(clients.Ctx, build.DeleteDefinitionArgs{
+		if err := clients.BuildClient.DeleteDefinition(clients.Ctx, build.DeleteDefinitionArgs{
 			Project:      &projectID,
 			DefinitionId: &buildDefID,
-		})
+		}); err != nil {
+			t.Logf("fixture cleanup: DeleteDefinition(%d): %v", buildDefID, err)
+		}
 	})
 
 	// ── 4. Create variable group ─────────────────────────────────────────────
@@ -116,10 +120,12 @@ func SharedReleaseFixture(t *testing.T) SharedFixtureResult {
 	vgID := *vg.Id
 
 	t.Cleanup(func() {
-		_ = clients.TaskAgentClient.DeleteVariableGroup(clients.Ctx, taskagent.DeleteVariableGroupArgs{
+		if err := clients.TaskAgentClient.DeleteVariableGroup(clients.Ctx, taskagent.DeleteVariableGroupArgs{
 			ProjectIds: &[]string{projectID},
 			GroupId:    &vgID,
-		})
+		}); err != nil {
+			t.Logf("fixture cleanup: DeleteVariableGroup(%d): %v", vgID, err)
+		}
 	})
 
 	// ── 5. Create canonical multi-stage release definition ───────────────────
@@ -127,10 +133,12 @@ func SharedReleaseFixture(t *testing.T) SharedFixtureResult {
 	relDefID := *relDef.Id
 
 	t.Cleanup(func() {
-		_ = clients.ReleaseClient.DeleteReleaseDefinition(clients.Ctx, releaseapi.DeleteReleaseDefinitionArgs{
+		if err := clients.ReleaseClient.DeleteReleaseDefinition(clients.Ctx, releaseapi.DeleteReleaseDefinitionArgs{
 			Project:      &projectID,
 			DefinitionId: &relDefID,
-		})
+		}); err != nil {
+			t.Logf("fixture cleanup: DeleteReleaseDefinition(%d): %v", relDefID, err)
+		}
 	})
 
 	return SharedFixtureResult{
@@ -279,13 +287,25 @@ func deleteFixtureProject(clients *client.AggregatedClient, projectID string) er
 	return nil
 }
 
+// mustParseUUID parses an ADO project/resource UUID inside a fixture, failing the
+// test on a malformed value. Keeps the error checked (errcheck check-blank clean)
+// while still being usable inline in a struct literal.
+func mustParseUUID(t *testing.T, s string) uuid.UUID {
+	t.Helper()
+	id, err := uuid.Parse(s)
+	if err != nil {
+		t.Fatalf("fixture: parsing UUID %q: %v", s, err)
+	}
+	return id
+}
+
 func createFixtureRepo(t *testing.T, clients *client.AggregatedClient, projectID, name string) *git.GitRepository {
 	t.Helper()
 	repo, err := clients.GitReposClient.CreateRepository(clients.Ctx, git.CreateRepositoryArgs{
 		GitRepositoryToCreate: &git.GitRepositoryCreateOptions{
 			Name: converter.String(name + "-repo"),
 			Project: &core.TeamProjectReference{
-				Id: func() *uuid.UUID { id, _ := uuid.Parse(projectID); return &id }(),
+				Id: func() *uuid.UUID { id := mustParseUUID(t, projectID); return &id }(),
 			},
 		},
 		Project: &projectID,
@@ -351,7 +371,7 @@ func createFixtureVariableGroup(t *testing.T, clients *client.AggregatedClient, 
 				Name:        converter.String(vgName),
 				Description: converter.String("shared fixture variable group"),
 				ProjectReference: &taskagent.ProjectReference{
-					Id: func() *uuid.UUID { id, _ := uuid.Parse(projectID); return &id }(),
+					Id: func() *uuid.UUID { id := mustParseUUID(t, projectID); return &id }(),
 				},
 			},
 		},
