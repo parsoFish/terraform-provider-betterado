@@ -294,3 +294,53 @@ Release definitions can be imported using the project ID and definition ID:
 ```
 terraform import betterado_release_definition.example PROJECT_ID/DEFINITION_ID
 ```
+
+---
+
+# Data Source: betterado_release_definition
+
+Use this data source to look up a release definition by ID or name.
+
+## Example Usage
+
+```hcl
+data "betterado_project" "example" {
+  name = "MyProject"
+}
+
+# Look up by ID
+data "betterado_release_definition" "by_id" {
+  project_id            = data.betterado_project.example.id
+  release_definition_id = 42
+}
+
+# Look up by name
+data "betterado_release_definition" "by_name" {
+  project_id = data.betterado_project.example.id
+  name       = "My Release Pipeline"
+}
+
+output "definition_path" {
+  value = data.betterado_release_definition.by_id.path
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `project_id` - (Required) The ID of the Azure DevOps project (UUID).
+* `release_definition_id` - (Optional) The numeric ID of the release definition. Required if `name` is not set.
+* `name` - (Optional) The name of the release definition. Required if `release_definition_id` is not set.
+
+> **Note:** At least one of `release_definition_id` or `name` must be specified.
+
+## Attributes Reference
+
+In addition to the arguments above, the following attributes are exported:
+
+* `id` - The numeric ID of the release definition.
+* `name` - The name of the release definition (populated when looked up by ID).
+* `path` - The folder path the definition belongs to.
+* `description` - The description of the release definition.
+* `release_name_format` - The format string used for release names (e.g., `Release-$(rev:r)`).
