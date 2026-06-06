@@ -123,18 +123,6 @@ func resourceReleaseFolderDelete(ctx context.Context, d *schema.ResourceData, m 
 	return nil
 }
 
-// expandReleaseFolder builds a Folder struct from Terraform resource data.
-func expandReleaseFolder(d *schema.ResourceData) (*releaseapi.Folder, string) {
-	projectID := d.Get("project_id").(string)
-	path := d.Get("path").(string)
-	description := d.Get("description").(string)
-
-	return &releaseapi.Folder{
-		Path:        converter.String(path),
-		Description: converter.String(description),
-	}, projectID
-}
-
 // flattenReleaseFolder writes an API Folder back into Terraform resource data.
 func flattenReleaseFolder(d *schema.ResourceData, folder *releaseapi.Folder, projectID string) {
 	if folder.Path != nil {
