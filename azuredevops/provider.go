@@ -87,6 +87,7 @@ func Provider() *schema.Provider {
 			"betterado_project_permissions":                         permissions.ResourceProjectPermissions(),
 			"betterado_project_pipeline_settings":                   core.ResourceProjectPipelineSettings(),
 			"betterado_project_tags":                                core.ResourceProjectTag(),
+			"betterado_release_definition_environment_template":     release.ResourceReleaseDefinitionEnvironmentTemplate(),
 			"betterado_release_definition_permissions":              permissions.ResourceReleaseDefinitionPermissions(),
 			"betterado_release_definition":                          release.ResourceReleaseDefinition(),
 			"betterado_release_folder":                              release.ResourceReleaseFolder(),

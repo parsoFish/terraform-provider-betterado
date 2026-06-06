@@ -33,6 +33,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/dashboardextras"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/environmenttemplates"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/organization"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/pipelineschecksextras"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/securityroles"
@@ -74,9 +75,10 @@ type AggregatedClient struct {
 	WikiClient                    wiki.Client
 	WorkItemTrackingClient        workitemtracking.Client
 	WorkItemTrackingProcessClient workitemtrackingprocess.Client
-	ServiceHooksClient            servicehooks.Client
-	Ctx                           context.Context
-	SecurityRolesClient           securityroles.Client
+	ServiceHooksClient              servicehooks.Client
+	Ctx                             context.Context
+	SecurityRolesClient             securityroles.Client
+	EnvironmentTemplatesClient      environmenttemplates.Client
 }
 
 // GetAzdoClient builds and provides a connection to the Azure DevOps API
@@ -230,6 +232,8 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 
 	securityRolesClient := securityroles.NewClient(ctx, connection)
 
+	environmentTemplatesClient := environmenttemplates.NewClient(ctx, connection)
+
 	aggregatedClient := &AggregatedClient{
 		OrganizationURL:               organizationURL,
 		CoreClient:                    coreClient,
@@ -258,9 +262,10 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 		WikiClient:                    wikiClient,
 		WorkItemTrackingClient:        workitemtrackingClient,
 		WorkItemTrackingProcessClient: workitemtrackingprocessClient,
-		ServiceHooksClient:            serviceHooksClient,
-		SecurityRolesClient:           securityRolesClient,
-		Ctx:                           ctx,
+		ServiceHooksClient:             serviceHooksClient,
+		SecurityRolesClient:            securityRolesClient,
+		EnvironmentTemplatesClient:     environmentTemplatesClient,
+		Ctx:                            ctx,
 	}
 
 	log.Printf("getAzdoClient(): Created core, build, operations, and serviceendpoint clients successfully!")
