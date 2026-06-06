@@ -13,7 +13,11 @@ import (
 )
 
 // TestAccReleaseDefinition_basic tests creating and importing a minimal release definition.
+// It uses SharedReleaseFixture (from WI-1) to obtain a pre-provisioned project, repo, and
+// build definition rather than hand-rolling a betterado_project inline.
 func TestAccReleaseDefinition_basic(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+
 	name := testutils.GenerateResourceName()
 	tfNode := "betterado_release_definition.test"
 
@@ -23,7 +27,7 @@ func TestAccReleaseDefinition_basic(t *testing.T) {
 		CheckDestroy: checkReleaseDefinitionDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclReleaseDefinitionBasic(name),
+				Config: hclReleaseDefinitionBasicFixture(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					checkReleaseDefinitionExists(name),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
@@ -458,6 +462,56 @@ resource "betterado_project" "test" {
   work_item_template = "Agile"
 }
 `, name)
+}
+
+// hclReleaseDefinitionBasicFixture creates a minimal release definition with one environment,
+// referencing a fixture-supplied project ID directly (no inline betterado_project block).
+// The fixture (from SharedReleaseFixture / WI-1) owns and cleans up the project, repo,
+// and build definition — this HCL only creates the betterado_release_definition itself.
+//
+// AC2: project_id is the fixture-supplied UUID; no betterado_project resource is emitted here.
+// AC3: retention_policy + pre/post approvals satisfy VS402982 / VS402877.
+func hclReleaseDefinitionBasicFixture(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  environment {
+    name = "Production"
+    rank = 1
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
+}
+`, name, fixture.ProjectID)
 }
 
 // hclReleaseDefinitionBasic creates a minimal release definition with one environment.
