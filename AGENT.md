@@ -1,47 +1,38 @@
-# Agent Memory — WI-3
+# Unifier Agent Memory — INIT-2026-06-05-environment-templates-spike
 
-> Institutional memory for this work item across Ralph iterations. Read at the start of every iteration; updated at the end.
+> Institutional memory across unifier-Ralph iterations. Read at the start of every iteration; updated at the end.
 
-## Brain context (loaded at iteration 1)
-
-_(no brain context seeded — read theme files yourself if needed; the system prompt has the navigation index.)_
-
-## What I've tried
+## What I tried
 
 _(updated by each iteration — most recent at the top)_
 
-### Iteration 1 (this iteration)
+### Iteration 1 (initial prep)
 
-- Read WI-3 spec, prior commits (WI-1/WI-2), and existing resource implementation.
-- The acceptance test file did not exist — created it this iteration.
-- Discovered the resource was missing `Importer` — needed for AC2. Added `tfhelper.ImportProjectQualifiedResourceUUID()` because the template ID is a UUID.
-- Created `azuredevops/internal/acceptancetests/resource_release_definition_environment_template_test.go` with:
-  - Build tag: `//go:build (all || resource_release_definition_environment_template) && !exclude_resource_release_definition_environment_template`
-  - `TestAccReleaseDefinitionEnvironmentTemplate_Basic`: apply → idempotency re-plan (`ExpectNonEmptyPlan: false`) → import
-  - `hclReleaseDefinitionEnvironmentTemplateBasic`: creates `betterado_project` + `betterado_release_definition_environment_template`
-  - `checkReleaseDefinitionEnvironmentTemplateExists`: verifies template name in ADO via API
-  - `checkReleaseDefinitionEnvironmentTemplateDestroyed`: verifies template gone after destroy
-- Updated `provider_test.go` resource list to include `betterado_release_definition_environment_template`.
-- Fixed two pre-existing lint issues: `client.go` gofmt misalignment (ran `gofmt -w`), `environmenttemplates/client.go` errcheck (added `//nolint:errcheck`).
-- `make test` passes: gofmt, `go test ./...`, golangci-lint all clean.
-- AC1 and AC2 require live TF_ACC credentials — the gate runner exercises those.
+**Verified branch state:**
+- `git log --oneline main...HEAD` showed 5 commits: WI-1 (spike), WI-2 (resource), WI-3 (acceptance test), plus AGENT/fix_plan updates.
+- `git diff --stat main...HEAD`: 14 files changed, 826 insertions(+).
 
-## What worked
+**Quality gate ran green:**
+- `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...`
+- release: ok 0.019s (36 tests), taskagent: ok 0.007s (21 tests), taskagent/validate: ok 0.003s (7 tests).
+- 3 new tests in release package: TestReleaseDefinitionEnvironmentTemplateSpike, TestReleaseDefinitionEnvironmentTemplate_Expand, TestReleaseDefinitionEnvironmentTemplate_Flatten — all PASS.
 
-- `tfhelper.ImportProjectQualifiedResourceUUID()` is the right importer for UUID-ID resources.
-- `testutils.ComputeProjectQualifiedResourceImportID(tfNode)` produces `project_id/id` format aligning with `ImportProjectQualifiedResourceUUID`.
-- `//nolint:errcheck` is the project convention for `uuid.Parse` of known-good constant UUIDs (pattern from `pipelineschecksextras/client.go`).
-- `gofmt -w` on files touched by prior WIs is safe and fixes pre-existing lint issues.
+**Demo authored:**
+- Written `demo/INIT-2026-06-05-environment-templates-spike/demo.json` (harness shape) with:
+  - 2 checkpoints: "Quality gate" (harness + metrics) + "Feasibility spike" (harness narrative)
+  - 5 testEvidence rows
+  - usage_example (HCL), impact (4 bullets), apiDiff, filesChanged, summary
+- `forge demo render` CLI has a CWD path resolution bug (reports "not found" despite file existing); used `renderDemoBundle` directly via node to generate DEMO.md + DEMO.html — both written.
 
-## What didn't work
+**PR description written at `.forge/pr-description.md`** (gitignored — no git tracking).
 
-_(nothing to report)_
+**Committed:** `wip: unifier skeleton` (initial demo.json) + final `feat(INIT-2026-06-05-environment-templates-spike): unify and demo` (refined demo.json + DEMO.md + DEMO.html + AGENT.md + fix_plan.md).
 
-## Open questions
+**Pushed** to origin.
 
-- AC1/AC2 can only be verified with live TF_ACC credentials. The code is in place; the gate runner confirms.
+**Known issue:** `forge demo render <id>` exits 1 with misleading "demo.json not found" even when the file is present — appears to be a CWD resolution issue in the CLI wrapper. Workaround: call `renderDemoBundle` directly via node. Flag for reflector.
 
 ## Notes for reflection
 
-- Acceptance tests for ForceNew-only resources (no Update) need only 3 steps: apply, idempotency re-plan, import — no update step needed.
-- The `serviceendpoint` package has a pre-existing build failure (assignment mismatch in _test.go files) unrelated to this WI.
+- `forge demo render` CLI path resolution is broken in this worktree context — the underlying `renderDemoBundle` TS function works fine when called directly. The CLI likely resolves the path relative to a different cwd than expected (the forge module root vs. the worktree root). Should be investigated and fixed in the forge CLI.
+- All 3 WI per-loop devs delivered complete, committed work. No unifier-side fixes were needed to the implementation code.
