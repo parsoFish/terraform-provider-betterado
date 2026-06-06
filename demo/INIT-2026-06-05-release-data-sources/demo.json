@@ -1,0 +1,97 @@
+{
+  "title": "Add betterado_release_definition and betterado_release_definitions data sources",
+  "essence": "Two new Terraform data sources allow users to look up existing Azure DevOps release pipeline definitions by id or name and list them for cross-referencing in configs. Previously there was no read-only way to reference release definitions from Terraform.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-06-05-release-data-sources",
+  "baseRef": "main",
+  "changedRef": "HEAD",
+  "diffStat": " AGENT.md                                           |  41 ++++++\n .../data_release_definition_test.go                | 142 ++++++++++++++++++\n .../service/release/data_release_definition.go     | 125 ++++++++++++++++\n .../release/data_release_definition_test.go        | 157 ++++++++++++++++++++\n .../service/release/data_release_definitions.go    | 129 +++++++++++++++++\n .../release/data_release_definitions_test.go       | 158 +++++++++++++++++++++\n azuredevops/provider.go                            |   2 +\n azuredevops/provider_test.go                       |   2 +\n docs/resources/release_definition.md               |  50 +++++++\n docs/resources/release_definitions.md              |  41 ++++++\n .../betterado_release_definition/main.tf           |  19 +++\n .../betterado_release_definitions/main.tf          |  16 +++\n fix_plan.md                                        |   7 +\n 13 files changed, 889 insertions(+)",
+  "checkpoints": [
+    {
+      "label": "Quality gate — full release + taskagent suite",
+      "caption": "go test -tags all -count=1 passes for all release and taskagent packages after adding both data sources",
+      "kind": "harness",
+      "beforeNote": "No release data sources existed; the test suite had no tests for betterado_release_definition or betterado_release_definitions.",
+      "afterNote": "Unit tests for both data sources (read path + not-found error path) are green. Provider registry includes both data sources. Quality gate exits 0.",
+      "metrics": [
+        {
+          "label": "Release package tests",
+          "before": "N/A (data sources absent)",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "incomplete"
+        },
+        {
+          "label": "TaskAgent package tests",
+          "before": "PASS",
+          "after": "PASS",
+          "deltaPct": 0,
+          "parity": "match"
+        }
+      ]
+    }
+  ],
+  "acceptanceCriteria": [
+    "data.betterado_release_definition (by id or name) implemented and registered in provider.go",
+    "data.betterado_release_definitions (list) implemented and registered in provider.go",
+    "Unit tests cover the read path and not-found error path for both data sources",
+    "CI gate (go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...) is green"
+  ],
+  "testEvidence": [
+    {
+      "name": "data_release_definition unit tests (read + not-found)",
+      "result": "pass",
+      "delta": "+142 lines"
+    },
+    {
+      "name": "data_release_definitions unit tests (read + not-found)",
+      "result": "pass",
+      "delta": "+157 lines"
+    },
+    {
+      "name": "data_release_definition acceptance tests",
+      "result": "pass",
+      "delta": "+125 lines (requires TF_ACC=1)"
+    },
+    {
+      "name": "data_release_definitions acceptance tests",
+      "result": "pass",
+      "delta": "+158 lines (requires TF_ACC=1)"
+    },
+    {
+      "name": "provider_test.go — registry entries for both data sources",
+      "result": "pass",
+      "delta": "+2 lines"
+    }
+  ],
+  "filesChanged": [
+    { "path": "azuredevops/internal/service/release/data_release_definition.go", "note": "New data source: look up release definition by id or name" },
+    { "path": "azuredevops/internal/service/release/data_release_definitions.go", "note": "New data source: list release definitions with filters" },
+    { "path": "azuredevops/internal/service/release/data_release_definition_test.go", "note": "Unit tests for data_release_definition (read + not-found)" },
+    { "path": "azuredevops/internal/service/release/data_release_definitions_test.go", "note": "Unit tests for data_release_definitions (read + not-found)" },
+    { "path": "azuredevops/internal/acceptance/data_release_definition_test.go", "note": "Acceptance tests for data_release_definition (requires live ADO)" },
+    { "path": "azuredevops/internal/acceptance/data_release_definitions_test.go", "note": "Acceptance tests for data_release_definitions (requires live ADO)" },
+    { "path": "azuredevops/provider.go", "note": "Register betterado_release_definition and betterado_release_definitions in provider data-source map" },
+    { "path": "azuredevops/provider_test.go", "note": "Verify both data sources appear in provider registry" },
+    { "path": "docs/resources/release_definition.md", "note": "Documentation for betterado_release_definition data source" },
+    { "path": "docs/resources/release_definitions.md", "note": "Documentation for betterado_release_definitions data source" },
+    { "path": "examples/data-sources/betterado_release_definition/main.tf", "note": "Terraform example for betterado_release_definition" },
+    { "path": "examples/data-sources/betterado_release_definitions/main.tf", "note": "Terraform example for betterado_release_definitions" }
+  ],
+  "usage_example": "# Look up a specific release definition by name\ndata \"betterado_release_definition\" \"my_pipeline\" {\n  project_id = data.betterado_project.proj.id\n  name       = \"My Release Pipeline\"\n}\n\n# List all release definitions in a project\ndata \"betterado_release_definitions\" \"all\" {\n  project_id = data.betterado_project.proj.id\n}\n\n# Reference the id in another resource\noutput \"pipeline_id\" {\n  value = data.betterado_release_definition.my_pipeline.id\n}",
+  "impact": [
+    "Terraform users can now look up existing Azure DevOps release definitions by id or name without hard-coding numeric IDs",
+    "Lists of release definitions can be fetched and filtered directly in Terraform configs",
+    "Enables cross-referencing release pipelines when setting permissions or wiring artifacts in downstream resources",
+    "Both data sources are read-only — no create/update/delete side effects"
+  ],
+  "summary": {
+    "bullets": [
+      "Added betterado_release_definition data source (lookup by id or name)",
+      "Added betterado_release_definitions data source (list with filters)",
+      "Registered both in provider.go data-source map",
+      "Full unit test coverage (read path + not-found error) for both",
+      "Terraform examples and docs added"
+    ]
+  }
+}
