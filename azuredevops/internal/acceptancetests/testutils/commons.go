@@ -50,8 +50,13 @@ func ComputeProjectQualifiedResourceImportID(resourceNode string) resource.Impor
 	}
 }
 
-// PreCheck checks that the requisite environment variables are set
+// PreCheck checks that the requisite environment variables are set. It first
+// loads the project's secrets.env (the first-class forge live-validation creds
+// file) so the tests are self-sufficient — they do not depend on the exact env
+// the runner (forge / CI / shell) injects. Already-exported vars still win.
 func PreCheck(t *testing.T, additionalEnvVars *[]string) {
+	loadSecretsEnv()
+
 	requiredEnvVars := []string{
 		"AZDO_ORG_SERVICE_URL",
 		"AZDO_PERSONAL_ACCESS_TOKEN",
@@ -63,11 +68,11 @@ func PreCheck(t *testing.T, additionalEnvVars *[]string) {
 	for _, variable := range requiredEnvVars {
 		if _, ok := os.LookupEnv(variable); !ok {
 			missing = true
-			t.Errorf("`%s` must be set for this acceptance test!", variable)
+			t.Errorf("`%s` must be set for this acceptance test — export it, or add it under this exact name to secrets.env at the repo root!", variable)
 		}
 	}
 	if missing {
-		t.Fatalf("Some environment variables missing.")
+		t.Fatalf("Live acceptance creds missing. Put AZDO_ORG_SERVICE_URL + AZDO_PERSONAL_ACCESS_TOKEN in secrets.env (the project's gitignored live-creds file, using these canonical names) or the shell env.")
 	}
 }
 
