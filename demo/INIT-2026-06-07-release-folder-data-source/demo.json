@@ -5,7 +5,7 @@
   "initiativeId": "INIT-2026-06-07-release-folder-data-source",
   "baseRef": "main",
   "changedRef": "HEAD",
-  "diffStat": " .../acceptancetests/data_release_folder_test.go    | 66 ++++++++++++++++\n .../service/release/data_release_folder.go         | 58 ++++++++++++++\n .../service/release/data_release_folder_test.go    | 88 ++++++++++++++++++++++\n azuredevops/provider.go                            |  1 +\n azuredevops/provider_test.go                       |  1 +\n docs/resources/release_folder.md                   | 77 +++++++++++++++++++\n .../data-sources/betterado_release_folder/main.tf  | 12 +++\n 7 files changed, 303 insertions(+)",
+  "diffStat": " .../acceptancetests/data_release_folder_test.go    |  66 +++++\n .../service/release/data_release_folder.go         |  58 ++++\n .../service/release/data_release_folder_test.go    |  88 +++++++\n azuredevops/provider.go                            |   1 +\n azuredevops/provider_test.go                       |   1 +\n .../DEMO.html                                      | 292 +++++++++++++++++++++\n .../DEMO.md                                        | 122 +++++++++\n .../demo.json                                      | 155 +++++++++++\n docs/resources/release_folder.md                   |  77 ++++++\n .../data-sources/betterado_release_folder/main.tf  |  12 +\n 10 files changed, 872 insertions(+)",
   "acceptanceCriteria": [
     "AC1 (WI-1): dataReleaseFolderRead sets Id=path and populates description when GetFolders returns a matching folder",
     "AC2 (WI-1): dataReleaseFolderRead returns an error containing the path when GetFolders returns an empty slice",

@@ -81,14 +81,17 @@ Required: project_id (string, UUID), path (string). Computed: description (strin
 - `docs/resources/release_folder.md` — Added Data Source section documenting data.betterado_release_folder
 
 ```
-.../acceptancetests/data_release_folder_test.go    | 66 ++++++++++++++++
- .../service/release/data_release_folder.go         | 58 ++++++++++++++
- .../service/release/data_release_folder_test.go    | 88 ++++++++++++++++++++++
- azuredevops/provider.go                            |  1 +
- azuredevops/provider_test.go                       |  1 +
- docs/resources/release_folder.md                   | 77 +++++++++++++++++++
- .../data-sources/betterado_release_folder/main.tf  | 12 +++
- 7 files changed, 303 insertions(+)
+.../acceptancetests/data_release_folder_test.go    |  66 +++++
+ .../service/release/data_release_folder.go         |  58 ++++
+ .../service/release/data_release_folder_test.go    |  88 +++++++
+ azuredevops/provider.go                            |   1 +
+ azuredevops/provider_test.go                       |   1 +
+ .../DEMO.html                                      | 292 +++++++++++++++++++++
+ .../DEMO.md                                        | 122 +++++++++
+ .../demo.json                                      | 155 +++++++++++
+ docs/resources/release_folder.md                   |  77 ++++++
+ .../data-sources/betterado_release_folder/main.tf  |  12 +
+ 10 files changed, 872 insertions(+)
 ```
 
 ## Usage

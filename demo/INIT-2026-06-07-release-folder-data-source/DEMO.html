@@ -117,7 +117,7 @@
     <span><code>INIT-2026-06-07-release-folder-data-source</code></span>
     <span>project <strong>terraform-provider-betterado</strong></span>
     <span>before <code>main</code> → after <code>HEAD</code></span>
-    <span>generated 2026-06-07T03:13:17.945Z</span>
+    <span>generated 2026-06-07T03:22:52.621Z</span>
   </div>
   <p class="essence">Before this change, Terraform configs that did not own a release folder could not reference one. There was no data source — only the resource. After this change, data.betterado_release_folder resolves a folder by project_id + path via the SDK GetFolders call, surfaces its description (and any other API fields), and is registered in the provider so configs can import folder attributes without managing lifecycle.</p>
 </header>
@@ -241,14 +241,17 @@
       <li><code>examples/data-sources/betterado_release_folder/main.tf</code> <span class="muted">— New: minimal usage example</span></li>
       <li><code>docs/resources/release_folder.md</code> <span class="muted">— Added Data Source section documenting data.betterado_release_folder</span></li>
     </ul>
-  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>HEAD</code></summary><pre class="diff-stat">.../acceptancetests/data_release_folder_test.go    | 66 ++++++++++++++++
- .../service/release/data_release_folder.go         | 58 ++++++++++++++
- .../service/release/data_release_folder_test.go    | 88 ++++++++++++++++++++++
- azuredevops/provider.go                            |  1 +
- azuredevops/provider_test.go                       |  1 +
- docs/resources/release_folder.md                   | 77 +++++++++++++++++++
- .../data-sources/betterado_release_folder/main.tf  | 12 +++
- 7 files changed, 303 insertions(+)</pre></details>
+  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>HEAD</code></summary><pre class="diff-stat">.../acceptancetests/data_release_folder_test.go    |  66 +++++
+ .../service/release/data_release_folder.go         |  58 ++++
+ .../service/release/data_release_folder_test.go    |  88 +++++++
+ azuredevops/provider.go                            |   1 +
+ azuredevops/provider_test.go                       |   1 +
+ .../DEMO.html                                      | 292 +++++++++++++++++++++
+ .../DEMO.md                                        | 122 +++++++++
+ .../demo.json                                      | 155 +++++++++++
+ docs/resources/release_folder.md                   |  77 ++++++
+ .../data-sources/betterado_release_folder/main.tf  |  12 +
+ 10 files changed, 872 insertions(+)</pre></details>
 </section>
 
 
