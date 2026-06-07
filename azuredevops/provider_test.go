@@ -159,6 +159,7 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 	expectedDataSources := []string{
 		"betterado_release_definition",
 		"betterado_release_definitions",
+		"betterado_release_folder",
 		"betterado_agent_pool",
 		"betterado_agent_pools",
 		"betterado_agent_queue",
