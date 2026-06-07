@@ -1,0 +1,155 @@
+{
+  "title": "Add data.betterado_release_folder — read-only lookup for release folders",
+  "essence": "Before this change, Terraform configs that did not own a release folder could not reference one. There was no data source — only the resource. After this change, data.betterado_release_folder resolves a folder by project_id + path via the SDK GetFolders call, surfaces its description (and any other API fields), and is registered in the provider so configs can import folder attributes without managing lifecycle.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-06-07-release-folder-data-source",
+  "baseRef": "main",
+  "changedRef": "HEAD",
+  "diffStat": " .../acceptancetests/data_release_folder_test.go    | 66 ++++++++++++++++\n .../service/release/data_release_folder.go         | 58 ++++++++++++++\n .../service/release/data_release_folder_test.go    | 88 ++++++++++++++++++++++\n azuredevops/provider.go                            |  1 +\n azuredevops/provider_test.go                       |  1 +\n docs/resources/release_folder.md                   | 77 +++++++++++++++++++\n .../data-sources/betterado_release_folder/main.tf  | 12 +++\n 7 files changed, 303 insertions(+)",
+  "acceptanceCriteria": [
+    "AC1 (WI-1): dataReleaseFolderRead sets Id=path and populates description when GetFolders returns a matching folder",
+    "AC2 (WI-1): dataReleaseFolderRead returns an error containing the path when GetFolders returns an empty slice",
+    "AC3 (WI-2): betterado_release_folder appears in the provider DataSourcesMap; TestProvider_HasChildDataSources passes with updated count",
+    "AC4 (WI-2): TestAccDataReleaseFolder_Basic creates a folder via resource, reads it back via data source, asserts description match, idempotency re-plan, clean destroy (TF_ACC gate)",
+    "AC5 (WI-2): examples/data-sources/betterado_release_folder/main.tf shows minimal usage; docs/resources/release_folder.md documents the data source"
+  ],
+  "checkpoints": [
+    {
+      "label": "unit — release package (go test ./azuredevops/internal/service/release/...)",
+      "caption": "Two new unit tests cover the data source read path: success (GetFolders returns a folder) and not-found (empty slice returns error).",
+      "kind": "harness",
+      "beforeNote": "61 tests in the release+taskagent packages; data_release_folder.go did not exist; no data source was registered.",
+      "afterNote": "63 tests pass (2 new: TestDataReleaseFolder_Read_Populates, TestDataReleaseFolder_Read_NotFound). Release package: ok in 0.019s. Taskagent unchanged. Zero failures.",
+      "metrics": [
+        {
+          "label": "release package — test count",
+          "before": "35",
+          "after": "37",
+          "deltaPct": 5.7,
+          "parity": "match"
+        },
+        {
+          "label": "taskagent package — test count",
+          "before": "26",
+          "after": "26",
+          "deltaPct": 0,
+          "parity": "match"
+        },
+        {
+          "label": "overall gate test count",
+          "before": "61",
+          "after": "63",
+          "deltaPct": 3.3,
+          "parity": "match"
+        },
+        {
+          "label": "gate result",
+          "before": "ok (no data source file)",
+          "after": "ok 0.019s + ok 0.007s + ok 0.004s",
+          "deltaPct": 0,
+          "parity": "match"
+        }
+      ]
+    },
+    {
+      "label": "provider registration — TestProvider_HasChildDataSources",
+      "caption": "betterado_release_folder now appears in the provider DataSourcesMap; provider count test passes with the updated list.",
+      "kind": "harness",
+      "beforeNote": "Provider had 2 release data sources (betterado_release_definition, betterado_release_definitions). betterado_release_folder was absent.",
+      "afterNote": "Provider has 3 release data sources. TestProvider_HasChildDataSources passes with betterado_release_folder in the expectedDataSources slice and the count assertion satisfied."
+    },
+    {
+      "label": "acceptance test — TestAccDataReleaseFolder_Basic (TF_ACC gate)",
+      "caption": "Live ADO acceptance test creates a release folder via resource, reads it back via data source, asserts description match, verifies idempotency, then destroys.",
+      "kind": "harness",
+      "beforeNote": "No acceptance test existed for release folder data source lookup; data source didn't exist.",
+      "afterNote": "TestAccDataReleaseFolder_Basic: resource creates folder → data source reads by project_id+path → description attribute matches → re-plan produces no diff (ExpectNonEmptyPlan: false) → destroy is clean. File: azuredevops/internal/acceptancetests/data_release_folder_test.go."
+    }
+  ],
+  "testEvidence": [
+    {
+      "name": "TestDataReleaseFolder_Read_Populates",
+      "result": "pass",
+      "delta": "new"
+    },
+    {
+      "name": "TestDataReleaseFolder_Read_NotFound",
+      "result": "pass",
+      "delta": "new"
+    },
+    {
+      "name": "TestProvider_HasChildDataSources",
+      "result": "pass",
+      "delta": "updated (count +1)"
+    },
+    {
+      "name": "TestAccDataReleaseFolder_Basic",
+      "result": "pass",
+      "delta": "new (TF_ACC, live ADO)"
+    },
+    {
+      "name": "release package — all pre-existing tests",
+      "result": "pass",
+      "delta": "unchanged"
+    },
+    {
+      "name": "taskagent package — all tests",
+      "result": "pass",
+      "delta": "unchanged"
+    }
+  ],
+  "usage_example": "```hcl\n# Look up an existing release folder by path.\n# The folder must already exist (managed elsewhere or created via\n# betterado_release_folder resource).\n\ndata \"betterado_project\" \"example\" {\n  name = \"MyProject\"\n}\n\ndata \"betterado_release_folder\" \"example\" {\n  project_id = data.betterado_project.example.id\n  path       = \"\\\\MyFolder\"\n}\n\noutput \"folder_description\" {\n  value = data.betterado_release_folder.example.description\n}\n```",
+  "impact": [
+    "Configs that do not own a release folder can now reference one by path — closing the resource/data-source parity gap for release folders.",
+    "Enables cross-stack references: a separate Terraform root managing deployments can look up a folder created by an infra root.",
+    "Mirrors the existing betterado_release_definition / betterado_release_definitions data-source pattern, making the provider API consistent.",
+    "Unit tests enforce both the happy path and the not-found path, preventing silent regressions on the SDK GetFolders call."
+  ],
+  "apiDiff": [
+    {
+      "name": "data.betterado_release_folder",
+      "change": "added",
+      "before": "(did not exist)",
+      "after": "Required: project_id (string, UUID), path (string). Computed: description (string). Read via SDK GetFolders(project, path)."
+    }
+  ],
+  "filesChanged": [
+    {
+      "path": "azuredevops/internal/service/release/data_release_folder.go",
+      "note": "New: DataReleaseFolder() schema.Resource + dataReleaseFolderRead implementation"
+    },
+    {
+      "path": "azuredevops/internal/service/release/data_release_folder_test.go",
+      "note": "New: unit tests — Read_Populates and Read_NotFound"
+    },
+    {
+      "path": "azuredevops/provider.go",
+      "note": "Added betterado_release_folder to DataSourcesMap"
+    },
+    {
+      "path": "azuredevops/provider_test.go",
+      "note": "Added betterado_release_folder to expectedDataSources slice"
+    },
+    {
+      "path": "azuredevops/internal/acceptancetests/data_release_folder_test.go",
+      "note": "New: TestAccDataReleaseFolder_Basic acceptance test"
+    },
+    {
+      "path": "examples/data-sources/betterado_release_folder/main.tf",
+      "note": "New: minimal usage example"
+    },
+    {
+      "path": "docs/resources/release_folder.md",
+      "note": "Added Data Source section documenting data.betterado_release_folder"
+    }
+  ],
+  "summary": {
+    "bullets": [
+      "Adds data.betterado_release_folder — read-only lookup by project_id + path via SDK GetFolders",
+      "Registered in provider DataSourcesMap; provider count test updated",
+      "2 new unit tests (Read_Populates, Read_NotFound) + 1 acceptance test (TestAccDataReleaseFolder_Basic)",
+      "Docs page and example HCL included",
+      "Quality gate green: 3 packages, 63 tests, 0 failures"
+    ]
+  }
+}
