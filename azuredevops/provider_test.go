@@ -158,6 +158,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 func TestProvider_HasChildDataSources(t *testing.T) {
 	expectedDataSources := []string{
 		"betterado_release_definition",
+		"betterado_release_definition_history",
 		"betterado_release_definition_revision",
 		"betterado_release_definitions",
 		"betterado_release_folder",
