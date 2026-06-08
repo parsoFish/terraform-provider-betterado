@@ -13,12 +13,29 @@ Project-level constraints shared by every betterado initiative (substrate +
 createable-surface). The architect references this theme from each manifest
 rather than copy-pasting the same five bullets into all 20 initiatives.
 
-## Quality gate
+## Quality gate (two tiers)
 
-`go test ./azuredevops/internal/service/<area>/...` passes + `go build
--mod=vendor ./...` exits 0 + each new `betterado_*` registered in
-`azuredevops/provider.go`. A test pkg that compiles but asserts nothing is
-a FAIL.
+1. **Offline unit gate (default)** — creds-free, fast (~1s). For schema/unit WIs:
+   ```
+   go test -tags all -count=1 -run <NewPrefix> ./azuredevops/internal/service/<area>/...
+   ```
+   `go build -mod=vendor .` (entry point only — never `./...`) to verify compilation.
+   Each new `betterado_*` registered in `azuredevops/provider.go`. A test pkg that
+   compiles but asserts nothing is a FAIL.
+
+2. **Live acceptance gate (for live-ADO-behaviour WIs only)** — slow (~30m), requires creds:
+   ```
+   go test -tags all -count=1 -run TestAcc<Name> -timeout 30m ./azuredevops/internal/acceptancetests/...
+   ```
+   Creds (`AZDO_ORG_SERVICE_URL` + `AZDO_PERSONAL_ACCESS_TOKEN`) are stored in
+   gitignored `secrets.env` using these canonical names. PreCheck self-loads `secrets.env`
+   via `loadSecretsEnv()` (commit 3de384f0) — agents must NOT manually export vars or
+   re-map `ADO_PAT`. `TF_ACC=1` is provided by the forge serve env; do NOT prefix it in
+   the gate command itself. The `acceptance_gate.requires_env` guard in `.forge/project.json`
+   errors fast if any of the three vars are absent before the gate runs.
+   Required for any WI whose ACs involve live ADO behaviour (resource/data-source CRUD,
+   idempotency, field round-trips). Analysis/audit/docs/CI/unit-only WIs use the offline
+   gate only.
 
 ## Per-resource test substrate
 

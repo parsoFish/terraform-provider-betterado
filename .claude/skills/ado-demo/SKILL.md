@@ -94,8 +94,13 @@ resource ON THE DEMO PAGE, never by asking for the resources to be re-stood-up:
 
 ## Prerequisites (the live layer)
 
-- `AZDO_ORG_SERVICE_URL` + `AZDO_PERSONAL_ACCESS_TOKEN` (export
-  `AZDO_PERSONAL_ACCESS_TOKEN=$ADO_PAT` from gitignored `secrets.env`).
+- `AZDO_ORG_SERVICE_URL` + `AZDO_PERSONAL_ACCESS_TOKEN` stored under these exact
+  canonical names in gitignored `secrets.env` at the repo root. PreCheck
+  (`testutils/commons.go` / `azuredevops/internal/acceptancetests/commons.go`) calls
+  `loadSecretsEnv()` and self-loads `secrets.env` automatically — no manual export or
+  re-mapping step needed. Already-exported shell vars still take precedence.
+  Do NOT use the old `$ADO_PAT` alias — that name is retired; the file must use
+  `AZDO_PERSONAL_ACCESS_TOKEN` directly.
 - A locally-built provider wired via `dev_overrides` → the freshly-built binary
   (`go build -mod=vendor -o <dir>/terraform-provider-betterado .`; a `dev.tfrc`
   with `provider_installation { dev_overrides { "local/betterado" = "<dir>" } direct {} }`;
@@ -127,25 +132,6 @@ never fabricate a screenshot or claim a live pass that didn't run.
 9. **Author `demo.json`** — a `kind: "screenshot"` checkpoint per behavioural
    surface, a `metrics`/round-trip row from the API GET, and the interactive
    surfaces below.
-
-### Interactive surfaces (review-time, non-executing)
-
-Save the step-4 API GET as `demo/<initiative-id>/live-resource.json` and declare:
-
-```json
-"interactiveSurfaces": [
-  { "kind": "live-query",
-    "label": "Show the live release definition (real ADO API response)",
-    "artifact": "live-resource.json",
-    "portalUrl": "https://dev.azure.com/{org}/{project}/_releaseDefinition?definitionId={id}&_a=environments-editor" },
-  { "kind": "portal-link",
-    "label": "Open it in the Azure DevOps portal",
-    "portalUrl": "https://dev.azure.com/{org}/{project}/_releaseDefinition?definitionId={id}&_a=environments-editor" }
-]
-```
-
-`live-query` serves the captured JSON; `portal-link` is a deep link. Both are safe
-to declare always — the UI shows "no live capture" if the artifact is absent.
 
 ## Lessons this contract encodes (from the INIT-1 release_definition demo)
 

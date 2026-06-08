@@ -28,8 +28,14 @@ This project uses a **two-gate model** declared in the initiative manifest:
 
 1. **Offline unit gate** — `go test -tags all -count=1 -run <Prefix> ./azuredevops/internal/service/release/...`
    - Creds-free, fast (~1s), default dev-loop gate for schema WIs (expand/flatten logic, gomock unit tests).
-2. **Live acceptance gate** — `TF_ACC=1 go test -run TestAccReleaseDefinition_complete -timeout 30m ./azuredevops/internal/acceptancetests/...`
-   - Requires `secrets.env` (PAT). Slow (~28s). Mandatory for acceptance WIs and final-cleanup WIs like WI-9.
+2. **Live acceptance gate** — `go test -tags all -count=1 -run TestAccReleaseDefinition_complete -timeout 30m ./azuredevops/internal/acceptancetests/...`
+   - Creds are self-loaded by PreCheck from `secrets.env` (commit 3de384f0). `secrets.env` must
+     use the canonical names `AZDO_ORG_SERVICE_URL` and `AZDO_PERSONAL_ACCESS_TOKEN` directly —
+     do NOT use the retired `ADO_PAT` alias, and do NOT manually export or re-map variables.
+   - `TF_ACC=1` is provided by the forge serve env; do NOT prefix it in the `quality_gate_cmd`
+     itself. The `acceptance_gate.requires_env` guard in `.forge/project.json` errors fast if
+     `TF_ACC`, `AZDO_ORG_SERVICE_URL`, or `AZDO_PERSONAL_ACCESS_TOKEN` are absent.
+   - Slow (~28s–30m). Required for acceptance WIs whose ACs involve live ADO behaviour.
    - Always includes a `PlanOnly: true` step with `ExpectNonEmptyPlan: false` to prove idempotency.
 
 ## Observed in WI-9

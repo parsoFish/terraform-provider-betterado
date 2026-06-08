@@ -43,7 +43,12 @@ correctly, cleanly track upstream, and stay mergeable back toward upstream.
 
 ## Active focus
 
-- Both unit substrates landed. **Next:** live acceptance harness (`scripts/forge-acc-harness.sh`) + fix stale `TestAccReleaseDefinition_basic` HCL (stage `retention_policy` + `pre_deploy_approval` now required by ADO REST 7.1 — see [[2026-05-31-forge-onboarding-findings]]). Then resume the createable-resource program in `roadmap.md`.
+- Both unit substrates landed. The two-gate model is operational: `secrets.env` is
+  self-loaded by PreCheck (`loadSecretsEnv()`, commit 3de384f0); `acceptance_gate.requires_env`
+  guards all three vars (`TF_ACC`, `AZDO_ORG_SERVICE_URL`, `AZDO_PERSONAL_ACCESS_TOKEN`) so the
+  dev-loop errors fast on any missing cred. Live-acc is advisory per initiative (not a hard gate
+  on every cycle). Open work: advance the createable-resource program per `roadmap.md`
+  (next surface: agentless jobs / deployment group jobs / gates).
 
 ## Cycles
 

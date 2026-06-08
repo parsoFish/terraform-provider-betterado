@@ -49,13 +49,29 @@ correct" is exactly what the live acc gate exists to replace with "proven."
    require that a live-acc WI actually PASSED its gate. So a `status: failed` live-acc WI
    shipped. Tracked in forge `docs/known-gaps.md` (2026-06-07, item 1).
 
+## Updated pattern (post 3de384f0)
+
+Root cause 1 (creds gap) is now **doubly addressed**:
+
+1. `acceptance_gate.requires_env` lists all three vars (`TF_ACC`, `AZDO_ORG_SERVICE_URL`,
+   `AZDO_PERSONAL_ACCESS_TOKEN`) — the dev-loop errors fast ("live env absent") before the
+   gate even runs, instead of burning iterations on an unfixable failure.
+2. PreCheck (`loadSecretsEnv()`, commit 3de384f0) self-loads `secrets.env` — the gate is
+   self-sufficient for creds regardless of the runner shell's env, as long as `secrets.env`
+   exists at the repo root with the canonical var names.
+
+**Agents must NOT manually source `secrets.env`, export `ADO_PAT`, or prepend `TF_ACC=1` to
+the gate command.** The forge serve env provides `TF_ACC`; PreCheck provides the ADO creds.
+`secrets.env` must use `AZDO_PERSONAL_ACCESS_TOKEN` (not `ADO_PAT`) — the old alias is retired.
+
 ## How to apply
 
-- When running a betterado cycle that has a live-acc WI, run it from a shell with
-  `TF_ACC=1` **and** `AZDO_ORG_SERVICE_URL` + `AZDO_PERSONAL_ACCESS_TOKEN` exported
-  (the `secrets.env` pattern), or the live AC cannot be closed.
+- When running a betterado cycle that has a live-acc WI, ensure the forge serve env has
+  `TF_ACC=1` and `secrets.env` at the repo root contains `AZDO_ORG_SERVICE_URL` and
+  `AZDO_PERSONAL_ACCESS_TOKEN` under those exact canonical names. PreCheck self-loads
+  `secrets.env`; no manual export is needed.
 - Treat "PR merged + CI green" as **necessary but not sufficient** for a betterado
   resource/data-source. The live acc test passing is the real acceptance signal.
 - To retroactively close this data source's AC: run
-  `TF_ACC=1 … go test -tags all -run TestAccDataReleaseFolder ./azuredevops/internal/acceptancetests/`
+  `go test -tags all -count=1 -run TestAccDataReleaseFolder -timeout 30m ./azuredevops/internal/acceptancetests/`
   and confirm PASS (create folder → read via data source → assert description → idempotent re-plan → clean destroy).
