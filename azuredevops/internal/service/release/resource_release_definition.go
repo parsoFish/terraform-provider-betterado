@@ -699,6 +699,24 @@ func ResourceReleaseDefinition() *schema.Resource {
 								},
 							},
 						},
+						"source_repo_trigger": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"alias": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+									},
+									"branch_filters": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -2567,6 +2585,28 @@ func expandTriggers(input []interface{}) []interface{} {
 		}
 	}
 
+	// Source repo triggers — one entry per source_repo_trigger block
+	if srtEntries, ok := trigMap["source_repo_trigger"].([]interface{}); ok {
+		for _, raw := range srtEntries {
+			if raw == nil {
+				continue
+			}
+			srtMap := raw.(map[string]interface{})
+			trigEntry := map[string]interface{}{
+				"triggerType": "sourceRepo",
+				"alias":       srtMap["alias"].(string),
+			}
+			if bfs, ok := srtMap["branch_filters"].([]interface{}); ok && len(bfs) > 0 {
+				branchFilters := make([]string, 0, len(bfs))
+				for _, bf := range bfs {
+					branchFilters = append(branchFilters, bf.(string))
+				}
+				trigEntry["branchFilters"] = branchFilters
+			}
+			result = append(result, trigEntry)
+		}
+	}
+
 	return result
 }
 
@@ -2650,6 +2690,7 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 
 	var cdArtifactTriggers []interface{}
 	var scheduleTriggers []interface{}
+	var sourceRepoTriggers []interface{}
 
 	for _, raw := range *triggers {
 		// Marshal to JSON and back to get a clean map[string]interface{}
@@ -2714,12 +2755,26 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 			// ADO does not return branchFilters for schedule triggers, so we never
 			// populate branch_filter in state (it would perpetually diff otherwise).
 			scheduleTriggers = append(scheduleTriggers, st)
+
+		case "sourceRepo":
+			srt := map[string]interface{}{
+				"alias":          "",
+				"branch_filters": []interface{}{},
+			}
+			if alias, ok := trigMap["alias"].(string); ok {
+				srt["alias"] = alias
+			}
+			if bfs, ok := trigMap["branchFilters"].([]interface{}); ok {
+				srt["branch_filters"] = bfs
+			}
+			sourceRepoTriggers = append(sourceRepoTriggers, srt)
 		}
 	}
 
 	triggersMap := map[string]interface{}{
 		"cd_artifact_trigger": cdArtifactTriggers,
 		"schedule_trigger":    scheduleTriggers,
+		"source_repo_trigger": sourceRepoTriggers,
 	}
 	return []interface{}{triggersMap}
 }
