@@ -625,6 +625,35 @@ func ResourceReleaseDefinition() *schema.Resource {
 											},
 										},
 									},
+									"tag_filter": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"pattern": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Default:  "",
+												},
+												"tags": {
+													Type:     schema.TypeList,
+													Optional: true,
+													Elem:     &schema.Schema{Type: schema.TypeString},
+												},
+											},
+										},
+									},
+									"use_build_definition_branch": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+									"create_release_on_build_tagging": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
 								},
 							},
 						},
@@ -2507,14 +2536,8 @@ func expandTriggers(input []interface{}) []interface{} {
 				"triggerType":   "artifactSource",
 				"artifactAlias": ctMap["artifact_alias"].(string),
 			}
-			// Branch filters
-			if bf, ok := ctMap["branch_filter"].([]interface{}); ok && len(bf) > 0 && bf[0] != nil {
-				bfMap := bf[0].(map[string]interface{})
-				filters := expandBranchFiltersForTrigger(bfMap)
-				if len(filters) > 0 {
-					trigEntry["triggerConditions"] = filters
-				}
-			}
+			// Branch filters + tag_filter / use_build_definition_branch / create_release_on_build_tagging
+			trigEntry["triggerConditions"] = expandArtifactTriggerConditions(ctMap)
 			result = append(result, trigEntry)
 		}
 	}
@@ -2549,6 +2572,7 @@ func expandTriggers(input []interface{}) []interface{} {
 
 // expandBranchFiltersForTrigger converts a branch_filter block into a slice of
 // ArtifactFilter-style maps for the cd_artifact_trigger triggerConditions field.
+// Deprecated: use expandArtifactTriggerConditions instead.
 func expandBranchFiltersForTrigger(bfMap map[string]interface{}) []map[string]interface{} {
 	var filters []map[string]interface{}
 	if includes, ok := bfMap["include"].([]interface{}); ok {
@@ -2559,6 +2583,62 @@ func expandBranchFiltersForTrigger(bfMap map[string]interface{}) []map[string]in
 		}
 	}
 	return filters
+}
+
+// expandArtifactTriggerConditions builds the triggerConditions slice for a
+// cd_artifact_trigger block, incorporating branch_filter, tag_filter,
+// use_build_definition_branch, and create_release_on_build_tagging.
+func expandArtifactTriggerConditions(ctMap map[string]interface{}) []map[string]interface{} {
+	// Start with branch filter conditions (one entry per include branch)
+	var conditions []map[string]interface{}
+	if bf, ok := ctMap["branch_filter"].([]interface{}); ok && len(bf) > 0 && bf[0] != nil {
+		bfMap := bf[0].(map[string]interface{})
+		conditions = expandBranchFiltersForTrigger(bfMap)
+	}
+
+	// Gather the extra per-trigger fields
+	var tagFilterMap map[string]interface{}
+	if tf, ok := ctMap["tag_filter"].([]interface{}); ok && len(tf) > 0 && tf[0] != nil {
+		tfBlock := tf[0].(map[string]interface{})
+		tagMap := map[string]interface{}{
+			"pattern": tfBlock["pattern"].(string),
+		}
+		var tags []string
+		if rawTags, ok := tfBlock["tags"].([]interface{}); ok {
+			for _, t := range rawTags {
+				tags = append(tags, t.(string))
+			}
+		}
+		tagMap["tags"] = tags
+		tagFilterMap = tagMap
+	}
+	useBuildBranch, _ := ctMap["use_build_definition_branch"].(bool)
+	createOnTagging, _ := ctMap["create_release_on_build_tagging"].(bool)
+
+	hasExtras := tagFilterMap != nil || useBuildBranch || createOnTagging
+
+	if !hasExtras {
+		return conditions
+	}
+
+	// Emit the extra fields on the first condition entry.
+	// If there are no branch-filter conditions, create a synthetic entry with
+	// an empty sourceBranch so the extras have a container.
+	if len(conditions) == 0 {
+		conditions = []map[string]interface{}{
+			{"sourceBranch": ""},
+		}
+	}
+	if tagFilterMap != nil {
+		conditions[0]["tagFilter"] = tagFilterMap
+	}
+	if useBuildBranch {
+		conditions[0]["useBuildDefinitionBranch"] = true
+	}
+	if createOnTagging {
+		conditions[0]["createReleaseOnBuildTagging"] = true
+	}
+	return conditions
 }
 
 // flattenTriggers converts the ADO polymorphic Triggers []interface{} back into
@@ -2586,14 +2666,23 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 		switch trigType {
 		case "artifactSource":
 			ct := map[string]interface{}{
-				"artifact_alias": "",
+				"artifact_alias":                  "",
+				"use_build_definition_branch":     false,
+				"create_release_on_build_tagging": false,
 			}
 			if alias, ok := trigMap["artifactAlias"].(string); ok {
 				ct["artifact_alias"] = alias
 			}
-			// Flatten triggerConditions → branch_filter include list
-			bf := flattenArtifactTriggerBranchFilter(trigMap)
+			// Flatten triggerConditions → branch_filter include list + new fields
+			bf, tagFilter, useBuildBranch, createOnTagging := flattenArtifactTriggerConditions(trigMap)
 			ct["branch_filter"] = bf
+			if tagFilter != nil {
+				ct["tag_filter"] = []interface{}{tagFilter}
+			} else {
+				ct["tag_filter"] = []interface{}{}
+			}
+			ct["use_build_definition_branch"] = useBuildBranch
+			ct["create_release_on_build_tagging"] = createOnTagging
 			cdArtifactTriggers = append(cdArtifactTriggers, ct)
 
 		case "schedule":
@@ -2637,27 +2726,74 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 
 // flattenArtifactTriggerBranchFilter converts a cd artifact trigger's triggerConditions
 // into a branch_filter block.
+// Deprecated: use flattenArtifactTriggerConditions instead.
 func flattenArtifactTriggerBranchFilter(trigMap map[string]interface{}) []interface{} {
+	bf, _, _, _ := flattenArtifactTriggerConditions(trigMap)
+	return bf
+}
+
+// flattenArtifactTriggerConditions converts a cd artifact trigger's triggerConditions
+// into:
+//   - branch_filter block ([]interface{})
+//   - tag_filter map (map[string]interface{}) or nil
+//   - use_build_definition_branch bool
+//   - create_release_on_build_tagging bool
+func flattenArtifactTriggerConditions(trigMap map[string]interface{}) ([]interface{}, map[string]interface{}, bool, bool) {
 	var includes []interface{}
+	var tagFilter map[string]interface{}
+	var useBuildBranch, createOnTagging bool
+
 	if conditions, ok := trigMap["triggerConditions"].([]interface{}); ok {
-		for _, c := range conditions {
+		for i, c := range conditions {
 			if cMap, ok := c.(map[string]interface{}); ok {
 				if branch, ok := cMap["sourceBranch"].(string); ok && branch != "" {
 					includes = append(includes, branch)
 				}
+				// Only read extras from the first condition entry
+				if i == 0 {
+					if tf, ok := cMap["tagFilter"].(map[string]interface{}); ok {
+						pattern, _ := tf["pattern"].(string)
+						var tags []interface{}
+						switch v := tf["tags"].(type) {
+						case []interface{}:
+							for _, t := range v {
+								if s, ok := t.(string); ok {
+									tags = append(tags, s)
+								}
+							}
+						}
+						if tags == nil {
+							tags = []interface{}{}
+						}
+						tagFilter = map[string]interface{}{
+							"pattern": pattern,
+							"tags":    tags,
+						}
+					}
+					if v, ok := cMap["useBuildDefinitionBranch"].(bool); ok {
+						useBuildBranch = v
+					}
+					if v, ok := cMap["createReleaseOnBuildTagging"].(bool); ok {
+						createOnTagging = v
+					}
+				}
 			}
 		}
 	}
+
+	var bf []interface{}
 	if len(includes) == 0 {
-		return []interface{}{map[string]interface{}{
+		bf = []interface{}{map[string]interface{}{
 			"include": []interface{}{},
 			"exclude": []interface{}{},
 		}}
+	} else {
+		bf = []interface{}{map[string]interface{}{
+			"include": includes,
+			"exclude": []interface{}{},
+		}}
 	}
-	return []interface{}{map[string]interface{}{
-		"include": includes,
-		"exclude": []interface{}{},
-	}}
+	return bf, tagFilter, useBuildBranch, createOnTagging
 }
 
 func flattenArtifacts(artifacts *[]releaseapi.Artifact, d *schema.ResourceData) []interface{} {

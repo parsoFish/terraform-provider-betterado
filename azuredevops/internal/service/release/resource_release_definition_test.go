@@ -2438,6 +2438,253 @@ func TestReleaseDefinition_GatesOptions_RoundTrip(t *testing.T) {
 	require.Equal(t, timeout, flatOpts["timeout"], "timeout must survive flatten")
 }
 
+// ── 21. ArtifactTagFilter round-trip ──────────────────────────────────────
+
+// TestReleaseDefinition_ArtifactTagFilter_RoundTrip verifies that a
+// cd_artifact_trigger block with a tag_filter block (AC1 + AC2) round-trips
+// correctly through expandTriggers → flattenTriggers.
+func TestReleaseDefinition_ArtifactTagFilter_RoundTrip(t *testing.T) {
+	artifactAlias := "_myBuild"
+	branchInclude := "refs/heads/main"
+	tagPattern := "v*"
+	tagValue := "stable"
+
+	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "TagFilterDef",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{},
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"environment": []interface{}{
+			map[string]interface{}{
+				"id":                   0,
+				"name":                 "Production",
+				"rank":                 1,
+				"owner":                "",
+				"variable":             []interface{}{},
+				"variable_groups":      []interface{}{},
+				"condition":            []interface{}{},
+				"pre_deploy_approval":  []interface{}{},
+				"post_deploy_approval": []interface{}{},
+				"deploy_phase": []interface{}{
+					map[string]interface{}{
+						"name":             "Agent phase",
+						"rank":             1,
+						"phase_type":       "agentBasedDeployment",
+						"deployment_input": []interface{}{},
+						"workflow_task":    []interface{}{},
+					},
+				},
+				"retention_policy":    []interface{}{},
+				"environment_options": []interface{}{},
+				"execution_policy":    []interface{}{},
+			},
+		},
+		"artifact": []interface{}{},
+		"triggers": []interface{}{
+			map[string]interface{}{
+				"cd_artifact_trigger": []interface{}{
+					map[string]interface{}{
+						"artifact_alias": artifactAlias,
+						"branch_filter": []interface{}{
+							map[string]interface{}{
+								"include": []interface{}{branchInclude},
+								"exclude": []interface{}{},
+							},
+						},
+						"tag_filter": []interface{}{
+							map[string]interface{}{
+								"pattern": tagPattern,
+								"tags":    []interface{}{tagValue},
+							},
+						},
+						"use_build_definition_branch":     false,
+						"create_release_on_build_tagging": false,
+					},
+				},
+				"schedule_trigger": []interface{}{},
+			},
+		},
+	})
+
+	// AC1: expandTriggers must include tagFilter.pattern and tags in the first triggerCondition
+	expanded, _, err := expandReleaseDefinition(resourceData)
+	require.NoError(t, err)
+	require.NotNil(t, expanded.Triggers)
+	require.Len(t, *expanded.Triggers, 1)
+
+	trigRaw := (*expanded.Triggers)[0]
+	trigMap, ok := trigRaw.(map[string]interface{})
+	require.True(t, ok, "trigger entry must be a map")
+	require.Equal(t, "artifactSource", trigMap["triggerType"])
+
+	conditions, ok := trigMap["triggerConditions"].([]map[string]interface{})
+	require.True(t, ok, "triggerConditions must be []map[string]interface{}")
+	require.NotEmpty(t, conditions, "triggerConditions must not be empty")
+
+	firstCond := conditions[0]
+	require.Equal(t, branchInclude, firstCond["sourceBranch"], "AC1: sourceBranch must be present")
+
+	tagFilter, ok := firstCond["tagFilter"].(map[string]interface{})
+	require.True(t, ok, "AC1: tagFilter must be present in first condition")
+	require.Equal(t, tagPattern, tagFilter["pattern"], "AC1: tagFilter.pattern must match")
+	tags, ok := tagFilter["tags"].([]string)
+	require.True(t, ok, "AC1: tagFilter.tags must be []string")
+	require.Equal(t, []string{tagValue}, tags, "AC1: tagFilter.tags must contain the tag value")
+
+	// AC2: flattenTriggers must restore tag_filter block in state
+	expandedID := testReleaseDefinitionID
+	expanded.Id = &expandedID
+	flattenReleaseDefinition(resourceData, expanded, testReleaseDefinitionProjectID.String())
+
+	triggersRaw, ok := resourceData.GetOk("triggers")
+	require.True(t, ok, "triggers block must be present in state after flatten")
+	triggersList := triggersRaw.([]interface{})
+	require.Len(t, triggersList, 1)
+
+	trigsMap := triggersList[0].(map[string]interface{})
+	cdTriggers, ok := trigsMap["cd_artifact_trigger"].([]interface{})
+	require.True(t, ok, "cd_artifact_trigger must be present")
+	require.Len(t, cdTriggers, 1)
+
+	ctFlat := cdTriggers[0].(map[string]interface{})
+	require.Equal(t, artifactAlias, ctFlat["artifact_alias"])
+
+	tfList, ok := ctFlat["tag_filter"].([]interface{})
+	require.True(t, ok, "AC2: tag_filter must be []interface{}")
+	require.Len(t, tfList, 1, "AC2: tag_filter must have exactly one entry")
+
+	tfMap := tfList[0].(map[string]interface{})
+	require.Equal(t, tagPattern, tfMap["pattern"], "AC2: tag_filter.pattern must round-trip")
+
+	var flatTags []interface{}
+	switch v := tfMap["tags"].(type) {
+	case []interface{}:
+		flatTags = v
+	default:
+		t.Fatalf("AC2: tag_filter.tags has unexpected type %T", tfMap["tags"])
+	}
+	require.Len(t, flatTags, 1, "AC2: tag_filter.tags must have one entry")
+	require.Equal(t, tagValue, flatTags[0], "AC2: tag_filter.tags[0] must round-trip")
+}
+
+// ── 22. ArtifactSourceBranchFlags round-trip ──────────────────────────────
+
+// TestReleaseDefinition_ArtifactSourceBranchFlags_RoundTrip verifies that
+// use_build_definition_branch (AC3+AC4) and create_release_on_build_tagging
+// (AC5+AC6) round-trip correctly through expandTriggers → flattenTriggers.
+func TestReleaseDefinition_ArtifactSourceBranchFlags_RoundTrip(t *testing.T) {
+	artifactAlias := "_myBuild"
+
+	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "BranchFlagsDef",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{},
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"environment": []interface{}{
+			map[string]interface{}{
+				"id":                   0,
+				"name":                 "Production",
+				"rank":                 1,
+				"owner":                "",
+				"variable":             []interface{}{},
+				"variable_groups":      []interface{}{},
+				"condition":            []interface{}{},
+				"pre_deploy_approval":  []interface{}{},
+				"post_deploy_approval": []interface{}{},
+				"deploy_phase": []interface{}{
+					map[string]interface{}{
+						"name":             "Agent phase",
+						"rank":             1,
+						"phase_type":       "agentBasedDeployment",
+						"deployment_input": []interface{}{},
+						"workflow_task":    []interface{}{},
+					},
+				},
+				"retention_policy":    []interface{}{},
+				"environment_options": []interface{}{},
+				"execution_policy":    []interface{}{},
+			},
+		},
+		"artifact": []interface{}{},
+		"triggers": []interface{}{
+			map[string]interface{}{
+				"cd_artifact_trigger": []interface{}{
+					map[string]interface{}{
+						"artifact_alias":                  artifactAlias,
+						"branch_filter":                   []interface{}{},
+						"tag_filter":                      []interface{}{},
+						"use_build_definition_branch":     true,
+						"create_release_on_build_tagging": true,
+					},
+				},
+				"schedule_trigger": []interface{}{},
+			},
+		},
+	})
+
+	// AC3: expandTriggers must include useBuildDefinitionBranch: true
+	// AC5: expandTriggers must include createReleaseOnBuildTagging: true
+	expanded, _, err := expandReleaseDefinition(resourceData)
+	require.NoError(t, err)
+	require.NotNil(t, expanded.Triggers)
+	require.Len(t, *expanded.Triggers, 1)
+
+	trigRaw := (*expanded.Triggers)[0]
+	trigMap, ok := trigRaw.(map[string]interface{})
+	require.True(t, ok, "trigger entry must be a map")
+	require.Equal(t, "artifactSource", trigMap["triggerType"])
+
+	conditions, ok := trigMap["triggerConditions"].([]map[string]interface{})
+	require.True(t, ok, "triggerConditions must be []map[string]interface{}")
+	require.NotEmpty(t, conditions, "triggerConditions must not be empty (synthetic entry required)")
+
+	firstCond := conditions[0]
+	useBuildBranch, ok := firstCond["useBuildDefinitionBranch"].(bool)
+	require.True(t, ok, "AC3: useBuildDefinitionBranch must be present")
+	require.True(t, useBuildBranch, "AC3: useBuildDefinitionBranch must be true")
+
+	createOnTagging, ok := firstCond["createReleaseOnBuildTagging"].(bool)
+	require.True(t, ok, "AC5: createReleaseOnBuildTagging must be present")
+	require.True(t, createOnTagging, "AC5: createReleaseOnBuildTagging must be true")
+
+	// AC4 + AC6: flattenTriggers must restore both flags in state
+	expandedID := testReleaseDefinitionID
+	expanded.Id = &expandedID
+	flattenReleaseDefinition(resourceData, expanded, testReleaseDefinitionProjectID.String())
+
+	triggersRaw, ok := resourceData.GetOk("triggers")
+	require.True(t, ok, "triggers block must be present in state after flatten")
+	triggersList := triggersRaw.([]interface{})
+	require.Len(t, triggersList, 1)
+
+	trigsMap := triggersList[0].(map[string]interface{})
+	cdTriggers, ok := trigsMap["cd_artifact_trigger"].([]interface{})
+	require.True(t, ok, "cd_artifact_trigger must be present")
+	require.Len(t, cdTriggers, 1)
+
+	ctFlat := cdTriggers[0].(map[string]interface{})
+
+	// AC4: use_build_definition_branch must be true in state
+	useBuildBranchFlat, ok := ctFlat["use_build_definition_branch"].(bool)
+	require.True(t, ok, "AC4: use_build_definition_branch must be bool in state")
+	require.True(t, useBuildBranchFlat, "AC4: use_build_definition_branch must be true after flatten")
+
+	// AC6: create_release_on_build_tagging must be true in state
+	createOnTaggingFlat, ok := ctFlat["create_release_on_build_tagging"].(bool)
+	require.True(t, ok, "AC6: create_release_on_build_tagging must be bool in state")
+	require.True(t, createOnTaggingFlat, "AC6: create_release_on_build_tagging must be true after flatten")
+}
+
 // ── Environment config surface round-trip tests (WI-1) ─────────────────────
 
 // minimalResourceData returns a *schema.ResourceData that satisfies all fields
