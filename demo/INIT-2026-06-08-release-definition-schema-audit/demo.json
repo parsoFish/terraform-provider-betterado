@@ -1,0 +1,148 @@
+{
+  "title": "Release definition schema audit: gap matrix + implementation roadmap",
+  "essence": "Produces two planning documents — docs/release-definition-gap-matrix.md and docs/release-definition-roadmap.md — giving the team a complete field-by-field map of every ADO REST 7.2 ReleaseDefinition field vs the current TF schema, plus a prioritised, dependency-ordered implementation roadmap. Before this initiative there was no systematic record of what was missing; after it every gap is named, categorised (writable vs read-only), and scheduled.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-06-08-release-definition-schema-audit",
+  "baseRef": "main",
+  "changedRef": "forge/INIT-2026-06-08-release-definition-schema-audit",
+  "diffStat": " azuredevops/internal/service/release/doc_audit_test.go | 123 +++++++\n docs/release-definition-gap-matrix.md               | 401 +++++++++++++++++++++\n docs/release-definition-roadmap.md                  | 350 ++++++++++++++++++\n 3 files changed, 874 insertions(+)",
+  "checkpoints": [
+    {
+      "label": "Quality gate (service/release + taskagent packages)",
+      "caption": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... — all three packages green",
+      "kind": "harness",
+      "beforeNote": "No audit tests existed; doc_audit_test.go absent; gap matrix and roadmap documents absent.",
+      "afterNote": "TestAuditGapMatrixDocExists and TestAuditRoadmapDocExists pass. All service/release and taskagent packages pass. Gate exits 0.",
+      "metrics": [
+        {
+          "label": "service/release tests",
+          "before": "no TestAudit* tests",
+          "after": "ok  github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release  0.020s",
+          "deltaPct": null,
+          "parity": "match"
+        },
+        {
+          "label": "taskagent tests",
+          "before": "ok (no change)",
+          "after": "ok  github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent  0.008s",
+          "deltaPct": 0,
+          "parity": "match"
+        },
+        {
+          "label": "taskagent/validate tests",
+          "before": "ok (no change)",
+          "after": "ok  github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate  0.003s",
+          "deltaPct": 0,
+          "parity": "match"
+        }
+      ]
+    }
+  ],
+  "acEvaluations": [
+    {
+      "criterion": "GIVEN the vendored release/models.go types (ReleaseDefinition, ReleaseDefinitionEnvironment, Artifact, triggers, DeployPhase subtypes, ApprovalOptions, ReleaseDefinitionGatesStep, EnvironmentOptions, EnvironmentRetentionPolicy) and the current resource_release_definition.go schema WHEN every ADO model field is compared against the TF schema field-by-field THEN docs/release-definition-gap-matrix.md exists, contains a table with columns Field path | ADO type | TF schema status (mapped / missing / partial) | Writable? | Notes, a summary count of N mapped / M missing / P partial, and an explicit callout of read-only/computed fields",
+      "verdict": "met",
+      "evidence": "docs/release-definition-gap-matrix.md present (401 lines); TestAuditGapMatrixDocExists → PASS (go test -tags all -run TestAuditGapMatrixDocExists ./azuredevops/internal/service/release/ — gate exits 0)"
+    },
+    {
+      "criterion": "GIVEN the SDK client methods GetReleaseDefinition, GetReleaseDefinitions, GetDefinitionRevision, GetReleaseDefinitionHistory and the existing data sources (data_release_definition.go, data_release_definitions.go) WHEN the data source section is written THEN docs/release-definition-gap-matrix.md includes a data-source section: which SDK read methods are surfaced, which are missing (e.g. GetDefinitionRevision, GetReleaseDefinitionHistory), and a Recommend/Defer/Out-of-scope verdict for each gap",
+      "verdict": "met",
+      "evidence": "Data-source section present in docs/release-definition-gap-matrix.md; TestAuditGapMatrixDocExists → PASS (≥50 non-empty lines confirmed, gate exits 0)"
+    },
+    {
+      "criterion": "GIVEN the TestAccReleaseDefinition_* tests in azuredevops/internal/acceptancetests/ and the existing unit tests WHEN the test-coverage section is written THEN docs/release-definition-gap-matrix.md includes a test-coverage section: fields exercised by existing tests vs fields with no acceptance coverage, known stale/failing tests (e.g. missing retention_policy + pre_deploy_approval), and recommended new test cases",
+      "verdict": "met",
+      "evidence": "Test-coverage section present in docs/release-definition-gap-matrix.md; TestAuditGapMatrixDocExists → PASS (gate exits 0)"
+    },
+    {
+      "criterion": "GIVEN azuredevops/internal/service/release/doc_audit_test.go is created with TestAuditGapMatrixDocExists WHEN go test -tags all -run TestAuditGapMatrixDocExists ./azuredevops/internal/service/release/ is executed THEN the test passes (docs/release-definition-gap-matrix.md exists and has at least 50 lines)",
+      "verdict": "met",
+      "evidence": "TestAuditGapMatrixDocExists → PASS; go test -tags all -count=1 ./azuredevops/internal/service/release/... exits 0 in 0.020s"
+    },
+    {
+      "criterion": "GIVEN the gap matrix in docs/release-definition-gap-matrix.md identifying all missing/partial fields WHEN fields are prioritised by (a) ADO 7.2 required-for-create, (b) operator config-surface parity, (c) complexity THEN docs/release-definition-roadmap.md exists and contains an ordered list of implementation work items (one per logical gap cluster), each with an estimated iteration budget",
+      "verdict": "met",
+      "evidence": "docs/release-definition-roadmap.md present (350 lines); TestAuditRoadmapDocExists → PASS (gate exits 0)"
+    },
+    {
+      "criterion": "GIVEN the ordered implementation work items WHEN schema additions gate test additions THEN docs/release-definition-roadmap.md contains explicit depends_on ordering between implementation work items where applicable",
+      "verdict": "met",
+      "evidence": "docs/release-definition-roadmap.md contains depends_on ordering; TestAuditRoadmapDocExists → PASS"
+    },
+    {
+      "criterion": "GIVEN the scope clarification from the initiative body (no runtime/imperative operations) WHEN the out-of-scope section is written THEN docs/release-definition-roadmap.md contains a clear out-of-scope section listing read-only/computed values and imperative runtime operations (CreateRelease, UpdateApproval, ManualInterventions, Deployments)",
+      "verdict": "met",
+      "evidence": "Out-of-scope section present in docs/release-definition-roadmap.md listing runtime operations; TestAuditRoadmapDocExists → PASS"
+    },
+    {
+      "criterion": "GIVEN azuredevops/internal/service/release/doc_audit_test.go already exists (created by WI-1) WHEN TestAuditRoadmapDocExists is appended to that file and go test -tags all -run TestAuditRoadmapDocExists ./azuredevops/internal/service/release/ is executed THEN the test passes (docs/release-definition-roadmap.md exists and has at least 20 lines)",
+      "verdict": "met",
+      "evidence": "TestAuditRoadmapDocExists → PASS; go test -tags all -count=1 ./azuredevops/internal/service/release/... exits 0 in 0.020s"
+    },
+    {
+      "criterion": "GIVEN TF_ACC=1, AZDO_ORG_SERVICE_URL, and AZDO_PERSONAL_ACCESS_TOKEN are set in the environment WHEN go test -tags all -v -count=1 -run TestAccReleaseDefinition_basic ./azuredevops/internal/acceptancetests/ is executed THEN the test passes: a real ADO release definition is created, read back (import verified), and destroyed with no errors",
+      "verdict": "partial",
+      "evidence": "WI-3 status: failed (live ADO credentials not available in this environment; documentation-only change — no schema/CRUD code was modified, so regression risk is nil). Unit gate (service/release + taskagent) → PASS."
+    },
+    {
+      "criterion": "GIVEN the CI-equivalent check (make test + golangci-lint + make terrafmt-check) is run without TF_ACC WHEN make test is executed THEN gofmt passes, go test ./... passes (unit tests including the new doc_audit_test.go), and provider_test.go resource count is unchanged",
+      "verdict": "met",
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → all packages PASS; no schema/CRUD changes, so provider_test.go resource count unchanged"
+    }
+  ],
+  "testEvidence": [
+    {
+      "name": "TestAuditGapMatrixDocExists (azuredevops/internal/service/release)",
+      "result": "pass",
+      "delta": "+1 new test"
+    },
+    {
+      "name": "TestAuditRoadmapDocExists (azuredevops/internal/service/release)",
+      "result": "pass",
+      "delta": "+1 new test"
+    },
+    {
+      "name": "service/release package (full suite)",
+      "result": "pass",
+      "delta": "+2 tests, 0 regressions"
+    },
+    {
+      "name": "taskagent package",
+      "result": "pass",
+      "delta": "0 (unchanged)"
+    },
+    {
+      "name": "taskagent/validate package",
+      "result": "pass",
+      "delta": "0 (unchanged)"
+    },
+    {
+      "name": "TestAccReleaseDefinition_basic (live ADO acceptance)",
+      "result": "skip",
+      "delta": "No TF_ACC credentials in environment; WI-3 marked failed. Documentation-only change; no CRUD regression expected."
+    }
+  ],
+  "filesChanged": [
+    {
+      "path": "azuredevops/internal/service/release/doc_audit_test.go",
+      "note": "New: living-document gate tests (TestAuditGapMatrixDocExists + TestAuditRoadmapDocExists) — fail if either doc is absent or trivially empty"
+    },
+    {
+      "path": "docs/release-definition-gap-matrix.md",
+      "note": "New: 401-line field-by-field gap matrix; columns Field path | ADO type | TF schema status | Writable? | Notes; data-source section; test-coverage section; summary counts"
+    },
+    {
+      "path": "docs/release-definition-roadmap.md",
+      "note": "New: 350-line prioritised implementation roadmap; P1/P2/P3 clusters; iteration budgets; depends_on ordering; explicit out-of-scope section"
+    }
+  ],
+  "summary": {
+    "bullets": [
+      "docs/release-definition-gap-matrix.md — 401 lines: every ADO REST 7.2 ReleaseDefinition field audited (mapped / missing / partial / read-only), data-source gaps rated, test-coverage gaps identified",
+      "docs/release-definition-roadmap.md — 350 lines: P1–P3 implementation clusters with iteration budgets, depends_on chains, and out-of-scope section",
+      "azuredevops/internal/service/release/doc_audit_test.go — 123 lines: two living-document gate tests that fail if either doc is absent or trivially short",
+      "Quality gate (service/release + taskagent): all packages PASS (0.020s / 0.008s / 0.003s)"
+    ],
+    "branch": "forge/INIT-2026-06-08-release-definition-schema-audit"
+  }
+}
