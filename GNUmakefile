@@ -35,7 +35,7 @@ fmt:
 fumpt:
 	@echo "==> Fixing source code with Gofumpt..."
 	# This logic should match the search logic in scripts/gofmtcheck.sh
-	find . -name '*.go' | grep -v vendor | xargs gofumpt -s -w
+	find . -name '*.go' | grep -v vendor | grep -v third_party | xargs gofumpt -s -w
 
 fmtcheck:
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
