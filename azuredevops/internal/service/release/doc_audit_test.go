@@ -53,7 +53,10 @@ func TestDataSourceDocPagesExist(t *testing.T) {
 	}
 
 	for _, docPath := range docFiles {
-		rel, _ := filepath.Rel(repoRoot, docPath)
+		rel, err := filepath.Rel(repoRoot, docPath)
+		if err != nil {
+			rel = docPath
+		}
 
 		info, err := os.Stat(docPath)
 		if os.IsNotExist(err) {
