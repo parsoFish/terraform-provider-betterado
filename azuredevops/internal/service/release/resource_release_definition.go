@@ -2779,14 +2779,6 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 	return []interface{}{triggersMap}
 }
 
-// flattenArtifactTriggerBranchFilter converts a cd artifact trigger's triggerConditions
-// into a branch_filter block.
-// Deprecated: use flattenArtifactTriggerConditions instead.
-func flattenArtifactTriggerBranchFilter(trigMap map[string]interface{}) []interface{} {
-	bf, _, _, _ := flattenArtifactTriggerConditions(trigMap)
-	return bf
-}
-
 // flattenArtifactTriggerConditions converts a cd artifact trigger's triggerConditions
 // into:
 //   - branch_filter block ([]interface{})
@@ -2809,8 +2801,7 @@ func flattenArtifactTriggerConditions(trigMap map[string]interface{}) ([]interfa
 					if tf, ok := cMap["tagFilter"].(map[string]interface{}); ok {
 						pattern, _ := tf["pattern"].(string)
 						var tags []interface{}
-						switch v := tf["tags"].(type) {
-						case []interface{}:
+						if v, ok := tf["tags"].([]interface{}); ok {
 							for _, t := range v {
 								if s, ok := t.(string); ok {
 									tags = append(tags, s)
