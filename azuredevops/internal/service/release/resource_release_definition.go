@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/distributedtaskcommon"
 	releaseapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/release"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
 
@@ -451,6 +452,109 @@ func ResourceReleaseDefinition() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: deploymentGatesSchema(),
+							},
+						},
+						"environment_trigger": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"definition_environment_id": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										Computed: true,
+										// ADO automatically fills definition_environment_id with the
+										// parent environment's ID when it is left unset (0). Mark as
+										// Computed so Terraform uses the value ADO returns rather than
+										// treating 0 vs <envID> as a perpetual drift.
+									},
+									"trigger_type": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      "",
+										ValidateFunc: validation.StringInSlice([]string{"undefined", "deploymentGroupRedeploy", "rollbackRedeploy"}, false),
+									},
+									"trigger_content": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "",
+									},
+								},
+							},
+						},
+						"schedule": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"days_to_release": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      127,
+										ValidateFunc: validation.IntBetween(0, 127),
+									},
+									"start_hours": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 23),
+									},
+									"start_minutes": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 59),
+									},
+									"time_zone_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Default:      "UTC",
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+									},
+									"job_id": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"process_parameters": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"input": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"name": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+												"default_value": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Default:  "",
+												},
+												"parameter_type": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Default:  "",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"properties": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
 							},
 						},
 					},
@@ -1027,9 +1131,107 @@ func expandEnvironments(input []interface{}) ([]releaseapi.ReleaseDefinitionEnvi
 			env.VariableGroups = &groups
 		}
 
+		// Environment triggers
+		if triggers, ok := envMap["environment_trigger"].([]interface{}); ok && len(triggers) > 0 {
+			expanded := expandEnvironmentTriggers(triggers)
+			env.EnvironmentTriggers = &expanded
+		}
+
+		// Schedules
+		if scheds, ok := envMap["schedule"].([]interface{}); ok && len(scheds) > 0 {
+			expanded := expandEnvironmentSchedules(scheds)
+			env.Schedules = &expanded
+		}
+
+		// Process parameters
+		if pp, ok := envMap["process_parameters"].([]interface{}); ok && len(pp) > 0 {
+			env.ProcessParameters = expandProcessParameters(pp)
+		}
+
+		// Properties
+		if props, ok := envMap["properties"].(map[string]interface{}); ok && len(props) > 0 {
+			env.Properties = props
+		}
+
 		envs[i] = env
 	}
 	return envs, nil
+}
+
+func expandEnvironmentTriggers(input []interface{}) []releaseapi.EnvironmentTrigger {
+	triggers := make([]releaseapi.EnvironmentTrigger, len(input))
+	for i, v := range input {
+		tMap := v.(map[string]interface{})
+		t := releaseapi.EnvironmentTrigger{}
+		if id, ok := tMap["definition_environment_id"].(int); ok {
+			t.DefinitionEnvironmentId = converter.Int(id)
+		}
+		if tt, ok := tMap["trigger_type"].(string); ok && tt != "" {
+			ttVal := releaseapi.EnvironmentTriggerType(tt)
+			t.TriggerType = &ttVal
+		}
+		if tc, ok := tMap["trigger_content"].(string); ok && tc != "" {
+			t.TriggerContent = converter.String(tc)
+		}
+		triggers[i] = t
+	}
+	return triggers
+}
+
+func expandEnvironmentSchedules(input []interface{}) []releaseapi.ReleaseSchedule {
+	scheds := make([]releaseapi.ReleaseSchedule, len(input))
+	for i, v := range input {
+		sMap := v.(map[string]interface{})
+		s := releaseapi.ReleaseSchedule{}
+		if d, ok := sMap["days_to_release"].(int); ok {
+			sd := releaseapi.ScheduleDays(strconv.Itoa(d))
+			s.DaysToRelease = &sd
+		}
+		if h, ok := sMap["start_hours"].(int); ok {
+			s.StartHours = converter.Int(h)
+		}
+		if m, ok := sMap["start_minutes"].(int); ok {
+			s.StartMinutes = converter.Int(m)
+		}
+		if tz, ok := sMap["time_zone_id"].(string); ok && tz != "" {
+			s.TimeZoneId = converter.String(tz)
+		}
+		if jid, ok := sMap["job_id"].(string); ok && jid != "" {
+			parsed, err := uuid.Parse(jid)
+			if err == nil {
+				s.JobId = &parsed
+			}
+		}
+		scheds[i] = s
+	}
+	return scheds
+}
+
+func expandProcessParameters(input []interface{}) *distributedtaskcommon.ProcessParameters {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	ppMap := input[0].(map[string]interface{})
+	pp := &distributedtaskcommon.ProcessParameters{}
+	if rawInputs, ok := ppMap["input"].([]interface{}); ok && len(rawInputs) > 0 {
+		inputs := make([]distributedtaskcommon.TaskInputDefinitionBase, len(rawInputs))
+		for i, ri := range rawInputs {
+			iMap := ri.(map[string]interface{})
+			inp := distributedtaskcommon.TaskInputDefinitionBase{}
+			if name, ok := iMap["name"].(string); ok {
+				inp.Name = converter.String(name)
+			}
+			if dv, ok := iMap["default_value"].(string); ok {
+				inp.DefaultValue = converter.String(dv)
+			}
+			if pt, ok := iMap["parameter_type"].(string); ok {
+				inp.Type = converter.String(pt)
+			}
+			inputs[i] = inp
+		}
+		pp.Inputs = &inputs
+	}
+	return pp
 }
 
 func expandConditions(input []interface{}) []releaseapi.Condition {
@@ -1654,9 +1856,139 @@ func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *sch
 			envMap["variable_groups"] = []int{}
 		}
 
+		// Environment triggers
+		if env.EnvironmentTriggers != nil && len(*env.EnvironmentTriggers) > 0 {
+			envMap["environment_trigger"] = flattenEnvironmentTriggers(env.EnvironmentTriggers)
+		}
+
+		// Schedules
+		if env.Schedules != nil && len(*env.Schedules) > 0 {
+			envMap["schedule"] = flattenEnvironmentSchedules(env.Schedules)
+		}
+
+		// Process parameters
+		if env.ProcessParameters != nil {
+			envMap["process_parameters"] = flattenProcessParameters(env.ProcessParameters)
+		}
+
+		// Properties
+		// ADO REST returns properties in a typed wrapper:
+		//   {"key": {"$type": "System.String", "$value": "<actual-value>"}}
+		// We unwrap the $value field to recover the plain string the caller set.
+		if env.Properties != nil {
+			if props, ok := env.Properties.(map[string]interface{}); ok {
+				propsStr := make(map[string]string, len(props))
+				for k, v := range props {
+					switch cv := v.(type) {
+					case string:
+						propsStr[k] = cv
+					case map[string]interface{}:
+						// Unwrap ADO's {"$type":"System.String","$value":"..."} wrapper.
+						if val, ok := cv["$value"].(string); ok {
+							propsStr[k] = val
+						} else {
+							propsStr[k] = fmt.Sprintf("%v", v)
+						}
+					default:
+						propsStr[k] = fmt.Sprintf("%v", v)
+					}
+				}
+				envMap["properties"] = propsStr
+			}
+		}
+
 		result[i] = envMap
 	}
 	return result
+}
+
+func flattenEnvironmentTriggers(triggers *[]releaseapi.EnvironmentTrigger) []interface{} {
+	if triggers == nil {
+		return nil
+	}
+	result := make([]interface{}, len(*triggers))
+	for i, t := range *triggers {
+		tMap := map[string]interface{}{
+			"definition_environment_id": 0,
+			"trigger_type":              "",
+			"trigger_content":           "",
+		}
+		if t.DefinitionEnvironmentId != nil {
+			tMap["definition_environment_id"] = *t.DefinitionEnvironmentId
+		}
+		if t.TriggerType != nil {
+			tMap["trigger_type"] = string(*t.TriggerType)
+		}
+		if t.TriggerContent != nil {
+			tMap["trigger_content"] = *t.TriggerContent
+		}
+		result[i] = tMap
+	}
+	return result
+}
+
+func flattenEnvironmentSchedules(scheds *[]releaseapi.ReleaseSchedule) []interface{} {
+	if scheds == nil {
+		return nil
+	}
+	result := make([]interface{}, len(*scheds))
+	for i, s := range *scheds {
+		sMap := map[string]interface{}{
+			"days_to_release": 127,
+			"start_hours":     0,
+			"start_minutes":   0,
+			"time_zone_id":    "UTC",
+			"job_id":          "",
+		}
+		if s.DaysToRelease != nil {
+			if d, err := strconv.Atoi(string(*s.DaysToRelease)); err == nil {
+				sMap["days_to_release"] = d
+			}
+		}
+		if s.StartHours != nil {
+			sMap["start_hours"] = *s.StartHours
+		}
+		if s.StartMinutes != nil {
+			sMap["start_minutes"] = *s.StartMinutes
+		}
+		if s.TimeZoneId != nil {
+			sMap["time_zone_id"] = *s.TimeZoneId
+		}
+		if s.JobId != nil {
+			sMap["job_id"] = s.JobId.String()
+		}
+		result[i] = sMap
+	}
+	return result
+}
+
+func flattenProcessParameters(pp *distributedtaskcommon.ProcessParameters) []interface{} {
+	if pp == nil {
+		return nil
+	}
+	ppMap := map[string]interface{}{}
+	if pp.Inputs != nil && len(*pp.Inputs) > 0 {
+		inputs := make([]interface{}, len(*pp.Inputs))
+		for i, inp := range *pp.Inputs {
+			iMap := map[string]interface{}{
+				"name":           "",
+				"default_value":  "",
+				"parameter_type": "",
+			}
+			if inp.Name != nil {
+				iMap["name"] = *inp.Name
+			}
+			if inp.DefaultValue != nil {
+				iMap["default_value"] = *inp.DefaultValue
+			}
+			if inp.Type != nil {
+				iMap["parameter_type"] = *inp.Type
+			}
+			inputs[i] = iMap
+		}
+		ppMap["input"] = inputs
+	}
+	return []interface{}{ppMap}
 }
 
 func flattenConditions(conditions *[]releaseapi.Condition) []interface{} {

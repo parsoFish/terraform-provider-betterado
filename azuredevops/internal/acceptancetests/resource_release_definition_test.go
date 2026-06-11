@@ -1120,6 +1120,107 @@ func TestAccReleaseDefinition_approvalsAndGates(t *testing.T) {
 	})
 }
 
+// TestAccReleaseDefinition_environmentConfig verifies that environment_trigger, schedule, and
+// properties blocks are correctly persisted to ADO and read back without drift.
+// A PlanOnly step with ExpectNonEmptyPlan:false confirms idempotency (AC1/WI-2).
+func TestAccReleaseDefinition_environmentConfig(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclReleaseDefinitionEnvironmentConfig(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					// environment_trigger
+					resource.TestCheckResourceAttr(tfNode, "environment.0.environment_trigger.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.environment_trigger.0.trigger_type", "rollbackRedeploy"),
+					// schedule
+					resource.TestCheckResourceAttr(tfNode, "environment.0.schedule.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.schedule.0.start_hours", "3"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.schedule.0.time_zone_id", "UTC"),
+					// properties
+					resource.TestCheckResourceAttr(tfNode, "environment.0.properties.%", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.properties.env", "staging"),
+				),
+			},
+			{
+				// Idempotency: no perpetual diff (AC1/WI-2)
+				Config:             hclReleaseDefinitionEnvironmentConfig(name, fixture),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+// hclReleaseDefinitionEnvironmentConfig returns HCL for a betterado_release_definition that
+// exercises environment_trigger, schedule, and properties blocks (WI-2).
+// Uses fixture.ProjectID (no inline betterado_project) to keep the test focused on the
+// new environment-level blocks rather than project lifecycle.
+func hclReleaseDefinitionEnvironmentConfig(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  environment {
+    name = "Staging"
+    rank = 1
+
+    environment_trigger {
+      trigger_type = "rollbackRedeploy"
+    }
+
+    schedule {
+      days_to_release = 62
+      start_hours     = 3
+      start_minutes   = 0
+      time_zone_id    = "UTC"
+    }
+
+    properties = {
+      env = "staging"
+    }
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
+}
+`, name, fixture.ProjectID)
+}
+
 // hclReleaseDefinitionApprovalsAndGates returns HCL for a betterado_release_definition with
 // non-default approval_options and a pre_deployment_gates block containing a Query Work Items
 // gate task. Uses fixture.ProjectID (no inline betterado_project) and fixture.WorkItemQueryID
