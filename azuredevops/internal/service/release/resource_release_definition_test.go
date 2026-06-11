@@ -2446,7 +2446,6 @@ func TestReleaseDefinition_GatesOptions_RoundTrip(t *testing.T) {
 func TestReleaseDefinition_ArtifactTagFilter_RoundTrip(t *testing.T) {
 	artifactAlias := "_myBuild"
 	branchInclude := "refs/heads/main"
-	tagPattern := "v*"
 	tagValue := "stable"
 
 	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
@@ -2498,8 +2497,7 @@ func TestReleaseDefinition_ArtifactTagFilter_RoundTrip(t *testing.T) {
 						},
 						"tag_filter": []interface{}{
 							map[string]interface{}{
-								"pattern": tagPattern,
-								"tags":    []interface{}{tagValue},
+								"tags": []interface{}{tagValue},
 							},
 						},
 						"use_build_definition_branch":     false,
@@ -2511,7 +2509,7 @@ func TestReleaseDefinition_ArtifactTagFilter_RoundTrip(t *testing.T) {
 		},
 	})
 
-	// AC1: expandTriggers must include tagFilter.pattern and tags in the first triggerCondition
+	// AC1: expandTriggers must include tags in the first triggerCondition
 	expanded, _, err := expandReleaseDefinition(resourceData)
 	require.NoError(t, err)
 	require.NotNil(t, expanded.Triggers)
@@ -2529,12 +2527,13 @@ func TestReleaseDefinition_ArtifactTagFilter_RoundTrip(t *testing.T) {
 	firstCond := conditions[0]
 	require.Equal(t, branchInclude, firstCond["sourceBranch"], "AC1: sourceBranch must be present")
 
-	tagFilter, ok := firstCond["tagFilter"].(map[string]interface{})
-	require.True(t, ok, "AC1: tagFilter must be present in first condition")
-	require.Equal(t, tagPattern, tagFilter["pattern"], "AC1: tagFilter.pattern must match")
-	tags, ok := tagFilter["tags"].([]string)
-	require.True(t, ok, "AC1: tagFilter.tags must be []string")
-	require.Equal(t, []string{tagValue}, tags, "AC1: tagFilter.tags must contain the tag value")
+	// ADO REST 7.1 persists build-tag filtering ONLY as the `tags` array on
+	// the condition; the SDK's regex `tagFilter` field is silently dropped by
+	// the service (verified live 2026-06-11) and must not be sent.
+	require.NotContains(t, firstCond, "tagFilter", "AC1: tagFilter must NOT be sent (ADO drops it)")
+	tags, ok := firstCond["tags"].([]string)
+	require.True(t, ok, "AC1: condition.tags must be []string")
+	require.Equal(t, []string{tagValue}, tags, "AC1: condition.tags must contain the tag value")
 
 	// AC2: flattenTriggers must restore tag_filter block in state
 	expandedID := testReleaseDefinitionID
@@ -2559,7 +2558,6 @@ func TestReleaseDefinition_ArtifactTagFilter_RoundTrip(t *testing.T) {
 	require.Len(t, tfList, 1, "AC2: tag_filter must have exactly one entry")
 
 	tfMap := tfList[0].(map[string]interface{})
-	require.Equal(t, tagPattern, tfMap["pattern"], "AC2: tag_filter.pattern must round-trip")
 
 	var flatTags []interface{}
 	switch v := tfMap["tags"].(type) {

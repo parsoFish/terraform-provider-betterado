@@ -625,20 +625,21 @@ func ResourceReleaseDefinition() *schema.Resource {
 											},
 										},
 									},
+									// Build-tag filter for the artifact trigger. ADO REST 7.1 only
+									// persists the `tags` list on artifactSource trigger conditions
+									// (the UI's "Build tags"); the SDK's regex `tagFilter.pattern`
+									// field is silently DROPPED by the service on create/update
+									// (verified live 2026-06-11), so it is not exposed here.
 									"tag_filter": {
 										Type:     schema.TypeList,
 										Optional: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"pattern": {
-													Type:     schema.TypeString,
-													Optional: true,
-													Default:  "",
-												},
 												"tags": {
 													Type:     schema.TypeList,
-													Optional: true,
+													Required: true,
+													MinItems: 1,
 													Elem:     &schema.Schema{Type: schema.TypeString},
 												},
 											},
@@ -2636,26 +2637,23 @@ func expandArtifactTriggerConditions(ctMap map[string]interface{}) []map[string]
 		conditions = expandBranchFiltersForTrigger(bfMap)
 	}
 
-	// Gather the extra per-trigger fields
-	var tagFilterMap map[string]interface{}
+	// Gather the extra per-trigger fields. ADO REST 7.1 persists build-tag
+	// filtering as the `tags` string array on the ArtifactFilter condition;
+	// the SDK's regex `tagFilter` field is silently dropped by the service
+	// (verified live 2026-06-11), so only `tags` is sent.
+	var tags []string
 	if tf, ok := ctMap["tag_filter"].([]interface{}); ok && len(tf) > 0 && tf[0] != nil {
 		tfBlock := tf[0].(map[string]interface{})
-		tagMap := map[string]interface{}{
-			"pattern": tfBlock["pattern"].(string),
-		}
-		var tags []string
 		if rawTags, ok := tfBlock["tags"].([]interface{}); ok {
 			for _, t := range rawTags {
 				tags = append(tags, t.(string))
 			}
 		}
-		tagMap["tags"] = tags
-		tagFilterMap = tagMap
 	}
 	useBuildBranch, _ := ctMap["use_build_definition_branch"].(bool)
 	createOnTagging, _ := ctMap["create_release_on_build_tagging"].(bool)
 
-	hasExtras := tagFilterMap != nil || useBuildBranch || createOnTagging
+	hasExtras := len(tags) > 0 || useBuildBranch || createOnTagging
 
 	if !hasExtras {
 		return conditions
@@ -2669,8 +2667,8 @@ func expandArtifactTriggerConditions(ctMap map[string]interface{}) []map[string]
 			{"sourceBranch": ""},
 		}
 	}
-	if tagFilterMap != nil {
-		conditions[0]["tagFilter"] = tagFilterMap
+	if len(tags) > 0 {
+		conditions[0]["tags"] = tags
 	}
 	if useBuildBranch {
 		conditions[0]["useBuildDefinitionBranch"] = true
@@ -2796,24 +2794,22 @@ func flattenArtifactTriggerConditions(trigMap map[string]interface{}) ([]interfa
 				if branch, ok := cMap["sourceBranch"].(string); ok && branch != "" {
 					includes = append(includes, branch)
 				}
-				// Only read extras from the first condition entry
+				// Only read extras from the first condition entry. ADO stores
+				// build-tag filtering as the `tags` array on the condition;
+				// the regex `tagFilter` field is never persisted by the
+				// service, so only `tags` is read back.
 				if i == 0 {
-					if tf, ok := cMap["tagFilter"].(map[string]interface{}); ok {
-						pattern, _ := tf["pattern"].(string)
-						var tags []interface{}
-						if v, ok := tf["tags"].([]interface{}); ok {
-							for _, t := range v {
-								if s, ok := t.(string); ok {
-									tags = append(tags, s)
-								}
+					var tags []interface{}
+					if v, ok := cMap["tags"].([]interface{}); ok {
+						for _, t := range v {
+							if s, ok := t.(string); ok {
+								tags = append(tags, s)
 							}
 						}
-						if tags == nil {
-							tags = []interface{}{}
-						}
+					}
+					if len(tags) > 0 {
 						tagFilter = map[string]interface{}{
-							"pattern": pattern,
-							"tags":    tags,
+							"tags": tags,
 						}
 					}
 					if v, ok := cMap["useBuildDefinitionBranch"].(bool); ok {
@@ -2827,13 +2823,12 @@ func flattenArtifactTriggerConditions(trigMap map[string]interface{}) ([]interfa
 		}
 	}
 
+	// Only emit a branch_filter block when there are actual include entries.
+	// Returning nil (no block) when empty matches HCL configs that omit branch_filter
+	// entirely, preventing a perpetual idempotency diff where state has an empty
+	// block but the config does not declare one.
 	var bf []interface{}
-	if len(includes) == 0 {
-		bf = []interface{}{map[string]interface{}{
-			"include": []interface{}{},
-			"exclude": []interface{}{},
-		}}
-	} else {
+	if len(includes) > 0 {
 		bf = []interface{}{map[string]interface{}{
 			"include": includes,
 			"exclude": []interface{}{},

@@ -1307,7 +1307,7 @@ resource "betterado_release_definition" "test" {
 
 // TestAccReleaseDefinition_triggerEnhancements verifies the trigger-enhancement fields
 // introduced in the INIT-2026-06-08 initiative:
-//   - cd_artifact_trigger.tag_filter (pattern + tags)
+//   - cd_artifact_trigger.tag_filter (build-tag list; ADO 7.1 does not persist the SDK regex tagFilter — verified live)
 //   - cd_artifact_trigger.use_build_definition_branch
 //   - cd_artifact_trigger.create_release_on_build_tagging
 //   - source_repo_trigger (alias + branch_filters)
@@ -1335,7 +1335,8 @@ func TestAccReleaseDefinition_triggerEnhancements(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.#", "1"),
 					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.artifact_alias", "_build"),
 					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.tag_filter.#", "1"),
-					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.tag_filter.0.pattern", "v*"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.tag_filter.0.tags.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.tag_filter.0.tags.0", "stable"),
 					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.use_build_definition_branch", "true"),
 					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.create_release_on_build_tagging", "true"),
 					// Source repo trigger assertions.
@@ -1385,8 +1386,7 @@ resource "betterado_release_definition" "test" {
       create_release_on_build_tagging = true
 
       tag_filter {
-        pattern = "v*"
-        tags    = ["stable"]
+        tags = ["stable"]
       }
     }
 
