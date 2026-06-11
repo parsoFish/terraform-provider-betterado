@@ -2437,3 +2437,207 @@ func TestReleaseDefinition_GatesOptions_RoundTrip(t *testing.T) {
 	require.Equal(t, stabilizationTime, flatOpts["stabilization_time"], "stabilization_time must survive flatten")
 	require.Equal(t, timeout, flatOpts["timeout"], "timeout must survive flatten")
 }
+
+// ── Environment config surface round-trip tests (WI-1) ─────────────────────
+
+// minimalResourceData returns a *schema.ResourceData that satisfies all fields
+// required by flattenEnvironments (specifically flattenVariables / flattenDeployPhases).
+func minimalResourceData(t *testing.T) *schema.ResourceData {
+	t.Helper()
+	return schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "test",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{},
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"environment":         []interface{}{},
+		"artifact":            []interface{}{},
+	})
+}
+
+// minimalEnvMap returns a minimal environment map for use in expandEnvironments tests.
+// It satisfies all required fields while keeping optional ones at zero-values.
+func minimalEnvMap() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                    0,
+		"name":                  "Test-Env",
+		"rank":                  1,
+		"owner":                 "",
+		"variable":              newEnvVarSet(),
+		"variable_groups":       []interface{}{},
+		"condition":             []interface{}{},
+		"pre_deploy_approval":   []interface{}{},
+		"post_deploy_approval":  []interface{}{},
+		"deploy_phase":          []interface{}{},
+		"retention_policy":      []interface{}{},
+		"environment_options":   []interface{}{},
+		"execution_policy":      []interface{}{},
+		"pre_deployment_gates":  []interface{}{},
+		"post_deployment_gates": []interface{}{},
+		"environment_trigger":   []interface{}{},
+		"schedule":              []interface{}{},
+		"process_parameters":    []interface{}{},
+		"properties":            map[string]interface{}{},
+	}
+}
+
+// newEnvVarSet returns an empty *schema.Set suitable for the environment variable field.
+func newEnvVarSet() *schema.Set {
+	return schema.NewSet(schema.HashSchema(&schema.Schema{Type: schema.TypeString}), []interface{}{})
+}
+
+// TestReleaseDefinition_EnvironmentTriggers_RoundTrip verifies expand→flatten round-trip
+// for the environment_trigger block (AC1 + AC2).
+func TestReleaseDefinition_EnvironmentTriggers_RoundTrip(t *testing.T) {
+	envMap := minimalEnvMap()
+	envMap["environment_trigger"] = []interface{}{
+		map[string]interface{}{
+			"definition_environment_id": 7,
+			"trigger_type":              "rollbackRedeploy",
+			"trigger_content":           `{"foo":"bar"}`,
+		},
+	}
+
+	envs, err := expandEnvironments([]interface{}{envMap})
+	require.NoError(t, err)
+	require.Len(t, envs, 1)
+	env := envs[0]
+
+	require.NotNil(t, env.EnvironmentTriggers)
+	require.Len(t, *env.EnvironmentTriggers, 1)
+	trig := (*env.EnvironmentTriggers)[0]
+	require.Equal(t, 7, *trig.DefinitionEnvironmentId)
+	require.Equal(t, releaseapi.EnvironmentTriggerType("rollbackRedeploy"), *trig.TriggerType)
+	require.Equal(t, `{"foo":"bar"}`, *trig.TriggerContent)
+
+	// Flatten back
+	flatEnvs := flattenEnvironments(&envs, minimalResourceData(t))
+	require.Len(t, flatEnvs, 1)
+	flatMap := flatEnvs[0].(map[string]interface{})
+	trigList, ok := flatMap["environment_trigger"].([]interface{})
+	require.True(t, ok, "environment_trigger must be present after flatten")
+	require.Len(t, trigList, 1)
+	flatTrig := trigList[0].(map[string]interface{})
+	require.Equal(t, 7, flatTrig["definition_environment_id"])
+	require.Equal(t, "rollbackRedeploy", flatTrig["trigger_type"])
+	require.Equal(t, `{"foo":"bar"}`, flatTrig["trigger_content"])
+}
+
+// TestReleaseDefinition_EnvironmentSchedules_RoundTrip verifies expand→flatten round-trip
+// for the schedule block (AC3 + AC4).
+func TestReleaseDefinition_EnvironmentSchedules_RoundTrip(t *testing.T) {
+	envMap := minimalEnvMap()
+	envMap["schedule"] = []interface{}{
+		map[string]interface{}{
+			"days_to_release": 62,
+			"start_hours":     3,
+			"start_minutes":   30,
+			"time_zone_id":    "UTC",
+			"job_id":          "",
+		},
+	}
+
+	envs, err := expandEnvironments([]interface{}{envMap})
+	require.NoError(t, err)
+	require.Len(t, envs, 1)
+	env := envs[0]
+
+	require.NotNil(t, env.Schedules)
+	require.Len(t, *env.Schedules, 1)
+	sched := (*env.Schedules)[0]
+	require.NotNil(t, sched.DaysToRelease)
+	require.Equal(t, releaseapi.ScheduleDays("62"), *sched.DaysToRelease)
+	require.Equal(t, 3, *sched.StartHours)
+	require.Equal(t, 30, *sched.StartMinutes)
+	require.Equal(t, "UTC", *sched.TimeZoneId)
+
+	// Flatten back
+	flatEnvs := flattenEnvironments(&envs, minimalResourceData(t))
+	require.Len(t, flatEnvs, 1)
+	flatMap := flatEnvs[0].(map[string]interface{})
+	schedList, ok := flatMap["schedule"].([]interface{})
+	require.True(t, ok, "schedule must be present after flatten")
+	require.Len(t, schedList, 1)
+	flatSched := schedList[0].(map[string]interface{})
+	require.Equal(t, 62, flatSched["days_to_release"])
+	require.Equal(t, 3, flatSched["start_hours"])
+	require.Equal(t, 30, flatSched["start_minutes"])
+	require.Equal(t, "UTC", flatSched["time_zone_id"])
+}
+
+// TestReleaseDefinition_EnvironmentProcessParameters_RoundTrip verifies expand→flatten round-trip
+// for the process_parameters block (AC5 + AC6).
+func TestReleaseDefinition_EnvironmentProcessParameters_RoundTrip(t *testing.T) {
+	envMap := minimalEnvMap()
+	envMap["process_parameters"] = []interface{}{
+		map[string]interface{}{
+			"input": []interface{}{
+				map[string]interface{}{
+					"name":           "myParam",
+					"default_value":  "default",
+					"parameter_type": "string",
+				},
+			},
+		},
+	}
+
+	envs, err := expandEnvironments([]interface{}{envMap})
+	require.NoError(t, err)
+	require.Len(t, envs, 1)
+	env := envs[0]
+
+	require.NotNil(t, env.ProcessParameters)
+	require.NotNil(t, env.ProcessParameters.Inputs)
+	require.Len(t, *env.ProcessParameters.Inputs, 1)
+	inp := (*env.ProcessParameters.Inputs)[0]
+	require.Equal(t, "myParam", *inp.Name)
+	require.Equal(t, "default", *inp.DefaultValue)
+	require.Equal(t, "string", *inp.Type)
+
+	// Flatten back
+	flatEnvs := flattenEnvironments(&envs, minimalResourceData(t))
+	require.Len(t, flatEnvs, 1)
+	flatMap := flatEnvs[0].(map[string]interface{})
+	ppList, ok := flatMap["process_parameters"].([]interface{})
+	require.True(t, ok, "process_parameters must be present after flatten")
+	require.Len(t, ppList, 1)
+	ppMap := ppList[0].(map[string]interface{})
+	inputList, ok := ppMap["input"].([]interface{})
+	require.True(t, ok, "input list must be present")
+	require.Len(t, inputList, 1)
+	flatInp := inputList[0].(map[string]interface{})
+	require.Equal(t, "myParam", flatInp["name"])
+	require.Equal(t, "default", flatInp["default_value"])
+	require.Equal(t, "string", flatInp["parameter_type"])
+}
+
+// TestReleaseDefinition_EnvironmentProperties_RoundTrip verifies expand→flatten round-trip
+// for the properties map (AC7 + AC8).
+func TestReleaseDefinition_EnvironmentProperties_RoundTrip(t *testing.T) {
+	envMap := minimalEnvMap()
+	envMap["properties"] = map[string]interface{}{
+		"env": "prod",
+	}
+
+	envs, err := expandEnvironments([]interface{}{envMap})
+	require.NoError(t, err)
+	require.Len(t, envs, 1)
+	env := envs[0]
+
+	require.NotNil(t, env.Properties)
+	props, ok := env.Properties.(map[string]interface{})
+	require.True(t, ok, "Properties must be map[string]interface{}")
+	require.Equal(t, "prod", props["env"])
+
+	// Flatten back
+	flatEnvs := flattenEnvironments(&envs, minimalResourceData(t))
+	require.Len(t, flatEnvs, 1)
+	flatMap := flatEnvs[0].(map[string]interface{})
+	flatProps, ok := flatMap["properties"].(map[string]string)
+	require.True(t, ok, "properties must be map[string]string after flatten")
+	require.Equal(t, "prod", flatProps["env"])
+}
