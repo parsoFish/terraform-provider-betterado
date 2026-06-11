@@ -462,7 +462,11 @@ func ResourceReleaseDefinition() *schema.Resource {
 									"definition_environment_id": {
 										Type:     schema.TypeInt,
 										Optional: true,
-										Default:  0,
+										Computed: true,
+										// ADO automatically fills definition_environment_id with the
+										// parent environment's ID when it is left unset (0). Mark as
+										// Computed so Terraform uses the value ADO returns rather than
+										// treating 0 vs <envID> as a perpetual drift.
 									},
 									"trigger_type": {
 										Type:         schema.TypeString,
@@ -1868,13 +1872,24 @@ func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *sch
 		}
 
 		// Properties
+		// ADO REST returns properties in a typed wrapper:
+		//   {"key": {"$type": "System.String", "$value": "<actual-value>"}}
+		// We unwrap the $value field to recover the plain string the caller set.
 		if env.Properties != nil {
 			if props, ok := env.Properties.(map[string]interface{}); ok {
 				propsStr := make(map[string]string, len(props))
 				for k, v := range props {
-					if sv, ok := v.(string); ok {
-						propsStr[k] = sv
-					} else {
+					switch cv := v.(type) {
+					case string:
+						propsStr[k] = cv
+					case map[string]interface{}:
+						// Unwrap ADO's {"$type":"System.String","$value":"..."} wrapper.
+						if val, ok := cv["$value"].(string); ok {
+							propsStr[k] = val
+						} else {
+							propsStr[k] = fmt.Sprintf("%v", v)
+						}
+					default:
 						propsStr[k] = fmt.Sprintf("%v", v)
 					}
 				}
