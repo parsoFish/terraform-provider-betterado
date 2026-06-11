@@ -360,7 +360,6 @@ func (client *ClientImpl) CreateUserMailAddress(ctx context.Context, args Create
 	return &responseValue, err
 }
 
-
 // Arguments for the CreateUserOriginId function
 type CreateUserOriginIdArgs struct {
 	// (required) The subset of the full graph user used to uniquely find the graph subject in an external provider.
@@ -384,7 +383,6 @@ type CreateUserMailAddressArgs struct {
 	// (optional) A comma separated list of descriptors of groups you want the graph user to join
 	GroupDescriptors *[]string
 }
-
 
 // [Preview API]
 func (client *ClientImpl) DeleteAvatar(ctx context.Context, args DeleteAvatarArgs) error {
