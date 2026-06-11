@@ -5,8 +5,78 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 )
+
+// countNonEmptyLines opens the file at path and counts non-empty (non-whitespace-only) lines.
+func countNonEmptyLines(t *testing.T, path string) int {
+	t.Helper()
+
+	f, err := os.Open(path)
+	if err != nil {
+		t.Fatalf("open(%s): %v", path, err)
+	}
+	defer f.Close()
+
+	var count int
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		if strings.TrimSpace(scanner.Text()) != "" {
+			count++
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		t.Fatalf("scanning %s: %v", path, err)
+	}
+	return count
+}
+
+// TestDataSourceDocPagesExist verifies that the documentation pages for the two new
+// data sources exist under docs/data-sources/ and each contains at least 10 non-empty lines.
+func TestDataSourceDocPagesExist(t *testing.T) {
+	t.Helper()
+
+	// Locate the repository root by walking up from this test file.
+	// The test lives at azuredevops/internal/service/release/, so the root is 4 levels up.
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("runtime.Caller(0) failed — cannot locate test file path")
+	}
+	repoRoot := filepath.Clean(filepath.Join(filepath.Dir(thisFile), "..", "..", "..", ".."))
+
+	const minLines = 10
+
+	docFiles := []string{
+		filepath.Join(repoRoot, "docs", "data-sources", "release_definition_revision.md"),
+		filepath.Join(repoRoot, "docs", "data-sources", "release_definition_history.md"),
+	}
+
+	for _, docPath := range docFiles {
+		rel, err := filepath.Rel(repoRoot, docPath)
+		if err != nil {
+			rel = docPath
+		}
+
+		info, err := os.Stat(docPath)
+		if os.IsNotExist(err) {
+			t.Fatalf("%s does not exist at expected path %s", rel, docPath)
+		}
+		if err != nil {
+			t.Fatalf("stat(%s): %v", docPath, err)
+		}
+		if info.IsDir() {
+			t.Fatalf("%s is a directory, not a file", docPath)
+		}
+
+		n := countNonEmptyLines(t, docPath)
+		if n < minLines {
+			t.Fatalf("%s has only %d non-empty lines; expected at least %d", rel, n, minLines)
+		}
+
+		t.Logf("%s OK: %d non-empty lines (>= %d)", rel, n, minLines)
+	}
+}
 
 // TestAuditGapMatrixDocExists verifies that docs/release-definition-gap-matrix.md exists in
 // the repository root and contains at least 50 non-empty lines.
