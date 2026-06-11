@@ -1079,3 +1079,127 @@ resource "betterado_release_definition" "test" {
 }
 `, name)
 }
+
+// TestAccReleaseDefinition_approvalsAndGates verifies that non-default approval_options
+// (timeout_in_minutes, execution_order, release_creator_can_be_approver) and a
+// pre_deployment_gates block (with a Query Work Items gate task) are persisted to ADO,
+// read back without drift, and that a re-plan produces no diff (idempotency).
+func TestAccReleaseDefinition_approvalsAndGates(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclReleaseDefinitionApprovalsAndGates(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					// approval_options assertions
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deploy_approval.0.approval_options.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deploy_approval.0.approval_options.0.timeout_in_minutes", "1440"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deploy_approval.0.approval_options.0.execution_order", "beforeGates"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deploy_approval.0.approval_options.0.release_creator_can_be_approver", "false"),
+					// gates assertions
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deployment_gates.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deployment_gates.0.gates_options.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deployment_gates.0.gates_options.0.is_enabled", "true"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deployment_gates.0.gate.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.pre_deployment_gates.0.gate.0.task.0.task_id", "f1e4b0e6-017e-4819-8a48-ef19ae96e289"),
+				),
+			},
+			// idempotency step: re-plan must emit no diff
+			{
+				Config:   hclReleaseDefinitionApprovalsAndGates(name, fixture),
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
+// hclReleaseDefinitionApprovalsAndGates returns HCL for a betterado_release_definition with
+// non-default approval_options and a pre_deployment_gates block containing a Query Work Items
+// gate task. Uses fixture.ProjectID (no inline betterado_project) and fixture.WorkItemQueryID
+// so the gate references a real shared query in the project.
+// A runOnServer phase is used to avoid the need for a real agent queue in this focused test.
+func hclReleaseDefinitionApprovalsAndGates(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  environment {
+    name = "Staging"
+    rank = 1
+
+    deploy_phase {
+      name       = "Agentless job"
+      rank       = 1
+      phase_type = "runOnServer"
+
+      deployment_input {
+        timeout_in_minutes            = 0
+        job_cancel_timeout_in_minutes = 1
+        condition                     = "succeeded()"
+      }
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+
+      approval_options {
+        release_creator_can_be_approver                                 = false
+        enforce_identity_revalidation                                   = false
+        timeout_in_minutes                                              = 1440
+        execution_order                                                 = "beforeGates"
+        auto_triggered_and_previous_environment_approved_can_be_skipped = false
+      }
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    pre_deployment_gates {
+      gates_options {
+        is_enabled               = true
+        timeout                  = 600
+        sampling_interval        = 60
+        stabilization_time       = 0
+        minimum_success_duration = 0
+      }
+
+      gate {
+        task {
+          name    = "Query Work Items"
+          task_id = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
+          version = "0.*"
+          enabled = true
+          inputs = {
+            queryId = %[3]q
+          }
+        }
+      }
+    }
+  }
+}
+`, name, fixture.ProjectID, fixture.WorkItemQueryID)
+}

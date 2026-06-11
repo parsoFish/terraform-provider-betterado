@@ -2365,3 +2365,75 @@ func TestReleaseDefinition_AgentlessPhase_ExpandFlatten(t *testing.T) {
 		require.Equal(t, 120, flatAgentlessDI["timeout_in_minutes"], "agentless timeout must round-trip to 120")
 	})
 }
+
+// ── TestReleaseDefinition_GatesOptions_RoundTrip ───────────────────────────
+
+// TestReleaseDefinition_GatesOptions_RoundTrip confirms that all five
+// ReleaseDefinitionGatesOptions fields (is_enabled, minimum_success_duration,
+// sampling_interval, stabilization_time, timeout) round-trip correctly through
+// expandDeploymentGates and flattenDeploymentGates.
+func TestReleaseDefinition_GatesOptions_RoundTrip(t *testing.T) {
+	isEnabled := true
+	minimumSuccessDuration := 10
+	samplingInterval := 5
+	stabilizationTime := 3
+	timeout := 120
+
+	// Step 1: Build the Terraform-style input slice and call expandDeploymentGates.
+	input := []interface{}{
+		map[string]interface{}{
+			"gates_options": []interface{}{
+				map[string]interface{}{
+					"is_enabled":               isEnabled,
+					"minimum_success_duration": minimumSuccessDuration,
+					"sampling_interval":        samplingInterval,
+					"stabilization_time":       stabilizationTime,
+					"timeout":                  timeout,
+				},
+			},
+		},
+	}
+
+	step := expandDeploymentGates(input)
+	require.NotNil(t, step, "expandDeploymentGates must return a non-nil step")
+	require.NotNil(t, step.GatesOptions, "GatesOptions must be populated after expand")
+
+	opts := step.GatesOptions
+	require.NotNil(t, opts.IsEnabled, "IsEnabled must not be nil")
+	require.Equal(t, isEnabled, *opts.IsEnabled, "IsEnabled must match")
+	require.NotNil(t, opts.MinimumSuccessDuration, "MinimumSuccessDuration must not be nil")
+	require.Equal(t, minimumSuccessDuration, *opts.MinimumSuccessDuration, "MinimumSuccessDuration must match")
+	require.NotNil(t, opts.SamplingInterval, "SamplingInterval must not be nil")
+	require.Equal(t, samplingInterval, *opts.SamplingInterval, "SamplingInterval must match")
+	require.NotNil(t, opts.StabilizationTime, "StabilizationTime must not be nil")
+	require.Equal(t, stabilizationTime, *opts.StabilizationTime, "StabilizationTime must match")
+	require.NotNil(t, opts.Timeout, "Timeout must not be nil")
+	require.Equal(t, timeout, *opts.Timeout, "Timeout must match")
+
+	// Step 2: Simulate the API response by constructing a ReleaseDefinitionGatesStep
+	// with the same five values, then call flattenDeploymentGates and assert round-trip.
+	apiStep := &releaseapi.ReleaseDefinitionGatesStep{
+		GatesOptions: &releaseapi.ReleaseDefinitionGatesOptions{
+			IsEnabled:              converter.Bool(isEnabled),
+			MinimumSuccessDuration: converter.Int(minimumSuccessDuration),
+			SamplingInterval:       converter.Int(samplingInterval),
+			StabilizationTime:      converter.Int(stabilizationTime),
+			Timeout:                converter.Int(timeout),
+		},
+	}
+
+	flattened := flattenDeploymentGates(apiStep)
+	require.Len(t, flattened, 1, "flattenDeploymentGates must return one block")
+	flatMap := flattened[0].(map[string]interface{})
+
+	gatesOptsList, ok := flatMap["gates_options"].([]interface{})
+	require.True(t, ok, "gates_options must be present after flatten")
+	require.Len(t, gatesOptsList, 1, "gates_options must contain exactly one entry")
+
+	flatOpts := gatesOptsList[0].(map[string]interface{})
+	require.Equal(t, isEnabled, flatOpts["is_enabled"], "is_enabled must survive flatten")
+	require.Equal(t, minimumSuccessDuration, flatOpts["minimum_success_duration"], "minimum_success_duration must survive flatten")
+	require.Equal(t, samplingInterval, flatOpts["sampling_interval"], "sampling_interval must survive flatten")
+	require.Equal(t, stabilizationTime, flatOpts["stabilization_time"], "stabilization_time must survive flatten")
+	require.Equal(t, timeout, flatOpts["timeout"], "timeout must survive flatten")
+}
