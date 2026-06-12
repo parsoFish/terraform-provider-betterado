@@ -50,6 +50,56 @@ func TestAccReleaseDefinition_basic(t *testing.T) {
 	})
 }
 
+// TestAccReleaseDefinition_import is a dedicated standalone import test for betterado_release_definition.
+//
+// Step 1 (Create): Applies hclReleaseDefinitionBasicFixture to create a release definition
+// in the SharedReleaseFixture project — no inline betterado_project block needed.
+// Step 2 (Import): Imports the resource by project_id/definition_id using
+// ComputeProjectQualifiedResourceImportID; ImportStateVerify: true confirms all state attributes match.
+// Step 3 (Idempotency): PlanOnly: true confirms no perpetual diff after import.
+//
+// AC1: dedicated import test passes live (TF_ACC=1), imported state matches created state
+// (ImportStateVerify: true), re-plan produces no diff.
+// AC2: import step uses ComputeProjectQualifiedResourceImportID (tfhelper.ImportProjectQualifiedResource
+// is the wired importer), all attributes match after import with no RequiredDuringImport errors.
+func TestAccReleaseDefinition_import(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			// Step 1: create a minimal release definition using the fixture project.
+			{
+				Config: hclReleaseDefinitionBasicFixture(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "name", name),
+					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
+					resource.TestCheckResourceAttrSet(tfNode, "revision"),
+				),
+			},
+			// Step 2: import by project_id/definition_id; verify all state attributes match.
+			{
+				ResourceName:      tfNode,
+				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfNode),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			// Step 3: idempotency — re-plan after import must produce no diff.
+			{
+				Config:             hclReleaseDefinitionBasicFixture(name, fixture),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
 // TestAccReleaseDefinition_withDeploymentInput tests that deployment_input (queue_id) is correctly
 // sent to and read back from the API.
 func TestAccReleaseDefinition_withDeploymentInput(t *testing.T) {
