@@ -1304,3 +1304,133 @@ resource "betterado_release_definition" "test" {
 }
 `, name, fixture.ProjectID, fixture.WorkItemQueryID)
 }
+
+// TestAccReleaseDefinition_triggerEnhancements verifies the trigger-enhancement fields
+// introduced in the INIT-2026-06-08 initiative:
+//   - cd_artifact_trigger.tag_filter (build-tag list; ADO 7.1 does not persist the SDK regex tagFilter — verified live)
+//   - cd_artifact_trigger.use_build_definition_branch
+//   - cd_artifact_trigger.create_release_on_build_tagging
+//   - source_repo_trigger (alias + branch_filters)
+//
+// Uses SharedReleaseFixture for the project + build definition so no inline
+// betterado_project is needed.  A runOnServer phase avoids requiring a real
+// agent queue.  Pre/post approvals and retention_policy satisfy VS402877/VS402982.
+func TestAccReleaseDefinition_triggerEnhancements(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclReleaseDefinitionTriggerEnhancements(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					// Triggers block: 1 entry containing both trigger types.
+					resource.TestCheckResourceAttr(tfNode, "triggers.#", "1"),
+					// CD artifact trigger assertions.
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.artifact_alias", "_build"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.tag_filter.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.tag_filter.0.tags.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.tag_filter.0.tags.0", "stable"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.use_build_definition_branch", "true"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.create_release_on_build_tagging", "true"),
+					// Source repo trigger assertions.
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.source_repo_trigger.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.source_repo_trigger.0.alias", "_build"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.source_repo_trigger.0.branch_filters.#", "1"),
+				),
+			},
+			// Idempotency: re-plan must produce no diff.
+			{
+				Config:             hclReleaseDefinitionTriggerEnhancements(name, fixture),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+// hclReleaseDefinitionTriggerEnhancements returns HCL for a betterado_release_definition
+// that exercises cd_artifact_trigger (tag_filter, use_build_definition_branch,
+// create_release_on_build_tagging) and source_repo_trigger.
+// Arg layout: %[1]q = name, %[2]q = fixture.ProjectID, %[3]d = fixture.BuildDefinitionID.
+func hclReleaseDefinitionTriggerEnhancements(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  # Build artifact — links to the fixture's pre-created build definition.
+  artifact {
+    alias      = "_build"
+    type       = "Build"
+    is_primary = true
+
+    definition_reference = {
+      definition = tostring(%[3]d)
+      project    = %[2]q
+    }
+  }
+
+  # Triggers block exercises all trigger-enhancement fields.
+  triggers {
+    # CD artifact trigger with tag_filter and new boolean flags.
+    cd_artifact_trigger {
+      artifact_alias                  = "_build"
+      use_build_definition_branch     = true
+      create_release_on_build_tagging = true
+
+      tag_filter {
+        tags = ["stable"]
+      }
+    }
+
+    # Source-repo trigger on the same artifact alias.
+    source_repo_trigger {
+      alias          = "_build"
+      branch_filters = ["refs/heads/main"]
+    }
+  }
+
+  environment {
+    name = "Production"
+    rank = 1
+
+    # runOnServer phase — no real agent queue needed for this focused trigger test.
+    deploy_phase {
+      name       = "Agentless job"
+      rank       = 1
+      phase_type = "runOnServer"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    # ADO VS402877: both pre- and post-deploy approvals are mandatory.
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
+}
+`, name, fixture.ProjectID, fixture.BuildDefinitionID)
+}

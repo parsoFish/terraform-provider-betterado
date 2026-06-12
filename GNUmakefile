@@ -30,7 +30,7 @@ build: fmtcheck depscheck
 fmt:
 	@echo "==> Fixing source code with gofmt..."
 	@echo "# This logic should match the search logic in scripts/gofmtcheck.sh"
-	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
+	find . -name '*.go' | grep -v vendor | grep -v third_party | xargs gofmt -s -w
 
 fumpt:
 	@echo "==> Fixing source code with Gofumpt..."
