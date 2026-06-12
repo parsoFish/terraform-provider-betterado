@@ -50,6 +50,56 @@ func TestAccReleaseDefinition_basic(t *testing.T) {
 	})
 }
 
+// TestAccReleaseDefinition_import is a dedicated standalone import test for betterado_release_definition.
+//
+// Step 1 (Create): Applies hclReleaseDefinitionBasicFixture to create a release definition
+// in the SharedReleaseFixture project — no inline betterado_project block needed.
+// Step 2 (Import): Imports the resource by project_id/definition_id using
+// ComputeProjectQualifiedResourceImportID; ImportStateVerify: true confirms all state attributes match.
+// Step 3 (Idempotency): PlanOnly: true confirms no perpetual diff after import.
+//
+// AC1: dedicated import test passes live (TF_ACC=1), imported state matches created state
+// (ImportStateVerify: true), re-plan produces no diff.
+// AC2: import step uses ComputeProjectQualifiedResourceImportID (tfhelper.ImportProjectQualifiedResource
+// is the wired importer), all attributes match after import with no RequiredDuringImport errors.
+func TestAccReleaseDefinition_import(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			// Step 1: create a minimal release definition using the fixture project.
+			{
+				Config: hclReleaseDefinitionBasicFixture(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "name", name),
+					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
+					resource.TestCheckResourceAttrSet(tfNode, "revision"),
+				),
+			},
+			// Step 2: import by project_id/definition_id; verify all state attributes match.
+			{
+				ResourceName:      tfNode,
+				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfNode),
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			// Step 3: idempotency — re-plan after import must produce no diff.
+			{
+				Config:             hclReleaseDefinitionBasicFixture(name, fixture),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
 // TestAccReleaseDefinition_withDeploymentInput tests that deployment_input (queue_id) is correctly
 // sent to and read back from the API.
 func TestAccReleaseDefinition_withDeploymentInput(t *testing.T) {
@@ -1406,6 +1456,448 @@ resource "betterado_release_definition" "test" {
       name       = "Agentless job"
       rank       = 1
       phase_type = "runOnServer"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    # ADO VS402877: both pre- and post-deploy approvals are mandatory.
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
+}
+`, name, fixture.ProjectID, fixture.BuildDefinitionID)
+}
+
+// TestAccReleaseDefinition_updateAddEnvironment verifies that a release definition
+// update which (a) adds a second environment and (b) changes the description field
+// is applied in-place (no destroy/recreate), both environments survive, description
+// is updated, and the ADO API-level revision increments by at least 1.
+//
+// AC1: two environments survive the update; description is updated in-place.
+// AC2: API revision after update > API revision before update (update-in-place, not ForceNew).
+func TestAccReleaseDefinition_updateAddEnvironment(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	// revisionBeforeUpdate is populated by the step-1 check; step-2 uses it.
+	var revisionBeforeUpdate int
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			// Step 1: create a minimal definition with one environment + a description.
+			{
+				Config: hclReleaseDefinitionUpdateBase(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "environment.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "description", "base-description"),
+					resource.TestCheckResourceAttrSet(tfNode, "revision"),
+					// Capture the API-level revision for comparison in step 2.
+					captureReleaseDefinitionRevision(&revisionBeforeUpdate),
+				),
+			},
+			// Step 2: add a second environment and change the description — in-place update.
+			{
+				Config: hclReleaseDefinitionUpdateExpanded(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "environment.#", "2"),
+					resource.TestCheckResourceAttr(tfNode, "description", "updated-description"),
+					resource.TestCheckResourceAttrSet(tfNode, "revision"),
+					// AC2: API revision must have incremented (proving update-in-place).
+					checkReleaseDefinitionRevisionIncremented(&revisionBeforeUpdate),
+				),
+			},
+		},
+	})
+}
+
+// captureReleaseDefinitionRevision reads the ADO API revision of the release
+// definition found in Terraform state and stores it in *out.  Called in step 1
+// so that checkReleaseDefinitionRevisionIncremented can compare against it in
+// step 2.
+func captureReleaseDefinitionRevision(out *int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		def, err := getReleaseDefinitionFromState(s)
+		if err != nil {
+			return err
+		}
+		if def.Revision == nil {
+			return fmt.Errorf("captureReleaseDefinitionRevision: API returned nil revision")
+		}
+		*out = *def.Revision
+		return nil
+	}
+}
+
+// checkReleaseDefinitionRevisionIncremented asserts that the ADO API revision of
+// the release definition found in Terraform state is strictly greater than
+// *expectedMinRevision (the value captured in the previous step).  A greater
+// revision proves that the update was applied in-place rather than via a
+// destroy/recreate cycle (which would reset the revision to 1).
+func checkReleaseDefinitionRevisionIncremented(expectedMinRevision *int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		def, err := getReleaseDefinitionFromState(s)
+		if err != nil {
+			return err
+		}
+		if def.Revision == nil {
+			return fmt.Errorf("checkReleaseDefinitionRevisionIncremented: API returned nil revision")
+		}
+		if *def.Revision <= *expectedMinRevision {
+			return fmt.Errorf(
+				"expected API revision > %d (revision before update) but got %d; "+
+					"this may indicate a destroy/recreate instead of an in-place update",
+				*expectedMinRevision, *def.Revision,
+			)
+		}
+		return nil
+	}
+}
+
+// hclReleaseDefinitionUpdateBase returns HCL for a minimal release definition with
+// ONE environment and description "base-description". Used as step 1 of
+// TestAccReleaseDefinition_updateAddEnvironment.
+//
+// Uses fixture.ProjectID (no inline betterado_project) to keep the test focused.
+// Both pre_deploy_approval and post_deploy_approval are present (VS402877).
+// retention_policy is present (VS402982).
+func hclReleaseDefinitionUpdateBase(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name        = %[1]q
+  project_id  = %[2]q
+  description = "base-description"
+
+  environment {
+    name = "Staging"
+    rank = 1
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
+}
+`, name, fixture.ProjectID)
+}
+
+// hclReleaseDefinitionUpdateExpanded returns HCL for a release definition with
+// TWO environments and description "updated-description". Used as step 2 of
+// TestAccReleaseDefinition_updateAddEnvironment to verify that:
+//   - A second environment can be added in-place (no ForceNew).
+//   - The description change is persisted without destroy/recreate.
+//
+// Uses fixture.ProjectID (no inline betterado_project).
+// Both pre_deploy_approval and post_deploy_approval are present on every
+// environment (VS402877). retention_policy is present on every environment
+// (VS402982).
+func hclReleaseDefinitionUpdateExpanded(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name        = %[1]q
+  project_id  = %[2]q
+  description = "updated-description"
+
+  environment {
+    name = "Staging"
+    rank = 1
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
+
+  environment {
+    name = "Production"
+    rank = 2
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
+}
+`, name, fixture.ProjectID)
+}
+
+// TestAccReleaseDefinition_completeWithNewFields is a combined exhaustive acceptance
+// test that exercises BOTH the existing complete-test features AND the PR #18 / PR #19
+// additions together in a single resource block.
+//
+// PR #18 fields exercised: environment_trigger, schedule, properties.
+// PR #19 fields exercised: cd_artifact_trigger.tag_filter,
+//
+//	cd_artifact_trigger.use_build_definition_branch,
+//	cd_artifact_trigger.create_release_on_build_tagging,
+//	source_repo_trigger.
+//
+// The individual tests (TestAccReleaseDefinition_environmentConfig and
+// TestAccReleaseDefinition_triggerEnhancements) prove each field works in
+// isolation; this test proves the fields work TOGETHER — no perpetual drift
+// occurs when all options are combined (AC2).
+//
+// Uses SharedReleaseFixture for project + build definition (no inline
+// betterado_project). A runOnServer phase is used so no real agent queue is
+// required. Pre/post approvals and retention_policy satisfy VS402877/VS402982.
+//
+// AC1: test passes live (TF_ACC=1), all new-field assertions succeed, idempotency
+//
+//	step (PlanOnly: true, ExpectNonEmptyPlan: false) produces no diff.
+//
+// AC2: assertions cover field interactions not duplicated verbatim from the
+//
+//	individual isolation tests.
+func TestAccReleaseDefinition_completeWithNewFields(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclReleaseDefinitionCompleteWithNewFields(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "name", name),
+
+					// artifact is wired to the shared build definition.
+					resource.TestCheckResourceAttr(tfNode, "artifact.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "artifact.0.alias", "_build"),
+					resource.TestCheckResourceAttr(tfNode, "artifact.0.type", "Build"),
+					resource.TestCheckResourceAttr(tfNode, "artifact.0.is_primary", "true"),
+
+					// triggers block — CD artifact trigger with PR #19 fields.
+					resource.TestCheckResourceAttr(tfNode, "triggers.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.artifact_alias", "_build"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.tag_filter.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.tag_filter.0.tags.0", "stable"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.use_build_definition_branch", "true"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.cd_artifact_trigger.0.create_release_on_build_tagging", "true"),
+
+					// source_repo_trigger (PR #19) — proves it coexists with cd_artifact_trigger.
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.source_repo_trigger.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.source_repo_trigger.0.alias", "_build"),
+
+					// single Staging environment.
+					resource.TestCheckResourceAttr(tfNode, "environment.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.name", "Staging"),
+
+					// environment_trigger (PR #18).
+					resource.TestCheckResourceAttr(tfNode, "environment.0.environment_trigger.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.environment_trigger.0.trigger_type", "rollbackRedeploy"),
+
+					// schedule (PR #18) — start_hours and time_zone_id as representative fields.
+					resource.TestCheckResourceAttr(tfNode, "environment.0.schedule.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.schedule.0.start_hours", "3"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.schedule.0.time_zone_id", "UTC"),
+
+					// properties (PR #18) — one entry proves the map round-trips.
+					resource.TestCheckResourceAttr(tfNode, "environment.0.properties.%", "1"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.properties.env", "staging"),
+				),
+			},
+			// Idempotency: re-plan with all new fields combined must produce no diff.
+			{
+				Config:             hclReleaseDefinitionCompleteWithNewFields(name, fixture),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+// hclReleaseDefinitionCompleteWithNewFields returns HCL for a single
+// betterado_release_definition that combines the PR #18 environment-level fields
+// (environment_trigger, schedule, properties) with the PR #19 trigger fields
+// (cd_artifact_trigger.tag_filter, use_build_definition_branch,
+// create_release_on_build_tagging, source_repo_trigger) alongside the shared
+// fixture artifact reference.
+//
+// Arg layout: %[1]q = name, %[2]q = fixture.ProjectID, %[3]d = fixture.BuildDefinitionID.
+//
+// A runOnServer phase is used to avoid the need for a real agent queue.
+// Pre/post approvals (VS402877) and retention_policy (VS402982) are present.
+// An "event" condition on the environment satisfies ADO's requirement when
+// combining cd_artifact_trigger with environment_trigger.
+func hclReleaseDefinitionCompleteWithNewFields(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  # Build artifact — references the shared pre-created build definition.
+  artifact {
+    alias      = "_build"
+    type       = "Build"
+    is_primary = true
+
+    definition_reference = {
+      definition = tostring(%[3]d)
+      project    = %[2]q
+    }
+  }
+
+  # Triggers block: combines PR #19 cd_artifact_trigger enhancements with source_repo_trigger.
+  triggers {
+    # CD artifact trigger with tag_filter and new boolean flags (PR #19).
+    cd_artifact_trigger {
+      artifact_alias                  = "_build"
+      use_build_definition_branch     = true
+      create_release_on_build_tagging = true
+
+      # tag_filter — builds tagged "stable" will fire this trigger.
+      tag_filter {
+        tags = ["stable"]
+      }
+    }
+
+    # Source-repo trigger on the same artifact alias (PR #19).
+    source_repo_trigger {
+      alias          = "_build"
+      branch_filters = ["refs/heads/main"]
+    }
+  }
+
+  environment {
+    name = "Staging"
+    rank = 1
+
+    # ADO requires an "event" condition on the environment when environment_trigger
+    # is combined with a cd_artifact_trigger (schedules release creation event).
+    condition {
+      name           = "ReleaseStarted"
+      condition_type = "event"
+      value          = ""
+    }
+
+    # environment_trigger (PR #18): re-deploy on rollback.
+    environment_trigger {
+      trigger_type = "rollbackRedeploy"
+    }
+
+    # schedule (PR #18): weekday releases at 03:00 UTC.
+    schedule {
+      days_to_release = 62
+      start_hours     = 3
+      start_minutes   = 0
+      time_zone_id    = "UTC"
+    }
+
+    # properties (PR #18): arbitrary key-value metadata.
+    properties = {
+      env = "staging"
+    }
+
+    # runOnServer phase — no real agent queue required for this combined test.
+    deploy_phase {
+      name       = "Agentless job"
+      rank       = 1
+      phase_type = "runOnServer"
+
+      deployment_input {
+        timeout_in_minutes            = 0
+        job_cancel_timeout_in_minutes = 1
+        condition                     = "succeeded()"
+      }
     }
 
     retention_policy {
