@@ -1434,3 +1434,233 @@ resource "betterado_release_definition" "test" {
 }
 `, name, fixture.ProjectID, fixture.BuildDefinitionID)
 }
+
+// TestAccReleaseDefinition_updateAddEnvironment verifies that a release definition
+// update which (a) adds a second environment and (b) changes the description field
+// is applied in-place (no destroy/recreate), both environments survive, description
+// is updated, and the ADO API-level revision increments by at least 1.
+//
+// AC1: two environments survive the update; description is updated in-place.
+// AC2: API revision after update > API revision before update (update-in-place, not ForceNew).
+func TestAccReleaseDefinition_updateAddEnvironment(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	// revisionBeforeUpdate is populated by the step-1 check; step-2 uses it.
+	var revisionBeforeUpdate int
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			// Step 1: create a minimal definition with one environment + a description.
+			{
+				Config: hclReleaseDefinitionUpdateBase(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "environment.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "description", "base-description"),
+					resource.TestCheckResourceAttrSet(tfNode, "revision"),
+					// Capture the API-level revision for comparison in step 2.
+					captureReleaseDefinitionRevision(&revisionBeforeUpdate),
+				),
+			},
+			// Step 2: add a second environment and change the description — in-place update.
+			{
+				Config: hclReleaseDefinitionUpdateExpanded(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "environment.#", "2"),
+					resource.TestCheckResourceAttr(tfNode, "description", "updated-description"),
+					resource.TestCheckResourceAttrSet(tfNode, "revision"),
+					// AC2: API revision must have incremented (proving update-in-place).
+					checkReleaseDefinitionRevisionIncremented(&revisionBeforeUpdate),
+				),
+			},
+		},
+	})
+}
+
+// captureReleaseDefinitionRevision reads the ADO API revision of the release
+// definition found in Terraform state and stores it in *out.  Called in step 1
+// so that checkReleaseDefinitionRevisionIncremented can compare against it in
+// step 2.
+func captureReleaseDefinitionRevision(out *int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		def, err := getReleaseDefinitionFromState(s)
+		if err != nil {
+			return err
+		}
+		if def.Revision == nil {
+			return fmt.Errorf("captureReleaseDefinitionRevision: API returned nil revision")
+		}
+		*out = *def.Revision
+		return nil
+	}
+}
+
+// checkReleaseDefinitionRevisionIncremented asserts that the ADO API revision of
+// the release definition found in Terraform state is strictly greater than
+// *expectedMinRevision (the value captured in the previous step).  A greater
+// revision proves that the update was applied in-place rather than via a
+// destroy/recreate cycle (which would reset the revision to 1).
+func checkReleaseDefinitionRevisionIncremented(expectedMinRevision *int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		def, err := getReleaseDefinitionFromState(s)
+		if err != nil {
+			return err
+		}
+		if def.Revision == nil {
+			return fmt.Errorf("checkReleaseDefinitionRevisionIncremented: API returned nil revision")
+		}
+		if *def.Revision <= *expectedMinRevision {
+			return fmt.Errorf(
+				"expected API revision > %d (revision before update) but got %d; "+
+					"this may indicate a destroy/recreate instead of an in-place update",
+				*expectedMinRevision, *def.Revision,
+			)
+		}
+		return nil
+	}
+}
+
+// hclReleaseDefinitionUpdateBase returns HCL for a minimal release definition with
+// ONE environment and description "base-description". Used as step 1 of
+// TestAccReleaseDefinition_updateAddEnvironment.
+//
+// Uses fixture.ProjectID (no inline betterado_project) to keep the test focused.
+// Both pre_deploy_approval and post_deploy_approval are present (VS402877).
+// retention_policy is present (VS402982).
+func hclReleaseDefinitionUpdateBase(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name        = %[1]q
+  project_id  = %[2]q
+  description = "base-description"
+
+  environment {
+    name = "Staging"
+    rank = 1
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
+}
+`, name, fixture.ProjectID)
+}
+
+// hclReleaseDefinitionUpdateExpanded returns HCL for a release definition with
+// TWO environments and description "updated-description". Used as step 2 of
+// TestAccReleaseDefinition_updateAddEnvironment to verify that:
+//   - A second environment can be added in-place (no ForceNew).
+//   - The description change is persisted without destroy/recreate.
+//
+// Uses fixture.ProjectID (no inline betterado_project).
+// Both pre_deploy_approval and post_deploy_approval are present on every
+// environment (VS402877). retention_policy is present on every environment
+// (VS402982).
+func hclReleaseDefinitionUpdateExpanded(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name        = %[1]q
+  project_id  = %[2]q
+  description = "updated-description"
+
+  environment {
+    name = "Staging"
+    rank = 1
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
+
+  environment {
+    name = "Production"
+    rank = 2
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
+}
+`, name, fixture.ProjectID)
+}
