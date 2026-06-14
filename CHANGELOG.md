@@ -7,6 +7,19 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## Unreleased
 
+## 0.1.1 (2026-06-14)
+
+DOCS:
+
+- Registry documentation fixes: removed upstream provider links, added
+  betterado-specific resource/data-source tables to provider index, added
+  `Release Pipelines` subcategory and descriptions to `betterado_release_definition`,
+  `betterado_task_group`, `betterado_release_folder`, and
+  `betterado_release_definition_permissions` docs.
+- Updated examples in `examples/azdo-based-cicd/` and
+  `examples/github-based-cicd-simple/` to use `betterado_*` resources and
+  `parsoFish/betterado` provider source.
+
 ## 0.1.0 (2026-06-14)
 
 First public release of the `betterado` provider — a fork of
