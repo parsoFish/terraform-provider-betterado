@@ -75,15 +75,15 @@ If you wish to work on the provider, you'll first need [Go](http://www.golang.or
 
 ### Using the GOPATH model
 
-First clone the repository to: `$GOPATH/src/github.com/microsoft/terraform-provider-azuredevops`
+First clone the repository to: `$GOPATH/src/github.com/parsoFish/terraform-provider-betterado`
 
 ```sh
-$ mkdir -p $GOPATH/src/github.com/terraform-providers && cd "$_"
-$ git clone git@github.com:microsoft/terraform-provider-azuredevops.git
-$ cd terraform-provider-azuredevops
+$ mkdir -p $GOPATH/src/github.com/parsoFish && cd "$_"
+$ git clone git@github.com:parsoFish/terraform-provider-betterado.git
+$ cd terraform-provider-betterado
 ```
 
-Once you've cloned, run the `./scripts/build.sh` and `./scripts/local-install.sh`, as recommended [here](https://github.com/microsoft/terraform-provider-azuredevops/blob/main/docs/contributing.md#3-build--install-provider).
+Once you've cloned, run the `./scripts/build.sh` and `./scripts/local-install.sh`.
 These commands will sideload the plugin for Terraform.
 
 ### Using a directory separate from GOPATH

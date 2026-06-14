@@ -7,6 +7,17 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## Unreleased
 
+## 0.1.3 (2026-06-14)
+
+DOCS:
+
+- Removed all non-fork-attribution references to `microsoft/azuredevops` across the
+  project: `.azdo/main.tf`, `README.md`, `docs/contributing.md`,
+  `examples/github-based-cicd-simple/main.tf`, `website/docs/index.html.markdown`,
+  `website/docs/r/git_repository.html.markdown`.
+- Deleted `website/docs/guides/` (5 old upstream guide files) — replaced by `docs/guides/`
+  added in v0.1.2.
+
 ## 0.1.2 (2026-06-14)
 
 DOCS:

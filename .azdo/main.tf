@@ -1,23 +1,23 @@
 
 terraform {
   required_providers {
-    azuredevops = {
-      source = "microsoft/azuredevops"
+    betterado = {
+      source = "parsoFish/betterado"
       version = ">=0.1.0"
     }
   }
 }
 
-resource "azuredevops_project" "project" {
-  name       = "terraform-provider-azuredevops"
+resource "betterado_project" "project" {
+  name               = "terraform-provider-betterado"
   description        = ""
   visibility         = "private"
   version_control    = "Git"
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_github" "github_serviceendpoint" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_github" "github_serviceendpoint" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "GitHub Service Connection"
 
   auth_personal {
@@ -25,8 +25,8 @@ resource "azuredevops_serviceendpoint_github" "github_serviceendpoint" {
   }
 }
 
-resource "azuredevops_serviceendpoint_dockerregistry" "dockerregistry_serviceendpoint" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_dockerregistry" "dockerregistry_serviceendpoint" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "DockerRegistry Service Connection"
 
   # docker_username = "..." - Or set with `AZDO_DOCKERREGISTRY_SERVICE_CONNECTION_USERNAME` env var
@@ -35,16 +35,16 @@ resource "azuredevops_serviceendpoint_dockerregistry" "dockerregistry_serviceend
 
 }
 
-resource "azuredevops_build_definition" "nightly_build" {
-  project_id      = azuredevops_project.project.id
+resource "betterado_build_definition" "nightly_build" {
+  project_id      = betterado_project.project.id
   agent_pool_name = "Azure Pipelines"
   name            = "Nightly Build"
 
   repository {
     repo_type             = "GitHub"
-    repo_id               = "microsoft/terraform-provider-azuredevops"
-    branch_name           = "master"
+    repo_id               = "parsoFish/terraform-provider-betterado"
+    branch_name           = "main"
     yml_path              = ".azdo/azure-pipeline-nightly.yml"
-    service_connection_id = azuredevops_serviceendpoint_github.github_serviceendpoint.id
+    service_connection_id = betterado_serviceendpoint_github.github_serviceendpoint.id
   }
 }

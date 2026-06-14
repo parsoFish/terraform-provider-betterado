@@ -64,7 +64,7 @@ To develop using docker:
 
 > Note: It is highly recommended to use VSCode as described for rich intellisense, debugging, and access to standard go development tools.
 
-* Clone the repo: `git clone https://github.com/microsoft/terraform-provider-azuredevops.git`
+* Clone the repo: `git clone https://github.com/parsoFish/terraform-provider-betterado.git`
 
 If using VSCode's [Remote Development Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack):
 * Open the project in VSCode
@@ -119,8 +119,8 @@ $ cd "$DEV_ROOT"
 **Get the code**
 
 ```bash
-$ git clone https://github.com/microsoft/terraform-provider-azuredevops.git
-$ cd terraform-provider-azuredevops/
+$ git clone https://github.com/parsoFish/terraform-provider-betterado.git
+$ cd terraform-provider-betterado/
 ```
 
 ## 3. Build & Install Provider
