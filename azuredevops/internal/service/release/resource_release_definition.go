@@ -286,6 +286,12 @@ func ResourceReleaseDefinition() *schema.Resource {
 													Optional: true,
 													// e.g. "ubuntu-latest", "windows-2022", "macOS-14"
 												},
+												"override_inputs": {
+													Type:        schema.TypeMap,
+													Optional:    true,
+													Elem:        &schema.Schema{Type: schema.TypeString},
+													Description: "Phase-level task input overrides (e.g. for parameterised task groups).",
+												},
 												"parallel_execution": {
 													Type:     schema.TypeList,
 													Optional: true,
@@ -904,10 +910,39 @@ func workflowTaskSchema() map[string]*schema.Schema {
 				Type: schema.TypeString,
 			},
 		},
+		"timeout_in_minutes": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     0,
+			Description: "Per-task timeout in minutes (0 = use the phase default).",
+		},
+		"retry_count_on_task_failure": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     0,
+			Description: "Number of times to retry the task on failure.",
+		},
 	}
 }
 
 // CRUD Operations
+
+// rollbackRedeployErrorHint detects ADO's TF400898 failure, which occurs when an
+// environment_trigger of type "rollbackRedeploy" is configured on an environment
+// that has never had a successful deployment. This is a service-side constraint
+// (not a provider bug), so the raw error is wrapped with actionable guidance
+// rather than surfaced as an opaque internal error.
+func rollbackRedeployErrorHint(err error) error {
+	if err == nil {
+		return nil
+	}
+	if strings.Contains(err.Error(), "TF400898") {
+		return fmt.Errorf("%w\n\nhint: ADO rejects a rollbackRedeploy environment_trigger on an "+
+			"environment that has never had a successful deployment. Remove the rollbackRedeploy "+
+			"trigger until the stage has deployed at least once, then add it back", err)
+	}
+	return err
+}
 
 func resourceReleaseDefinitionCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	clients := m.(*client.AggregatedClient)
@@ -921,7 +956,7 @@ func resourceReleaseDefinitionCreate(ctx context.Context, d *schema.ResourceData
 		Project:           &projectID,
 	})
 	if err != nil {
-		return diag.Errorf("creating release definition: %+v", err)
+		return diag.Errorf("creating release definition: %+v", rollbackRedeployErrorHint(err))
 	}
 
 	d.SetId(strconv.Itoa(*createdDef.Id))
@@ -992,7 +1027,7 @@ func resourceReleaseDefinitionUpdate(ctx context.Context, d *schema.ResourceData
 			})
 		}
 		if err != nil {
-			return diag.Errorf("updating release definition (ID: %d): %+v", defID, err)
+			return diag.Errorf("updating release definition (ID: %d): %+v", defID, rollbackRedeployErrorHint(err))
 		}
 	}
 
@@ -1413,6 +1448,14 @@ func expandDeploymentInput(input []interface{}, phaseType ...string) map[string]
 		}
 	}
 
+	if oi, ok := diMap["override_inputs"].(map[string]interface{}); ok && len(oi) > 0 {
+		overrides := make(map[string]string, len(oi))
+		for k, v := range oi {
+			overrides[k], _ = v.(string)
+		}
+		di["overrideInputs"] = overrides
+	}
+
 	if pe, ok := diMap["parallel_execution"].([]interface{}); ok && len(pe) > 0 {
 		di["parallelExecution"] = expandParallelExecution(pe)
 	}
@@ -1473,6 +1516,13 @@ func expandWorkflowTasks(input []interface{}) []releaseapi.WorkflowTask {
 				inputMap[k] = val.(string)
 			}
 			task.Inputs = &inputMap
+		}
+
+		if v, ok := taskMap["timeout_in_minutes"].(int); ok {
+			task.TimeoutInMinutes = converter.Int(v)
+		}
+		if v, ok := taskMap["retry_count_on_task_failure"].(int); ok {
+			task.RetryCountOnTaskFailure = converter.Int(v)
 		}
 
 		tasks[i] = task
@@ -1691,15 +1741,17 @@ func flattenWorkflowTasksFromAPI(tasks *[]releaseapi.WorkflowTask) []interface{}
 	result := make([]interface{}, 0, len(*tasks))
 	for _, t := range *tasks {
 		flat := map[string]interface{}{
-			"name":              "",
-			"task_id":           "",
-			"version":           "1.*",
-			"enabled":           true,
-			"always_run":        false,
-			"continue_on_error": false,
-			"condition":         "succeeded()",
-			"definition_type":   "task",
-			"inputs":            map[string]string{},
+			"name":                        "",
+			"task_id":                     "",
+			"version":                     "1.*",
+			"enabled":                     true,
+			"always_run":                  false,
+			"continue_on_error":           false,
+			"condition":                   "succeeded()",
+			"definition_type":             "task",
+			"inputs":                      map[string]string{},
+			"timeout_in_minutes":          0,
+			"retry_count_on_task_failure": 0,
 		}
 		if t.Name != nil {
 			flat["name"] = *t.Name
@@ -1728,6 +1780,12 @@ func flattenWorkflowTasksFromAPI(tasks *[]releaseapi.WorkflowTask) []interface{}
 		if t.Inputs != nil && len(*t.Inputs) > 0 {
 			flat["inputs"] = *t.Inputs
 		}
+		if t.TimeoutInMinutes != nil {
+			flat["timeout_in_minutes"] = *t.TimeoutInMinutes
+		}
+		if t.RetryCountOnTaskFailure != nil {
+			flat["retry_count_on_task_failure"] = *t.RetryCountOnTaskFailure
+		}
 		result = append(result, flat)
 	}
 	return result
@@ -1746,7 +1804,7 @@ func flattenReleaseDefinition(d *schema.ResourceData, def *releaseapi.ReleaseDef
 
 	// Variables
 	if def.Variables != nil {
-		d.Set("variable", flattenVariables(def.Variables, d))
+		d.Set("variable", flattenVariables(def.Variables, collectSecretValues(d, "variable")))
 	}
 
 	// Variable groups
@@ -1775,20 +1833,32 @@ func flattenReleaseDefinition(d *schema.ResourceData, def *releaseapi.ReleaseDef
 	}
 }
 
-func flattenVariables(variables *map[string]releaseapi.ConfigurationVariableValue, d *schema.ResourceData) []interface{} {
-	if variables == nil {
-		return nil
-	}
-
-	// For secret variables, the API returns null values. Preserve what's in state.
+// collectSecretValues reads secret variable values from the Terraform state at
+// the given state key (e.g. "variable" for definition-level, or
+// "environment.0.variable" for an environment-scoped variable set). The ADO API
+// returns null for secret values, so the in-state value must be preserved on
+// flatten to avoid a perpetual diff. The key MUST match the scope of the
+// variables being flattened — using the definition-level key for an
+// environment's variables loses env-scoped secrets (the original defect).
+func collectSecretValues(d *schema.ResourceData, stateKey string) map[string]string {
 	existingVars := make(map[string]string)
-	if v, ok := d.GetOk("variable"); ok {
+	if v, ok := d.GetOk(stateKey); ok {
 		for _, item := range v.(*schema.Set).List() {
 			varMap := item.(map[string]interface{})
 			if varMap["is_secret"].(bool) {
 				existingVars[varMap["name"].(string)] = varMap["value"].(string)
 			}
 		}
+	}
+	return existingVars
+}
+
+// flattenVariables converts an API variable map into Terraform state. Secret
+// values (returned null by ADO) are restored from existingSecrets, which the
+// caller builds from the correct state scope via collectSecretValues.
+func flattenVariables(variables *map[string]releaseapi.ConfigurationVariableValue, existingSecrets map[string]string) []interface{} {
+	if variables == nil {
+		return nil
 	}
 
 	result := make([]interface{}, 0, len(*variables))
@@ -1806,7 +1876,7 @@ func flattenVariables(variables *map[string]releaseapi.ConfigurationVariableValu
 			varMap["is_secret"] = *v.IsSecret
 			if *v.IsSecret {
 				// Secret values come back null — use state value
-				if stateVal, ok := existingVars[name]; ok {
+				if stateVal, ok := existingSecrets[name]; ok {
 					varMap["value"] = stateVal
 				}
 			}
@@ -1890,9 +1960,11 @@ func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *sch
 			envMap["post_deployment_gates"] = flattenDeploymentGates(env.PostDeploymentGates)
 		}
 
-		// Variables
+		// Variables — preserve env-scoped secrets from the matching state path
+		// (environment.<i>.variable), not the definition-level "variable" key.
 		if env.Variables != nil {
-			envMap["variable"] = flattenVariables(env.Variables, d)
+			envKey := fmt.Sprintf("environment.%d.variable", i)
+			envMap["variable"] = flattenVariables(env.Variables, collectSecretValues(d, envKey))
 		}
 
 		// Variable groups — always include (even if empty) so that the Terraform state
@@ -2248,6 +2320,16 @@ func flattenDeploymentInput(di map[string]interface{}) []interface{} {
 		}
 	}
 
+	// Override inputs — only set when populated so phases without overrides in HCL
+	// don't acquire a spurious empty map in state (perpetual diff).
+	if oi, ok := di["overrideInputs"].(map[string]interface{}); ok && len(oi) > 0 {
+		overrides := make(map[string]string, len(oi))
+		for k, v := range oi {
+			overrides[k], _ = v.(string)
+		}
+		diMap["override_inputs"] = overrides
+	}
+
 	// Demands — always include the key (empty or populated) so that the Terraform
 	// state matches HCL's implicit zero-value of [] for Optional TypeList.
 	// Omitting it causes a perpetual diff (state absent → plan adds []).
@@ -2312,6 +2394,9 @@ func isDefaultDeploymentInput(flat []interface{}) bool {
 		return false
 	}
 	if _, hasPE := diMap["parallel_execution"]; hasPE {
+		return false
+	}
+	if oi, ok := diMap["override_inputs"].(map[string]string); ok && len(oi) > 0 {
 		return false
 	}
 	return true
@@ -2388,15 +2473,17 @@ func flattenWorkflowTasks(tasks []interface{}) []interface{} {
 		}
 
 		flat := map[string]interface{}{
-			"name":              "",
-			"task_id":           "",
-			"version":           "1.*",
-			"enabled":           true,
-			"always_run":        false,
-			"continue_on_error": false,
-			"condition":         "succeeded()",
-			"definition_type":   "task",
-			"inputs":            map[string]string{},
+			"name":                        "",
+			"task_id":                     "",
+			"version":                     "1.*",
+			"enabled":                     true,
+			"always_run":                  false,
+			"continue_on_error":           false,
+			"condition":                   "succeeded()",
+			"definition_type":             "task",
+			"inputs":                      map[string]string{},
+			"timeout_in_minutes":          0,
+			"retry_count_on_task_failure": 0,
 		}
 
 		if name, ok := taskMap["name"].(string); ok {
@@ -2445,6 +2532,13 @@ func flattenWorkflowTasks(tasks []interface{}) []interface{} {
 				inputMap[k], _ = v.(string)
 			}
 			flat["inputs"] = inputMap
+		}
+
+		if v, ok := taskMap["timeoutInMinutes"].(int); ok {
+			flat["timeout_in_minutes"] = v
+		}
+		if v, ok := taskMap["retryCountOnTaskFailure"].(int); ok {
+			flat["retry_count_on_task_failure"] = v
 		}
 
 		result = append(result, flat)

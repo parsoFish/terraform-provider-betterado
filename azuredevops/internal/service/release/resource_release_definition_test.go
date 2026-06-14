@@ -571,6 +571,182 @@ func TestReleaseDefinition_SecretVariables_PreserveOnFlatten(t *testing.T) {
 	require.Equal(t, true, varMap["is_secret"])
 }
 
+// TestReleaseDefinition_EnvSecretVariables_PreserveOnFlatten verifies that an
+// ENVIRONMENT-scoped secret variable (returned null by the API) is preserved
+// from the matching environment.<i>.variable state path on flatten. This guards
+// the env-level secret perpetual-diff defect: flattenVariables previously read
+// the definition-level "variable" key regardless of scope, losing env secrets.
+func TestReleaseDefinition_EnvSecretVariables_PreserveOnFlatten(t *testing.T) {
+	secretVarName := "ENV_SECRET"
+	existingSecretValue := "env-super-secret"
+
+	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "MyReleaseDefinition",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{}, // no definition-level secret
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"environment": []interface{}{
+			map[string]interface{}{
+				"id":    0,
+				"name":  "Prod",
+				"rank":  1,
+				"owner": "",
+				"variable": []interface{}{
+					map[string]interface{}{
+						"name":           secretVarName,
+						"value":          existingSecretValue,
+						"is_secret":      true,
+						"allow_override": false,
+					},
+				},
+				"variable_groups":      []interface{}{},
+				"condition":            []interface{}{},
+				"pre_deploy_approval":  []interface{}{},
+				"post_deploy_approval": []interface{}{},
+				"deploy_phase":         []interface{}{},
+				"retention_policy":     []interface{}{},
+				"environment_options":  []interface{}{},
+				"execution_policy":     []interface{}{},
+			},
+		},
+		"artifact": []interface{}{},
+	})
+	resourceData.SetId(strconv.Itoa(testReleaseDefinitionID))
+
+	// API returns the environment with the secret variable having a nil value.
+	apiDef := testReleaseDefinition
+	envID := 100
+	apiEnvVariables := map[string]releaseapi.ConfigurationVariableValue{
+		secretVarName: {
+			Value:         nil, // secret env variables return nil from the API
+			IsSecret:      converter.Bool(true),
+			AllowOverride: converter.Bool(false),
+		},
+	}
+	apiDef.Environments = &[]releaseapi.ReleaseDefinitionEnvironment{
+		{
+			Id:        &envID,
+			Name:      converter.String("Prod"),
+			Rank:      converter.Int(1),
+			Variables: &apiEnvVariables,
+		},
+	}
+	emptyVars := map[string]releaseapi.ConfigurationVariableValue{}
+	apiDef.Variables = &emptyVars
+	emptyArtifacts := []releaseapi.Artifact{}
+	apiDef.Artifacts = &emptyArtifacts
+
+	flattenReleaseDefinition(resourceData, &apiDef, testReleaseDefinitionProjectID.String())
+
+	envList := resourceData.Get("environment").([]interface{})
+	require.Len(t, envList, 1)
+	envMap := envList[0].(map[string]interface{})
+
+	envVars := envMap["variable"].(*schema.Set).List()
+	require.Len(t, envVars, 1)
+	varMap := envVars[0].(map[string]interface{})
+	require.Equal(t, secretVarName, varMap["name"])
+	require.Equal(t, existingSecretValue, varMap["value"],
+		"env-scoped secret value must be preserved from environment.0.variable state, not lost")
+	require.Equal(t, true, varMap["is_secret"])
+}
+
+// TestRollbackRedeployErrorHint verifies the TF400898 error is enriched with a
+// hint, while unrelated errors and nil pass through untouched.
+func TestRollbackRedeployErrorHint(t *testing.T) {
+	require.NoError(t, rollbackRedeployErrorHint(nil))
+
+	other := errors.New("some unrelated failure")
+	require.Equal(t, other, rollbackRedeployErrorHint(other))
+
+	tf := errors.New("VS800075: TF400898: An internal error occurred")
+	enriched := rollbackRedeployErrorHint(tf)
+	require.Contains(t, enriched.Error(), "TF400898")
+	require.Contains(t, enriched.Error(), "rollbackRedeploy")
+	require.Contains(t, enriched.Error(), "successful deployment")
+}
+
+// TestReleaseDefinition_WorkflowTaskTimeoutRetry verifies the WI-C fields
+// (timeout_in_minutes, retry_count_on_task_failure) expand into the WorkflowTask
+// struct and flatten back from it.
+func TestReleaseDefinition_WorkflowTaskTimeoutRetry(t *testing.T) {
+	in := []interface{}{
+		map[string]interface{}{
+			"name":                        "Deploy",
+			"task_id":                     testReleaseDefinitionWorkflowTaskID.String(),
+			"version":                     "2.*",
+			"enabled":                     true,
+			"always_run":                  false,
+			"continue_on_error":           false,
+			"condition":                   "succeeded()",
+			"definition_type":             "task",
+			"inputs":                      map[string]interface{}{},
+			"timeout_in_minutes":          15,
+			"retry_count_on_task_failure": 3,
+		},
+	}
+
+	tasks := expandWorkflowTasks(in)
+	require.Len(t, tasks, 1)
+	require.NotNil(t, tasks[0].TimeoutInMinutes)
+	require.Equal(t, 15, *tasks[0].TimeoutInMinutes)
+	require.NotNil(t, tasks[0].RetryCountOnTaskFailure)
+	require.Equal(t, 3, *tasks[0].RetryCountOnTaskFailure)
+
+	flat := flattenWorkflowTasksFromAPI(&tasks)
+	require.Len(t, flat, 1)
+	fm := flat[0].(map[string]interface{})
+	require.Equal(t, 15, fm["timeout_in_minutes"])
+	require.Equal(t, 3, fm["retry_count_on_task_failure"])
+}
+
+// TestReleaseDefinition_DeploymentInputOverrideInputs verifies the WI-D field
+// (deployment_input.override_inputs) expands into the API payload and flattens
+// back from an API-shaped response.
+func TestReleaseDefinition_DeploymentInputOverrideInputs(t *testing.T) {
+	in := []interface{}{
+		map[string]interface{}{
+			"queue_id":                      0,
+			"timeout_in_minutes":            0,
+			"job_cancel_timeout_in_minutes": 1,
+			"condition":                     "succeeded()",
+			"skip_artifacts_download":       false,
+			"enable_access_token":           false,
+			"agent_specification":           "",
+			"override_inputs": map[string]interface{}{
+				"ScriptPath": "./deploy.sh",
+			},
+		},
+	}
+
+	di := expandDeploymentInput(in)
+	require.NotNil(t, di)
+	overrides, ok := di["overrideInputs"].(map[string]string)
+	require.True(t, ok, "overrideInputs should be a map[string]string")
+	require.Equal(t, "./deploy.sh", overrides["ScriptPath"])
+
+	// Flatten from an API-shaped response (JSON-decoded → map[string]interface{}).
+	apiDI := map[string]interface{}{
+		"overrideInputs": map[string]interface{}{
+			"ScriptPath": "./deploy.sh",
+		},
+	}
+	flat := flattenDeploymentInput(apiDI)
+	require.Len(t, flat, 1)
+	fm := flat[0].(map[string]interface{})
+	oi, ok := fm["override_inputs"].(map[string]string)
+	require.True(t, ok, "override_inputs should be present and a map[string]string")
+	require.Equal(t, "./deploy.sh", oi["ScriptPath"])
+
+	// A deployment_input carrying only override_inputs must not be suppressed.
+	require.False(t, isDefaultDeploymentInput(flat))
+}
+
 // ── 8. Deep-nested environment expand/flatten round-trip ─────────────────
 
 // TestReleaseDefinition_DeepNestedEnvironment_ExpandFlatten verifies that an

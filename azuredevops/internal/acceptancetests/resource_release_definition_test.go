@@ -1926,3 +1926,180 @@ resource "betterado_release_definition" "test" {
 }
 `, name, fixture.ProjectID, fixture.BuildDefinitionID)
 }
+
+// TestAccReleaseDefinition_withEnvironmentSecretVariable verifies that a secret
+// variable declared at ENVIRONMENT scope round-trips without a perpetual diff.
+// ADO returns null for secret values; the provider must preserve the in-state
+// value from the matching environment.<i>.variable path. Before the fix,
+// flattenVariables read the definition-level "variable" key for every scope and
+// lost env-scoped secrets, producing an endless plan diff. The PlanOnly step
+// with ExpectNonEmptyPlan:false is the regression guard.
+func TestAccReleaseDefinition_withEnvironmentSecretVariable(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclReleaseDefinitionWithEnvironmentSecretVariable(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.variable.#", "1"),
+				),
+			},
+			{
+				// Idempotency: env-scoped secret must not re-plan.
+				Config:             hclReleaseDefinitionWithEnvironmentSecretVariable(name, fixture),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+// hclReleaseDefinitionWithEnvironmentSecretVariable declares a secret variable
+// scoped to an environment (not the definition), exercising the env-level
+// secret preservation path.
+// TestAccReleaseDefinition_withWorkflowTaskAndOverrideInputs covers WI-C
+// (workflow_task.timeout_in_minutes / retry_count_on_task_failure) and WI-D
+// (deployment_input.override_inputs), asserting they round-trip without a diff.
+func TestAccReleaseDefinition_withWorkflowTaskAndOverrideInputs(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclReleaseDefinitionWithWorkflowTaskAndOverrideInputs(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.workflow_task.0.timeout_in_minutes", "15"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.workflow_task.0.retry_count_on_task_failure", "2"),
+					resource.TestCheckResourceAttr(tfNode, "environment.0.deploy_phase.0.deployment_input.0.override_inputs.SCRIPT", "./deploy.sh"),
+				),
+			},
+			{
+				Config:             hclReleaseDefinitionWithWorkflowTaskAndOverrideInputs(name, fixture),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+func hclReleaseDefinitionWithWorkflowTaskAndOverrideInputs(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  environment {
+    name = "Production"
+    rank = 1
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+
+      deployment_input {
+        override_inputs = {
+          SCRIPT = "./deploy.sh"
+        }
+      }
+
+      workflow_task {
+        name                        = "Run script"
+        task_id                     = "d9bafed4-0b18-4f58-968d-86655b4d2ce9"
+        version                     = "2.*"
+        timeout_in_minutes          = 15
+        retry_count_on_task_failure = 2
+
+        inputs = {
+          script = "echo deploy"
+        }
+      }
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
+}
+`, name, fixture.ProjectID)
+}
+
+func hclReleaseDefinitionWithEnvironmentSecretVariable(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  environment {
+    name = "Production"
+    rank = 1
+
+    variable {
+      name      = "ENV_SECRET"
+      value     = "env-super-secret"
+      is_secret = true
+    }
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
+}
+`, name, fixture.ProjectID)
+}
