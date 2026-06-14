@@ -5,30 +5,30 @@
 #   AZDO_GITHUB_SERVICE_CONNECTION_PAT
 terraform {
   required_providers {
-    azuredevops = {
-      source = "microsoft/azuredevops"
+    betterado = {
+      source = "parsoFish/betterado"
       version = ">=0.1.0"
     }
   }
 }
 
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name       = "Sample Project"
   visibility         = "private"
   version_control    = "Git"
   work_item_template = "Agile"
 }
 
-resource "azuredevops_serviceendpoint_github" "github_serviceendpoint" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_github" "github_serviceendpoint" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "GitHub Service Connection"
   auth_oauth {
     oauth_configuration_id = "00000000-0000-0000-0000-000000000000"
   }
 }
 
-resource "azuredevops_build_definition" "nightly_build" {
-  project_id      = azuredevops_project.project.id
+resource "betterado_build_definition" "nightly_build" {
+  project_id      = betterado_project.project.id
   agent_pool_name = "Azure Pipelines"
   name            = "Nightly Build"
   path            = "\\"
@@ -38,6 +38,6 @@ resource "azuredevops_build_definition" "nightly_build" {
     repo_id               = "microsoft/terraform-provider-azuredevops"
     branch_name           = "master"
     yml_path              = ".azdo/azure-pipeline-nightly.yml"
-    service_connection_id = azuredevops_serviceendpoint_github.github_serviceendpoint.id
+    service_connection_id = betterado_serviceendpoint_github.github_serviceendpoint.id
   }
 }

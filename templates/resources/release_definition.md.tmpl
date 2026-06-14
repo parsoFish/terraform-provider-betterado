@@ -1,0 +1,35 @@
+---
+page_title: "betterado_release_definition Resource - betterado"
+subcategory: "Release Pipelines"
+description: |-
+  Manages a classic release pipeline (release definition) in Azure DevOps.
+---
+
+# betterado_release_definition (Resource)
+
+Manages an Azure DevOps classic release pipeline. A release definition specifies
+how software is deployed through one or more environments, including agent-based
+deploy phases, pre/post-deploy approvals, variables (including secrets), variable
+groups, build artifacts, workflow tasks, and deployment triggers.
+
+~> **Note on approvals:** ADO requires both a `pre_deploy_approval` and a
+`post_deploy_approval` block on every environment, even if approvals are
+automated. Omitting either block causes a `VS402877` validation error.
+
+~> **Note on rollbackRedeploy triggers:** A `rollbackRedeploy` environment
+trigger can only be added after the target environment has had at least one
+successful deployment. Adding it to a new environment causes ADO error `TF400898`.
+
+## Example Usage
+
+{{ tffile "examples/resources/betterado_release_definition/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Release definitions are imported using the `projectID/definitionID` format:
+
+```shell
+terraform import betterado_release_definition.example 00000000-0000-0000-0000-000000000000/12
+```

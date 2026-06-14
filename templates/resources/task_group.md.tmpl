@@ -1,0 +1,29 @@
+---
+page_title: "betterado_task_group Resource - betterado"
+subcategory: "Release Pipelines"
+description: |-
+  Manages a reusable task group in Azure DevOps.
+---
+
+# betterado_task_group (Resource)
+
+Manages an Azure DevOps task group — a named, versioned collection of pipeline
+tasks that can be referenced from release definitions (as `definition_type =
+"metaTask"` workflow tasks) or build definitions.
+
+Task groups support parameterized inputs that callers can override, making them
+useful for standardizing deployment patterns across multiple pipelines.
+
+## Example Usage
+
+{{ tffile "examples/resources/betterado_task_group/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Task groups are imported using the `projectID/taskGroupID` format:
+
+```shell
+terraform import betterado_task_group.example 00000000-0000-0000-0000-000000000000/00000000-0000-0000-0000-000000000001
+```

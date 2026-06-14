@@ -3,8 +3,8 @@
 #   AZDO_ORG_SERVICE_URL
 terraform {
   required_providers {
-    azuredevops = {
-      source = "microsoft/azuredevops"
+    betterado = {
+      source = "parsoFish/betterado"
       version = ">=0.1.0"
     }
   }
@@ -12,7 +12,7 @@ terraform {
 
 
 // This section creates a project
-resource "azuredevops_project" "project" {
+resource "betterado_project" "project" {
   name       = "Sample Project"
   visibility         = "private"
   version_control    = "Git"
@@ -21,43 +21,43 @@ resource "azuredevops_project" "project" {
 
 
 // This section assigns users from AAD into a pre-existing group in AzDO
-data "azuredevops_group" "group" {
-  project_id = azuredevops_project.project.id
+data "betterado_group" "group" {
+  project_id = betterado_project.project.id
   name       = "Build Administrators"
 }
 
-resource "azuredevops_user_entitlement" "users" {
+resource "betterado_user_entitlement" "users" {
   for_each             = toset(var.aad_users)
   principal_name       = each.value
   account_license_type = "stakeholder"
 }
 
-resource "azuredevops_group_membership" "membership" {
-  group   = data.azuredevops_group.group.descriptor
-  members = values(azuredevops_user_entitlement.users)[*].descriptor
+resource "betterado_group_membership" "membership" {
+  group   = data.betterado_group.group.descriptor
+  members = values(betterado_user_entitlement.users)[*].descriptor
 }
 
 
 
 // This section configures variable groups and a build definition
-resource "azuredevops_build_definition" "build" {
-  project_id = azuredevops_project.project.id
+resource "betterado_build_definition" "build" {
+  project_id = betterado_project.project.id
   name       = "Sample Build Definition"
   path       = "\\ExampleFolder"
 
   repository {
     repo_type   = "TfsGit"
-    repo_id     = azuredevops_git_repository.repository.id
-    branch_name = azuredevops_git_repository.repository.default_branch
+    repo_id     = betterado_git_repository.repository.id
+    branch_name = betterado_git_repository.repository.default_branch
     yml_path    = "azure-pipelines.yml"
   }
 
-  variable_groups = [azuredevops_variable_group.vg.id]
+  variable_groups = [betterado_variable_group.vg.id]
 }
 
 // This section configures an Azure DevOps Variable Group
-resource "azuredevops_variable_group" "vg" {
-  project_id   = azuredevops_project.project.id
+resource "betterado_variable_group" "vg" {
+  project_id   = betterado_project.project.id
   name         = "Sample VG 1"
   description  = "A sample variable group."
   allow_access = true
@@ -79,8 +79,8 @@ resource "azuredevops_variable_group" "vg" {
 }
 
 // This section configures an Azure DevOps Git Repository with branch policies
-resource "azuredevops_git_repository" "repository" {
-  project_id = azuredevops_project.project.id
+resource "betterado_git_repository" "repository" {
+  project_id = betterado_project.project.id
   name       = "Sample Repo"
   initialization {
     init_type = "Clean"
@@ -88,8 +88,8 @@ resource "azuredevops_git_repository" "repository" {
 }
 
 // Configuration of AzureRm service end point
-resource "azuredevops_serviceendpoint_azurerm" "endpoint1" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_azurerm" "endpoint1" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "TestServiceAzureRM"
   credentials {
     serviceprincipalid  = "00000000-0000-0000-0000-000000000000"
@@ -100,7 +100,7 @@ resource "azuredevops_serviceendpoint_azurerm" "endpoint1" {
   azurerm_subscription_name = "Microsoft Azure DEMO"
 }
 
-resource "azuredevops_serviceendpoint_bitbucket" "bitbucket_account" {
+resource "betterado_serviceendpoint_bitbucket" "bitbucket_account" {
   project_id            = "vanilla-sky"
   username              = "xxxx"
   password              = "xxxx"
@@ -108,14 +108,14 @@ resource "azuredevops_serviceendpoint_bitbucket" "bitbucket_account" {
   description           = "test"
 }
 
-resource "azuredevops_resource_authorization" "bitbucket_account_authorization" {
-  project_id  = azuredevops_project.project.id
-  resource_id = azuredevops_serviceendpoint_bitbucket.bitbucket_account.id
+resource "betterado_resource_authorization" "bitbucket_account_authorization" {
+  project_id  = betterado_project.project.id
+  resource_id = betterado_serviceendpoint_bitbucket.bitbucket_account.id
   authorized  = true
 }
 
-resource "azuredevops_serviceendpoint_kubernetes" "kubeendpoint1" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_kubernetes" "kubeendpoint1" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "Sample Kubernetes"
   apiserver_url         = "https://sample-kubernetes-cluster.hcp.westeurope.azmk8s.io"
   authorization_type    = "AzureSubscription"
@@ -130,8 +130,8 @@ resource "azuredevops_serviceendpoint_kubernetes" "kubeendpoint1" {
   }
 }
 
-resource "azuredevops_serviceendpoint_kubernetes" "kubeendpoint2" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_kubernetes" "kubeendpoint2" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "Sample Kubernetes"
   apiserver_url         = "https://sample-aks.hcp.westeurope.azmk8s.io"
   authorization_type    = "Kubeconfig"
@@ -164,8 +164,8 @@ resource "azuredevops_serviceendpoint_kubernetes" "kubeendpoint2" {
   }
 }
 
-resource "azuredevops_serviceendpoint_kubernetes" "serviceendpoint" {
-  project_id            = azuredevops_project.project.id
+resource "betterado_serviceendpoint_kubernetes" "serviceendpoint" {
+  project_id            = betterado_project.project.id
   service_endpoint_name = "Sample Kubernetes"
   apiserver_url         = "https://sample-kubernetes-cluster.hcp.westeurope.azmk8s.io"
   authorization_type    = "ServiceAccount"

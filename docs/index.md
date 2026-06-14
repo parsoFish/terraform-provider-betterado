@@ -1,20 +1,41 @@
 ---
 page_title: "Provider: Better ADO (betterado)"
 description: |-
-  The betterado provider manages Azure DevOps resources, adding classic release pipeline support on top of the official azuredevops provider surface.
+  The betterado provider manages Azure DevOps resources, including classic release pipelines and task groups not available in the official provider.
 ---
 
 # Better ADO Provider
 
-`betterado` is a fork of the official
-[`microsoft/azuredevops`](https://registry.terraform.io/providers/microsoft/azuredevops)
-provider. It inherits the full upstream resource set and adds resources Microsoft
-has not implemented — most notably **classic release pipelines**
-(`betterado_release_definition`) and **task groups** (`betterado_task_group`),
-backed by the Azure DevOps Release Management REST API (`vsrm.dev.azure.com`, API
-version 7.1).
+`betterado` is a Terraform provider for Azure DevOps that extends the upstream
+[microsoft/terraform-provider-azuredevops](https://github.com/microsoft/terraform-provider-azuredevops)
+with resources Microsoft has not yet implemented — most notably **classic release
+pipelines** and **task groups**, backed by the Azure DevOps Release Management
+REST API (`vsrm.dev.azure.com`, API version 7.1).
 
-Use the navigation to the left to read about the available resources.
+## betterado-specific resources
+
+These resources are unique to `betterado` and have no equivalent in the upstream provider:
+
+| Resource | Description |
+|---|---|
+| [`betterado_release_definition`](resources/release_definition) | Classic release pipeline with environments, approvals, variables, artifacts, and triggers |
+| [`betterado_task_group`](resources/task_group) | Reusable task group referenced from release or build definitions |
+| [`betterado_release_folder`](resources/release_folder) | Folder for organizing release definitions |
+| [`betterado_release_definition_permissions`](resources/release_definition_permissions) | Security permissions on a release definition |
+
+## betterado-specific data sources
+
+| Data Source | Description |
+|---|---|
+| [`betterado_release_definition`](data-sources/release_definition) | Read a single release definition |
+| [`betterado_release_definitions`](data-sources/release_definitions) | Query all release definitions in a project |
+| [`betterado_release_folder`](data-sources/release_folder) | Read a release folder |
+| [`betterado_release_definition_history`](data-sources/release_definition_history) | Revision history for a release definition |
+| [`betterado_release_definition_revision`](data-sources/release_definition_revision) | A specific revision of a release definition |
+
+All other `betterado_*` resources and data sources are inherited from the upstream provider and behave identically.
+
+Use the navigation to the left to read about all available resources.
 
 ## Example Usage
 
