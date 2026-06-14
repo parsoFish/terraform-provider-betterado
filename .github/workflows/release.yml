@@ -1,0 +1,46 @@
+# Publishes a signed provider release to GitHub (which the Terraform Registry
+# then ingests) whenever a semver tag like `v0.1.0` is pushed.
+#
+# Required repository secrets (see docs/RELEASING.md):
+#   GPG_PRIVATE_KEY — ASCII-armored private key used to sign SHA256SUMS
+#   PASSPHRASE      — passphrase for that key
+# GITHUB_TOKEN is provided automatically by Actions.
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: '.go-version'
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        id: import_gpg
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: '~> v2'
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}

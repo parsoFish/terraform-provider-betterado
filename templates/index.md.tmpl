@@ -1,0 +1,75 @@
+---
+page_title: "Provider: Better ADO (betterado)"
+description: |-
+  The betterado provider manages Azure DevOps resources, adding classic release pipeline support on top of the official azuredevops provider surface.
+---
+
+# Better ADO Provider
+
+`betterado` is a fork of the official
+[`microsoft/azuredevops`](https://registry.terraform.io/providers/microsoft/azuredevops)
+provider. It inherits the full upstream resource set and adds resources Microsoft
+has not implemented — most notably **classic release pipelines**
+(`betterado_release_definition`) and **task groups** (`betterado_task_group`),
+backed by the Azure DevOps Release Management REST API (`vsrm.dev.azure.com`, API
+version 7.1).
+
+Use the navigation to the left to read about the available resources.
+
+## Example Usage
+
+```terraform
+terraform {
+  required_providers {
+    betterado = {
+      source  = "parsoFish/betterado"
+      version = "~> 0.1.0"
+    }
+  }
+}
+
+provider "betterado" {
+  org_service_url       = "https://dev.azure.com/my-organization"
+  personal_access_token = var.ado_pat
+}
+
+resource "betterado_release_definition" "app" {
+  name       = "app-release"
+  project_id = var.project_id
+
+  environment {
+    name = "Production"
+    rank = 1
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
+  }
+}
+```
+
+## Authentication
+
+Authentication is performed with a
+[Personal Access Token](https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate)
+(PAT). The token can be supplied inline via `personal_access_token` or sourced
+from the `AZDO_PERSONAL_ACCESS_TOKEN` environment variable. The inherited
+service-principal / OIDC / managed-identity methods from the upstream provider
+are also available.
+
+## Argument Reference
+
+The following arguments are supported in the `provider` block:
+
+- `org_service_url` - (Required) The Azure DevOps organization URL. May also be
+  sourced from the `AZDO_ORG_SERVICE_URL` environment variable.
+- `personal_access_token` - The Azure DevOps personal access token. May also be
+  sourced from the `AZDO_PERSONAL_ACCESS_TOKEN` environment variable.
+
+Service-principal and OIDC arguments (`client_id`, `tenant_id`, `client_secret`,
+`use_oidc`, `use_msi`, `use_cli`, and related `*_file_path` variants) are
+inherited unchanged from the upstream provider.
+
+{{ .SchemaMarkdown | trimspace }}

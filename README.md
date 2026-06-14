@@ -1,17 +1,17 @@
-# Terraform Provider for Azure DevOps (Devops Resource Manager)
+# Better ADO — Terraform Provider for Azure DevOps
 
-[![Gitter](https://badges.gitter.im/terraform-provider-azuredevops/community.svg)](https://gitter.im/terraform-provider-azuredevops/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-[![Go Report Card](https://goreportcard.com/badge/github.com/microsoft/terraform-provider-azuredevops)](https://goreportcard.com/report/github.com/microsoft/terraform-provider-azuredevops)
-
-The AzureRM Provider supports Terraform 0.12.x and later.
+`betterado` is a fork of the official
+[`microsoft/azuredevops`](https://github.com/microsoft/terraform-provider-azuredevops)
+provider. It inherits the full upstream resource set and adds resources Microsoft
+has not implemented — most notably **classic release pipelines**
+(`betterado_release_definition`) and **task groups** (`betterado_task_group`),
+backed by the Azure DevOps Release Management REST API (`vsrm.dev.azure.com`).
 
 * [Terraform Website](https://www.terraform.io)
 * [Azure DevOps Website](https://azure.microsoft.com/en-us/services/devops/)
-* [Provider Documentation](./website/docs/index.html.markdown)
-* [Resources Documentation](./website/docs/r/)
-* [Data Sources Documentation](./website/docs/d/)
+* [Provider Documentation](./docs/) (generated with `make docs`)
 * [Usage Examples](./examples/)
-* [Gitter Channel](https://gitter.im/terraform-provider-azuredevops/community)
+* [Releasing](./docs/RELEASING.md)
 
 ## Usage Example
 
@@ -21,36 +21,31 @@ The AzureRM Provider supports Terraform 0.12.x and later.
 #   AZDO_ORG_SERVICE_URL
 terraform {
   required_providers {
-    azuredevops = {
-      source = "microsoft/azuredevops"
-      version = ">=0.1.0"
+    betterado = {
+      source  = "parsoFish/betterado"
+      version = "~> 0.1.0"
     }
   }
 }
 
-resource "azuredevops_project" "project" {
-  name = "My Awesome Project"
-  description  = "All of my awesomee things"
+resource "betterado_project" "project" {
+  name        = "My Awesome Project"
+  description = "All of my awesome things"
 }
 
-resource "azuredevops_git_repository" "repository" {
-  project_id = azuredevops_project.project.id
-  name       = "My Awesome Repo"
-  initialization {
-    init_type = "Clean"
-  }
-}
+resource "betterado_release_definition" "release" {
+  name       = "My Awesome Release Pipeline"
+  project_id = betterado_project.project.id
 
-resource "azuredevops_build_definition" "build_definition" {
-  project_id = azuredevops_project.project.id
-  name       = "My Awesome Build Pipeline"
-  path       = "\\"
+  environment {
+    name = "Production"
+    rank = 1
 
-  repository {
-    repo_type   = "TfsGit"
-    repo_id     = azuredevops_git_repository.repository.id
-    branch_name = azuredevops_git_repository.repository.default_branch
-    yml_path    = "azure-pipelines.yml"
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
   }
 }
 ```

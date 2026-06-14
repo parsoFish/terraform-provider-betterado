@@ -1,28 +1,70 @@
-# This is an example goreleaser.yaml file with some sane defaults.
+# GoReleaser config for publishing terraform-provider-betterado to the
+# Terraform Registry. Mirrors the canonical HashiCorp provider release pipeline:
+# multi-platform builds, a SHA256SUMS checksum file, and a detached GPG
+# signature over that checksum file (the registry verifies the signature against
+# the GPG public key registered under the parsoFish namespace).
+#
+# Driven by `.github/workflows/release.yml` on a `v*` tag push.
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
 builds:
-- binary: "{{ .ProjectName }}_{{ .Tag }}"
-  env:
-  - CGO_ENABLED=0
-  goos:
-  - linux
-  - windows
-  - darwin
+  - env:
+      - CGO_ENABLED=0
+    mod_timestamp: '{{ .CommitTimestamp }}'
+    flags:
+      - -trimpath
+    ldflags:
+      - '-s -w -X main.version={{ .Version }}'
+    goos:
+      - linux
+      - windows
+      - darwin
+      - freebsd
+    goarch:
+      - amd64
+      - '386'
+      - arm
+      - arm64
+    ignore:
+      - goos: darwin
+        goarch: '386'
+    binary: '{{ .ProjectName }}_v{{ .Version }}'
+
 archives:
-- name_template: "{{ .ProjectName }}_{{ .Tag }}_{{ .Os }}_{{ .Arch }}"
-  format_overrides:
-    - goos: windows
-      format: zip
+  - formats:
+      - zip
+    name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+
 checksum:
-  name_template: 'checksums.txt'
-snapshot:
-  name_template: "terraform-provider-azuredevops"
-changelog:
-  sort: asc
-  filters:
-    exclude:
-    - '^docs:'
-    - '^test:'
+  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
+  algorithm: sha256
+
+signs:
+  - artifacts: checksum
+    args:
+      # GPG_FINGERPRINT is exported by the release workflow after importing the key.
+      - "--batch"
+      - "--local-user"
+      - "{{ .Env.GPG_FINGERPRINT }}"
+      - "--output"
+      - "${signature}"
+      - "--detach-sign"
+      - "${artifact}"
+
 release:
   github:
-    owner: microsoft
-    name: terraform-provider-azuredevops
+    owner: parsoFish
+    name: terraform-provider-betterado
+  # If a release contains only the provider archives + checksums + sig, the
+  # registry can ingest it. Draft/prerelease left to the tag convention.
+  draft: false
+
+changelog:
+  disable: true
+
+snapshot:
+  version_template: '{{ incpatch .Version }}-next'

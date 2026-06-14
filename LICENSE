@@ -1,6 +1,11 @@
     MIT License
 
     Copyright (c) Microsoft Corporation.
+    Copyright (c) 2026 parsoFish (betterado fork modifications).
+
+    This product is a fork of microsoft/terraform-provider-azuredevops and
+    retains the original MIT license. Modifications add classic release pipeline
+    and task group resources under the betterado_* prefix.
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal

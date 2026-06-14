@@ -129,4 +129,13 @@ clean-cache:
 	go clean -cache -testcache
 	@echo "==> Done. Disk space reclaimed."
 
-.PHONY: build test testacc vet fmt fmtcheck lint tools test-compile website website-lint website-test clean-cache
+# Generate Terraform Registry documentation (docs/) from the provider schema,
+# the examples/ tree, and templates/. Pinned for reproducibility. See
+# docs/RELEASING.md for the one-time legacy website/ -> docs/ migration.
+TFPLUGINDOCS_VERSION ?= v0.20.0
+docs:
+	@echo "==> Generating registry docs with tfplugindocs $(TFPLUGINDOCS_VERSION)..."
+	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@$(TFPLUGINDOCS_VERSION)
+	tfplugindocs generate --provider-name betterado
+
+.PHONY: build test testacc vet fmt fmtcheck lint tools test-compile website website-lint website-test clean-cache docs
