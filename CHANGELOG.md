@@ -7,6 +7,17 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## Unreleased
 
+## 0.1.2 (2026-06-14)
+
+DOCS:
+
+- Added `docs/guides/` with all five authentication guides updated to use `parsoFish/betterado`
+  source and `betterado` provider/resource names (replaces `website/docs/guides/` which still
+  referenced `microsoft/azuredevops`).
+- Added `## Example Usage` sections to all five betterado-specific data source docs
+  (`betterado_release_definition`, `betterado_release_definitions`, `betterado_release_folder`,
+  `betterado_release_definition_history`, `betterado_release_definition_revision`).
+
 ## 0.1.1 (2026-06-14)
 
 DOCS:
