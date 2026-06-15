@@ -78,15 +78,15 @@ Now we're going to start up Terraform with your provider and then quickly get th
 terraform apply -input=false
 ```
 
-and then in another shell, get the process id for your provider. In the following, our provider has `azuredevops` in its name. Substitute a portion of your provider's name here.
+and then in another shell, get the process id for your provider. In the following, our provider has `betterado` in its name. Substitute a portion of your provider's name here.
 
 ```sh
-ps | grep azuredevops
- 2666 ttys001    0:00.00 grep azuredevops
- 2663 ttys007    0:00.08 /Users/mhop/.terraform.d/plugins/darwin_amd64/terraform-provider-azuredevops_v0.0.1
+ps | grep betterado
+ 2666 ttys001    0:00.00 grep betterado
+ 2663 ttys007    0:00.08 ~/.terraform.d/plugins/linux_amd64/terraform-provider-betterado_v0.1.0
 ```
 
-We see, from above, that there are two processes with `azuredevops` in their name. One is the `grep` command. We want the other, which has process id `2663`.
+We see, from above, that there are two processes with `betterado` in their name. One is the `grep` command. We want the other, which has process id `2663`.
 
 Now, working quickly, edit the `launch.json` file, replacing the `1234` with `2663`:
 

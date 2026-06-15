@@ -43,7 +43,7 @@ func TestAccGitRepo_CreateAndUpdate(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoNameFirst := testutils.GenerateResourceName()
 	gitRepoNameSecond := testutils.GenerateResourceName()
-	tfRepoNode := "azuredevops_git_repository.repository"
+	tfRepoNode := "betterado_git_repository.repository"
 
     ...
 }

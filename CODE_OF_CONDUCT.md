@@ -1,10 +1,10 @@
-# Microsoft Open Source Code of Conduct
+# Code of Conduct
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+This project has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/)
+(version 2.1) as its code of conduct.
 
-Resources:
+In short: be respectful, assume good intent, and keep discussion constructive.
+Harassment and other unacceptable behaviour are not tolerated.
 
-- [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/)
-- [Microsoft Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
-- Contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with questions or concerns
-- Employees can reach out at [aka.ms/opensource/moderation-support](https://aka.ms/opensource/moderation-support)
+To report a concern, open an issue or contact the maintainers privately through
+the repository. All reports will be reviewed and handled confidentially.

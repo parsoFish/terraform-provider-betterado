@@ -1,6 +1,5 @@
 TEST?=$$(go list ./azuredevops/internal/acceptancetests |grep -v 'vendor')
 UNITTEST?=$$(go list ./... |grep -v 'vendor')
-WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=azuredevops
 TESTTIMEOUT=180m
 TESTTAGS=all
@@ -17,9 +16,7 @@ default: build
 
 tools:
 	@echo "==> installing required tooling..."
-	go install github.com/client9/misspell/cmd/misspell@latest
 	go install github.com/bflad/tfproviderlint/cmd/tfproviderlint@latest
-	go install github.com/bflad/tfproviderdocs@latest
 	go install github.com/katbyte/terrafmt@latest
 	go install mvdan.cc/gofumpt@latest
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b "$(GOPATH)/bin" v1.64.8
@@ -97,32 +94,7 @@ vet:
 		exit 1; \
 	fi
 
-ci: depscheck lint test website-lint
-
-website:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
-
-website-lint:
-	@echo "==> Checking website against linters..."
-	@misspell -error -source=text website/
-	@echo "==> Checking documentation for errors..."
-	@tfproviderdocs check -provider-name=azuredevops
-#-require-resource-subcategory \
-#		-allowed-resource-subcategories-file website/allowed-subcategories
-
-website-test:
-ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
-	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
-	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
-endif
-	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider-test PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
-
-scaffold-website:
-	./scripts/scaffold-website.sh
+ci: depscheck lint test
 
 clean-cache:
 	@echo "==> Cleaning Go build and test caches..."
@@ -138,4 +110,4 @@ docs:
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@$(TFPLUGINDOCS_VERSION)
 	tfplugindocs generate --provider-name betterado
 
-.PHONY: build test testacc vet fmt fmtcheck lint tools test-compile website website-lint website-test clean-cache docs
+.PHONY: build test testacc vet fmt fmtcheck lint tools test-compile clean-cache docs

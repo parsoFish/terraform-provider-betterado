@@ -7,41 +7,6 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## Unreleased
 
-## 0.1.3 (2026-06-14)
-
-DOCS:
-
-- Removed all non-fork-attribution references to `microsoft/azuredevops` across the
-  project: `.azdo/main.tf`, `README.md`, `docs/contributing.md`,
-  `examples/github-based-cicd-simple/main.tf`, `website/docs/index.html.markdown`,
-  `website/docs/r/git_repository.html.markdown`.
-- Deleted `website/docs/guides/` (5 old upstream guide files) — replaced by `docs/guides/`
-  added in v0.1.2.
-
-## 0.1.2 (2026-06-14)
-
-DOCS:
-
-- Added `docs/guides/` with all five authentication guides updated to use `parsoFish/betterado`
-  source and `betterado` provider/resource names (replaces `website/docs/guides/` which still
-  referenced `microsoft/azuredevops`).
-- Added `## Example Usage` sections to all five betterado-specific data source docs
-  (`betterado_release_definition`, `betterado_release_definitions`, `betterado_release_folder`,
-  `betterado_release_definition_history`, `betterado_release_definition_revision`).
-
-## 0.1.1 (2026-06-14)
-
-DOCS:
-
-- Registry documentation fixes: removed upstream provider links, added
-  betterado-specific resource/data-source tables to provider index, added
-  `Release Pipelines` subcategory and descriptions to `betterado_release_definition`,
-  `betterado_task_group`, `betterado_release_folder`, and
-  `betterado_release_definition_permissions` docs.
-- Updated examples in `examples/azdo-based-cicd/` and
-  `examples/github-based-cicd-simple/` to use `betterado_*` resources and
-  `parsoFish/betterado` provider source.
-
 ## 0.1.0 (2026-06-14)
 
 First public release of the `betterado` provider — a fork of
@@ -73,5 +38,5 @@ ENHANCEMENTS:
 
 NOTES:
 
-- All inherited `azuredevops_*` resources are available under the `betterado_*`
-  prefix.
+- Includes the full set of Azure DevOps resources and data sources under the
+  `betterado_*` prefix.

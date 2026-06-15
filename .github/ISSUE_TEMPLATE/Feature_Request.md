@@ -22,7 +22,7 @@ about: I have a suggestion (and might want to implement myself 🙂)!
 
 <!--- Please list the new or affected resources and data sources. --->
 
-* azuredevops_XXXXX
+* betterado_XXXXX
 
 ### Potential Terraform Configuration
 

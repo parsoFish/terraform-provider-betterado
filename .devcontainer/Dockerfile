@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ARG TERRAFORM_VERSION=1.1.8
 ARG TFLINT_VERSION=0.35.0
-ARG TERRAFORM_PROVIDER_AZUREDEVOPS_NAME=terraform-provider-azuredevops
+ARG TERRAFORM_PROVIDER_BETTERADO_NAME=terraform-provider-betterado
 
 RUN apt-get update \
     && apt-get -y install --no-install-recommends apt-utils 2>&1 \
