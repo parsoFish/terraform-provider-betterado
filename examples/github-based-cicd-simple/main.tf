@@ -35,8 +35,8 @@ resource "betterado_build_definition" "nightly_build" {
 
   repository {
     repo_type             = "GitHub"
-    repo_id               = "microsoft/terraform-provider-azuredevops"
-    branch_name           = "master"
+    repo_id               = "parsoFish/terraform-provider-betterado"
+    branch_name           = "main"
     yml_path              = ".azdo/azure-pipeline-nightly.yml"
     service_connection_id = betterado_serviceendpoint_github.github_serviceendpoint.id
   }

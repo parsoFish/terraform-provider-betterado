@@ -1,11 +1,12 @@
 # Better ADO — Terraform Provider for Azure DevOps
 
-`betterado` is a fork of the official
-[`microsoft/azuredevops`](https://github.com/microsoft/terraform-provider-azuredevops)
-provider. It inherits the full upstream resource set and adds resources Microsoft
-has not implemented — most notably **classic release pipelines**
-(`betterado_release_definition`) and **task groups** (`betterado_task_group`),
-backed by the Azure DevOps Release Management REST API (`vsrm.dev.azure.com`).
+`betterado` is a Terraform provider for Azure DevOps with first-class support for
+**classic release pipelines** (`betterado_release_definition`) and **task groups**
+(`betterado_task_group`), backed by the Azure DevOps Release Management REST API
+(`vsrm.dev.azure.com`), alongside the full set of core Azure DevOps resources.
+
+> betterado began as a fork of the official Microsoft Azure DevOps provider and adds
+> the classic release pipeline resources Microsoft never shipped.
 
 * [Terraform Website](https://www.terraform.io)
 * [Azure DevOps Website](https://azure.microsoft.com/en-us/services/devops/)
@@ -53,7 +54,7 @@ resource "betterado_release_definition" "release" {
 ## Developer Requirements
 
 * [Terraform](https://www.terraform.io/downloads.html) version 0.13.x +
-* [Go](https://golang.org/doc/install) version 1.16.x (to build the provider plugin)
+* [Go](https://golang.org/doc/install) version 1.24.x (to build the provider plugin)
 
 If you're on Windows you'll also need:
 
@@ -71,19 +72,19 @@ As [described below](#build-using-powerShell-scripts) we provide some PowerShell
 
 ## Developing the Provider
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.16+ is **required**). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.24+ is **required**). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
 
 ### Using the GOPATH model
 
-First clone the repository to: `$GOPATH/src/github.com/microsoft/terraform-provider-azuredevops`
+First clone the repository to: `$GOPATH/src/github.com/parsoFish/terraform-provider-betterado`
 
 ```sh
-$ mkdir -p $GOPATH/src/github.com/terraform-providers && cd "$_"
-$ git clone git@github.com:microsoft/terraform-provider-azuredevops.git
-$ cd terraform-provider-azuredevops
+$ mkdir -p $GOPATH/src/github.com/parsoFish && cd "$_"
+$ git clone git@github.com:parsoFish/terraform-provider-betterado.git
+$ cd terraform-provider-betterado
 ```
 
-Once you've cloned, run the `./scripts/build.sh` and `./scripts/local-install.sh`, as recommended [here](https://github.com/microsoft/terraform-provider-azuredevops/blob/main/docs/contributing.md#3-build--install-provider).
+Once you've cloned, run the `./scripts/build.sh` and `./scripts/local-install.sh`.
 These commands will sideload the plugin for Terraform.
 
 ### Using a directory separate from GOPATH
@@ -100,7 +101,7 @@ At this point you can compile the provider by running `make build`, which will b
 ```sh
 $ make build
 ...
-$ $GOPATH/bin/terraform-provider-azuredevops
+$ $GOPATH/bin/terraform-provider-betterado
 ...
 ```
 
@@ -140,24 +141,18 @@ The several options to run the tests are:
 
 * With VSCode Golang extension you can also run the tests using `run test`, `run package tests`, `run file tests` buttons above the test
 
-### Scaffolding the Website Documentation
+### Generating Registry Documentation
 
-You can scaffold the documentation for a Data Source by running:
-
-```sh
-$ make scaffold-website BRAND_NAME="Agent Pool" RESOURCE_NAME="azuredevops_agent_pool" RESOURCE_TYPE="data"
-```
-
-You can scaffold the documentation for a Resource by running:
+The Terraform Registry documentation under `docs/` is generated from the provider
+schema, the `examples/` tree, and `templates/` using
+[tfplugindocs](https://github.com/hashicorp/terraform-plugin-docs):
 
 ```sh
-$ make scaffold-website BRAND_NAME="Agent Pool" RESOURCE_NAME="azuredevops_agent_pool" RESOURCE_TYPE="resource" RESOURCE_ID="00000000-0000-0000-0000-000000000000"
+$ make docs
 ```
 
->
-> `BRAND_NAME` is the human readable name of the object that is handled by a
-> Terraform resource or datasource, like `Agent Pool`, `User Entitlement` or `Kubernetes Service Endpoint`
->
+Re-run after changing a resource schema or example, and commit the regenerated
+`docs/` output.
 
 ### Build using PowerShell scripts
 

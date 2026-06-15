@@ -1,41 +1,24 @@
-<!-- BEGIN MICROSOFT SECURITY.MD V0.0.2 BLOCK -->
+# Security Policy
 
-## Security
+## Reporting a Vulnerability
 
-Microsoft takes the security of our software products and services seriously, which includes all source code repositories managed through our GitHub organizations, which include [Microsoft](https://github.com/Microsoft), [Azure](https://github.com/Azure), [DotNet](https://github.com/dotnet), [AspNet](https://github.com/aspnet), [Xamarin](https://github.com/xamarin), and [many more](https://opensource.microsoft.com/).
+If you believe you have found a security vulnerability in `betterado`, please
+report it privately rather than opening a public issue.
 
-If you believe you have found a security vulnerability in any Microsoft-owned repository that meets Microsoft's [definition](https://docs.microsoft.com/en-us/previous-versions/tn-archive/cc751383(v=technet.10)) of a security vulnerability, please report it to us as described below.
+- Preferred: open a [private security advisory](https://github.com/parsoFish/terraform-provider-betterado/security/advisories/new)
+  on the repository.
+- Include a description of the issue, the affected resource(s) or data source(s),
+  and step-by-step instructions to reproduce.
 
-## Reporting Security Issues
+You will receive an acknowledgement once the report is triaged. Please allow a
+reasonable amount of time for the issue to be addressed before any public
+disclosure. This project follows the principle of
+[Coordinated Vulnerability Disclosure](https://en.wikipedia.org/wiki/Coordinated_vulnerability_disclosure).
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+## Scope
 
-Instead, please report them to the Microsoft Security Response Center (MSRC) at [https://msrc.microsoft.com/create-report](https://msrc.microsoft.com/create-report).
-
-If you prefer to submit without logging in, send email to [secure@microsoft.com](mailto:secure@microsoft.com).  If possible, encrypt your message with our PGP key; please download it from the the [Microsoft Security Response Center PGP Key page](https://www.microsoft.com/en-us/msrc/pgp-key-msrc).
-
-You should receive a response within 24 hours. If for some reason you do not, please follow up via email to ensure we received your original message. Additional information can be found at [microsoft.com/msrc](https://www.microsoft.com/msrc).
-
-Please include the requested information listed below (as much as you can provide) to help us better understand the nature and scope of the possible issue:
-
-  * Type of issue (e.g. buffer overflow, SQL injection, cross-site scripting, etc.)
-  * Full paths of source file(s) related to the manifestation of the issue
-  * The location of the affected source code (tag/branch/commit or direct URL)
-  * Any special configuration required to reproduce the issue
-  * Step-by-step instructions to reproduce the issue
-  * Proof-of-concept or exploit code (if possible)
-  * Impact of the issue, including how an attacker might exploit the issue
-
-This information will help us triage your report more quickly.
-
-If you are reporting for a bug bounty, more complete reports can contribute to a higher bounty award. Please visit our [Microsoft Bug Bounty Program](https://microsoft.com/msrc/bounty) page for more details about our active programs.
-
-## Preferred Languages
-
-We prefer all communications to be in English.
-
-## Policy
-
-Microsoft follows the principle of [Coordinated Vulnerability Disclosure](https://www.microsoft.com/en-us/msrc/cvd).
-
-<!-- END MICROSOFT SECURITY.MD BLOCK -->
+`betterado` authenticates to the Azure DevOps REST API using a Personal Access
+Token (or service-principal / OIDC / managed-identity credentials). Report issues
+in the provider here. Vulnerabilities in **Azure DevOps itself** should be reported
+to Microsoft via the [Microsoft Security Response Center](https://msrc.microsoft.com/),
+not to this repository.

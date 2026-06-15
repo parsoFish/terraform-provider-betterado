@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Generate boilerplate code for new Terraform resources following the patterns established in the official `terraform-provider-azuredevops` provider. This ensures consistency and reduces the manual work of setting up new resources.
+Generate boilerplate code for new Terraform resources following the patterns established in the `betterado` provider. This ensures consistency and reduces the manual work of setting up new resources.
 
 ## When to Use
 

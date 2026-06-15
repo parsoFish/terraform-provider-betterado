@@ -27,7 +27,7 @@
   - [9. Creating a release](#9-creating-a-release)
 - [Note about CLA](#note-about-cla)
 
-This document is intended to be an introduction to contributing to the `terraform-provider-azuredevops` project. Links to background information about the project and general guidance on Terraform providers are included below:
+This document is intended to be an introduction to contributing to the `terraform-provider-betterado` project. Links to background information about the project and general guidance on Terraform providers are included below:
 
 If you are looking for background information on the project or related technologies (Terraform, Go and Azure DevOps), consider checking out some of these resources first:
 
@@ -64,7 +64,7 @@ To develop using docker:
 
 > Note: It is highly recommended to use VSCode as described for rich intellisense, debugging, and access to standard go development tools.
 
-* Clone the repo: `git clone https://github.com/microsoft/terraform-provider-azuredevops.git`
+* Clone the repo: `git clone https://github.com/parsoFish/terraform-provider-betterado.git`
 
 If using VSCode's [Remote Development Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack):
 * Open the project in VSCode
@@ -75,7 +75,7 @@ If using VSCode's [Remote Development Extension](https://marketplace.visualstudi
 
 Without VSCode:
 * Build the development environment: `docker build -f .devcontainer/Dockerfile -t dev .`
-* From bash or powershell, mount the root directory into the docker container, and drop into a bash shell in the container: `docker run -it -v ${PWD}:/workspaces/terraform-provider-azuredevops dev`
+* From bash or powershell, mount the root directory into the docker container, and drop into a bash shell in the container: `docker run -it -v ${PWD}:/workspaces/terraform-provider-betterado dev`
 
 Continue with the guide to [run the provider locally](#4-run-provider-locally).
 
@@ -119,8 +119,8 @@ $ cd "$DEV_ROOT"
 **Get the code**
 
 ```bash
-$ git clone https://github.com/microsoft/terraform-provider-azuredevops.git
-$ cd terraform-provider-azuredevops/
+$ git clone https://github.com/parsoFish/terraform-provider-betterado.git
+$ cd terraform-provider-betterado/
 ```
 
 ## 3. Build & Install Provider
@@ -160,7 +160,7 @@ The `build.sh` supports the following parameters:
 ```bash
 $ ls -lah ./bin/
 ...
--rwxrwxrwx 1 ... terraform-provider-azuredevops_v0.0.1
+-rwxrwxrwx 1 ... terraform-provider-betterado_v0.1.0
 ```
 
 **Install the provider**
@@ -168,7 +168,7 @@ $ ls -lah ./bin/
 Terraform provider plugins are not intended to be run directly. You can see this for yourself:
 
 ```bash
-$ ./bin/terraform-provider-azuredevops_v0.0.1
+$ ./bin/terraform-provider-betterado_v0.1.0
 
 This binary is a plugin. These are not meant to be executed directly.
 Please execute the program that consumes these plugins, which will
@@ -299,14 +299,14 @@ If you are going to create a new data source care for the wording of your Go fun
 
 Because the data source returns more than one group object from Azure DevOps
 
-* Data source name `azuredevops_groups`
+* Data source name `betterado_groups`
 * Go function name `func dataGroups() *schema.Resource`
 
 **Reference:** [Terraform Data Source Names](https://www.terraform.io/docs/extend/best-practices/naming.html#data-source-names)
 
 If the new data source is able to return more than one object, be sure you are using a `schema.TypeSet` to return the elements.
 
-**Example:** returning multiple projects from Azure DevOps as set with `azuredevops_projects`
+**Example:** returning multiple projects from Azure DevOps as set with `betterado_projects`
 
 ```go
 "projects": {
@@ -503,7 +503,7 @@ Making the release:
     ```
 1. Set the release version you would like to create
     ```bash
-    RELEASE_VERSION="v0.1.7"
+    RELEASE_VERSION="v0.1.0"
     ```
 1. Create
     ```bash
