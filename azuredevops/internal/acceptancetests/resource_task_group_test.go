@@ -77,9 +77,9 @@ resource "betterado_task_group" "test" {
   }
 
   task {
-    display_name  = "Echo Step"
-    task_id       = "d9bafed4-0b18-4f58-968d-86655b4d2ce9"
-    task_version  = "2.*"
+    display_name = "Echo Step"
+    task_id      = "d9bafed4-0b18-4f58-968d-86655b4d2ce9"
+    task_version = "2.*"
   }
 }
 `, name)
