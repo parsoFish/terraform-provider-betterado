@@ -220,6 +220,7 @@ func Provider() *schema.Provider {
 			"betterado_service_principal":                     graph.DataServicePrincipal(),
 			"betterado_storage_key":                           graph.DataStorageKey(),
 			"betterado_team":                                  core.DataTeam(),
+			"betterado_task_group":                            taskagent.DataTaskGroup(),
 			"betterado_teams":                                 core.DataTeams(),
 			"betterado_user":                                  graph.DataUser(),
 			"betterado_users":                                 graph.DataUsers(),

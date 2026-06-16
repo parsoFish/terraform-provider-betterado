@@ -198,6 +198,7 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_storage_key",
 		"betterado_service_principal",
 		"betterado_team",
+		"betterado_task_group",
 		"betterado_teams",
 		"betterado_user",
 		"betterado_users",
