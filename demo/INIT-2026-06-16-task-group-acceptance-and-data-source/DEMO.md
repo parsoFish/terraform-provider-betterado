@@ -51,6 +51,80 @@
 
 - **Before:** betterado_task_group had unit coverage only; no live ADO proof of the create/read/update/destroy cycle existed.
 - **After:** TestAccTaskGroup_basic creates a UUID-prefixed task group with non-default description='Acceptance test task group', category='Build', input.0.name='myParam', task.0.display_name='Echo Step'; Step 1 asserts exact attribute values via TestCheckResourceAttr (not AttrSet); Step 2 PlanOnly:true / ExpectNonEmptyPlan:false confirms idempotency; checkTaskGroupDestroyed confirms 404 from ADO API after destroy. Live credentials required (TF_ACC=1 + AZDO_ORG_SERVICE_URL + AZDO_PERSONAL_ACCESS_TOKEN).
+- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/1ddffa0b-1804-4f87-808a-b0db9af97bd5/_apis/distributedtask/taskgroups/83bb55d0-17d7-40d0-b482-ebc227dc7015?api-version=7.1` _(captured 2026-06-16T11:16:26Z)_
+
+```json
+{
+  "category": "Build",
+  "dataSourceBindings": [],
+  "definitionType": "metaTask",
+  "demands": [],
+  "description": "Acceptance test task group",
+  "execution": {},
+  "friendlyName": "test-acc-rgftd3tedu",
+  "groups": [],
+  "id": "83bb55d0-17d7-40d0-b482-ebc227dc7015",
+  "inputs": [
+    {
+      "aliases": [],
+      "defaultValue": "",
+      "groupName": "",
+      "helpMarkDown": "",
+      "label": "My Parameter",
+      "name": "myParam",
+      "options": {},
+      "properties": {},
+      "type": "string"
+    }
+  ],
+  "name": "test-acc-rgftd3tedu",
+  "postJobExecution": {},
+  "preJobExecution": {},
+  "runsOn": [
+    "Agent",
+    "DeploymentGroup"
+  ],
+  "satisfies": [],
+  "sourceDefinitions": [],
+  "version": {
+    "isTest": false,
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+  "createdBy": {
+    "displayName": "david.g.parsonson",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "createdOn": "2026-06-16T11:16:24.997Z",
+  "modifiedBy": {
+    "displayName": "david.g.parsonson",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "modifiedOn": "2026-06-16T11:16:24.997Z",
+  "revision": 1,
+  "tasks": [
+    {
+      "alwaysRun": false,
+      "condition": "succeeded()",
+      "continueOnError": false,
+      "displayName": "Echo Step",
+      "enabled": true,
+      "environment": {},
+      "inputs": {},
+      "retryCountOnTaskFailure": 0,
+      "task": {
+        "definitionType": "task",
+        "id": "d9bafed4-0b18-4f58-968d-86655b4d2ce9",
+        "versionSpec": "2.*"
+      },
+      "timeoutInMinutes": 0
+    }
+  ]
+}
+```
 
 ### TestAccTaskGroupDataSource_basic — live data source read-back verified by TestCheckResourceAttrPair
 

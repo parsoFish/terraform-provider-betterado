@@ -4,6 +4,8 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
@@ -36,6 +38,10 @@ func TestAccTaskGroup_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "input.0.name", "myParam"),
 					resource.TestCheckResourceAttr(tfNode, "task.#", "1"),
 					resource.TestCheckResourceAttr(tfNode, "task.0.display_name", "Echo Step"),
+					// Capture a real API GET of the live resource as forge demo
+					// evidence (before destroy) — proves the demo shows the actual
+					// task group, not a test-name table.
+					captureTaskGroupEvidence(tfNode),
 				),
 			},
 			// Step 2: idempotency — no perpetual diff
@@ -116,4 +122,34 @@ func checkTaskGroupDestroyed(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+// captureTaskGroupEvidence performs a real live API GET of the created task group
+// and persists the response as forge demo live-evidence (before the resource is
+// destroyed). Best-effort: a capture failure never fails the test — the read-back
+// assertions above are the authoritative live proof; this only feeds the demo.
+func captureTaskGroupEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		tgID, err := uuid.Parse(res.Primary.ID)
+		if err != nil {
+			return nil
+		}
+		projectID := res.Primary.Attributes["project_id"]
+		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		taskGroups, err := clients.TaskAgentClient.GetTaskGroups(clients.Ctx, taskagent.GetTaskGroupsArgs{
+			Project:     &projectID,
+			TaskGroupId: &tgID,
+		})
+		if err != nil || taskGroups == nil || len(*taskGroups) == 0 {
+			return nil
+		}
+		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+		url := fmt.Sprintf("%s/%s/_apis/distributedtask/taskgroups/%s?api-version=7.1", orgURL, projectID, tgID)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, (*taskGroups)[0])
+		return nil
+	}
 }
