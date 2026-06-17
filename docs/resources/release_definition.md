@@ -13,12 +13,12 @@ deploy phases, pre/post-deploy approvals, variables (including secrets), variabl
 groups, build artifacts, workflow tasks, and deployment triggers.
 
 ~> **Note on approvals:** ADO requires both a `pre_deploy_approval` and a
-`post_deploy_approval` block on every environment, even if approvals are
+`post_deploy_approval` block on every stage, even if approvals are
 automated. Omitting either block causes a `VS402877` validation error.
 
-~> **Note on rollbackRedeploy triggers:** A `rollbackRedeploy` environment
-trigger can only be added after the target environment has had at least one
-successful deployment. Adding it to a new environment causes ADO error `TF400898`.
+~> **Note on rollbackRedeploy triggers:** A `rollbackRedeploy` stage
+trigger can only be added after the target stage has had at least one
+successful deployment. Adding it to a new stage causes ADO error `TF400898`.
 
 ## Example Usage
 
@@ -30,67 +30,81 @@ resource "betterado_release_definition" "example" {
   project_id = var.project_id
 
   # CI build that produces the deployable artifact.
-  artifact {
-    source_id            = "${var.project_id}:${var.build_definition_id}"
-    type                 = "Build"
-    alias                = "ci-build"
-    is_primary           = true
-    definition_reference = {
-      definition = var.build_definition_id
-      project    = var.project_id
+  artifact = [
+    {
+      source_id  = "${var.project_id}:${var.build_definition_id}"
+      type       = "Build"
+      alias      = "ci-build"
+      is_primary = true
+      definition_reference = {
+        definition = var.build_definition_id
+        project    = var.project_id
+      }
     }
-  }
+  ]
 
   # Definition-level variables (a secret value is stored encrypted by ADO).
-  variable {
-    name  = "APP_ENV"
-    value = "production"
-  }
-  variable {
-    name      = "SIGNING_KEY"
-    value     = "replace-me"
-    is_secret = true
-  }
-
-  environment {
-    name = "Production"
-    rank = 1
-
-    # Environment-scoped secret (round-trips cleanly).
-    variable {
-      name      = "DEPLOY_TOKEN"
+  variable = [
+    {
+      name  = "APP_ENV"
+      value = "production"
+    },
+    {
+      name      = "SIGNING_KEY"
       value     = "replace-me"
       is_secret = true
-    }
+    },
+  ]
 
-    deploy_phase {
-      name       = "Agent job"
-      rank       = 1
-      phase_type = "agentBasedDeployment"
-    }
+  stages = [
+    {
+      name = "Production"
+      rank = 1
 
-    retention_policy {
-      days_to_keep     = 30
-      releases_to_keep = 3
-      retain_build     = true
-    }
+      # Stage-scoped secret (round-trips cleanly).
+      variable = [
+        {
+          name      = "DEPLOY_TOKEN"
+          value     = "replace-me"
+          is_secret = true
+        },
+      ]
 
-    # ADO requires both pre- and post-deploy approval blocks (VS402877).
-    pre_deploy_approval {
-      approver {
-        id           = "00000000-0000-0000-0000-000000000000"
-        is_automated = true
-        rank         = 1
+      deploy_phase = [
+        {
+          name       = "Agent job"
+          rank       = 1
+          phase_type = "agentBasedDeployment"
+        },
+      ]
+
+      retention_policy = {
+        days_to_keep     = 30
+        releases_to_keep = 3
+        retain_build     = true
       }
-    }
-    post_deploy_approval {
-      approver {
-        id           = "00000000-0000-0000-0000-000000000000"
-        is_automated = true
-        rank         = 1
+
+      # ADO requires both pre- and post-deploy approval blocks (VS402877).
+      pre_deploy_approval = {
+        approver = [
+          {
+            id           = "00000000-0000-0000-0000-000000000000"
+            is_automated = true
+            rank         = 1
+          },
+        ]
       }
-    }
-  }
+      post_deploy_approval = {
+        approver = [
+          {
+            id           = "00000000-0000-0000-0000-000000000000"
+            is_automated = true
+            rank         = 1
+          },
+        ]
+      }
+    },
+  ]
 }
 
 variable "project_id" {
@@ -107,20 +121,20 @@ variable "build_definition_id" {
 
 ### Required
 
-- `environment` (Block List, Min: 1) (see [below for nested schema](#nestedblock--environment))
 - `name` (String)
 - `project_id` (String)
+- `stages` (List of Object, Min: 1) (see [below for nested schema](#nestedatt--stages))
 
 ### Optional
 
-- `artifact` (Block List) (see [below for nested schema](#nestedblock--artifact))
+- `artifact` (List of Object) (see [below for nested schema](#nestedatt--artifact))
 - `description` (String)
 - `path` (String)
 - `release_name_format` (String)
 - `tags` (Set of String)
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `triggers` (Block List, Max: 1) (see [below for nested schema](#nestedblock--triggers))
-- `variable` (Block Set) (see [below for nested schema](#nestedblock--variable))
+- `variable` (List of Object) (see [below for nested schema](#nestedatt--variable))
 - `variable_groups` (List of Number)
 
 ### Read-Only
@@ -128,39 +142,39 @@ variable "build_definition_id" {
 - `id` (String) The ID of this resource.
 - `revision` (Number)
 
-<a id="nestedblock--environment"></a>
-### Nested Schema for `environment`
+<a id="nestedatt--stages"></a>
+### Nested Schema for `stages`
 
 Required:
 
-- `deploy_phase` (Block List, Min: 1) (see [below for nested schema](#nestedblock--environment--deploy_phase))
+- `deploy_phase` (List of Object, Min: 1) (see [below for nested schema](#nestedatt--stages--deploy_phase))
 - `name` (String)
 - `rank` (Number)
 
 Optional:
 
-- `condition` (Block List) (see [below for nested schema](#nestedblock--environment--condition))
-- `environment_options` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--environment_options))
-- `environment_trigger` (Block List) (see [below for nested schema](#nestedblock--environment--environment_trigger))
-- `execution_policy` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--execution_policy))
+- `condition` (List of Object) (see [below for nested schema](#nestedatt--stages--condition))
+- `environment_options` (Object) (see [below for nested schema](#nestedatt--stages--environment_options))
+- `environment_trigger` (List of Object) (see [below for nested schema](#nestedatt--stages--environment_trigger))
+- `execution_policy` (Object) (see [below for nested schema](#nestedatt--stages--execution_policy))
 - `owner` (String)
-- `post_deploy_approval` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--post_deploy_approval))
-- `post_deployment_gates` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--post_deployment_gates))
-- `pre_deploy_approval` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--pre_deploy_approval))
-- `pre_deployment_gates` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--pre_deployment_gates))
-- `process_parameters` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--process_parameters))
+- `post_deploy_approval` (Object) (see [below for nested schema](#nestedatt--stages--post_deploy_approval))
+- `post_deployment_gates` (Object) (see [below for nested schema](#nestedatt--stages--post_deployment_gates))
+- `pre_deploy_approval` (Object) (see [below for nested schema](#nestedatt--stages--pre_deploy_approval))
+- `pre_deployment_gates` (Object) (see [below for nested schema](#nestedatt--stages--pre_deployment_gates))
+- `process_parameters` (Object) (see [below for nested schema](#nestedatt--stages--process_parameters))
 - `properties` (Map of String)
-- `retention_policy` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--retention_policy))
-- `schedule` (Block List) (see [below for nested schema](#nestedblock--environment--schedule))
-- `variable` (Block Set) (see [below for nested schema](#nestedblock--environment--variable))
+- `retention_policy` (Object) (see [below for nested schema](#nestedatt--stages--retention_policy))
+- `schedule` (List of Object) (see [below for nested schema](#nestedatt--stages--schedule))
+- `variable` (List of Object) (see [below for nested schema](#nestedatt--stages--variable))
 - `variable_groups` (List of Number)
 
 Read-Only:
 
 - `id` (Number)
 
-<a id="nestedblock--environment--deploy_phase"></a>
-### Nested Schema for `environment.deploy_phase`
+<a id="nestedatt--stages--deploy_phase"></a>
+### Nested Schema for `stages.deploy_phase`
 
 Required:
 
@@ -169,12 +183,12 @@ Required:
 
 Optional:
 
-- `deployment_input` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--deploy_phase--deployment_input))
+- `deployment_input` (Object) (see [below for nested schema](#nestedatt--stages--deploy_phase--deployment_input))
 - `phase_type` (String)
-- `workflow_task` (Block List) (see [below for nested schema](#nestedblock--environment--deploy_phase--workflow_task))
+- `workflow_task` (List of Object) (see [below for nested schema](#nestedatt--stages--deploy_phase--workflow_task))
 
-<a id="nestedblock--environment--deploy_phase--deployment_input"></a>
-### Nested Schema for `environment.deploy_phase.deployment_input`
+<a id="nestedatt--stages--deploy_phase--deployment_input"></a>
+### Nested Schema for `stages.deploy_phase.deployment_input`
 
 Optional:
 
@@ -184,13 +198,13 @@ Optional:
 - `enable_access_token` (Boolean)
 - `job_cancel_timeout_in_minutes` (Number)
 - `override_inputs` (Map of String) Phase-level task input overrides (e.g. for parameterised task groups).
-- `parallel_execution` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--deploy_phase--deployment_input--parallel_execution))
+- `parallel_execution` (Object) (see [below for nested schema](#nestedatt--stages--deploy_phase--deployment_input--parallel_execution))
 - `queue_id` (Number)
 - `skip_artifacts_download` (Boolean)
 - `timeout_in_minutes` (Number)
 
-<a id="nestedblock--environment--deploy_phase--deployment_input--parallel_execution"></a>
-### Nested Schema for `environment.deploy_phase.deployment_input.parallel_execution`
+<a id="nestedatt--stages--deploy_phase--deployment_input--parallel_execution"></a>
+### Nested Schema for `stages.deploy_phase.deployment_input.parallel_execution`
 
 Optional:
 
@@ -201,8 +215,8 @@ Optional:
 
 
 
-<a id="nestedblock--environment--deploy_phase--workflow_task"></a>
-### Nested Schema for `environment.deploy_phase.workflow_task`
+<a id="nestedatt--stages--deploy_phase--workflow_task"></a>
+### Nested Schema for `stages.deploy_phase.workflow_task`
 
 Required:
 
@@ -223,8 +237,8 @@ Optional:
 
 
 
-<a id="nestedblock--environment--condition"></a>
-### Nested Schema for `environment.condition`
+<a id="nestedatt--stages--condition"></a>
+### Nested Schema for `stages.condition`
 
 Required:
 
@@ -236,8 +250,8 @@ Optional:
 - `value` (String)
 
 
-<a id="nestedblock--environment--environment_options"></a>
-### Nested Schema for `environment.environment_options`
+<a id="nestedatt--stages--environment_options"></a>
+### Nested Schema for `stages.environment_options`
 
 Optional:
 
@@ -252,8 +266,8 @@ Optional:
 - `timeout_in_minutes` (Number)
 
 
-<a id="nestedblock--environment--environment_trigger"></a>
-### Nested Schema for `environment.environment_trigger`
+<a id="nestedatt--stages--environment_trigger"></a>
+### Nested Schema for `stages.environment_trigger`
 
 Optional:
 
@@ -262,8 +276,8 @@ Optional:
 - `trigger_type` (String)
 
 
-<a id="nestedblock--environment--execution_policy"></a>
-### Nested Schema for `environment.execution_policy`
+<a id="nestedatt--stages--execution_policy"></a>
+### Nested Schema for `stages.execution_policy`
 
 Optional:
 
@@ -271,16 +285,16 @@ Optional:
 - `queue_depth_count` (Number)
 
 
-<a id="nestedblock--environment--post_deploy_approval"></a>
-### Nested Schema for `environment.post_deploy_approval`
+<a id="nestedatt--stages--post_deploy_approval"></a>
+### Nested Schema for `stages.post_deploy_approval`
 
 Optional:
 
-- `approval_options` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--post_deploy_approval--approval_options))
-- `approver` (Block List) (see [below for nested schema](#nestedblock--environment--post_deploy_approval--approver))
+- `approval_options` (Object) (see [below for nested schema](#nestedatt--stages--post_deploy_approval--approval_options))
+- `approver` (List of Object) (see [below for nested schema](#nestedatt--stages--post_deploy_approval--approver))
 
-<a id="nestedblock--environment--post_deploy_approval--approval_options"></a>
-### Nested Schema for `environment.post_deploy_approval.approval_options`
+<a id="nestedatt--stages--post_deploy_approval--approval_options"></a>
+### Nested Schema for `stages.post_deploy_approval.approval_options`
 
 Optional:
 
@@ -292,8 +306,8 @@ Optional:
 - `timeout_in_minutes` (Number)
 
 
-<a id="nestedblock--environment--post_deploy_approval--approver"></a>
-### Nested Schema for `environment.post_deploy_approval.approver`
+<a id="nestedatt--stages--post_deploy_approval--approver"></a>
+### Nested Schema for `stages.post_deploy_approval.approver`
 
 Required:
 
@@ -306,23 +320,23 @@ Optional:
 
 
 
-<a id="nestedblock--environment--post_deployment_gates"></a>
-### Nested Schema for `environment.post_deployment_gates`
+<a id="nestedatt--stages--post_deployment_gates"></a>
+### Nested Schema for `stages.post_deployment_gates`
 
 Optional:
 
-- `gate` (Block List) (see [below for nested schema](#nestedblock--environment--post_deployment_gates--gate))
-- `gates_options` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--post_deployment_gates--gates_options))
+- `gate` (List of Object) (see [below for nested schema](#nestedatt--stages--post_deployment_gates--gate))
+- `gates_options` (Object) (see [below for nested schema](#nestedatt--stages--post_deployment_gates--gates_options))
 
-<a id="nestedblock--environment--post_deployment_gates--gate"></a>
-### Nested Schema for `environment.post_deployment_gates.gate`
+<a id="nestedatt--stages--post_deployment_gates--gate"></a>
+### Nested Schema for `stages.post_deployment_gates.gate`
 
 Required:
 
-- `task` (Block List, Min: 1) (see [below for nested schema](#nestedblock--environment--post_deployment_gates--gate--task))
+- `task` (List of Object, Min: 1) (see [below for nested schema](#nestedatt--stages--post_deployment_gates--gate--task))
 
-<a id="nestedblock--environment--post_deployment_gates--gate--task"></a>
-### Nested Schema for `environment.post_deployment_gates.gate.task`
+<a id="nestedatt--stages--post_deployment_gates--gate--task"></a>
+### Nested Schema for `stages.post_deployment_gates.gate.task`
 
 Required:
 
@@ -343,8 +357,8 @@ Optional:
 
 
 
-<a id="nestedblock--environment--post_deployment_gates--gates_options"></a>
-### Nested Schema for `environment.post_deployment_gates.gates_options`
+<a id="nestedatt--stages--post_deployment_gates--gates_options"></a>
+### Nested Schema for `stages.post_deployment_gates.gates_options`
 
 Optional:
 
@@ -356,16 +370,16 @@ Optional:
 
 
 
-<a id="nestedblock--environment--pre_deploy_approval"></a>
-### Nested Schema for `environment.pre_deploy_approval`
+<a id="nestedatt--stages--pre_deploy_approval"></a>
+### Nested Schema for `stages.pre_deploy_approval`
 
 Optional:
 
-- `approval_options` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--pre_deploy_approval--approval_options))
-- `approver` (Block List) (see [below for nested schema](#nestedblock--environment--pre_deploy_approval--approver))
+- `approval_options` (Object) (see [below for nested schema](#nestedatt--stages--pre_deploy_approval--approval_options))
+- `approver` (List of Object) (see [below for nested schema](#nestedatt--stages--pre_deploy_approval--approver))
 
-<a id="nestedblock--environment--pre_deploy_approval--approval_options"></a>
-### Nested Schema for `environment.pre_deploy_approval.approval_options`
+<a id="nestedatt--stages--pre_deploy_approval--approval_options"></a>
+### Nested Schema for `stages.pre_deploy_approval.approval_options`
 
 Optional:
 
@@ -377,8 +391,8 @@ Optional:
 - `timeout_in_minutes` (Number)
 
 
-<a id="nestedblock--environment--pre_deploy_approval--approver"></a>
-### Nested Schema for `environment.pre_deploy_approval.approver`
+<a id="nestedatt--stages--pre_deploy_approval--approver"></a>
+### Nested Schema for `stages.pre_deploy_approval.approver`
 
 Required:
 
@@ -391,23 +405,23 @@ Optional:
 
 
 
-<a id="nestedblock--environment--pre_deployment_gates"></a>
-### Nested Schema for `environment.pre_deployment_gates`
+<a id="nestedatt--stages--pre_deployment_gates"></a>
+### Nested Schema for `stages.pre_deployment_gates`
 
 Optional:
 
-- `gate` (Block List) (see [below for nested schema](#nestedblock--environment--pre_deployment_gates--gate))
-- `gates_options` (Block List, Max: 1) (see [below for nested schema](#nestedblock--environment--pre_deployment_gates--gates_options))
+- `gate` (List of Object) (see [below for nested schema](#nestedatt--stages--pre_deployment_gates--gate))
+- `gates_options` (Object) (see [below for nested schema](#nestedatt--stages--pre_deployment_gates--gates_options))
 
-<a id="nestedblock--environment--pre_deployment_gates--gate"></a>
-### Nested Schema for `environment.pre_deployment_gates.gate`
+<a id="nestedatt--stages--pre_deployment_gates--gate"></a>
+### Nested Schema for `stages.pre_deployment_gates.gate`
 
 Required:
 
-- `task` (Block List, Min: 1) (see [below for nested schema](#nestedblock--environment--pre_deployment_gates--gate--task))
+- `task` (List of Object, Min: 1) (see [below for nested schema](#nestedatt--stages--pre_deployment_gates--gate--task))
 
-<a id="nestedblock--environment--pre_deployment_gates--gate--task"></a>
-### Nested Schema for `environment.pre_deployment_gates.gate.task`
+<a id="nestedatt--stages--pre_deployment_gates--gate--task"></a>
+### Nested Schema for `stages.pre_deployment_gates.gate.task`
 
 Required:
 
@@ -428,8 +442,8 @@ Optional:
 
 
 
-<a id="nestedblock--environment--pre_deployment_gates--gates_options"></a>
-### Nested Schema for `environment.pre_deployment_gates.gates_options`
+<a id="nestedatt--stages--pre_deployment_gates--gates_options"></a>
+### Nested Schema for `stages.pre_deployment_gates.gates_options`
 
 Optional:
 
@@ -441,15 +455,15 @@ Optional:
 
 
 
-<a id="nestedblock--environment--process_parameters"></a>
-### Nested Schema for `environment.process_parameters`
+<a id="nestedatt--stages--process_parameters"></a>
+### Nested Schema for `stages.process_parameters`
 
 Optional:
 
-- `input` (Block List) (see [below for nested schema](#nestedblock--environment--process_parameters--input))
+- `input` (List of Object) (see [below for nested schema](#nestedatt--stages--process_parameters--input))
 
-<a id="nestedblock--environment--process_parameters--input"></a>
-### Nested Schema for `environment.process_parameters.input`
+<a id="nestedatt--stages--process_parameters--input"></a>
+### Nested Schema for `stages.process_parameters.input`
 
 Required:
 
@@ -462,8 +476,8 @@ Optional:
 
 
 
-<a id="nestedblock--environment--retention_policy"></a>
-### Nested Schema for `environment.retention_policy`
+<a id="nestedatt--stages--retention_policy"></a>
+### Nested Schema for `stages.retention_policy`
 
 Optional:
 
@@ -472,8 +486,8 @@ Optional:
 - `retain_build` (Boolean)
 
 
-<a id="nestedblock--environment--schedule"></a>
-### Nested Schema for `environment.schedule`
+<a id="nestedatt--stages--schedule"></a>
+### Nested Schema for `stages.schedule`
 
 Optional:
 
@@ -484,8 +498,8 @@ Optional:
 - `time_zone_id` (String)
 
 
-<a id="nestedblock--environment--variable"></a>
-### Nested Schema for `environment.variable`
+<a id="nestedatt--stages--variable"></a>
+### Nested Schema for `stages.variable`
 
 Required:
 
@@ -499,7 +513,7 @@ Optional:
 
 
 
-<a id="nestedblock--artifact"></a>
+<a id="nestedatt--artifact"></a>
 ### Nested Schema for `artifact`
 
 Required:
@@ -590,7 +604,7 @@ Optional:
 
 
 
-<a id="nestedblock--variable"></a>
+<a id="nestedatt--variable"></a>
 ### Nested Schema for `variable`
 
 Required:
