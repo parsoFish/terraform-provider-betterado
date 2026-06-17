@@ -512,7 +512,10 @@ func captureReleaseEvidence(tfNode string) resource.TestCheckFunc {
 			return nil
 		}
 		def, err := getReleaseDefinitionFromResource(res)
-		if err != nil || def == nil || def.Id == nil {
+		if err != nil {
+			return nil //nolint:nilerr // best-effort demo evidence; the read-back assertions are the authoritative live proof
+		}
+		if def == nil || def.Id == nil {
 			return nil
 		}
 		projectID := res.Primary.Attributes["project_id"]
@@ -520,7 +523,9 @@ func captureReleaseEvidence(tfNode string) resource.TestCheckFunc {
 		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
 		vsrmURL := strings.Replace(orgURL, "https://dev.azure.com", "https://vsrm.dev.azure.com", 1)
 		url := fmt.Sprintf("%s/%s/_apis/release/definitions/%d?api-version=7.1", vsrmURL, projectID, *def.Id)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, def)
+		if err := testutils.CaptureLiveEvidence("acceptance-resource", url, def); err != nil {
+			return nil //nolint:nilerr // best-effort demo evidence; never fail the test on a capture miss
+		}
 		return nil
 	}
 }
@@ -665,13 +670,13 @@ resource "betterado_release_definition" "test" {
 
   stages = [
     {
-      id              = null
-      name            = "Production"
-      rank            = 1
-      owner           = null
-      variable        = null
-      variable_groups = null
-      condition       = null
+      id                    = null
+      name                  = "Production"
+      rank                  = 1
+      owner                 = null
+      variable              = null
+      variable_groups       = null
+      condition             = null
       environment_options   = null
       execution_policy      = null
       pre_deployment_gates  = null

@@ -64,6 +64,120 @@
 - **Before:** main: no `TestAccReleaseDefinition_stagesArraySyntax` in acceptancetests; existing tests used `environment.N.*` state paths.
 - **After:** HEAD: `TestAccReleaseDefinition_stagesArraySyntax` authored in `azuredevops/internal/acceptancetests/resource_release_definition_test.go` using `stages = [ ... ]` array HCL fixture with idempotency check. WI-3 status is `failed` — live TF_ACC run against ADO not yet completed (no credentials available in this cycle). All existing acceptance test fixtures converted to `stages` / `stages.N.*` paths.
 
+### Live evidence — acceptance-resource
+
+- **After:** Real API GET against the live system: https://vsrm.dev.azure.com/davidgparsonson/ee9026fd-3469-4fee-8d69-b6cce7749b0b/_apis/release/definitions/2?api-version=7.1
+- **Live evidence (real API GET):** `https://vsrm.dev.azure.com/davidgparsonson/ee9026fd-3469-4fee-8d69-b6cce7749b0b/_apis/release/definitions/2?api-version=7.1` _(captured 2026-06-17T22:59:58Z)_
+
+```json
+{
+  "_links": {
+    "self": {
+      "href": "https://vsrm.dev.azure.com/davidgparsonson/ee9026fd-3469-4fee-8d69-b6cce7749b0b/_apis/Release/definitions/2"
+    },
+    "web": {
+      "href": "https://dev.azure.com/davidgparsonson/ee9026fd-3469-4fee-8d69-b6cce7749b0b/_release?definitionId=2"
+    }
+  },
+  "id": 2,
+  "name": "test-acc-yeh6xk0n4u",
+  "path": "\\",
+  "url": "https://vsrm.dev.azure.com/davidgparsonson/ee9026fd-3469-4fee-8d69-b6cce7749b0b/_apis/Release/definitions/2",
+  "artifacts": [],
+  "createdBy": {
+    "_links": {
+      "avatar": {
+        "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+      }
+    },
+    "descriptor": "msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+    "displayName": "david.g.parsonson",
+    "url": "https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "createdOn": "2026-06-17T22:59:56.187Z",
+  "environments": [
+    {
+      "badgeUrl": "https://vsrm.dev.azure.com/davidgparsonson/_apis/public/Release/badge/ee9026fd-3469-4fee-8d69-b6cce7749b0b/2/4",
+      "conditions": [],
+      "currentRelease": {
+        "_links": {},
+        "id": 0,
+        "url": "https://vsrm.dev.azure.com/davidgparsonson/ee9026fd-3469-4fee-8d69-b6cce7749b0b/_apis/Release/releases/0"
+      },
+      "demands": [],
+      "deployPhases": [
+        {
+          "deploymentInput": {
+            "agentSpecification": null,
+            "artifactsDownloadInput": {
+              "downloadInputs": []
+            },
+            "condition": "succeeded()",
+            "demands": [],
+            "enableAccessToken": false,
+            "jobCancelTimeoutInMinutes": 1,
+            "overrideInputs": {},
+            "parallelExecution": {
+              "parallelExecutionType": "none"
+            },
+            "queueId": 0,
+            "skipArtifactsDownload": false,
+            "timeoutInMinutes": 0
+          },
+          "name": "Agent job",
+          "phaseType": "agentBasedDeployment",
+          "rank": 1,
+          "refName": null,
+          "workflowTasks": []
+        }
+      ],
+      "deployStep": {
+        "id": 13
+      },
+      "environmentOptions": {
+        "autoLinkWorkItems": false,
+        "badgeEnabled": false,
+        "emailNotificationType": "OnlyOnFailure",
+        "emailRecipients": "release.environment.owner;release.creator",
+        "enableAccessToken": false,
+        "publishDeploymentStatus": false,
+        "pullRequestDeploymentEnabled": false,
+        "skipArtifactsDownload": false,
+        "timeoutInMinutes": 0
+      },
+      "environmentTriggers": [],
+      "executionPolicy": {
+        "concurrencyCount": 0,
+        "queueDepthCount": 0
+      },
+      "id": 4,
+      "name": "Production",
+      "owner": {
+        "_links": {
+          "avatar": {
+            "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+          }
+        },
+        "descriptor": "msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+        "displayName": "david.g.parsonson",
+        "url": "https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+        "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+        "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+        "uniqueName": "david.g.parsonson@gmail.com"
+      },
+      "postDeployApprovals": {
+        "approvals": [
+          {
+            "id": 14,
+            "isAutomated": true,
+            "isNotificationOn": false,
+      
+… (truncated)
+```
+
 ## Test Evidence
 
 | test | result | delta |

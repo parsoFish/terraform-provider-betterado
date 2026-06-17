@@ -130,7 +130,7 @@
     <span>project <strong>terraform-provider-betterado</strong></span>
     <span>before <code>main</code> → after <code>HEAD</code></span>
     <span>branch <code>INIT-2026-06-17-release-stages-array-refactor</code></span>
-    <span>generated 2026-06-17T22:45:03.922Z</span>
+    <span>generated 2026-06-17T23:03:10.000Z</span>
   </div>
   <p class="essence">The `betterado_release_definition` resource now exposes pipeline stages as `stages = [ { ... } ]` (HCL attribute/array syntax) instead of repeated `environment { ... }` blocks. This is a breaking rename (no alias) paired with `ConfigMode: SchemaConfigModeAttr` on `stages`, `deploy_phase`, and `retention_policy`, enabling Terraform `for`/`concat` expressions to build stage lists dynamically. Unit tests pass on HEAD; acceptance test `TestAccReleaseDefinition_stagesArraySyntax` is authored but requires live TF_ACC credentials (WI-3 status: failed — live run not yet verified).</p>
 </header>
@@ -300,6 +300,17 @@
         <p class="note">HEAD: `TestAccReleaseDefinition_stagesArraySyntax` authored in `azuredevops/internal/acceptancetests/resource_release_definition_test.go` using `stages = [ ... ]` array HCL fixture with idempotency check. WI-3 status is `failed` — live TF_ACC run against ADO not yet completed (no credentials available in this cycle). All existing acceptance test fixtures converted to `stages` / `stages.N.*` paths.</p>
       </figure>
     </div>
+  </div>
+
+  <div class="checkpoint">
+    <h3><span class="step">6</span> Live evidence — acceptance-resource <span class="kind">harness</span></h3>
+    <table class="harness">
+      <thead><tr><th>metric</th><th>before</th><th>after</th><th>Δ</th><th>parity</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="verdict v-incomplete">Verdict: <strong>NO METRICS</strong></p>
+    <p class="legend"><strong>match</strong>/<strong>within</strong> = unchanged from baseline · <strong>new</strong> = newly added, no prior baseline (see the <em>after</em> column for the result — a PASS means the new test is green) · <strong>diverged</strong> = regressed vs baseline (the only state that signals a problem)</p>
+    <p class="note">Real API GET against the live system: https://vsrm.dev.azure.com/davidgparsonson/ee9026fd-3469-4fee-8d69-b6cce7749b0b/_apis/release/definitions/2?api-version=7.1</p>
   </div>
 </section>
 
