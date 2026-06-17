@@ -88,12 +88,12 @@
 .../resource_release_definition_test.go            | 2161 ++++++++++++--------
  .../service/release/resource_release_definition.go |  182 +-
  .../release/resource_release_definition_test.go    |  109 +-
- .../DEMO.html                                      |  434 ++++
- .../DEMO.md                                        |  164 ++
+ .../DEMO.html                                      |  437 ++++
+ .../DEMO.md                                        |  167 ++
  .../demo.json                                      |  197 ++
  docs/resources/release_definition.md               |  278 +--
  .../betterado_release_definition/resource.tf       |   92 +-
- 8 files changed, 2463 insertions(+), 1154 deletions(-)
+ 8 files changed, 2469 insertions(+), 1154 deletions(-)
 ```
 
 ## Usage

@@ -130,7 +130,7 @@
     <span>project <strong>terraform-provider-betterado</strong></span>
     <span>before <code>main</code> → after <code>HEAD</code></span>
     <span>branch <code>INIT-2026-06-17-release-stages-array-refactor</code></span>
-    <span>generated 2026-06-17T22:41:41.337Z</span>
+    <span>generated 2026-06-17T22:45:03.922Z</span>
   </div>
   <p class="essence">The `betterado_release_definition` resource now exposes pipeline stages as `stages = [ { ... } ]` (HCL attribute/array syntax) instead of repeated `environment { ... }` blocks. This is a breaking rename (no alias) paired with `ConfigMode: SchemaConfigModeAttr` on `stages`, `deploy_phase`, and `retention_policy`, enabling Terraform `for`/`concat` expressions to build stage lists dynamically. Unit tests pass on HEAD; acceptance test `TestAccReleaseDefinition_stagesArraySyntax` is authored but requires live TF_ACC credentials (WI-3 status: failed — live run not yet verified).</p>
 </header>
@@ -348,12 +348,12 @@
   <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>HEAD</code></summary><pre class="diff-stat">.../resource_release_definition_test.go            | 2161 ++++++++++++--------
  .../service/release/resource_release_definition.go |  182 +-
  .../release/resource_release_definition_test.go    |  109 +-
- .../DEMO.html                                      |  434 ++++
- .../DEMO.md                                        |  164 ++
+ .../DEMO.html                                      |  437 ++++
+ .../DEMO.md                                        |  167 ++
  .../demo.json                                      |  197 ++
  docs/resources/release_definition.md               |  278 +--
  .../betterado_release_definition/resource.tf       |   92 +-
- 8 files changed, 2463 insertions(+), 1154 deletions(-)</pre></details>
+ 8 files changed, 2469 insertions(+), 1154 deletions(-)</pre></details>
 </section>
 
 
