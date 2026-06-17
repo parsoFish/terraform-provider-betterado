@@ -620,6 +620,10 @@ resource "betterado_release_definition" "test" {
 // hclReleaseDefinitionStagesArraySyntax creates a minimal release definition using the
 // stages = [...] array/attribute syntax (no block syntax). This is the fixture for
 // TestAccReleaseDefinition_stagesArraySyntax (AC1/AC2 of WI-3).
+//
+// Note: because stages uses SchemaConfigModeAttr (attribute/array syntax), Terraform's
+// structural type system requires ALL attributes of the stages element object to be
+// present in the HCL literal. Optional attrs that are not needed must be set to null.
 func hclReleaseDefinitionStagesArraySyntax(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
 resource "betterado_release_definition" "test" {
@@ -628,14 +632,29 @@ resource "betterado_release_definition" "test" {
 
   stages = [
     {
-      name = "Production"
-      rank = 1
+      id              = null
+      name            = "Production"
+      rank            = 1
+      owner           = null
+      variable        = null
+      variable_groups = null
+      condition       = null
+      environment_options   = null
+      execution_policy      = null
+      pre_deployment_gates  = null
+      post_deployment_gates = null
+      environment_trigger   = null
+      schedule              = null
+      process_parameters    = null
+      properties            = null
 
       deploy_phase = [
         {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
+          name             = "Agent job"
+          rank             = 1
+          phase_type       = "agentBasedDeployment"
+          deployment_input = null
+          workflow_task    = null
         }
       ]
 
@@ -649,6 +668,7 @@ resource "betterado_release_definition" "test" {
 
       pre_deploy_approval = [
         {
+          approval_options = null
           approver = [
             {
               id           = "00000000-0000-0000-0000-000000000000"
@@ -661,6 +681,7 @@ resource "betterado_release_definition" "test" {
 
       post_deploy_approval = [
         {
+          approval_options = null
           approver = [
             {
               id           = "00000000-0000-0000-0000-000000000000"
