@@ -2550,3 +2550,134 @@ resource "betterado_release_definition" "test" {
 }
 `, name, fixture.ProjectID)
 }
+
+// TestAccReleaseDefinition_withContainerImageTrigger proves that the container_image_trigger
+// block implemented in WI-1 round-trips against the real ADO REST API without a perpetual diff.
+//
+// The test uses a DockerHub artifact source (type = "DockerHub") because ADO accepts a
+// containerImageTrigger paired with a DockerHub artifact without requiring a live ACR service
+// endpoint — only the alias reference needs to match. If ADO rejects this combination, switch
+// the artifact type to "AzureContainerRepository" and supply a real ACR service endpoint ID.
+//
+// AC1: terraform apply succeeds, provider read-back shows triggers.0.container_image_trigger.0.alias
+// = "_myContainer", and the idempotency re-plan produces no diff (ExpectNonEmptyPlan: false).
+// AC2: captureReleaseEvidence calls testutils.CaptureLiveEvidence("acceptance-resource", vsrmURL, def)
+// before destroy, writing .forge/live-evidence/acceptance-resource.json.
+func TestAccReleaseDefinition_withContainerImageTrigger(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclReleaseDefinitionWithContainerImageTrigger(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "triggers.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.container_image_trigger.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.container_image_trigger.0.alias", "_myContainer"),
+					// Capture live demo evidence (a real REST GET of the release definition)
+					// while the resource is live, before destroy.
+					// testutils.CaptureLiveEvidence writes .forge/live-evidence/acceptance-resource.json.
+					// Best-effort: a capture failure never fails the test.
+					captureReleaseEvidence(tfNode),
+				),
+			},
+			// Idempotency: re-plan must produce no diff.
+			{
+				Config:             hclReleaseDefinitionWithContainerImageTrigger(name, fixture),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+// hclReleaseDefinitionWithContainerImageTrigger returns HCL that creates a release definition
+// with a DockerHub artifact source and a container_image_trigger block referencing that artifact.
+//
+// ADO accepts containerImageTrigger for DockerHub artifacts without requiring a live ACR
+// service endpoint — the trigger only needs the artifact alias to match.
+func hclReleaseDefinitionWithContainerImageTrigger(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  # DockerHub artifact — satisfies the container_image_trigger alias requirement.
+  # ADO accepts containerImageTrigger for DockerHub artifacts without a service endpoint.
+  artifact {
+    alias      = "_myContainer"
+    type       = "DockerHub"
+    is_primary = false
+
+    definition_reference = {
+      connection = ""
+      defaultTag = "latest"
+      definition = "library/nginx"
+    }
+  }
+
+  triggers {
+    container_image_trigger {
+      alias = "_myContainer"
+      tag_filter {
+        pattern = "latest"
+      }
+    }
+  }
+
+  stages = [
+    {
+      name = "Production"
+      rank = 1
+
+      deploy_phase = [
+        {
+          name       = "Agentless job"
+          rank       = 1
+          phase_type = "runOnServer"
+        }
+      ]
+
+      retention_policy = [
+        {
+          days_to_keep     = 30
+          releases_to_keep = 3
+          retain_build     = true
+        }
+      ]
+
+      pre_deploy_approval = [
+        {
+          approver = [
+            {
+              id           = "00000000-0000-0000-0000-000000000000"
+              is_automated = true
+              rank         = 1
+            }
+          ]
+        }
+      ]
+
+      post_deploy_approval = [
+        {
+          approver = [
+            {
+              id           = "00000000-0000-0000-0000-000000000000"
+              is_automated = true
+              rank         = 1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+`, name, fixture.ProjectID)
+}
