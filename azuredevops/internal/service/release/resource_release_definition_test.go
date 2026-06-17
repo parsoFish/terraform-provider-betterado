@@ -2919,3 +2919,41 @@ func TestReleaseDefinition_SourceRepoTrigger_RoundTrip(t *testing.T) {
 	require.Len(t, bfFlat, 1, "AC2: branch_filters must have one entry")
 	require.Equal(t, branchFilter, bfFlat[0], "AC2: branch_filters[0] must round-trip correctly")
 }
+
+// TestReleaseDefinition_StagesConfigModeAttr_Schema verifies that the key schema
+// entries have ConfigMode == schema.SchemaConfigModeAttr, which enables the
+// array-of-objects HCL syntax for those blocks.
+func TestReleaseDefinition_StagesConfigModeAttr_Schema(t *testing.T) {
+	s := ResourceReleaseDefinition().Schema
+
+	// AC1: top-level 'stages'
+	stagesSchema, ok := s["stages"]
+	require.True(t, ok, "schema must have 'stages' key")
+	require.Equal(t, schema.SchemaConfigModeAttr, stagesSchema.ConfigMode,
+		"stages must use SchemaConfigModeAttr for array syntax")
+
+	// AC2: nested 'deploy_phase' inside a stage
+	stagesElem := stagesSchema.Elem.(*schema.Resource).Schema
+	dpSchema, ok := stagesElem["deploy_phase"]
+	require.True(t, ok, "stage schema must have 'deploy_phase'")
+	require.Equal(t, schema.SchemaConfigModeAttr, dpSchema.ConfigMode,
+		"deploy_phase must use SchemaConfigModeAttr")
+
+	// AC3: top-level 'artifact'
+	artifactSchema, ok := s["artifact"]
+	require.True(t, ok, "schema must have 'artifact'")
+	require.Equal(t, schema.SchemaConfigModeAttr, artifactSchema.ConfigMode,
+		"artifact must use SchemaConfigModeAttr")
+
+	// AC4: top-level 'variable' (TypeSet)
+	variableSchema, ok := s["variable"]
+	require.True(t, ok, "schema must have 'variable'")
+	require.Equal(t, schema.SchemaConfigModeAttr, variableSchema.ConfigMode,
+		"variable must use SchemaConfigModeAttr")
+
+	// AC5: 'retention_policy' MaxItems:1 inside a stage
+	retentionSchema, ok := stagesElem["retention_policy"]
+	require.True(t, ok, "stage schema must have 'retention_policy'")
+	require.Equal(t, schema.SchemaConfigModeAttr, retentionSchema.ConfigMode,
+		"retention_policy must use SchemaConfigModeAttr")
+}

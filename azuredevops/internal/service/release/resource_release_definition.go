@@ -68,8 +68,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 				Computed: true,
 			},
 			"variable": {
-				Type:     schema.TypeSet,
-				Optional: true,
+				Type:       schema.TypeSet,
+				Optional:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -113,9 +114,10 @@ func ResourceReleaseDefinition() *schema.Resource {
 				},
 			},
 			"stages": {
-				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
+				Type:       schema.TypeList,
+				Required:   true,
+				MinItems:   1,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -139,8 +141,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 							ValidateFunc: validation.IsUUID,
 						},
 						"variable": {
-							Type:     schema.TypeSet,
-							Optional: true,
+							Type:       schema.TypeSet,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -215,9 +218,10 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"deploy_phase": {
-							Type:     schema.TypeList,
-							Required: true,
-							MinItems: 1,
+							Type:       schema.TypeList,
+							Required:   true,
+							MinItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -339,10 +343,11 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"retention_policy": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"days_to_keep": {
@@ -567,8 +572,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 				},
 			},
 			"artifact": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:       schema.TypeList,
+				Optional:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"alias": {
