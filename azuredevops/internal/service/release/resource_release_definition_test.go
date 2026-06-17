@@ -534,7 +534,7 @@ func TestReleaseDefinition_SecretVariables_PreserveOnFlatten(t *testing.T) {
 		},
 		"variable_groups": []interface{}{},
 		"tags":            []interface{}{},
-		"stages":         []interface{}{},
+		"stages":          []interface{}{},
 		"artifact":        []interface{}{},
 	})
 	resourceData.SetId(strconv.Itoa(testReleaseDefinitionID))
@@ -885,7 +885,7 @@ func TestReleaseDefinition_Artifacts_DefinitionReferenceFiltering(t *testing.T) 
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"stages":            []interface{}{},
+		"stages":              []interface{}{},
 		"artifact": []interface{}{
 			map[string]interface{}{
 				"alias":      "_myBuild",
