@@ -2,7 +2,9 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -375,6 +377,10 @@ func TestAccReleaseDefinition_stagesArraySyntax(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "stages.0.name", "Production"),
 					resource.TestCheckResourceAttr(tfNode, "stages.0.deploy_phase.#", "1"),
 					resource.TestCheckResourceAttr(tfNode, "stages.0.deploy_phase.0.name", "Agent job"),
+					// Capture live demo evidence (a real REST GET) while the resource
+					// is live, before destroy — forge demo render back-fills it into
+					// demo.json. Best-effort; never fails the test.
+					captureReleaseEvidence(tfNode),
 				),
 			},
 			// Step 2: idempotency — re-plan must produce no diff.
@@ -491,6 +497,33 @@ func checkReleaseDefinitionAgentSpecification(expectedIdentifier string) resourc
 }
 
 // --- Check functions ---
+
+// captureReleaseEvidence performs a real live API GET of the created release
+// definition and persists the response as forge demo live-evidence (before the
+// resource is destroyed). Modeled on captureTaskGroupEvidence; uses the release
+// client + the vsrm host. Best-effort: a capture failure never fails the test —
+// the read-back assertions are the authoritative live proof; this only feeds the
+// demo (forge demo render back-fills .forge/live-evidence/<label>.json into
+// demo.json, joined on the matching checkpoint label).
+func captureReleaseEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		def, err := getReleaseDefinitionFromResource(res)
+		if err != nil || def == nil || def.Id == nil {
+			return nil
+		}
+		projectID := res.Primary.Attributes["project_id"]
+		// The Release API lives on the vsrm host, not dev.azure.com.
+		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+		vsrmURL := strings.Replace(orgURL, "https://dev.azure.com", "https://vsrm.dev.azure.com", 1)
+		url := fmt.Sprintf("%s/%s/_apis/release/definitions/%d?api-version=7.1", vsrmURL, projectID, *def.Id)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, def)
+		return nil
+	}
+}
 
 func checkReleaseDefinitionExists(expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
