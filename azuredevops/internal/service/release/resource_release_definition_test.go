@@ -2919,3 +2919,52 @@ func TestReleaseDefinition_SourceRepoTrigger_RoundTrip(t *testing.T) {
 	require.Len(t, bfFlat, 1, "AC2: branch_filters must have one entry")
 	require.Equal(t, branchFilter, bfFlat[0], "AC2: branch_filters[0] must round-trip correctly")
 }
+
+// ── WI-2: StagesSchemaConfigMode ──────────────────────────────────────────
+
+// TestReleaseDefinition_StagesSchemaConfigMode verifies that the stages TypeList
+// and its key sub-block TypeList entries (deploy_phase, retention_policy) all carry
+// ConfigMode: schema.SchemaConfigModeAttr, enabling array/attribute HCL syntax.
+//
+// AC1: this test MUST fail on the unmodified (WI-1-only) schema because stages has no
+// ConfigMode set.  AC3: after this WI's schema changes the test must pass (exit 0).
+func TestReleaseDefinition_StagesSchemaConfigMode(t *testing.T) {
+	s := ResourceReleaseDefinition().Schema
+
+	// ── AC1 / AC3: stages itself
+	stagesEntry, ok := s["stages"]
+	if !ok {
+		t.Fatal("schema key 'stages' not found in ResourceReleaseDefinition().Schema")
+	}
+	if stagesEntry.ConfigMode != schema.SchemaConfigModeAttr {
+		t.Errorf("stages.ConfigMode = %v; want schema.SchemaConfigModeAttr (%v)",
+			stagesEntry.ConfigMode, schema.SchemaConfigModeAttr)
+	}
+
+	// Dig into stages Elem to find deploy_phase and retention_policy
+	stagesResource, ok := stagesEntry.Elem.(*schema.Resource)
+	if !ok {
+		t.Fatal("stages.Elem is not *schema.Resource")
+	}
+	stagesSchema := stagesResource.Schema
+
+	// ── deploy_phase
+	deployPhaseEntry, ok := stagesSchema["deploy_phase"]
+	if !ok {
+		t.Fatal("schema key 'deploy_phase' not found inside stages.Elem.Schema")
+	}
+	if deployPhaseEntry.ConfigMode != schema.SchemaConfigModeAttr {
+		t.Errorf("stages.deploy_phase.ConfigMode = %v; want schema.SchemaConfigModeAttr (%v)",
+			deployPhaseEntry.ConfigMode, schema.SchemaConfigModeAttr)
+	}
+
+	// ── retention_policy
+	retentionPolicyEntry, ok := stagesSchema["retention_policy"]
+	if !ok {
+		t.Fatal("schema key 'retention_policy' not found inside stages.Elem.Schema")
+	}
+	if retentionPolicyEntry.ConfigMode != schema.SchemaConfigModeAttr {
+		t.Errorf("stages.retention_policy.ConfigMode = %v; want schema.SchemaConfigModeAttr (%v)",
+			retentionPolicyEntry.ConfigMode, schema.SchemaConfigModeAttr)
+	}
+}
