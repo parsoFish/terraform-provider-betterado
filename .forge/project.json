@@ -1,30 +1,42 @@
 {
-  "northStar": "Add classic ADO release-pipeline + task-group support the official Azure DevOps provider never shipped.",
-  "instructions": "Never run `go build ./...` or `go vet ./...` (fills the drive) — use targeted package builds. Never edit tests to make them pass. The user owns git (commit, never reset). Run tests with `-tags all`. Release API lives on vsrm.dev.azure.com; handle 404 in Read by clearing the id.",
+  "northStar": "Feature complete ADO provider that has data and resources defined for all resources available in the ADO API",
+  "instructions": "Build and test only the package you're changing (`go test -tags all ./azuredevops/internal/service/<pkg>/...`); the whole-tree `go build ./...` / `go vet ./...` fill the drive. Make the implementation satisfy the tests as written, and write fixtures with non-default values asserted via a read-back. Commit your work; leave git history intact (no resets). The Release API lives on vsrm.dev.azure.com; in Read, treat a 404 as deleted by clearing the id. Project-action skills live under `forge/skills/`; record each initiative's plan + demo under `forge/history/<initiative-id>/` so the repo carries a browsable build record.",
   "$comment": "forge per-project config (orchestrator reads this; preflight reads .forge/quality_gate_cmd). The default quality gate is the FAST, deterministic, creds-free OFFLINE unit suite scoped to the fork's net-new packages (release + taskagent) — NOT the live TF_ACC acceptance tests (those need a PAT + are 120m-timeout, so they run as sharp per-WI gates / operator confirmation, never as the project default). This pairing is the project-scoped fix for the 2026-05-23 dogfood false-pass (brain: themes/2026-05-23-dogfood-cycle-false-pass-gate.md).",
   "quality_gate_cmd": [
-    "go", "test", "-tags", "all", "-count=1",
+    "go",
+    "test",
+    "-tags",
+    "all",
+    "-count=1",
     "./azuredevops/internal/service/release/...",
     "./azuredevops/internal/service/taskagent/..."
   ],
   "$ci_gate_comment": "The project's FULL CI verification — mirrors the GitHub workflows (golint + terrafmt + unit-test). A 'make CI green' / quality initiative MUST use this as its per-WI quality_gate_cmd (NOT a narrow lint-only proxy), so forge's own gate goes red until CI is genuinely green. `make test` = gofmt-check + `go test ./...` (whole module, incl. provider_test.go resource-count). Auto-fixers for the formatting checks: `make fmt` (gofmt) + `make terrafmt`.",
   "ci_gate": [
-    "bash", "-c",
+    "bash",
+    "-c",
     "make test && golangci-lint run ./... && make terrafmt-check"
   ],
   "$ci_fix_cmd_comment": "The project's auto-formatters, applied best-effort before ci_gate runs so the PR is fmt-clean: `make fmt` (gofmt) + `make terrafmt` (HCL in docs/examples). Mirrors the formatting checks ci_gate enforces.",
   "ci_fix_cmd": [
-    "bash", "-c",
+    "bash",
+    "-c",
     "make fmt && make terrafmt"
   ],
   "$ci_gate_unset_env_comment": "Env vars STRIPPED before ci_gate/ci_fix_cmd run, so the final CI delivery gate mirrors GitHub CI (a clean env) regardless of the cycle env. The serve env sets TF_ACC=1 so per-WI live-acceptance gates run; without stripping it here, `make test` would run the WHOLE live acc suite (env-dependent failures GitHub never sees, because GitHub runs make test without TF_ACC → acc tests skip → green). See forge contract A3.",
-  "ci_gate_unset_env": ["TF_ACC"],
+  "ci_gate_unset_env": [
+    "TF_ACC"
+  ],
   "$acceptance_gate_comment": "Live-acceptance gate config (contract C7). `match` and `requires_env` are always active: when a WI's quality_gate_cmd targets the acceptance suite (path contains `acceptancetests`), the dev-loop errors fast if any of the three required env vars are absent. `required` is ADVISORY (false): the PM adds a live-acceptance WI ONLY when the initiative actually ships or changes live ADO behaviour (a resource or data-source). Analysis/audit/docs/CI/unit-only initiatives (e.g. release-definition-schema-audit) are NOT forced to include a live-acc WI. The architect/PM is guided by the brain (council-constraints.md two-gate model) to add a live-acc WI when ACs involve live ADO; the hard PM gate is not needed when the standing_work_item_acs already encode the expectation as body-injected guidance.",
   "$acceptance_gate_requires_env_comment": "TF_ACC must be set for a live-acc gate to actually run — without it, `resource.Test` SKIPS and `go test` prints `ok pkg 0.00s`, which the dev-loop's no-work scan can't catch (it looks like a pass). Listing it makes the dev-loop ERROR a live-acc WI gate whose env lacks TF_ACC, instead of false-passing. Added after the daemon ran INIT-3/4 cycles without TF_ACC and shipped unverified resources (2026-06-06). Extended 2026-06-07 to ALL three vars the PreCheck (commons.go:56-57) demands — TF_ACC was set but AZDO_ORG_SERVICE_URL/AZDO_PERSONAL_ACCESS_TOKEN were not listed, so the release-folder-data-source cycle's live-acc gate burned 5 iterations failing in PreCheck on the missing PAT (a t.Fatal, not a skip) and WI-2 ended status:failed yet the cycle still merged unverified-live. Listing all three makes the guard ERROR fast on the real gap.",
   "acceptance_gate": {
     "match": "acceptancetests",
     "required": false,
-    "requires_env": ["TF_ACC", "AZDO_ORG_SERVICE_URL", "AZDO_PERSONAL_ACCESS_TOKEN"]
+    "requires_env": [
+      "TF_ACC",
+      "AZDO_ORG_SERVICE_URL",
+      "AZDO_PERSONAL_ACCESS_TOKEN"
+    ]
   },
   "$standing_work_item_acs_comment": "Static testing invariants forge appends to EVERY work item (contract A2). Encodes the two-gate model as standing ACs so it no longer depends on per-WI PM judgment. The dev-loop must satisfy both; the reviewer must confirm both.",
   "standing_work_item_acs": [
@@ -34,9 +46,14 @@
   "demo": {
     "$shape_comment": "`harness` is the creds-free FLOOR (offline unit run, always available). betterado is NOT a no-web-UI project — it stands up real resources in a live ADO org (creds in secrets.env) visible via the REST API AND the dev.azure.com portal. The richer demo is LIVE EVIDENCE — terraform apply → API GET + portal screenshots → destroy — codified in the ado-demo skill. The forge demo phase should compose that skill; the shape vocab needs a 'live external system + portal screenshots' option (tracked in forge known-gaps).",
     "shape": "harness",
-    "skill": ".claude/skills/ado-demo/SKILL.md",
+    "skill": "forge/skills/ado-demo/SKILL.md",
     "command": [
-      "go", "test", "-tags", "all", "-v", "-count=1",
+      "go",
+      "test",
+      "-tags",
+      "all",
+      "-v",
+      "-count=1",
       "./azuredevops/internal/service/release/...",
       "./azuredevops/internal/service/taskagent/..."
     ],
@@ -44,5 +61,34 @@
   },
   "logging": {
     "heartbeat_seconds": 30
-  }
+  },
+  "name": "terraform-provider-betterado",
+  "demoProcess": [
+    {
+      "kind": "verify",
+      "text": "Project tests green in CI after merge"
+    },
+    {
+      "kind": "capture",
+      "text": "API GET of created entity"
+    },
+    {
+      "kind": "capture",
+      "text": "Screenshot of live resource"
+    },
+    {
+      "kind": "present",
+      "text": "Demo evidence attached to PR"
+    }
+  ],
+  "skills": [
+    "ado-api-explorer",
+    "ado-browser-inspector",
+    "ado-demo",
+    "resource-scaffolder",
+    "schema-refactor"
+  ],
+  "kb": "terraform-provider-betterado-brain",
+  "$artifactRoot_comment": "Committed forge artifacts (Brain 3 + development history) live under forge/ — a single visible home, out of the provider source tree. forge/brain/ is Brain 3; forge/history/<initiative-id>/ holds each cycle's plan + demo. Runtime scratch (_architect/, AGENT.md, worktree demo/) stays gitignored.",
+  "artifactRoot": "forge"
 }
