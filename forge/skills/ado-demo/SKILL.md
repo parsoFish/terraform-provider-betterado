@@ -47,6 +47,13 @@ demo).** A betterado demo is not a screenshot of *some* resource — it is an
 - [ ] **Idempotent** — `terraform plan` post-apply is `No changes. Your
       infrastructure matches the configuration.` (perpetual diff = FAIL).
 - [ ] **Portal screenshot** of the live resource.
+- [ ] **Live evidence captured** — the acceptance test's read-back `Check` step
+      calls `testutils.CaptureLiveEvidence(label, url, response)` BEFORE destroy
+      (template: `resource_task_group_test.go` `captureTaskGroupEvidence`), so
+      `.forge/live-evidence/<label>.json` is written and `forge demo render`
+      back-fills it into `demo.json`. The `demo.json` checkpoint's label MUST
+      equal that capture label (the join is exact-match). A `demo.json` with NO
+      `checkpoint.liveEvidence.url` is a test-name table → RED.
 - [ ] **Clean destroy** — no orphans.
 
 If any box is unchecked, the demo is RED and the initiative is not mergeable.
@@ -70,9 +77,21 @@ as part of the regular suite — it is not a thing the operator does by hand onc
 - The demo (`demo.json`) is then *generated from that same live run* — the API
   `GET` it already performed becomes the round-trip evidence + `live-resource.json`
   interactive surface; the portal screenshot becomes the visual checkpoint.
+- **The capture is gate-enforced, not prose.** The acceptance test's read-back
+  `Check` step MUST call `testutils.CaptureLiveEvidence(label, url, apiResponse)`
+  while the resource is still live (before destroy). That writes
+  `.forge/live-evidence/<label>.json`; `forge demo render` (run by the unifier)
+  reads it and merges it onto the `demo.json` checkpoint with the matching label.
+  **Copy `captureTaskGroupEvidence` (`resource_task_group_test.go:131-154`)** — for
+  a release resource, build the **vsrm host** URL
+  (`<AZDO_ORG_SERVICE_URL→vsrm>/<project>/_apis/release/definitions/<id>?api-version=7.1`)
+  using the **release client** (NOT `TaskAgentClient`), GET the definition, and
+  call `CaptureLiveEvidence("acceptance-resource", url, def)` (same label the
+  unifier's checkpoint uses, so the join lands). Keep the helper **best-effort**
+  (`_ = testutils.CaptureLiveEvidence(...)`) so a capture miss never fails the test.
 
-So: **one exhaustive live config → an acceptance test (regular testing) → the demo
-evidence.** They are the same artifact viewed two ways.
+So: **one exhaustive live config → an acceptance test that calls CaptureLiveEvidence
+→ the demo evidence.** They are the same artifact viewed two ways.
 
 ### The demo page is the review surface — no re-stand-up
 
