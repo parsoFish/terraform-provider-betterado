@@ -743,6 +743,33 @@ func ResourceReleaseDefinition() *schema.Resource {
 								},
 							},
 						},
+						"container_image_trigger": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"alias": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+										Description:  "Alias of the container image artifact source.",
+									},
+									"tag_filter": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"pattern": {
+													Type:        schema.TypeString,
+													Required:    true,
+													Description: "Tag filter pattern (e.g. \"latest\" or a regex).",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -2726,6 +2753,38 @@ func expandTriggers(input []interface{}) []interface{} {
 		}
 	}
 
+	// Container image triggers — one entry per container_image_trigger block
+	if ciTriggers, ok := trigMap["container_image_trigger"].([]interface{}); ok {
+		for _, raw := range ciTriggers {
+			if raw == nil {
+				continue
+			}
+			ctMap := raw.(map[string]interface{})
+			trigEntry := map[string]interface{}{
+				"triggerType": "containerImageTrigger",
+			}
+			if alias, ok := ctMap["alias"].(string); ok && alias != "" {
+				trigEntry["alias"] = alias
+			}
+			if tf, ok := ctMap["tag_filter"].([]interface{}); ok && len(tf) > 0 {
+				var tagFilters []map[string]interface{}
+				for _, f := range tf {
+					if f == nil {
+						continue
+					}
+					fm := f.(map[string]interface{})
+					tagFilters = append(tagFilters, map[string]interface{}{
+						"pattern": fm["pattern"],
+					})
+				}
+				if len(tagFilters) > 0 {
+					trigEntry["tagFilters"] = tagFilters
+				}
+			}
+			result = append(result, trigEntry)
+		}
+	}
+
 	return result
 }
 
@@ -2807,6 +2866,7 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 	var cdArtifactTriggers []interface{}
 	var scheduleTriggers []interface{}
 	var sourceRepoTriggers []interface{}
+	var containerImageTriggers []interface{}
 
 	for _, raw := range *triggers {
 		// Marshal to JSON and back to get a clean map[string]interface{}
@@ -2884,13 +2944,35 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 				srt["branch_filters"] = bfs
 			}
 			sourceRepoTriggers = append(sourceRepoTriggers, srt)
+
+		case "containerImageTrigger":
+			cit := map[string]interface{}{
+				"alias":      "",
+				"tag_filter": []interface{}{},
+			}
+			if alias, ok := trigMap["alias"].(string); ok {
+				cit["alias"] = alias
+			}
+			if tagFilters, ok := trigMap["tagFilters"].([]interface{}); ok {
+				var tfs []interface{}
+				for _, f := range tagFilters {
+					if fm, ok := f.(map[string]interface{}); ok {
+						tfs = append(tfs, map[string]interface{}{
+							"pattern": fm["pattern"],
+						})
+					}
+				}
+				cit["tag_filter"] = tfs
+			}
+			containerImageTriggers = append(containerImageTriggers, cit)
 		}
 	}
 
 	triggersMap := map[string]interface{}{
-		"cd_artifact_trigger": cdArtifactTriggers,
-		"schedule_trigger":    scheduleTriggers,
-		"source_repo_trigger": sourceRepoTriggers,
+		"cd_artifact_trigger":     cdArtifactTriggers,
+		"schedule_trigger":        scheduleTriggers,
+		"source_repo_trigger":     sourceRepoTriggers,
+		"container_image_trigger": containerImageTriggers,
 	}
 	return []interface{}{triggersMap}
 }

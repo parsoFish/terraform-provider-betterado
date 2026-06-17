@@ -2968,3 +2968,74 @@ func TestReleaseDefinition_StagesSchemaConfigMode(t *testing.T) {
 			retentionPolicyEntry.ConfigMode, schema.SchemaConfigModeAttr)
 	}
 }
+
+// ── 25. ContainerImageTrigger expand/flatten round-trip ───────────────────
+
+// TestReleaseDefinition_ContainerImageTrigger_ExpandFlatten verifies that a
+// container_image_trigger block (AC1 + AC2) round-trips correctly through
+// expandTriggers → flattenTriggers.
+func TestReleaseDefinition_ContainerImageTrigger_ExpandFlatten(t *testing.T) {
+	alias := "_myContainerImage"
+	tagPattern := "latest"
+
+	// Build the Terraform HCL-equivalent input for expandTriggers.
+	hclTriggers := []interface{}{
+		map[string]interface{}{
+			"cd_artifact_trigger": []interface{}{},
+			"schedule_trigger":    []interface{}{},
+			"source_repo_trigger": []interface{}{},
+			"container_image_trigger": []interface{}{
+				map[string]interface{}{
+					"alias": alias,
+					"tag_filter": []interface{}{
+						map[string]interface{}{
+							"pattern": tagPattern,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// AC1: expandTriggers must emit a triggerType=containerImageTrigger entry
+	// with alias and tagFilters set correctly.
+	expanded := expandTriggers(hclTriggers)
+	require.Len(t, expanded, 1, "AC1: expandTriggers must produce exactly one trigger entry")
+
+	trigRaw := expanded[0]
+	trigMap, ok := trigRaw.(map[string]interface{})
+	require.True(t, ok, "AC1: trigger entry must be a map[string]interface{}")
+	require.Equal(t, "containerImageTrigger", trigMap["triggerType"], "AC1: triggerType must be containerImageTrigger")
+	require.Equal(t, alias, trigMap["alias"], "AC1: alias must be set correctly")
+
+	tagFilters, ok := trigMap["tagFilters"].([]map[string]interface{})
+	require.True(t, ok, "AC1: tagFilters must be []map[string]interface{}")
+	require.Len(t, tagFilters, 1, "AC1: tagFilters must have exactly one entry")
+	require.Equal(t, tagPattern, tagFilters[0]["pattern"], "AC1: tagFilters[0].pattern must match")
+
+	// AC2: flattenTriggers must reconstruct a container_image_trigger block
+	// with alias and tag_filter set correctly.
+	// Marshal/unmarshal to simulate the JSON round-trip that flattenTriggers does internally.
+	flatInput := []interface{}{trigMap}
+	flattened := flattenTriggers(&flatInput)
+	require.Len(t, flattened, 1, "AC2: flattenTriggers must return a one-element slice")
+
+	trigsMap, ok := flattened[0].(map[string]interface{})
+	require.True(t, ok, "AC2: flattened element must be map[string]interface{}")
+
+	citList, ok := trigsMap["container_image_trigger"].([]interface{})
+	require.True(t, ok, "AC2: container_image_trigger must be []interface{}")
+	require.Len(t, citList, 1, "AC2: container_image_trigger must have exactly one entry")
+
+	cit, ok := citList[0].(map[string]interface{})
+	require.True(t, ok, "AC2: container_image_trigger entry must be map[string]interface{}")
+	require.Equal(t, alias, cit["alias"], "AC2: alias must round-trip correctly")
+
+	tfList, ok := cit["tag_filter"].([]interface{})
+	require.True(t, ok, "AC2: tag_filter must be []interface{}")
+	require.Len(t, tfList, 1, "AC2: tag_filter must have exactly one entry")
+
+	tfEntry, ok := tfList[0].(map[string]interface{})
+	require.True(t, ok, "AC2: tag_filter entry must be map[string]interface{}")
+	require.Equal(t, tagPattern, tfEntry["pattern"], "AC2: tag_filter[0].pattern must round-trip correctly")
+}
