@@ -5,7 +5,7 @@
   "initiativeId": "INIT-2026-06-17-release-stages-array-refactor",
   "baseRef": "main",
   "changedRef": "HEAD",
-  "diffStat": " .../resource_release_definition_test.go            | 2161 ++++++++++++--------\n .../service/release/resource_release_definition.go |  182 +-\n .../release/resource_release_definition_test.go    |  109 +-\n docs/resources/release_definition.md               |  278 +--\n .../betterado_release_definition/resource.tf       |   92 +-\n 5 files changed, 1668 insertions(+), 1154 deletions(-)",
+  "diffStat": " .../resource_release_definition_test.go            | 2161 ++++++++++++--------\n .../service/release/resource_release_definition.go |  182 +-\n .../release/resource_release_definition_test.go    |  109 +-\n .../DEMO.html                                      |  434 ++++\n .../DEMO.md                                        |  164 ++\n .../demo.json                                      |  197 ++\n docs/resources/release_definition.md               |  278 +--\n .../betterado_release_definition/resource.tf       |   92 +-\n 8 files changed, 2463 insertions(+), 1154 deletions(-)",
   "checkpoints": [
     {
       "label": "unit-suite",
