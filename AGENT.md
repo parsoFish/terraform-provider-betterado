@@ -10,6 +10,22 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 _(updated by each iteration — most recent at the top)_
 
+### Iteration 2 (final verification)
+
+**Status: ALL ACs complete, all gates green. No new commits needed.**
+
+**Gate re-verification:**
+- `go build -tags all ./...` ✅
+- `go test -tags all -list TestAccReleaseDefinition` ✅ — 17 tests listed including `TestAccReleaseDefinition_stagesArraySyntax`
+- `go test -count=1 ./azuredevops/internal/service/release/...` ✅ — unit tests pass
+- `golangci-lint run ./...` ✅ — only deprecation warning (pre-existing)
+- `make terrafmt-check` ✅ — exit 0
+- `make test` — pre-existing failures (acceptance tests needing TF_ACC=1) confirmed on main branch too; NOT regressions
+
+**Zero `"environment.` path references** in TestCheckResourceAttr calls ✅
+**Zero `environment {` block syntax** in HCL strings ✅
+`TestAccReleaseDefinition_stagesArraySyntax` present at line 358 ✅
+
 ### Iteration 1
 
 **Bug fixed:** The build tag `//go:build (all || resource_release_definition) && !exclude_resource_release_definition` added in iteration 0 was incorrect for `resource_release_definition_test.go` in the acceptancetests package. On main, this file had NO build tag. The data source test files (`data_release_definition_test.go`, `data_release_definition_revision_history_test.go`) reference `hclReleaseDefinitionBasic` without any build guard — so when `make test` runs `go test ./...` without tags, those files were compiled but `hclReleaseDefinitionBasic` was excluded, causing "undefined" errors.
