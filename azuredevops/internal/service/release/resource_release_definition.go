@@ -112,14 +112,16 @@ func ResourceReleaseDefinition() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"environment": {
-				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
+			"stages": {
+				Type:       schema.TypeList,
+				Required:   true,
+				MinItems:   1,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:     schema.TypeInt,
+							Optional: true,
 							Computed: true,
 						},
 						"name": {
@@ -139,8 +141,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 							ValidateFunc: validation.IsUUID,
 						},
 						"variable": {
-							Type:     schema.TypeSet,
-							Optional: true,
+							Type:       schema.TypeSet,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -174,9 +177,10 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"condition": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -197,27 +201,30 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"pre_deploy_approval": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: approvalSchema(),
 							},
 						},
 						"post_deploy_approval": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: approvalSchema(),
 							},
 						},
 						"deploy_phase": {
-							Type:     schema.TypeList,
-							Required: true,
-							MinItems: 1,
+							Type:       schema.TypeList,
+							Required:   true,
+							MinItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -237,9 +244,10 @@ func ResourceReleaseDefinition() *schema.Resource {
 										ValidateFunc: validation.StringInSlice([]string{"agentBasedDeployment", "runOnServer", "machineGroupBasedDeployment"}, false),
 									},
 									"deployment_input": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
+										Type:       schema.TypeList,
+										Optional:   true,
+										MaxItems:   1,
+										ConfigMode: schema.SchemaConfigModeAttr,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"queue_id": {
@@ -293,9 +301,10 @@ func ResourceReleaseDefinition() *schema.Resource {
 													Description: "Phase-level task input overrides (e.g. for parameterised task groups).",
 												},
 												"parallel_execution": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
+													Type:       schema.TypeList,
+													Optional:   true,
+													MaxItems:   1,
+													ConfigMode: schema.SchemaConfigModeAttr,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"type": {
@@ -329,8 +338,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 										},
 									},
 									"workflow_task": {
-										Type:     schema.TypeList,
-										Optional: true,
+										Type:       schema.TypeList,
+										Optional:   true,
+										ConfigMode: schema.SchemaConfigModeAttr,
 										Elem: &schema.Resource{
 											Schema: workflowTaskSchema(),
 										},
@@ -339,10 +349,11 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"retention_policy": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"days_to_keep": {
@@ -366,10 +377,11 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"environment_options": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"email_notification_type": {
@@ -423,10 +435,11 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"execution_policy": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"concurrency_count": {
@@ -445,24 +458,27 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"pre_deployment_gates": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: deploymentGatesSchema(),
 							},
 						},
 						"post_deployment_gates": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: deploymentGatesSchema(),
 							},
 						},
 						"environment_trigger": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:       schema.TypeList,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"definition_environment_id": {
@@ -489,8 +505,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"schedule": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:       schema.TypeList,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"days_to_release": {
@@ -526,14 +543,16 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"process_parameters": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"input": {
-										Type:     schema.TypeList,
-										Optional: true,
+										Type:       schema.TypeList,
+										Optional:   true,
+										ConfigMode: schema.SchemaConfigModeAttr,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
@@ -734,8 +753,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 func approvalSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"approver": {
-			Type:     schema.TypeList,
-			Optional: true,
+			Type:       schema.TypeList,
+			Optional:   true,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"id": {
@@ -758,10 +778,11 @@ func approvalSchema() map[string]*schema.Schema {
 			},
 		},
 		"approval_options": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
+			Type:       schema.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"required_approver_count": {
@@ -805,9 +826,10 @@ func approvalSchema() map[string]*schema.Schema {
 func deploymentGatesSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"gates_options": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:       schema.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"is_enabled": {
@@ -843,14 +865,16 @@ func deploymentGatesSchema() map[string]*schema.Schema {
 			},
 		},
 		"gate": {
-			Type:     schema.TypeList,
-			Optional: true,
+			Type:       schema.TypeList,
+			Optional:   true,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"task": {
-						Type:     schema.TypeList,
-						Required: true,
-						MinItems: 1,
+						Type:       schema.TypeList,
+						Required:   true,
+						MinItems:   1,
+						ConfigMode: schema.SchemaConfigModeAttr,
 						Elem: &schema.Resource{
 							Schema: workflowTaskSchema(),
 						},
@@ -1084,8 +1108,8 @@ func expandReleaseDefinition(d *schema.ResourceData) (*releaseapi.ReleaseDefinit
 	}
 
 	// Environments
-	if v, ok := d.GetOk("environment"); ok {
-		envs, err := expandEnvironments(v.([]interface{}))
+	if v, ok := d.GetOk("stages"); ok {
+		envs, err := expandStages(v.([]interface{}))
 		if err != nil {
 			return nil, "", err
 		}
@@ -1137,7 +1161,7 @@ func expandTags(input []interface{}) []string {
 	return result
 }
 
-func expandEnvironments(input []interface{}) ([]releaseapi.ReleaseDefinitionEnvironment, error) {
+func expandStages(input []interface{}) ([]releaseapi.ReleaseDefinitionEnvironment, error) {
 	envs := make([]releaseapi.ReleaseDefinitionEnvironment, len(input))
 	for i, v := range input {
 		envMap := v.(map[string]interface{})
@@ -1819,7 +1843,7 @@ func flattenReleaseDefinition(d *schema.ResourceData, def *releaseapi.ReleaseDef
 
 	// Environments
 	if def.Environments != nil {
-		d.Set("environment", flattenEnvironments(def.Environments, d))
+		d.Set("stages", flattenStages(def.Environments, d))
 	}
 
 	// Artifacts
@@ -1835,7 +1859,7 @@ func flattenReleaseDefinition(d *schema.ResourceData, def *releaseapi.ReleaseDef
 
 // collectSecretValues reads secret variable values from the Terraform state at
 // the given state key (e.g. "variable" for definition-level, or
-// "environment.0.variable" for an environment-scoped variable set). The ADO API
+// "stages.0.variable" for a stage-scoped variable set). The ADO API
 // returns null for secret values, so the in-state value must be preserved on
 // flatten to avoid a perpetual diff. The key MUST match the scope of the
 // variables being flattened — using the definition-level key for an
@@ -1896,7 +1920,7 @@ func flattenVariableGroups(groups *[]int) []int {
 	return *groups
 }
 
-func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *schema.ResourceData) []interface{} {
+func flattenStages(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *schema.ResourceData) []interface{} {
 	if envs == nil {
 		return nil
 	}
@@ -1960,10 +1984,10 @@ func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *sch
 			envMap["post_deployment_gates"] = flattenDeploymentGates(env.PostDeploymentGates)
 		}
 
-		// Variables — preserve env-scoped secrets from the matching state path
-		// (environment.<i>.variable), not the definition-level "variable" key.
+		// Variables — preserve stage-scoped secrets from the matching state path
+		// (stages.<i>.variable), not the definition-level "variable" key.
 		if env.Variables != nil {
-			envKey := fmt.Sprintf("environment.%d.variable", i)
+			envKey := fmt.Sprintf("stages.%d.variable", i)
 			envMap["variable"] = flattenVariables(env.Variables, collectSecretValues(d, envKey))
 		}
 
@@ -2269,7 +2293,7 @@ func hclPhaseHasDeploymentInput(d *schema.ResourceData, envIdx, phaseIdx int) bo
 	if d == nil {
 		return false
 	}
-	key := fmt.Sprintf("environment.%d.deploy_phase.%d.deployment_input.#", envIdx, phaseIdx)
+	key := fmt.Sprintf("stages.%d.deploy_phase.%d.deployment_input.#", envIdx, phaseIdx)
 	count, ok := d.GetOk(key)
 	if !ok {
 		return false

@@ -6,10 +6,10 @@ resource "betterado_release_definition" "example" {
 
   # CI build that produces the deployable artifact.
   artifact {
-    source_id            = "${var.project_id}:${var.build_definition_id}"
-    type                 = "Build"
-    alias                = "ci-build"
-    is_primary           = true
+    source_id  = "${var.project_id}:${var.build_definition_id}"
+    type       = "Build"
+    alias      = "ci-build"
+    is_primary = true
     definition_reference = {
       definition = var.build_definition_id
       project    = var.project_id
@@ -27,45 +27,61 @@ resource "betterado_release_definition" "example" {
     is_secret = true
   }
 
-  environment {
-    name = "Production"
-    rank = 1
+  stages = [
+    {
+      name = "Production"
+      rank = 1
 
-    # Environment-scoped secret (round-trips cleanly).
-    variable {
-      name      = "DEPLOY_TOKEN"
-      value     = "replace-me"
-      is_secret = true
-    }
+      # Stage-scoped secret (round-trips cleanly).
+      variable = [
+        {
+          name      = "DEPLOY_TOKEN"
+          value     = "replace-me"
+          is_secret = true
+        }
+      ]
 
-    deploy_phase {
-      name       = "Agent job"
-      rank       = 1
-      phase_type = "agentBasedDeployment"
-    }
+      deploy_phase = [
+        {
+          name       = "Agent job"
+          rank       = 1
+          phase_type = "agentBasedDeployment"
+        }
+      ]
 
-    retention_policy {
-      days_to_keep     = 30
-      releases_to_keep = 3
-      retain_build     = true
-    }
+      retention_policy = [
+        {
+          days_to_keep     = 30
+          releases_to_keep = 3
+          retain_build     = true
+        }
+      ]
 
-    # ADO requires both pre- and post-deploy approval blocks (VS402877).
-    pre_deploy_approval {
-      approver {
-        id           = "00000000-0000-0000-0000-000000000000"
-        is_automated = true
-        rank         = 1
-      }
+      # ADO requires both pre- and post-deploy approval blocks (VS402877).
+      pre_deploy_approval = [
+        {
+          approver = [
+            {
+              id           = "00000000-0000-0000-0000-000000000000"
+              is_automated = true
+              rank         = 1
+            }
+          ]
+        }
+      ]
+      post_deploy_approval = [
+        {
+          approver = [
+            {
+              id           = "00000000-0000-0000-0000-000000000000"
+              is_automated = true
+              rank         = 1
+            }
+          ]
+        }
+      ]
     }
-    post_deploy_approval {
-      approver {
-        id           = "00000000-0000-0000-0000-000000000000"
-        is_automated = true
-        rank         = 1
-      }
-    }
-  }
+  ]
 }
 
 variable "project_id" {

@@ -100,7 +100,7 @@ func TestReleaseDefinition_ExpandFlatten_Roundtrip(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "placeholder",
@@ -192,7 +192,7 @@ func TestReleaseDefinition_Create_DoesNotSwallowError(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -272,7 +272,7 @@ func TestReleaseDefinition_Read_ClearsIdOn404(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -355,7 +355,7 @@ func TestReleaseDefinition_Update_CallsSDKWithArgs(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -462,7 +462,7 @@ func TestReleaseDefinition_Update_RevisionRetryOnConflict(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -534,7 +534,7 @@ func TestReleaseDefinition_SecretVariables_PreserveOnFlatten(t *testing.T) {
 		},
 		"variable_groups": []interface{}{},
 		"tags":            []interface{}{},
-		"environment":     []interface{}{},
+		"stages":          []interface{}{},
 		"artifact":        []interface{}{},
 	})
 	resourceData.SetId(strconv.Itoa(testReleaseDefinitionID))
@@ -573,7 +573,7 @@ func TestReleaseDefinition_SecretVariables_PreserveOnFlatten(t *testing.T) {
 
 // TestReleaseDefinition_EnvSecretVariables_PreserveOnFlatten verifies that an
 // ENVIRONMENT-scoped secret variable (returned null by the API) is preserved
-// from the matching environment.<i>.variable state path on flatten. This guards
+// from the matching stages.<i>.variable state path on flatten. This guards
 // the env-level secret perpetual-diff defect: flattenVariables previously read
 // the definition-level "variable" key regardless of scope, losing env secrets.
 func TestReleaseDefinition_EnvSecretVariables_PreserveOnFlatten(t *testing.T) {
@@ -590,7 +590,7 @@ func TestReleaseDefinition_EnvSecretVariables_PreserveOnFlatten(t *testing.T) {
 		"variable":            []interface{}{}, // no definition-level secret
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":    0,
 				"name":  "Prod",
@@ -643,7 +643,7 @@ func TestReleaseDefinition_EnvSecretVariables_PreserveOnFlatten(t *testing.T) {
 
 	flattenReleaseDefinition(resourceData, &apiDef, testReleaseDefinitionProjectID.String())
 
-	envList := resourceData.Get("environment").([]interface{})
+	envList := resourceData.Get("stages").([]interface{})
 	require.Len(t, envList, 1)
 	envMap := envList[0].(map[string]interface{})
 
@@ -652,7 +652,7 @@ func TestReleaseDefinition_EnvSecretVariables_PreserveOnFlatten(t *testing.T) {
 	varMap := envVars[0].(map[string]interface{})
 	require.Equal(t, secretVarName, varMap["name"])
 	require.Equal(t, existingSecretValue, varMap["value"],
-		"env-scoped secret value must be preserved from environment.0.variable state, not lost")
+		"env-scoped secret value must be preserved from stages.0.variable state, not lost")
 	require.Equal(t, true, varMap["is_secret"])
 }
 
@@ -770,7 +770,7 @@ func TestReleaseDefinition_DeepNestedEnvironment_ExpandFlatten(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Staging",
@@ -837,7 +837,7 @@ func TestReleaseDefinition_DeepNestedEnvironment_ExpandFlatten(t *testing.T) {
 	flattenReleaseDefinition(resourceData, expanded, projectID)
 
 	// Verify deploy phase round-trip
-	envList := resourceData.Get("environment").([]interface{})
+	envList := resourceData.Get("stages").([]interface{})
 	require.Len(t, envList, 1)
 	envMap := envList[0].(map[string]interface{})
 
@@ -885,7 +885,7 @@ func TestReleaseDefinition_Artifacts_DefinitionReferenceFiltering(t *testing.T) 
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment":         []interface{}{},
+		"stages":              []interface{}{},
 		"artifact": []interface{}{
 			map[string]interface{}{
 				"alias":      "_myBuild",
@@ -951,7 +951,7 @@ func TestReleaseDefinition_ApprovalOptions_RoundTrip(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":              0,
 				"name":            "Production",
@@ -1035,7 +1035,7 @@ func TestReleaseDefinition_ApprovalOptions_RoundTrip(t *testing.T) {
 	flattenReleaseDefinition(resourceData, expanded, projectID)
 
 	// Verify the pre_deploy_approval round-trip
-	envList := resourceData.Get("environment").([]interface{})
+	envList := resourceData.Get("stages").([]interface{})
 	require.Len(t, envList, 1)
 	envMap := envList[0].(map[string]interface{})
 
@@ -1138,7 +1138,7 @@ func TestReleaseDefinition_Delete_SurfacesAPIError(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -1203,7 +1203,7 @@ func TestReleaseDefinition_AccRefresh_RetentionPolicy(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -1256,7 +1256,7 @@ func TestReleaseDefinition_AccRefresh_RetentionPolicy(t *testing.T) {
 	flattenReleaseDefinition(resourceData, expanded, projectID)
 
 	// Verify retention_policy round-trip
-	envList := resourceData.Get("environment").([]interface{})
+	envList := resourceData.Get("stages").([]interface{})
 	require.Len(t, envList, 1)
 	envMap := envList[0].(map[string]interface{})
 
@@ -1292,7 +1292,7 @@ func TestReleaseDefinition_AccRefresh_PreDeployApproval(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":              0,
 				"name":            "Production",
@@ -1361,7 +1361,7 @@ func TestReleaseDefinition_AccRefresh_PreDeployApproval(t *testing.T) {
 	flattenReleaseDefinition(resourceData, expanded, projectID)
 
 	// Verify pre_deploy_approval round-trip
-	envList := resourceData.Get("environment").([]interface{})
+	envList := resourceData.Get("stages").([]interface{})
 	require.Len(t, envList, 1)
 	envMap := envList[0].(map[string]interface{})
 
@@ -1405,7 +1405,7 @@ func TestReleaseDefinition_Gates_ExpandFlatten(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -1493,7 +1493,7 @@ func TestReleaseDefinition_Gates_ExpandFlatten(t *testing.T) {
 	expanded.Id = &expandedID
 	flattenReleaseDefinition(resourceData, expanded, projectID)
 
-	envList := resourceData.Get("environment").([]interface{})
+	envList := resourceData.Get("stages").([]interface{})
 	require.Len(t, envList, 1)
 	envMap := envList[0].(map[string]interface{})
 
@@ -1550,7 +1550,7 @@ func TestReleaseDefinition_GatesTasks_ExpandFlatten(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -1662,7 +1662,7 @@ func TestReleaseDefinition_GatesTasks_ExpandFlatten(t *testing.T) {
 	expanded.Id = &expandedID
 	flattenReleaseDefinition(resourceData, expanded, projectID)
 
-	envList := resourceData.Get("environment").([]interface{})
+	envList := resourceData.Get("stages").([]interface{})
 	require.Len(t, envList, 1)
 	envMap := envList[0].(map[string]interface{})
 
@@ -1704,7 +1704,7 @@ func TestReleaseDefinition_Triggers_Empty(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Staging",
@@ -1772,7 +1772,7 @@ func TestReleaseDefinition_Triggers_ArtifactOnly(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -1885,7 +1885,7 @@ func TestReleaseDefinition_Triggers_ScheduleOnly(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -2005,7 +2005,7 @@ func TestReleaseDefinition_Triggers_ExpandFlatten(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -2634,7 +2634,7 @@ func TestReleaseDefinition_ArtifactTagFilter_RoundTrip(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -2764,7 +2764,7 @@ func TestReleaseDefinition_ArtifactSourceBranchFlags_RoundTrip(t *testing.T) {
 		"variable":            []interface{}{},
 		"variable_groups":     []interface{}{},
 		"tags":                []interface{}{},
-		"environment": []interface{}{
+		"stages": []interface{}{
 			map[string]interface{}{
 				"id":                   0,
 				"name":                 "Production",
@@ -2918,4 +2918,53 @@ func TestReleaseDefinition_SourceRepoTrigger_RoundTrip(t *testing.T) {
 	require.True(t, ok, "AC2: branch_filters must be []interface{}")
 	require.Len(t, bfFlat, 1, "AC2: branch_filters must have one entry")
 	require.Equal(t, branchFilter, bfFlat[0], "AC2: branch_filters[0] must round-trip correctly")
+}
+
+// ── WI-2: StagesSchemaConfigMode ──────────────────────────────────────────
+
+// TestReleaseDefinition_StagesSchemaConfigMode verifies that the stages TypeList
+// and its key sub-block TypeList entries (deploy_phase, retention_policy) all carry
+// ConfigMode: schema.SchemaConfigModeAttr, enabling array/attribute HCL syntax.
+//
+// AC1: this test MUST fail on the unmodified (WI-1-only) schema because stages has no
+// ConfigMode set.  AC3: after this WI's schema changes the test must pass (exit 0).
+func TestReleaseDefinition_StagesSchemaConfigMode(t *testing.T) {
+	s := ResourceReleaseDefinition().Schema
+
+	// ── AC1 / AC3: stages itself
+	stagesEntry, ok := s["stages"]
+	if !ok {
+		t.Fatal("schema key 'stages' not found in ResourceReleaseDefinition().Schema")
+	}
+	if stagesEntry.ConfigMode != schema.SchemaConfigModeAttr {
+		t.Errorf("stages.ConfigMode = %v; want schema.SchemaConfigModeAttr (%v)",
+			stagesEntry.ConfigMode, schema.SchemaConfigModeAttr)
+	}
+
+	// Dig into stages Elem to find deploy_phase and retention_policy
+	stagesResource, ok := stagesEntry.Elem.(*schema.Resource)
+	if !ok {
+		t.Fatal("stages.Elem is not *schema.Resource")
+	}
+	stagesSchema := stagesResource.Schema
+
+	// ── deploy_phase
+	deployPhaseEntry, ok := stagesSchema["deploy_phase"]
+	if !ok {
+		t.Fatal("schema key 'deploy_phase' not found inside stages.Elem.Schema")
+	}
+	if deployPhaseEntry.ConfigMode != schema.SchemaConfigModeAttr {
+		t.Errorf("stages.deploy_phase.ConfigMode = %v; want schema.SchemaConfigModeAttr (%v)",
+			deployPhaseEntry.ConfigMode, schema.SchemaConfigModeAttr)
+	}
+
+	// ── retention_policy
+	retentionPolicyEntry, ok := stagesSchema["retention_policy"]
+	if !ok {
+		t.Fatal("schema key 'retention_policy' not found inside stages.Elem.Schema")
+	}
+	if retentionPolicyEntry.ConfigMode != schema.SchemaConfigModeAttr {
+		t.Errorf("stages.retention_policy.ConfigMode = %v; want schema.SchemaConfigModeAttr (%v)",
+			retentionPolicyEntry.ConfigMode, schema.SchemaConfigModeAttr)
+	}
 }
