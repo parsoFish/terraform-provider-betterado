@@ -112,7 +112,7 @@ func ResourceReleaseDefinition() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"environment": {
+			"stages": {
 				Type:     schema.TypeList,
 				Required: true,
 				MinItems: 1,
@@ -1084,8 +1084,8 @@ func expandReleaseDefinition(d *schema.ResourceData) (*releaseapi.ReleaseDefinit
 	}
 
 	// Environments
-	if v, ok := d.GetOk("environment"); ok {
-		envs, err := expandEnvironments(v.([]interface{}))
+	if v, ok := d.GetOk("stages"); ok {
+		envs, err := expandStages(v.([]interface{}))
 		if err != nil {
 			return nil, "", err
 		}
@@ -1137,7 +1137,7 @@ func expandTags(input []interface{}) []string {
 	return result
 }
 
-func expandEnvironments(input []interface{}) ([]releaseapi.ReleaseDefinitionEnvironment, error) {
+func expandStages(input []interface{}) ([]releaseapi.ReleaseDefinitionEnvironment, error) {
 	envs := make([]releaseapi.ReleaseDefinitionEnvironment, len(input))
 	for i, v := range input {
 		envMap := v.(map[string]interface{})
@@ -1819,7 +1819,7 @@ func flattenReleaseDefinition(d *schema.ResourceData, def *releaseapi.ReleaseDef
 
 	// Environments
 	if def.Environments != nil {
-		d.Set("environment", flattenEnvironments(def.Environments, d))
+		d.Set("stages", flattenStages(def.Environments, d))
 	}
 
 	// Artifacts
@@ -1896,7 +1896,7 @@ func flattenVariableGroups(groups *[]int) []int {
 	return *groups
 }
 
-func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *schema.ResourceData) []interface{} {
+func flattenStages(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *schema.ResourceData) []interface{} {
 	if envs == nil {
 		return nil
 	}
@@ -1963,7 +1963,7 @@ func flattenEnvironments(envs *[]releaseapi.ReleaseDefinitionEnvironment, d *sch
 		// Variables — preserve env-scoped secrets from the matching state path
 		// (environment.<i>.variable), not the definition-level "variable" key.
 		if env.Variables != nil {
-			envKey := fmt.Sprintf("environment.%d.variable", i)
+			envKey := fmt.Sprintf("stages.%d.variable", i)
 			envMap["variable"] = flattenVariables(env.Variables, collectSecretValues(d, envKey))
 		}
 
@@ -2269,7 +2269,7 @@ func hclPhaseHasDeploymentInput(d *schema.ResourceData, envIdx, phaseIdx int) bo
 	if d == nil {
 		return false
 	}
-	key := fmt.Sprintf("environment.%d.deploy_phase.%d.deployment_input.#", envIdx, phaseIdx)
+	key := fmt.Sprintf("stages.%d.deploy_phase.%d.deployment_input.#", envIdx, phaseIdx)
 	count, ok := d.GetOk(key)
 	if !ok {
 		return false
