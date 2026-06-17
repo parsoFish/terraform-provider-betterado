@@ -7,7 +7,14 @@
 
 ## Notes
 
-Both ACs addressed in commit 8405e536:
-- TestAccReleaseDefinition_withContainerImageTrigger added to resource_release_definition_test.go
-- Uses captureReleaseEvidence(tfNode) which calls testutils.CaptureLiveEvidence("acceptance-resource", vsrmURL, def)
-- The quality gate (go test -tags all -run TestAccReleaseDefinition_withContainerImageTrigger) requires TF_ACC=1 to run live
+AC1 + AC2 fully verified live (commit 71de844e, iteration 1):
+- TestAccReleaseDefinition_withContainerImageTrigger PASSES with TF_ACC=1
+- apply + triggers check + idempotency re-plan (ExpectNonEmptyPlan: false) all green
+- .forge/live-evidence/acceptance-resource.json written (captureReleaseEvidence → testutils.CaptureLiveEvidence)
+- Quality gate: `go test -tags all -run TestAccReleaseDefinition_withContainerImageTrigger ./azuredevops/internal/acceptancetests/` → PASS
+
+## Iteration 1 fixes required (not in iteration 0 commit 8405e536):
+- stages HCL needed all required null fields for SchemaConfigModeAttr structural type (id, owner, variable, etc.)
+- is_primary must be true (ADO auto-promotes first artifact; false caused perpetual diff)
+- DockerHub definition_reference fields: {connection, definition, namespaces} (defaultTag and registrytype are invalid ADO fields)
+- artifact type ValidateFunc expanded to include DockerHub and AzureContainerRepository
