@@ -57,6 +57,10 @@ type SharedFixtureResult struct {
 	VariableGroup2ID int
 	// WorkItemQueryID backs the "Query Work Items" deployment-gate task.
 	WorkItemQueryID string
+	// AgentQueueID is the numeric ID of the "Azure Pipelines" hosted agent queue
+	// in the fixture project. Consumers can inline this as a literal queue_id in
+	// HCL without a data source (WI-3/TestAccReleaseDefinition_stagesArraySyntax).
+	AgentQueueID int
 }
 
 // Non-default fixture constants. These are deliberately NOT the ADO defaults
@@ -169,7 +173,10 @@ func SharedReleaseFixture(t *testing.T) SharedFixtureResult {
 	// definition demonstrates a real approval gate a read-back can prove.
 	approverID := resolveApproverIdentity(t, clients, projectID)
 
-	// ── 8. Create canonical multi-stage release definition ────────────────────
+	// ── 8. Resolve the "Azure Pipelines" agent queue for this project ────────
+	agentQueueID := resolveAgentQueueID(t, clients, projectID)
+
+	// ── 9. Create canonical multi-stage release definition ────────────────────
 	relDef := createFixtureReleaseDefinition(t, clients, projectID, buildDefID, vgID, vg2ID, approverID, queryID, name)
 	relDefID := *relDef.Id
 
@@ -191,6 +198,7 @@ func SharedReleaseFixture(t *testing.T) SharedFixtureResult {
 		ApproverID:          approverID,
 		VariableGroup2ID:    vg2ID,
 		WorkItemQueryID:     queryID,
+		AgentQueueID:        agentQueueID,
 	}
 }
 

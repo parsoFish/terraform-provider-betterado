@@ -177,9 +177,10 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"condition": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -200,19 +201,21 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"pre_deploy_approval": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: approvalSchema(),
 							},
 						},
 						"post_deploy_approval": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: approvalSchema(),
 							},
@@ -241,9 +244,10 @@ func ResourceReleaseDefinition() *schema.Resource {
 										ValidateFunc: validation.StringInSlice([]string{"agentBasedDeployment", "runOnServer", "machineGroupBasedDeployment"}, false),
 									},
 									"deployment_input": {
-										Type:     schema.TypeList,
-										Optional: true,
-										MaxItems: 1,
+										Type:       schema.TypeList,
+										Optional:   true,
+										MaxItems:   1,
+										ConfigMode: schema.SchemaConfigModeAttr,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"queue_id": {
@@ -297,9 +301,10 @@ func ResourceReleaseDefinition() *schema.Resource {
 													Description: "Phase-level task input overrides (e.g. for parameterised task groups).",
 												},
 												"parallel_execution": {
-													Type:     schema.TypeList,
-													Optional: true,
-													MaxItems: 1,
+													Type:       schema.TypeList,
+													Optional:   true,
+													MaxItems:   1,
+													ConfigMode: schema.SchemaConfigModeAttr,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"type": {
@@ -333,8 +338,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 										},
 									},
 									"workflow_task": {
-										Type:     schema.TypeList,
-										Optional: true,
+										Type:       schema.TypeList,
+										Optional:   true,
+										ConfigMode: schema.SchemaConfigModeAttr,
 										Elem: &schema.Resource{
 											Schema: workflowTaskSchema(),
 										},
@@ -371,10 +377,11 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"environment_options": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"email_notification_type": {
@@ -428,10 +435,11 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"execution_policy": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Computed: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"concurrency_count": {
@@ -450,24 +458,27 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"pre_deployment_gates": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: deploymentGatesSchema(),
 							},
 						},
 						"post_deployment_gates": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: deploymentGatesSchema(),
 							},
 						},
 						"environment_trigger": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:       schema.TypeList,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"definition_environment_id": {
@@ -494,8 +505,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"schedule": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:       schema.TypeList,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"days_to_release": {
@@ -531,14 +543,16 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"process_parameters": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"input": {
-										Type:     schema.TypeList,
-										Optional: true,
+										Type:       schema.TypeList,
+										Optional:   true,
+										ConfigMode: schema.SchemaConfigModeAttr,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
@@ -740,8 +754,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 func approvalSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"approver": {
-			Type:     schema.TypeList,
-			Optional: true,
+			Type:       schema.TypeList,
+			Optional:   true,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"id": {
@@ -764,10 +779,11 @@ func approvalSchema() map[string]*schema.Schema {
 			},
 		},
 		"approval_options": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
+			Type:       schema.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"required_approver_count": {
@@ -811,9 +827,10 @@ func approvalSchema() map[string]*schema.Schema {
 func deploymentGatesSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"gates_options": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:       schema.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"is_enabled": {
@@ -849,14 +866,16 @@ func deploymentGatesSchema() map[string]*schema.Schema {
 			},
 		},
 		"gate": {
-			Type:     schema.TypeList,
-			Optional: true,
+			Type:       schema.TypeList,
+			Optional:   true,
+			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"task": {
-						Type:     schema.TypeList,
-						Required: true,
-						MinItems: 1,
+						Type:       schema.TypeList,
+						Required:   true,
+						MinItems:   1,
+						ConfigMode: schema.SchemaConfigModeAttr,
 						Elem: &schema.Resource{
 							Schema: workflowTaskSchema(),
 						},
