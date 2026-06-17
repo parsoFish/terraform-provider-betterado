@@ -2957,3 +2957,89 @@ func TestReleaseDefinition_StagesConfigModeAttr_Schema(t *testing.T) {
 	require.Equal(t, schema.SchemaConfigModeAttr, retentionSchema.ConfigMode,
 		"retention_policy must use SchemaConfigModeAttr")
 }
+
+// TestReleaseDefinition_StagesNestedAttrsOptionalOrComputed verifies that every nested
+// attribute inside stages that is listed in AC1 is Optional or Computed (or both).
+//
+// Root cause: ConfigMode: SchemaConfigModeAttr converts a TypeList/TypeSet with
+// Elem:*schema.Resource into an HCL attribute (object type). In that mode, Terraform
+// requires every attribute of the resulting HCL object to be either Optional or Computed;
+// attributes that have neither flag are treated as Required and break minimal configs.
+// This test is the RED gate for UWI-2 / AC1.
+func TestReleaseDefinition_StagesNestedAttrsOptionalOrComputed(t *testing.T) {
+	s := ResourceReleaseDefinition().Schema
+
+	stagesSchema, ok := s["stages"]
+	require.True(t, ok, "schema must have 'stages' key")
+	stagesElem, ok := stagesSchema.Elem.(*schema.Resource)
+	require.True(t, ok, "stages.Elem must be *schema.Resource")
+	stageAttrs := stagesElem.Schema
+
+	// All of these must be Optional or Computed so that a minimal
+	// stages = [{ name, rank, deploy_phase = [...] }] config is valid.
+	mustBeOptionalOrComputed := []string{
+		"condition",
+		"environment_options",
+		"environment_trigger",
+		"execution_policy",
+		"id",
+		"owner",
+		"post_deployment_gates",
+		"pre_deployment_gates",
+		"process_parameters",
+		"properties",
+		"schedule",
+		"variable",
+		"variable_groups",
+	}
+
+	for _, attr := range mustBeOptionalOrComputed {
+		attrSchema, exists := stageAttrs[attr]
+		require.True(t, exists, "stage schema must have attribute %q", attr)
+		require.True(t,
+			attrSchema.Optional || attrSchema.Computed,
+			"stage attribute %q must be Optional or Computed (ConfigModeAttr requirement)", attr)
+	}
+
+	// deploy_phase nested attributes: the same pattern applies inside deploy_phase.
+	// artifact and variable at the top level must also be Optional/Computed (already checked
+	// for ConfigModeAttr in the previous test; this verifies their internal attrs).
+	dpSchema, ok := stageAttrs["deploy_phase"]
+	require.True(t, ok, "stage schema must have 'deploy_phase'")
+	dpElem, ok := dpSchema.Elem.(*schema.Resource)
+	require.True(t, ok, "deploy_phase.Elem must be *schema.Resource")
+	dpAttrs := dpElem.Schema
+
+	dpMustBeOptionalOrComputed := []string{
+		"deployment_input",
+		"workflow_task",
+	}
+	for _, attr := range dpMustBeOptionalOrComputed {
+		attrSchema, exists := dpAttrs[attr]
+		require.True(t, exists, "deploy_phase schema must have attribute %q", attr)
+		require.True(t,
+			attrSchema.Optional || attrSchema.Computed,
+			"deploy_phase attribute %q must be Optional or Computed (ConfigModeAttr requirement)", attr)
+	}
+
+	// artifact nested attributes
+	artifactSchema, ok := s["artifact"]
+	require.True(t, ok, "schema must have 'artifact'")
+	artifactElem, ok := artifactSchema.Elem.(*schema.Resource)
+	require.True(t, ok, "artifact.Elem must be *schema.Resource")
+	artifactAttrs := artifactElem.Schema
+
+	artifactMustBeOptionalOrComputed := []string{
+		"variable",
+	}
+	for _, attr := range artifactMustBeOptionalOrComputed {
+		attrSchema, exists := artifactAttrs[attr]
+		// artifact may not have a 'variable' sub-field depending on schema; skip if absent
+		if !exists {
+			continue
+		}
+		require.True(t,
+			attrSchema.Optional || attrSchema.Computed,
+			"artifact attribute %q must be Optional or Computed (ConfigModeAttr requirement)", attr)
+	}
+}
