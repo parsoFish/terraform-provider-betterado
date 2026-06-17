@@ -66,14 +66,14 @@
 | `environment[].currentRelease` | `*ReleaseShallowReference` | missing | No | Read-only reference |
 | `environment[].demands` | `*[]interface{}` | missing | No | Env-level demands (separate from phase-level); rarely used |
 | `environment[].deployStep` | `*ReleaseDefinitionDeployStep` | missing | No | Read-only internal gate step ID |
-| `environment[].environmentTriggers` | `*[]EnvironmentTrigger` | missing | Yes | Environment-level deploy triggers (e.g. after another stage); **Recommend** (future WI) |
+| `environment[].environmentTriggers` | `*[]EnvironmentTrigger` | mapped | Yes | `environment_trigger[]` block — see §1.12 |
 | `environment[].processParameters` | `*ProcessParameters` | missing | No | Internal pipeline parameters; rarely exposed via TF |
 | `environment[].properties` | `interface{}` | missing | No | Opaque property bag |
 | `environment[].queueId` | `*int` | missing | No | Top-level legacy queue; superseded by `deploymentInput.queueId` inside a phase |
 | `environment[].runOptions` | `*map[string]string` | missing | No | **Deprecated** in ADO SDK; use EnvironmentOptions |
 | `environment[].schedules` | `*[]ReleaseSchedule` | missing | Yes | Environment-level schedule overrides; **Defer** (use definition-level schedule_trigger for now) |
 
-**Summary — Environment:** 15 mapped / 0 partial / 10 missing
+**Summary — Environment:** 16 mapped / 0 partial / 9 missing
 
 ---
 
@@ -119,8 +119,8 @@
 | `triggers[artifactSource].triggerType` | string enum | mapped | Yes | Implicit; always `"artifactSource"` for `cd_artifact_trigger` |
 | `triggers[artifactSource].artifactAlias` | `string` | mapped | Yes | `artifact_alias` |
 | `triggers[artifactSource].triggerConditions[].sourceBranch` | `string` | mapped | Yes | `branch_filter.include[]` |
-| `triggers[artifactSource].triggerConditions[].tags` | `*[]string` | missing | Yes | Tag-based filter not yet surfaced; **Recommend** (future WI) |
-| `triggers[artifactSource].triggerConditions[].createReleaseOnBuildTagging` | `*bool` | missing | Yes | Not surfaced; **Recommend** |
+| `triggers[artifactSource].triggerConditions[].tags` | `*[]string` | mapped | Yes | `cd_artifact_trigger[].tag_filter.tags` |
+| `triggers[artifactSource].triggerConditions[].createReleaseOnBuildTagging` | `*bool` | mapped | Yes | `cd_artifact_trigger[].create_release_on_build_tagging` |
 | `triggers[schedule].triggerType` | string enum | mapped | Yes | Implicit; `"schedule"` for `schedule_trigger` |
 | `triggers[schedule].schedule.scheduleOnlyWithChanges` | `bool` | mapped | Yes | |
 | `triggers[schedule].schedule.startHours` | `int` | mapped | Yes | |
@@ -128,10 +128,10 @@
 | `triggers[schedule].schedule.timeZoneId` | `string` | mapped | Yes | |
 | `triggers[schedule].schedule.daysToRelease` | `int` | mapped | Yes | Bitmask 0–127 |
 | `triggers[schedule].branchFilters` | `[]string` | missing | No | ADO does not return branchFilters for schedule triggers in GET response; intentionally excluded to prevent perpetual diff |
-| `triggers[containerImageTrigger]` | `ContainerImageTrigger` | missing | Yes | Container image change trigger; **Defer** |
+| `triggers[containerImageTrigger]` | `ContainerImageTrigger` | mapped | Yes | `container_image_trigger[]` block — see §1.13 |
 | `triggers[pullRequestTrigger]` | (not in SDK) | missing | Yes | PR deployment trigger; **Out of scope** (no SDK type) |
 
-**Summary — Triggers:** 9 mapped / 0 partial / 5 missing
+**Summary — Triggers:** 12 mapped / 0 partial / 2 missing
 
 ---
 
@@ -156,11 +156,11 @@
 | `deploy_phase[].deploymentInput.parallelExecution.maxNumberOfAgents` | `int` | mapped | Yes | |
 | `deploy_phase[].deploymentInput.parallelExecution.multipliers` | `*string` (comma-joined) | mapped | Yes | Stored as list in TF; joined to comma string for API |
 | `deploy_phase[].deploymentInput.parallelExecution.continueOnError` | `bool` | mapped | Yes | |
-| `deploy_phase[].deploymentInput.overrideInputs` | `*map[string]string` | missing | Yes | Not surfaced; **Recommend** (future WI) |
+| `deploy_phase[].deploymentInput.overrideInputs` | `*map[string]string` | mapped | Yes | `deployment_input[].override_inputs` |
 | `deploy_phase[].deploymentInput.artifactsDownloadInput` | `*ArtifactsDownloadInput` | missing | No | Fine-grained per-artifact download control; **Defer** |
 | `deploy_phase[].deploymentInput.imageId` | `*int` | missing | No | Legacy image ID; rarely used |
 
-**Summary — DeployPhase/DeploymentInput:** 15 mapped / 0 partial / 4 missing
+**Summary — DeployPhase/DeploymentInput:** 16 mapped / 0 partial / 3 missing
 
 #### 1.6.1 WorkflowTask
 
@@ -175,11 +175,11 @@
 | `workflow_task[].condition` | `*string` | mapped | Yes | |
 | `workflow_task[].definitionType` | `*string` | mapped | Yes | `definition_type` (`"task"` / `"metaTask"`) |
 | `workflow_task[].inputs` | `*map[string]string` | mapped | Yes | TypeMap |
-| `workflow_task[].timeoutInMinutes` | `*int` | missing | Yes | Per-task timeout; **Recommend** (future WI) |
-| `workflow_task[].retryCountOnTaskFailure` | `*int` | missing | Yes | Task retry; **Recommend** |
+| `workflow_task[].timeoutInMinutes` | `*int` | mapped | Yes | `timeout_in_minutes` |
+| `workflow_task[].retryCountOnTaskFailure` | `*int` | mapped | Yes | `retry_count_on_task_failure` |
 | `workflow_task[].overrideInputs` | `*map[string]string` | missing | Yes | Override inputs at runtime; **Defer** |
 
-**Summary — WorkflowTask:** 9 mapped / 0 partial / 3 missing
+**Summary — WorkflowTask:** 11 mapped / 0 partial / 1 missing
 
 ---
 
@@ -252,27 +252,52 @@
 
 ---
 
+### 1.12 EnvironmentTrigger
+
+| Field path | ADO type | TF schema status | Writable? | Notes |
+|---|---|---|---|---|
+| `environment[].environmentTriggers[].triggerType` | `*EnvironmentTriggerType` | mapped | Yes | `trigger_type`; allowed: `undefined` / `deploymentGroupRedeploy` / `rollbackRedeploy` |
+| `environment[].environmentTriggers[].definitionEnvironmentId` | `*int` | mapped | Yes | `definition_environment_id`; Computed (ADO fills with parent env ID when 0) |
+| `environment[].environmentTriggers[].triggerContent` | `*string` | mapped | Yes | `trigger_content`; opaque JSON blob for rollback configuration |
+
+**Summary — EnvironmentTrigger:** 3 mapped / 0 partial / 0 missing ✅
+
+---
+
+### 1.13 ContainerImageTrigger
+
+| Field path | ADO type | TF schema status | Writable? | Notes |
+|---|---|---|---|---|
+| `triggers[containerImageTrigger].alias` | `*string` | mapped | Yes | `container_image_trigger[].alias`; must match a container artifact alias |
+| `triggers[containerImageTrigger].tagFilters[].pattern` | `*string` | mapped | Yes | `container_image_trigger[].tag_filter[].pattern`; tag match pattern |
+
+**Summary — ContainerImageTrigger:** 2 mapped / 0 partial / 0 missing ✅
+
+---
+
 ## Overall Summary
 
 | Area | Mapped | Partial | Missing |
 |---|---|---|---|
 | ReleaseDefinition (top-level) | 9 | 1 | 12 |
-| ReleaseDefinitionEnvironment | 15 | 0 | 10 |
+| ReleaseDefinitionEnvironment | 16 | 0 | 9 |
 | Approvals / ApprovalOptions | 9 | 0 | 2 |
 | Artifact | 4 | 0 | 2 |
-| Triggers | 9 | 0 | 5 |
-| DeployPhase / DeploymentInput | 15 | 0 | 4 |
-| WorkflowTask | 9 | 0 | 3 |
+| Triggers | 12 | 0 | 2 |
+| DeployPhase / DeploymentInput | 16 | 0 | 3 |
+| WorkflowTask | 11 | 0 | 1 |
 | EnvironmentRetentionPolicy | 3 | 0 | 0 |
 | EnvironmentOptions | 9 | 0 | 0 |
 | EnvironmentExecutionPolicy | 2 | 0 | 0 |
 | GatesStep / GatesOptions | 6 | 0 | 1 |
 | ConfigurationVariableValue | 3 | 0 | 0 |
-| **TOTAL** | **93** | **1** | **39** |
+| EnvironmentTrigger (§1.12) | 3 | 0 | 0 |
+| ContainerImageTrigger (§1.13) | 2 | 0 | 0 |
+| **TOTAL** | **105** | **1** | **20** |
 
-> **93 mapped / 1 partial / 39 missing** across all types.
-> Of the 39 missing fields: **31 are read-only / computed / deprecated** (zero action required).
-> **8 are writable gaps** worth future implementation: `environmentTriggers`, artifact trigger `tags`/`createReleaseOnBuildTagging`, `workflowTask.timeoutInMinutes`, `workflowTask.retryCountOnTaskFailure`, `deploymentInput.overrideInputs`, `containerImageTrigger`.
+> **105 mapped / 1 partial / 20 missing** across all types.
+> Of the 20 missing fields: **19 are read-only / computed / deprecated / deferred** (zero action required).
+> **1 writable gap** deferred for a future WI: `workflow_task[].overrideInputs` (runtime override inputs; **Defer**).
 
 ### Read-only / Computed fields (explicit callout)
 

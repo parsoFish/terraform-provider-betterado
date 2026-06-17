@@ -27,6 +27,14 @@ resource "betterado_release_definition" "example" {
     is_secret = true
   }
 
+  # Optional: trigger on container image push (requires a DockerHub/ACR artifact).
+  # container_image_trigger {
+  #   alias = "_myContainer"
+  #   tag_filter {
+  #     pattern = "latest"
+  #   }
+  # }
+
   stages = [
     {
       name = "Production"
