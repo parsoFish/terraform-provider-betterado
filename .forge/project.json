@@ -29,9 +29,10 @@
   ],
   "$acceptance_gate_comment": "Live-acceptance gate config (contract C7). `match` and `requires_env` are always active: when a WI's quality_gate_cmd targets the acceptance suite (path contains `acceptancetests`), the dev-loop errors fast if any of the three required env vars are absent. `required` is ADVISORY (false): the PM adds a live-acceptance WI ONLY when the initiative actually ships or changes live ADO behaviour (a resource or data-source). Analysis/audit/docs/CI/unit-only initiatives (e.g. release-definition-schema-audit) are NOT forced to include a live-acc WI. The architect/PM is guided by the brain (council-constraints.md two-gate model) to add a live-acc WI when ACs involve live ADO; the hard PM gate is not needed when the standing_work_item_acs already encode the expectation as body-injected guidance.",
   "$acceptance_gate_requires_env_comment": "TF_ACC must be set for a live-acc gate to actually run — without it, `resource.Test` SKIPS and `go test` prints `ok pkg 0.00s`, which the dev-loop's no-work scan can't catch (it looks like a pass). Listing it makes the dev-loop ERROR a live-acc WI gate whose env lacks TF_ACC, instead of false-passing. Added after the daemon ran INIT-3/4 cycles without TF_ACC and shipped unverified resources (2026-06-06). Extended 2026-06-07 to ALL three vars the PreCheck (commons.go:56-57) demands — TF_ACC was set but AZDO_ORG_SERVICE_URL/AZDO_PERSONAL_ACCESS_TOKEN were not listed, so the release-folder-data-source cycle's live-acc gate burned 5 iterations failing in PreCheck on the missing PAT (a t.Fatal, not a skip) and WI-2 ended status:failed yet the cycle still merged unverified-live. Listing all three makes the guard ERROR fast on the real gap.",
+  "$acceptance_gate_required_note": "Set true 2026-06-18 (capstone): the release-refine initiatives all change resource schemas/HCL surface, where unit+CI gates are blind to live-only failures (e.g. ConfigMode:Attr makes nested attrs required at apply). required:true forces the PM to emit a live-acc WI gated on the TF_ACC test, so the dev iterates against the real live failure.",
   "acceptance_gate": {
     "match": "acceptancetests",
-    "required": false,
+    "required": true,
     "requires_env": [
       "TF_ACC",
       "AZDO_ORG_SERVICE_URL",
