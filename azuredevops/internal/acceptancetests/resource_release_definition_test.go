@@ -2603,6 +2603,11 @@ func TestAccReleaseDefinition_withContainerImageTrigger(t *testing.T) {
 //
 // ADO accepts containerImageTrigger for DockerHub artifacts without requiring a live ACR
 // service endpoint — the trigger only needs the artifact alias to match.
+//
+// Because stages uses SchemaConfigModeAttr (array/attribute syntax), Terraform's structural
+// type system requires ALL attributes of the stages element object to be present in the HCL
+// literal. Optional attrs not needed must be set to null. Same requirement applies to
+// deploy_phase elements.
 func hclReleaseDefinitionWithContainerImageTrigger(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
 resource "betterado_release_definition" "test" {
@@ -2611,15 +2616,17 @@ resource "betterado_release_definition" "test" {
 
   # DockerHub artifact — satisfies the container_image_trigger alias requirement.
   # ADO accepts containerImageTrigger for DockerHub artifacts without a service endpoint.
+  # is_primary=true because ADO auto-promotes the first (only) artifact to primary;
+  # keeping it false would cause a perpetual diff on the idempotency re-plan.
   artifact {
     alias      = "_myContainer"
     type       = "DockerHub"
-    is_primary = false
+    is_primary = true
 
     definition_reference = {
       connection = ""
-      defaultTag = "latest"
       definition = "library/nginx"
+      namespaces = ""
     }
   }
 
@@ -2634,14 +2641,29 @@ resource "betterado_release_definition" "test" {
 
   stages = [
     {
-      name = "Production"
-      rank = 1
+      id                    = null
+      name                  = "Production"
+      rank                  = 1
+      owner                 = null
+      variable              = null
+      variable_groups       = null
+      condition             = null
+      environment_options   = null
+      execution_policy      = null
+      pre_deployment_gates  = null
+      post_deployment_gates = null
+      environment_trigger   = null
+      schedule              = null
+      process_parameters    = null
+      properties            = null
 
       deploy_phase = [
         {
-          name       = "Agentless job"
-          rank       = 1
-          phase_type = "runOnServer"
+          name             = "Agentless job"
+          rank             = 1
+          phase_type       = "runOnServer"
+          deployment_input = null
+          workflow_task    = null
         }
       ]
 
@@ -2655,6 +2677,7 @@ resource "betterado_release_definition" "test" {
 
       pre_deploy_approval = [
         {
+          approval_options = null
           approver = [
             {
               id           = "00000000-0000-0000-0000-000000000000"
@@ -2667,6 +2690,7 @@ resource "betterado_release_definition" "test" {
 
       post_deploy_approval = [
         {
+          approval_options = null
           approver = [
             {
               id           = "00000000-0000-0000-0000-000000000000"

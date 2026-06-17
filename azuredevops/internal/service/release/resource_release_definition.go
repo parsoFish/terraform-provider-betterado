@@ -598,7 +598,7 @@ func ResourceReleaseDefinition() *schema.Resource {
 						"type": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"Build", "Jenkins", "GitHub", "Nuget", "Team Build (external)", "ExternalTFSBuild", "Git", "TFVC", "ExternalTfsXamlBuild"}, false),
+							ValidateFunc: validation.StringInSlice([]string{"Build", "Jenkins", "GitHub", "Nuget", "Team Build (external)", "ExternalTFSBuild", "Git", "TFVC", "ExternalTfsXamlBuild", "DockerHub", "AzureContainerRepository"}, false),
 						},
 						"is_primary": {
 							Type:     schema.TypeBool,
