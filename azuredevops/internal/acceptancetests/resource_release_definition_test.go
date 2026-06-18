@@ -51,6 +51,12 @@ func TestAccReleaseDefinition_basic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			// AC1/WI-5: idempotency — re-plan after apply+import must produce no diff.
+			{
+				Config:             hclReleaseDefinitionBasicFixture(name, fixture),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }
@@ -344,10 +350,11 @@ func TestAccReleaseDefinition_complete(t *testing.T) {
 					checkReleaseDefinitionAgentSpecification("ubuntu-22.04"),
 				),
 			},
-			// second step verifies idempotency (ExpectNonEmptyPlan defaults to false)
+			// AC3/WI-5: second step verifies idempotency — no diff (ExpectNonEmptyPlan: false).
 			{
-				Config:   hclReleaseDefinitionComplete(name),
-				PlanOnly: true,
+				Config:             hclReleaseDefinitionComplete(name),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})
