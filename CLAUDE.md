@@ -20,7 +20,16 @@ make fmt && make terrafmt               # auto-formatters (run before the gate)
 
 # Live acceptance (needs creds — see below):
 TF_ACC=1 go test -tags all -run TestAcc<Name> ./azuredevops/internal/acceptancetests/...
+
+# Reap leaked test projects (from killed/timed-out runs that skipped cleanup):
+make sweep            # deletes test-acc-* / AccTest* projects; real projects allowlisted
 ```
+
+> **Test cleanup:** each acceptance test tears down its own resources via
+> `t.Cleanup` / `CheckDestroy` on the normal path. A killed/timed-out/panicked run
+> skips that, leaking the fixture project. `make sweep` (TF SDK sweeper, see
+> `acceptancetests/sweeper_test.go`) is the backstop — run it after an aborted
+> acceptance run. The package path MUST precede `-sweep` or `go test` ignores it.
 
 > **Disk discipline:** `go build ./...` / `go vet ./...` (whole tree) generate
 > multi-GB build cache and fill the drive. Build/vet only the package under change.

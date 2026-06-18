@@ -64,6 +64,15 @@ testacc: fmtcheck
 	if [ -f .env ]; then set -o allexport; . ./.env; set +o allexport; fi; \
 	TF_ACC=1 go test -tags "$(TESTTAGS)" $(TEST) -v $(TESTARGS) -timeout 120m
 
+# sweep reaps ADO projects left behind by acceptance runs that were killed,
+# timed out, or panicked before their per-test cleanup could fire (test-acc-* /
+# AccTest* names; real projects are allowlisted). Per-test t.Cleanup handles the
+# normal path; this is the backstop. NOTE: the package path MUST precede -sweep.
+sweep:
+	@echo "==> Reaping leaked acceptance-test projects"
+	@if [ -f secrets.env ]; then set -o allexport; . ./secrets.env; set +o allexport; fi; \
+	go test -tags "$(TESTTAGS)" -count=1 -v ./azuredevops/internal/acceptancetests/ -timeout 40m -sweep=ado -sweep-run=betterado_project
+
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
 		echo "ERROR: Set TEST to a specific package. For example,"; \
