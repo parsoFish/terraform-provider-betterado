@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // countNonEmptyLines opens the file at path and counts non-empty (non-whitespace-only) lines.
@@ -190,4 +192,22 @@ func TestAuditRoadmapDocExists(t *testing.T) {
 	}
 
 	t.Logf("docs/release-definition-roadmap.md OK: %d non-empty lines (>= %d)", lineCount, minLines)
+}
+
+// TestReleaseFolderGapMatrixAudit confirms that docs/release-folder-gap-matrix.md
+// exists and contains the parity verdict line. This sentinel makes the WI-1 gate
+// fail on a clean tree (before the file is written) and pass once it is.
+func TestReleaseFolderGapMatrixAudit(t *testing.T) {
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("runtime.Caller(0) failed — cannot locate test file path")
+	}
+	repoRoot := filepath.Clean(filepath.Join(filepath.Dir(thisFile), "..", "..", "..", ".."))
+
+	matrixPath := filepath.Join(repoRoot, "docs", "release-folder-gap-matrix.md")
+	data, err := os.ReadFile(matrixPath)
+	require.NoError(t, err, "docs/release-folder-gap-matrix.md must exist")
+	require.Contains(t, string(data), "writable-column parity",
+		"matrix must contain the parity verdict line")
+	t.Logf("docs/release-folder-gap-matrix.md OK: parity verdict line present")
 }
