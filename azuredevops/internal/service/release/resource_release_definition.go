@@ -116,7 +116,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 				Type:       schema.TypeList,
 				Required:   true,
 				MinItems:   1,
-				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -143,7 +142,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 						"variable": {
 							Type:       schema.TypeSet,
 							Optional:   true,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -180,7 +178,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 							Type:       schema.TypeList,
 							Optional:   true,
 							Computed:   true,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -205,7 +202,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 							Optional:   true,
 							Computed:   true,
 							MaxItems:   1,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: approvalSchema(),
 							},
@@ -215,7 +211,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 							Optional:   true,
 							Computed:   true,
 							MaxItems:   1,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: approvalSchema(),
 							},
@@ -224,7 +219,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 							Type:       schema.TypeList,
 							Required:   true,
 							MinItems:   1,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -247,7 +241,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 										Type:       schema.TypeList,
 										Optional:   true,
 										MaxItems:   1,
-										ConfigMode: schema.SchemaConfigModeAttr,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"queue_id": {
@@ -304,7 +297,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 													Type:       schema.TypeList,
 													Optional:   true,
 													MaxItems:   1,
-													ConfigMode: schema.SchemaConfigModeAttr,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"type": {
@@ -340,7 +332,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 									"workflow_task": {
 										Type:       schema.TypeList,
 										Optional:   true,
-										ConfigMode: schema.SchemaConfigModeAttr,
 										Elem: &schema.Resource{
 											Schema: workflowTaskSchema(),
 										},
@@ -353,7 +344,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 							Optional:   true,
 							Computed:   true,
 							MaxItems:   1,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"days_to_keep": {
@@ -381,7 +371,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 							Optional:   true,
 							Computed:   true,
 							MaxItems:   1,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"email_notification_type": {
@@ -439,7 +428,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 							Optional:   true,
 							Computed:   true,
 							MaxItems:   1,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"concurrency_count": {
@@ -461,7 +449,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 							Type:       schema.TypeList,
 							Optional:   true,
 							MaxItems:   1,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: deploymentGatesSchema(),
 							},
@@ -470,7 +457,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 							Type:       schema.TypeList,
 							Optional:   true,
 							MaxItems:   1,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: deploymentGatesSchema(),
 							},
@@ -478,7 +464,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 						"environment_trigger": {
 							Type:       schema.TypeList,
 							Optional:   true,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"definition_environment_id": {
@@ -507,7 +492,6 @@ func ResourceReleaseDefinition() *schema.Resource {
 						"schedule": {
 							Type:       schema.TypeList,
 							Optional:   true,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"days_to_release": {
@@ -546,13 +530,11 @@ func ResourceReleaseDefinition() *schema.Resource {
 							Type:       schema.TypeList,
 							Optional:   true,
 							MaxItems:   1,
-							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"input": {
 										Type:       schema.TypeList,
 										Optional:   true,
-										ConfigMode: schema.SchemaConfigModeAttr,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
@@ -755,7 +737,6 @@ func approvalSchema() map[string]*schema.Schema {
 		"approver": {
 			Type:       schema.TypeList,
 			Optional:   true,
-			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"id": {
@@ -782,7 +763,6 @@ func approvalSchema() map[string]*schema.Schema {
 			Optional:   true,
 			Computed:   true,
 			MaxItems:   1,
-			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"required_approver_count": {
@@ -829,7 +809,6 @@ func deploymentGatesSchema() map[string]*schema.Schema {
 			Type:       schema.TypeList,
 			Optional:   true,
 			MaxItems:   1,
-			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"is_enabled": {
@@ -867,14 +846,12 @@ func deploymentGatesSchema() map[string]*schema.Schema {
 		"gate": {
 			Type:       schema.TypeList,
 			Optional:   true,
-			ConfigMode: schema.SchemaConfigModeAttr,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"task": {
 						Type:       schema.TypeList,
 						Required:   true,
 						MinItems:   1,
-						ConfigMode: schema.SchemaConfigModeAttr,
 						Elem: &schema.Resource{
 							Schema: workflowTaskSchema(),
 						},
