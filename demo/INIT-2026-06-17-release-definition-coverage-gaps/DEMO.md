@@ -48,84 +48,27 @@
 ### Live evidence — acceptance-resource
 
 - **After:** Real API GET against the live system: https://vsrm.dev.azure.com/davidgparsonson/0066cb75-9b39-4bf3-b68d-8168de98f447/_apis/release/definitions/2?api-version=7.1
-- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/e7eae97d-0c1c-4fe3-a1f3-fa5e30740c9f/_apis/distributedtask/taskgroups/fa5e7a90-f9e3-4f6c-bc31-9d3a48684f41?api-version=7.1` _(captured 2026-06-18T09:49:00Z)_
+- **Live evidence (real API GET):** `https://vsrm.dev.azure.com/davidgparsonson/0111c6d9-e5b4-4f10-80b7-c95d9c5c7719/_apis/release/folders%5CAccTest-test-acc-yu4qhlxa37?api-version=7.1` _(captured 2026-06-18T10:26:29Z)_
 
 ```json
 {
-  "category": "Deploy",
-  "dataSourceBindings": [],
-  "definitionType": "metaTask",
-  "demands": [],
-  "description": "Gap-fields acceptance test",
-  "execution": {},
-  "friendlyName": "test-acc-8pg6el9wzf",
-  "groups": [],
-  "iconUrl": "https://cdn.vsassets.io/v/someicon.png",
-  "id": "fa5e7a90-f9e3-4f6c-bc31-9d3a48684f41",
-  "inputs": [
-    {
-      "aliases": [
-        "targetEnvAlias"
-      ],
-      "defaultValue": "",
-      "groupName": "",
-      "helpMarkDown": "",
-      "label": "Target Environment",
-      "name": "targetEnv",
-      "options": {},
-      "properties": {
-        "EndpointId": ""
-      },
-      "type": "string",
-      "visibleRule": "targetType = filePath"
-    }
-  ],
-  "name": "test-acc-8pg6el9wzf",
-  "postJobExecution": {},
-  "preJobExecution": {},
-  "runsOn": [
-    "Agent",
-    "DeploymentGroup"
-  ],
-  "satisfies": [],
-  "sourceDefinitions": [],
-  "version": {
-    "isTest": false,
-    "major": 1,
-    "minor": 0,
-    "patch": 0
-  },
   "createdBy": {
+    "_links": {
+      "avatar": {
+        "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+      }
+    },
+    "descriptor": "msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
     "displayName": "david.g.parsonson",
+    "url": "https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1",
     "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
     "uniqueName": "david.g.parsonson@gmail.com"
   },
-  "createdOn": "2026-06-18T09:48:59.597Z",
-  "modifiedBy": {
-    "displayName": "david.g.parsonson",
-    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
-    "uniqueName": "david.g.parsonson@gmail.com"
-  },
-  "modifiedOn": "2026-06-18T09:48:59.597Z",
-  "revision": 1,
-  "tasks": [
-    {
-      "alwaysRun": false,
-      "condition": "succeeded()",
-      "continueOnError": false,
-      "displayName": "Deploy Step",
-      "enabled": true,
-      "environment": {},
-      "inputs": {},
-      "retryCountOnTaskFailure": 0,
-      "task": {
-        "definitionType": "task",
-        "id": "d9bafed4-0b18-4f58-968d-86655b4d2ce9",
-        "versionSpec": "2.*"
-      },
-      "timeoutInMinutes": 0
-    }
-  ]
+  "createdOn": "2026-06-18T10:26:26.363Z",
+  "description": "Acceptance test folder",
+  "lastChangedDate": "0001-01-01T00:00:00Z",
+  "path": "\\AccTest-test-acc-yu4qhlxa37"
 }
 ```
 
