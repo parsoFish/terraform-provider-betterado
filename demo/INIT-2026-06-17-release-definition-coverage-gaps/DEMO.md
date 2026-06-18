@@ -48,22 +48,22 @@
 ### Live evidence — acceptance-resource
 
 - **After:** Real API GET against the live system: https://vsrm.dev.azure.com/davidgparsonson/0066cb75-9b39-4bf3-b68d-8168de98f447/_apis/release/definitions/2?api-version=7.1
-- **Live evidence (real API GET):** `https://vsrm.dev.azure.com/davidgparsonson/0066cb75-9b39-4bf3-b68d-8168de98f447/_apis/release/definitions/2?api-version=7.1` _(captured 2026-06-18T08:48:12Z)_
+- **Live evidence (real API GET):** `https://vsrm.dev.azure.com/davidgparsonson/b6bfe45f-9250-475b-b226-6cf635d914ee/_apis/release/definitions/2?api-version=7.1` _(captured 2026-06-18T09:18:49Z)_
 
 ```json
 {
   "_links": {
     "self": {
-      "href": "https://vsrm.dev.azure.com/davidgparsonson/0066cb75-9b39-4bf3-b68d-8168de98f447/_apis/Release/definitions/2"
+      "href": "https://vsrm.dev.azure.com/davidgparsonson/b6bfe45f-9250-475b-b226-6cf635d914ee/_apis/Release/definitions/2"
     },
     "web": {
-      "href": "https://dev.azure.com/davidgparsonson/0066cb75-9b39-4bf3-b68d-8168de98f447/_release?definitionId=2"
+      "href": "https://dev.azure.com/davidgparsonson/b6bfe45f-9250-475b-b226-6cf635d914ee/_release?definitionId=2"
     }
   },
   "id": 2,
-  "name": "test-acc-fz0figuelg",
+  "name": "test-acc-fifyqg2yqz",
   "path": "\\",
-  "url": "https://vsrm.dev.azure.com/davidgparsonson/0066cb75-9b39-4bf3-b68d-8168de98f447/_apis/Release/definitions/2",
+  "url": "https://vsrm.dev.azure.com/davidgparsonson/b6bfe45f-9250-475b-b226-6cf635d914ee/_apis/Release/definitions/2",
   "artifacts": [],
   "createdBy": {
     "_links": {
@@ -78,15 +78,15 @@
     "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
     "uniqueName": "david.g.parsonson@gmail.com"
   },
-  "createdOn": "2026-06-18T08:48:11.077Z",
+  "createdOn": "2026-06-18T09:18:48.91Z",
   "environments": [
     {
-      "badgeUrl": "https://vsrm.dev.azure.com/davidgparsonson/_apis/public/Release/badge/0066cb75-9b39-4bf3-b68d-8168de98f447/2/4",
+      "badgeUrl": "https://vsrm.dev.azure.com/davidgparsonson/_apis/public/Release/badge/b6bfe45f-9250-475b-b226-6cf635d914ee/2/4",
       "conditions": [],
       "currentRelease": {
         "_links": {},
         "id": 0,
-        "url": "https://vsrm.dev.azure.com/davidgparsonson/0066cb75-9b39-4bf3-b68d-8168de98f447/_apis/Release/releases/0"
+        "url": "https://vsrm.dev.azure.com/davidgparsonson/b6bfe45f-9250-475b-b226-6cf635d914ee/_apis/Release/releases/0"
       },
       "demands": [],
       "deployPhases": [
@@ -155,7 +155,7 @@
             "id": 14,
             "isAutomated": true,
             "isNotificationOn": false,
-      
+       
 … (truncated)
 ```
 
