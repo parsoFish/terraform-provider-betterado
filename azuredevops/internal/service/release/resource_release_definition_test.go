@@ -2991,14 +2991,14 @@ func TestReleaseDefinition_ContainerImageTrigger_ExpandFlatten(t *testing.T) {
 	require.True(t, ok, "AC1: trigger entry must be a map[string]interface{}")
 	require.Equal(t, "containerImage", trigMap["triggerType"], "AC1: triggerType must be containerImage")
 
-	conds, ok := trigMap["triggerConditions"].([]interface{})
-	require.True(t, ok, "AC1: triggerConditions must be []interface{}")
-	require.Len(t, conds, 1, "AC1: triggerConditions must have exactly one entry")
-
-	condMap, ok := conds[0].(map[string]interface{})
-	require.True(t, ok, "AC1: triggerConditions[0] must be map[string]interface{}")
-	require.Equal(t, artifactAlias, condMap["artifactAlias"], "AC1: artifactAlias must be set correctly")
-	require.Equal(t, label, condMap["label"], "AC1: label must be set correctly")
+	// ContainerImageTrigger API shape = { triggerType, alias, tagFilters[].pattern }.
+	require.Equal(t, artifactAlias, trigMap["alias"], "AC1: alias must be set correctly")
+	tagFilters, ok := trigMap["tagFilters"].([]interface{})
+	require.True(t, ok, "AC1: tagFilters must be []interface{}")
+	require.Len(t, tagFilters, 1, "AC1: tagFilters must have exactly one entry")
+	tfMap, ok := tagFilters[0].(map[string]interface{})
+	require.True(t, ok, "AC1: tagFilters[0] must be map[string]interface{}")
+	require.Equal(t, label, tfMap["pattern"], "AC1: tagFilters[0].pattern must be the label")
 
 	// AC2 (flatten): flattenReleaseDefinition must round-trip container_image_trigger fields
 	expandedID := testReleaseDefinitionID
