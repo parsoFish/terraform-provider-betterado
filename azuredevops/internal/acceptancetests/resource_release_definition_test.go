@@ -350,14 +350,14 @@ func TestAccReleaseDefinition_complete(t *testing.T) {
 	})
 }
 
-// TestAccReleaseDefinition_stagesArraySyntax verifies that a release definition created
-// with the stages = [...] array syntax (attribute/list syntax, not block syntax) correctly
-// applies, reads back, and produces no perpetual diff (idempotency).
+// TestAccReleaseDefinition_blockSyntax verifies that a release definition created
+// with block syntax (stages { … }, deploy_phase { … }, etc.) correctly applies,
+// reads back, and produces no perpetual diff (idempotency).
 //
-// AC1: test exists and uses stages array HCL syntax.
+// AC1: test uses block syntax HCL — no array syntax fixtures.
 // AC2: terraform apply succeeds, stages.0.name = "Production" is readable, idempotency
 // re-plan produces no diff (ExpectNonEmptyPlan: false), and terraform destroy completes cleanly.
-func TestAccReleaseDefinition_stagesArraySyntax(t *testing.T) {
+func TestAccReleaseDefinition_blockSyntax(t *testing.T) {
 	fixture := SharedReleaseFixture(t)
 
 	name := testutils.GenerateResourceName()
@@ -368,9 +368,9 @@ func TestAccReleaseDefinition_stagesArraySyntax(t *testing.T) {
 		Providers:    testutils.GetProviders(),
 		CheckDestroy: checkReleaseDefinitionDestroyed,
 		Steps: []resource.TestStep{
-			// Step 1: apply with stages array syntax and assert read-back.
+			// Step 1: apply with stages block syntax and assert read-back.
 			{
-				Config: hclReleaseDefinitionStagesArraySyntax(name, fixture),
+				Config: hclReleaseDefinitionBlockSyntax(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					checkReleaseDefinitionExists(name),
 					resource.TestCheckResourceAttr(tfNode, "stages.#", "1"),
@@ -385,7 +385,7 @@ func TestAccReleaseDefinition_stagesArraySyntax(t *testing.T) {
 			},
 			// Step 2: idempotency — re-plan must produce no diff.
 			{
-				Config:             hclReleaseDefinitionStagesArraySyntax(name, fixture),
+				Config:             hclReleaseDefinitionBlockSyntax(name, fixture),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -604,133 +604,98 @@ resource "betterado_release_definition" "test" {
   name       = %[1]q
   project_id = %[2]q
 
-  stages = [
-    {
-      name = "Production"
-      rank = 1
+  stages {
+    name = "Production"
+    rank = 1
 
-      deploy_phase = [
-        {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
-        }
-      ]
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
 
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      # ADO requires BOTH pre- and post-deploy approvals (VS402877).
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, name, fixture.ProjectID)
 }
 
-// hclReleaseDefinitionStagesArraySyntax creates a minimal release definition using the
-// stages = [...] array/attribute syntax (no block syntax). This is the fixture for
-// TestAccReleaseDefinition_stagesArraySyntax (AC1/AC2 of WI-3).
-//
-// Note: because stages uses SchemaConfigModeAttr (attribute/array syntax), Terraform's
-// structural type system requires ALL attributes of the stages element object to be
-// present in the HCL literal. Optional attrs that are not needed must be set to null.
-func hclReleaseDefinitionStagesArraySyntax(name string, fixture SharedFixtureResult) string {
+// hclReleaseDefinitionBlockSyntax creates a minimal release definition using
+// block syntax (stages { … }, deploy_phase { … }, etc.) — the canonical HCL form.
+// This is the fixture for TestAccReleaseDefinition_blockSyntax.
+func hclReleaseDefinitionBlockSyntax(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
 resource "betterado_release_definition" "test" {
   name       = %[1]q
   project_id = %[2]q
 
-  stages = [
-    {
-      id                    = null
-      name                  = "Production"
-      rank                  = 1
-      owner                 = null
-      variable              = null
-      variable_groups       = null
-      condition             = null
-      environment_options   = null
-      execution_policy      = null
-      pre_deployment_gates  = null
-      post_deployment_gates = null
-      environment_trigger   = null
-      schedule              = null
-      process_parameters    = null
-      properties            = null
+  stages {
+    name                  = "Production"
+    rank                  = 1
 
-      deploy_phase = [
-        {
-          name             = "Agent job"
-          rank             = 1
-          phase_type       = "agentBasedDeployment"
-          deployment_input = null
-          workflow_task    = null
-        }
-      ]
+    deploy_phase {
+      name             = "Agent job"
+      rank             = 1
+      phase_type       = "agentBasedDeployment"
 
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      pre_deploy_approval = [
-        {
-          approval_options = null
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      post_deploy_approval = [
-        {
-          approval_options = null
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, name, fixture.ProjectID)
 }
@@ -748,58 +713,51 @@ resource "betterado_release_definition" "test" {
   name       = "%[2]s"
   project_id = betterado_project.test.id
 
-  stages = [
-    {
-      name = "Production"
-      rank = 1
+  stages {
+    name = "Production"
+    rank = 1
 
-      deploy_phase = [
-        {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
-        }
-      ]
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
 
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
-      # stage, else create fails with VS402877 ("Pre-approvals or post-approvals
-      # … are empty"). The exhaustive _complete test always carried both; the
-      # minimal fixtures carried only pre and were never live-run (only _complete
-      # was INIT-1's merge gate), so the gap surfaced when every test was finally
-      # run with TF_ACC.
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
+    # stage, else create fails with VS402877 ("Pre-approvals or post-approvals
+    # … are empty"). The exhaustive _complete test always carried both; the
+    # minimal fixtures carried only pre and were never live-run (only _complete
+    # was INIT-1's merge gate), so the gap surfaced when every test was finally
+    # run with TF_ACC.
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, base, name)
 }
@@ -821,67 +779,59 @@ resource "betterado_release_definition" "test" {
   name       = "%[2]s"
   project_id = betterado_project.test.id
 
-  stages = [
-    {
-      name = "Production"
-      rank = 1
+  stages {
+    name = "Production"
+    rank = 1
 
-      deploy_phase = [
-        {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
 
-          deployment_input = [
-            {
-              queue_id                      = data.betterado_agent_queue.test.id
-              timeout_in_minutes            = 0
-              job_cancel_timeout_in_minutes = 1
-              condition                     = "succeeded()"
-            }
-          ]
-        }
-      ]
+      deployment_input {
+        queue_id                      = data.betterado_agent_queue.test.id
+        timeout_in_minutes            = 0
+        job_cancel_timeout_in_minutes = 1
+        condition                     = "succeeded()"
 
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
+      }
 
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
-      # stage, else create fails with VS402877 ("Pre-approvals or post-approvals
-      # … are empty"). The exhaustive _complete test always carried both; the
-      # minimal fixtures carried only pre and were never live-run (only _complete
-      # was INIT-1's merge gate), so the gap surfaced when every test was finally
-      # run with TF_ACC.
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
+    # stage, else create fails with VS402877 ("Pre-approvals or post-approvals
+    # … are empty"). The exhaustive _complete test always carried both; the
+    # minimal fixtures carried only pre and were never live-run (only _complete
+    # was INIT-1's merge gate), so the gap surfaced when every test was finally
+    # run with TF_ACC.
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, base, name)
 }
@@ -896,65 +846,57 @@ resource "betterado_release_definition" "test" {
   name       = "%[2]s"
   project_id = betterado_project.test.id
 
-  stages = [
-    {
-      name = "Production"
-      rank = 1
+  stages {
+    name = "Production"
+    rank = 1
 
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
 
-          approval_options = [
-            {
-              release_creator_can_be_approver                                 = false
-              enforce_identity_revalidation                                   = false
-              timeout_in_minutes                                              = 1440
-              execution_order                                                 = "beforeGates"
-              auto_triggered_and_previous_environment_approved_can_be_skipped = false
-            }
-          ]
-        }
-      ]
+      }
 
-      # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
-      # stage (VS402877).
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
+      approval_options {
+        release_creator_can_be_approver                                 = false
+        enforce_identity_revalidation                                   = false
+        timeout_in_minutes                                              = 1440
+        execution_order                                                 = "beforeGates"
+        auto_triggered_and_previous_environment_approved_can_be_skipped = false
 
-      deploy_phase = [
-        {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
-        }
-      ]
+      }
 
-      # ADO REST 7.2 requires a stage-level retention policy (VS402982).
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
     }
-  ]
+
+    # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
+    # stage (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+
+    }
+
+    # ADO REST 7.2 requires a stage-level retention policy (VS402982).
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+  }
 }
 `, base, name)
 }
@@ -971,74 +913,65 @@ resource "betterado_release_definition" "test" {
   name       = "%[2]s"
   project_id = betterado_project.test.id
 
-  stages = [
-    {
-      name = "Production"
-      rank = 1
+  stages {
+    name = "Production"
+    rank = 1
 
-      deploy_phase = [
-        {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
-        }
-      ]
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
 
-      environment_options = [
-        {
-          email_notification_type   = "OnlyOnFailure"
-          publish_deployment_status = true
-          badge_enabled             = false
-          auto_link_work_items      = false
-        }
-      ]
-
-      execution_policy = [
-        {
-          concurrency_count = 1
-          queue_depth_count = 0
-        }
-      ]
-
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
-      # stage, else create fails with VS402877 ("Pre-approvals or post-approvals
-      # … are empty"). The exhaustive _complete test always carried both; the
-      # minimal fixtures carried only pre and were never live-run (only _complete
-      # was INIT-1's merge gate), so the gap surfaced when every test was finally
-      # run with TF_ACC.
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    environment_options {
+      email_notification_type   = "OnlyOnFailure"
+      publish_deployment_status = true
+      badge_enabled             = false
+      auto_link_work_items      = false
+
+    }
+
+    execution_policy {
+      concurrency_count = 1
+      queue_depth_count = 0
+
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
+    # stage, else create fails with VS402877 ("Pre-approvals or post-approvals
+    # … are empty"). The exhaustive _complete test always carried both; the
+    # minimal fixtures carried only pre and were never live-run (only _complete
+    # was INIT-1's merge gate), so the gap surfaced when every test was finally
+    # run with TF_ACC.
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, base, name)
 }
@@ -1159,269 +1092,237 @@ resource "betterado_release_definition" "test" {
     }
   }
 
-  stages = [
-    # ─── Stage 0: Staging — exercises all per-stage options ───────────
-    {
-      name = "Staging"
-      rank = 1
+  stages {
+    name = "Staging"
+    rank = 1
 
-      # Required by ADO when schedule_trigger is used (schedules release creation event)
-      condition = [
-        {
-          name           = "ReleaseStarted"
-          condition_type = "event"
-          value          = ""
-        }
-      ]
+    # Required by ADO when schedule_trigger is used (schedules release creation event)
+    condition {
+      name           = "ReleaseStarted"
+      condition_type = "event"
+      value          = ""
 
-      # stage-level variable (non-default)
-      variable = [
-        {
-          name  = "ENV_VAR"
-          value = "staging-complete"
-        }
-      ]
-
-      deploy_phase = [
-        # --- Agent-based phase: real queue + demands + skip_artifacts_download + enable_access_token
-        #     + multiConfiguration parallel execution ---
-        {
-          name       = "Agent phase"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
-
-          deployment_input = [
-            {
-              queue_id                      = data.betterado_agent_queue.test.id
-              agent_specification           = "ubuntu-22.04"
-              timeout_in_minutes            = 60
-              job_cancel_timeout_in_minutes = 5
-              condition                     = "succeeded()"
-              skip_artifacts_download       = true
-              enable_access_token           = true
-
-              demands = ["Agent.Version -gtVersion 2.0"]
-
-              parallel_execution = [
-                {
-                  type                 = "multiConfiguration"
-                  max_number_of_agents = 2
-                  multipliers          = ["Configuration"]
-                  continue_on_error    = false
-                }
-              ]
-            }
-          ]
-        },
-
-        # --- runOnServer agentless phase with a Delay workflow task ---
-        {
-          name       = "Agentless phase"
-          rank       = 2
-          phase_type = "runOnServer"
-
-          deployment_input = [
-            {
-              timeout_in_minutes            = 0
-              job_cancel_timeout_in_minutes = 1
-              condition                     = "succeeded()"
-            }
-          ]
-
-          workflow_task = [
-            {
-              name    = "Delay"
-              task_id = "28782b92-5e8e-4458-9751-a71cd1492bae"
-              version = "1.*"
-              enabled = true
-              inputs = {
-                delayForMinutes = "1"
-              }
-            }
-          ]
-        }
-      ]
-
-      # environment options (non-default)
-      environment_options = [
-        {
-          email_notification_type   = "Always"
-          publish_deployment_status = true
-          badge_enabled             = false
-          auto_link_work_items      = false
-        }
-      ]
-
-      # execution policy (non-default)
-      execution_policy = [
-        {
-          concurrency_count = 1
-          queue_depth_count = 0
-        }
-      ]
-
-      # retention policy (non-default)
-      retention_policy = [
-        {
-          days_to_keep     = 14
-          releases_to_keep = 5
-          retain_build     = false
-        }
-      ]
-
-      # pre_deploy_approval with non-default approval_options
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-
-          approval_options = [
-            {
-              release_creator_can_be_approver                                 = true
-              enforce_identity_revalidation                                   = false
-              timeout_in_minutes                                              = 720
-              execution_order                                                 = "beforeGates"
-              auto_triggered_and_previous_environment_approved_can_be_skipped = false
-            }
-          ]
-        }
-      ]
-
-      # post_deploy_approval (non-default: normally automated)
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      # pre_deployment_gates with a real ServerGate task: queryWorkItems
-      pre_deployment_gates = [
-        {
-          gates_options = [
-            {
-              is_enabled               = true
-              timeout                  = 60
-              sampling_interval        = 5
-              stabilization_time       = 0
-              minimum_success_duration = 0
-            }
-          ]
-
-          gate = [
-            {
-              task = [
-                {
-                  name    = "Query Work Items"
-                  task_id = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
-                  version = "0.*"
-                  enabled = true
-                  inputs = {
-                    queryId = betterado_workitemquery.gate_query.id
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-
-      # post_deployment_gates with the same ServerGate task
-      post_deployment_gates = [
-        {
-          gates_options = [
-            {
-              is_enabled               = true
-              timeout                  = 60
-              sampling_interval        = 5
-              stabilization_time       = 0
-              minimum_success_duration = 0
-            }
-          ]
-
-          gate = [
-            {
-              task = [
-                {
-                  name    = "Query Work Items"
-                  task_id = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
-                  version = "0.*"
-                  enabled = true
-                  inputs = {
-                    queryId = betterado_workitemquery.gate_query.id
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-
-    # ─── Stage 1: Production — environment-state condition ─────────────────
-    {
-      name = "Production"
-      rank = 2
-
-      condition = [
-        {
-          name           = "Staging"
-          condition_type = "environmentState"
-          value          = "4"
-        }
-      ]
-
-      deploy_phase = [
-        {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
-        }
-      ]
-
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    # stage-level variable (non-default)
+    variable = [
+      {
+        name  = "ENV_VAR"
+        value = "staging-complete"
+      }
+    ]
+
+    deploy_phase {
+      name       = "Agent phase"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+
+      deployment_input {
+        queue_id                      = data.betterado_agent_queue.test.id
+        agent_specification           = "ubuntu-22.04"
+        timeout_in_minutes            = 60
+        job_cancel_timeout_in_minutes = 5
+        condition                     = "succeeded()"
+        skip_artifacts_download       = true
+        enable_access_token           = true
+
+        demands = ["Agent.Version -gtVersion 2.0"]
+
+        parallel_execution {
+          type                 = "multiConfiguration"
+          max_number_of_agents = 2
+          multipliers          = ["Configuration"]
+          continue_on_error    = false
+
+        }
+
+      }
+
+    }
+    deploy_phase {
+      name       = "Agentless phase"
+      rank       = 2
+      phase_type = "runOnServer"
+
+      deployment_input {
+        timeout_in_minutes            = 0
+        job_cancel_timeout_in_minutes = 1
+        condition                     = "succeeded()"
+
+      }
+
+      workflow_task = [
+        {
+          name    = "Delay"
+          task_id = "28782b92-5e8e-4458-9751-a71cd1492bae"
+          version = "1.*"
+          enabled = true
+          inputs = {
+            delayForMinutes = "1"
+          }
+        }
+      ]
+
+    }
+
+    # environment options (non-default)
+    environment_options {
+      email_notification_type   = "Always"
+      publish_deployment_status = true
+      badge_enabled             = false
+      auto_link_work_items      = false
+
+    }
+
+    # execution policy (non-default)
+    execution_policy {
+      concurrency_count = 1
+      queue_depth_count = 0
+
+    }
+
+    # retention policy (non-default)
+    retention_policy {
+      days_to_keep     = 14
+      releases_to_keep = 5
+      retain_build     = false
+
+    }
+
+    # pre_deploy_approval with non-default approval_options
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+      approval_options {
+        release_creator_can_be_approver                                 = true
+        enforce_identity_revalidation                                   = false
+        timeout_in_minutes                                              = 720
+        execution_order                                                 = "beforeGates"
+        auto_triggered_and_previous_environment_approved_can_be_skipped = false
+
+      }
+
+    }
+
+    # post_deploy_approval (non-default: normally automated)
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    # pre_deployment_gates with a real ServerGate task: queryWorkItems
+    pre_deployment_gates {
+      gates_options {
+        is_enabled               = true
+        timeout                  = 60
+        sampling_interval        = 5
+        stabilization_time       = 0
+        minimum_success_duration = 0
+
+      }
+
+      gate {
+        task = [
+          {
+            name    = "Query Work Items"
+            task_id = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
+            version = "0.*"
+            enabled = true
+            inputs = {
+              queryId = betterado_workitemquery.gate_query.id
+            }
+          }
+        ]
+
+      }
+
+    }
+
+    # post_deployment_gates with the same ServerGate task
+    post_deployment_gates {
+      gates_options {
+        is_enabled               = true
+        timeout                  = 60
+        sampling_interval        = 5
+        stabilization_time       = 0
+        minimum_success_duration = 0
+
+      }
+
+      gate {
+        task = [
+          {
+            name    = "Query Work Items"
+            task_id = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
+            version = "0.*"
+            enabled = true
+            inputs = {
+              queryId = betterado_workitemquery.gate_query.id
+            }
+          }
+        ]
+
+      }
+
+    }
+
+  }
+  stages {
+    name = "Production"
+    rank = 2
+
+    condition {
+      name           = "Staging"
+      condition_type = "environmentState"
+      value          = "4"
+
+    }
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, name)
 }
@@ -1515,72 +1416,63 @@ resource "betterado_release_definition" "test" {
   name       = %[1]q
   project_id = %[2]q
 
-  stages = [
-    {
-      name = "Staging"
-      rank = 1
+  stages {
+    name = "Staging"
+    rank = 1
 
-      environment_trigger = [
-        {
-          trigger_type = "rollbackRedeploy"
-        }
-      ]
+    environment_trigger {
+      trigger_type = "rollbackRedeploy"
 
-      schedule = [
-        {
-          days_to_release = 62
-          start_hours     = 3
-          start_minutes   = 0
-          time_zone_id    = "UTC"
-        }
-      ]
+    }
 
-      properties = {
-        env = "staging"
+    schedule {
+      days_to_release = 62
+      start_hours     = 3
+      start_minutes   = 0
+      time_zone_id    = "UTC"
+
+    }
+
+    properties = {
+      env = "staging"
+    }
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
       }
 
-      deploy_phase = [
-        {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
-        }
-      ]
-
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      # ADO requires BOTH pre- and post-deploy approvals (VS402877).
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, name, fixture.ProjectID)
 }
@@ -1596,101 +1488,89 @@ resource "betterado_release_definition" "test" {
   name       = %[1]q
   project_id = %[2]q
 
-  stages = [
-    {
-      name = "Staging"
-      rank = 1
+  stages {
+    name = "Staging"
+    rank = 1
 
-      deploy_phase = [
-        {
-          name       = "Agentless job"
-          rank       = 1
-          phase_type = "runOnServer"
+    deploy_phase {
+      name       = "Agentless job"
+      rank       = 1
+      phase_type = "runOnServer"
 
-          deployment_input = [
-            {
-              timeout_in_minutes            = 0
-              job_cancel_timeout_in_minutes = 1
-              condition                     = "succeeded()"
-            }
-          ]
-        }
-      ]
+      deployment_input {
+        timeout_in_minutes            = 0
+        job_cancel_timeout_in_minutes = 1
+        condition                     = "succeeded()"
 
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
+      }
 
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-
-          approval_options = [
-            {
-              release_creator_can_be_approver                                 = false
-              enforce_identity_revalidation                                   = false
-              timeout_in_minutes                                              = 1440
-              execution_order                                                 = "beforeGates"
-              auto_triggered_and_previous_environment_approved_can_be_skipped = false
-            }
-          ]
-        }
-      ]
-
-      # ADO requires BOTH pre- and post-deploy approvals (VS402877).
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      pre_deployment_gates = [
-        {
-          gates_options = [
-            {
-              is_enabled               = true
-              timeout                  = 600
-              sampling_interval        = 60
-              stabilization_time       = 0
-              minimum_success_duration = 0
-            }
-          ]
-
-          gate = [
-            {
-              task = [
-                {
-                  name    = "Query Work Items"
-                  task_id = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
-                  version = "0.*"
-                  enabled = true
-                  inputs = {
-                    queryId = %[3]q
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+      approval_options {
+        release_creator_can_be_approver                                 = false
+        enforce_identity_revalidation                                   = false
+        timeout_in_minutes                                              = 1440
+        execution_order                                                 = "beforeGates"
+        auto_triggered_and_previous_environment_approved_can_be_skipped = false
+
+      }
+
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    pre_deployment_gates {
+      gates_options {
+        is_enabled               = true
+        timeout                  = 600
+        sampling_interval        = 60
+        stabilization_time       = 0
+        minimum_success_duration = 0
+
+      }
+
+      gate {
+        task = [
+          {
+            name    = "Query Work Items"
+            task_id = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
+            version = "0.*"
+            enabled = true
+            inputs = {
+              queryId = %[3]q
+            }
+          }
+        ]
+
+      }
+
+    }
+
+  }
 }
 `, name, fixture.ProjectID, fixture.WorkItemQueryID)
 }
@@ -1787,54 +1667,47 @@ resource "betterado_release_definition" "test" {
     }
   }
 
-  stages = [
-    {
-      name = "Production"
-      rank = 1
+  stages {
+    name = "Production"
+    rank = 1
 
-      # runOnServer phase — no real agent queue needed for this focused trigger test.
-      deploy_phase = [
-        {
-          name       = "Agentless job"
-          rank       = 1
-          phase_type = "runOnServer"
-        }
-      ]
+    # runOnServer phase — no real agent queue needed for this focused trigger test.
+    deploy_phase {
+      name       = "Agentless job"
+      rank       = 1
+      phase_type = "runOnServer"
 
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      # ADO VS402877: both pre- and post-deploy approvals are mandatory.
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    # ADO VS402877: both pre- and post-deploy approvals are mandatory.
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, name, fixture.ProjectID, fixture.BuildDefinitionID)
 }
@@ -1944,53 +1817,46 @@ resource "betterado_release_definition" "test" {
   project_id  = %[2]q
   description = "base-description"
 
-  stages = [
-    {
-      name = "Staging"
-      rank = 1
+  stages {
+    name = "Staging"
+    rank = 1
 
-      deploy_phase = [
-        {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
-        }
-      ]
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
 
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      # ADO requires BOTH pre- and post-deploy approvals (VS402877).
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, name, fixture.ProjectID)
 }
@@ -2011,99 +1877,86 @@ resource "betterado_release_definition" "test" {
   project_id  = %[2]q
   description = "updated-description"
 
-  stages = [
-    {
-      name = "Staging"
-      rank = 1
+  stages {
+    name = "Staging"
+    rank = 1
 
-      deploy_phase = [
-        {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
-        }
-      ]
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
 
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      # ADO requires BOTH pre- and post-deploy approvals (VS402877).
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-    },
-
-    {
-      name = "Production"
-      rank = 2
-
-      deploy_phase = [
-        {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
-        }
-      ]
-
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      # ADO requires BOTH pre- and post-deploy approvals (VS402877).
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
+  stages {
+    name = "Production"
+    rank = 2
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, name, fixture.ProjectID)
 }
@@ -2250,94 +2103,83 @@ resource "betterado_release_definition" "test" {
     }
   }
 
-  stages = [
-    {
-      name = "Staging"
-      rank = 1
+  stages {
+    name = "Staging"
+    rank = 1
 
-      # ADO requires an "event" condition on the stage when environment_trigger
-      # is combined with a cd_artifact_trigger (schedules release creation event).
-      condition = [
-        {
-          name           = "ReleaseStarted"
-          condition_type = "event"
-          value          = ""
-        }
-      ]
+    # ADO requires an "event" condition on the stage when environment_trigger
+    # is combined with a cd_artifact_trigger (schedules release creation event).
+    condition {
+      name           = "ReleaseStarted"
+      condition_type = "event"
+      value          = ""
 
-      # environment_trigger (PR #18): re-deploy on rollback.
-      environment_trigger = [
-        {
-          trigger_type = "rollbackRedeploy"
-        }
-      ]
+    }
 
-      # schedule (PR #18): weekday releases at 03:00 UTC.
-      schedule = [
-        {
-          days_to_release = 62
-          start_hours     = 3
-          start_minutes   = 0
-          time_zone_id    = "UTC"
-        }
-      ]
+    # environment_trigger (PR #18): re-deploy on rollback.
+    environment_trigger {
+      trigger_type = "rollbackRedeploy"
 
-      # properties (PR #18): arbitrary key-value metadata.
-      properties = {
-        env = "staging"
+    }
+
+    # schedule (PR #18): weekday releases at 03:00 UTC.
+    schedule {
+      days_to_release = 62
+      start_hours     = 3
+      start_minutes   = 0
+      time_zone_id    = "UTC"
+
+    }
+
+    # properties (PR #18): arbitrary key-value metadata.
+    properties = {
+      env = "staging"
+    }
+
+    # runOnServer phase — no real agent queue required for this combined test.
+    deploy_phase {
+      name       = "Agentless job"
+      rank       = 1
+      phase_type = "runOnServer"
+
+      deployment_input {
+        timeout_in_minutes            = 0
+        job_cancel_timeout_in_minutes = 1
+        condition                     = "succeeded()"
+
       }
 
-      # runOnServer phase — no real agent queue required for this combined test.
-      deploy_phase = [
-        {
-          name       = "Agentless job"
-          rank       = 1
-          phase_type = "runOnServer"
-
-          deployment_input = [
-            {
-              timeout_in_minutes            = 0
-              job_cancel_timeout_in_minutes = 1
-              condition                     = "succeeded()"
-            }
-          ]
-        }
-      ]
-
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      # ADO VS402877: both pre- and post-deploy approvals are mandatory.
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    # ADO VS402877: both pre- and post-deploy approvals are mandatory.
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, name, fixture.ProjectID, fixture.BuildDefinitionID)
 }
@@ -2415,74 +2257,66 @@ resource "betterado_release_definition" "test" {
   name       = %[1]q
   project_id = %[2]q
 
-  stages = [
-    {
-      name = "Production"
-      rank = 1
+  stages {
+    name = "Production"
+    rank = 1
 
-      deploy_phase = [
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+
+      deployment_input {
+        override_inputs = {
+          SCRIPT = "./deploy.sh"
+        }
+
+      }
+
+      workflow_task = [
         {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
+          name                        = "Run script"
+          task_id                     = "d9bafed4-0b18-4f58-968d-86655b4d2ce9"
+          version                     = "2.*"
+          timeout_in_minutes          = 15
+          retry_count_on_task_failure = 2
 
-          deployment_input = [
-            {
-              override_inputs = {
-                SCRIPT = "./deploy.sh"
-              }
-            }
-          ]
-
-          workflow_task = [
-            {
-              name                        = "Run script"
-              task_id                     = "d9bafed4-0b18-4f58-968d-86655b4d2ce9"
-              version                     = "2.*"
-              timeout_in_minutes          = 15
-              retry_count_on_task_failure = 2
-
-              inputs = {
-                script = "echo deploy"
-              }
-            }
-          ]
+          inputs = {
+            script = "echo deploy"
+          }
         }
       ]
 
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, name, fixture.ProjectID)
 }
@@ -2493,60 +2327,53 @@ resource "betterado_release_definition" "test" {
   name       = %[1]q
   project_id = %[2]q
 
-  stages = [
-    {
-      name = "Production"
-      rank = 1
+  stages {
+    name = "Production"
+    rank = 1
 
-      variable = [
-        {
-          name      = "ENV_SECRET"
-          value     = "env-super-secret"
-          is_secret = true
-        }
-      ]
+    variable = [
+      {
+        name      = "ENV_SECRET"
+        value     = "env-super-secret"
+        is_secret = true
+      }
+    ]
 
-      deploy_phase = [
-        {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
-        }
-      ]
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
 
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
     }
-  ]
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
 }
 `, name, fixture.ProjectID)
 }
