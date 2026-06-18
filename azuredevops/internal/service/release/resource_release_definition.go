@@ -2555,11 +2555,12 @@ func flattenWorkflowTasks(tasks []interface{}) []interface{} {
 			flat["inputs"] = inputMap
 		}
 
-		if v, ok := taskMap["timeoutInMinutes"].(int); ok {
-			flat["timeout_in_minutes"] = v
+		// JSON numbers unmarshal as float64 — assert that, not int.
+		if v, ok := taskMap["timeoutInMinutes"].(float64); ok {
+			flat["timeout_in_minutes"] = int(v)
 		}
-		if v, ok := taskMap["retryCountOnTaskFailure"].(int); ok {
-			flat["retry_count_on_task_failure"] = v
+		if v, ok := taskMap["retryCountOnTaskFailure"].(float64); ok {
+			flat["retry_count_on_task_failure"] = int(v)
 		}
 
 		result = append(result, flat)
@@ -2730,13 +2731,16 @@ func expandTriggers(input []interface{}) []interface{} {
 				continue
 			}
 			ct := raw.(map[string]interface{})
-			cond := map[string]interface{}{
-				"artifactAlias": ct["artifact_alias"].(string),
-				"label":         ct["label"].(string),
-			}
+			// ADO ContainerImageTrigger = { triggerType, alias, tagFilters[] } —
+			// NOT the artifactSource trigger's artifactAlias/triggerConditions shape.
 			trigEntry := map[string]interface{}{
-				"triggerType":       "containerImage",
-				"triggerConditions": []interface{}{cond},
+				"triggerType": "containerImage",
+				"alias":       ct["artifact_alias"].(string),
+			}
+			if label, _ := ct["label"].(string); label != "" {
+				trigEntry["tagFilters"] = []interface{}{
+					map[string]interface{}{"pattern": label},
+				}
 			}
 			result = append(result, trigEntry)
 		}
@@ -2903,18 +2907,18 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 			sourceRepoTriggers = append(sourceRepoTriggers, srt)
 
 		case "containerImage":
-			if tc, ok := trigMap["triggerConditions"].([]interface{}); ok {
-				for _, rawCond := range tc {
-					if cMap, ok := rawCond.(map[string]interface{}); ok {
-						alias, _ := cMap["artifactAlias"].(string)
-						label, _ := cMap["label"].(string)
-						containerImageTriggers = append(containerImageTriggers, map[string]interface{}{
-							"artifact_alias": alias,
-							"label":          label,
-						})
-					}
+			// ContainerImageTrigger = { alias, tagFilters[].pattern }.
+			alias, _ := trigMap["alias"].(string)
+			label := ""
+			if tfs, ok := trigMap["tagFilters"].([]interface{}); ok && len(tfs) > 0 {
+				if tf, ok := tfs[0].(map[string]interface{}); ok {
+					label, _ = tf["pattern"].(string)
 				}
 			}
+			containerImageTriggers = append(containerImageTriggers, map[string]interface{}{
+				"artifact_alias": alias,
+				"label":          label,
+			})
 		}
 	}
 
