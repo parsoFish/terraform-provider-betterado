@@ -392,3 +392,120 @@ func TestTaskGroup_Delete_SurfacesAPIError(t *testing.T) {
 	require.NotEmpty(t, diags)
 	require.Contains(t, diags[0].Summary, "DeleteTaskGroup() Failed")
 }
+
+// ── 6. icon_url round-trip ─────────────────────────────────────────────────
+
+// TestTaskGroup_ExpandFlatten_IconUrl verifies that icon_url is round-trippable:
+// expandTaskGroupCreate produces a non-nil IconUrl from state, and flattenTaskGroup
+// writes IconUrl back to state.
+func TestTaskGroup_ExpandFlatten_IconUrl(t *testing.T) {
+	iconURL := "https://example.com/icon.png"
+
+	resourceData := schema.TestResourceDataRaw(t, ResourceTaskGroup().Schema, map[string]interface{}{
+		"project_id":           testTaskGroupProjectID.String(),
+		"name":                 "MyTaskGroup",
+		"friendly_name":        "My Task Group",
+		"category":             "Build",
+		"description":          "",
+		"author":               "",
+		"icon_url":             iconURL,
+		"instance_name_format": "",
+		"runs_on":              []interface{}{},
+		"version": []interface{}{
+			map[string]interface{}{
+				"major":   1,
+				"minor":   0,
+				"patch":   0,
+				"is_test": false,
+			},
+		},
+		"input": []interface{}{},
+		"task": []interface{}{
+			map[string]interface{}{
+				"display_name":                "Run Script",
+				"task_id":                     testTaskStepTaskID.String(),
+				"task_version":                "1.*",
+				"task_definition_type":        "task",
+				"enabled":                     true,
+				"always_run":                  false,
+				"continue_on_error":           false,
+				"condition":                   "succeeded()",
+				"timeout_in_minutes":          0,
+				"retry_count_on_task_failure": 0,
+				"inputs":                      map[string]interface{}{},
+				"environment":                 map[string]interface{}{},
+			},
+		},
+		"revision":        0,
+		"definition_type": "",
+	})
+
+	// Expand: icon_url in state → IconUrl in API struct
+	result := expandTaskGroupCreate(resourceData)
+	require.NotNil(t, result)
+	require.NotNil(t, result.IconUrl, "expandTaskGroupCreate must set IconUrl when icon_url is non-empty")
+	require.Equal(t, iconURL, *result.IconUrl)
+
+	// Flatten: IconUrl in API struct → icon_url in state
+	tgWithIcon := testTaskGroup
+	tgWithIcon.IconUrl = converter.String(iconURL)
+	flattenTaskGroup(resourceData, &tgWithIcon)
+	require.Equal(t, iconURL, resourceData.Get("icon_url").(string))
+}
+
+// ── 7. input extended fields round-trip ────────────────────────────────────
+
+// TestTaskGroup_ExpandFlatten_InputExtendedFields verifies that visible_rule,
+// properties, and aliases in an input block are round-trippable through
+// expandTaskInputs and flattenTaskInputs.
+func TestTaskGroup_ExpandFlatten_InputExtendedFields(t *testing.T) {
+	visibleRule := "targetType = filePath"
+	propKey := "key"
+	propVal := "val"
+	alias := "alt_name"
+
+	inputRaw := []interface{}{
+		map[string]interface{}{
+			"name":          "myInput",
+			"label":         "My Input",
+			"type":          "string",
+			"default_value": "",
+			"required":      false,
+			"help_markdown": "",
+			"group_name":    "",
+			"options":       map[string]interface{}{},
+			"visible_rule":  visibleRule,
+			"properties":    map[string]interface{}{propKey: propVal},
+			"aliases":       []interface{}{alias},
+		},
+	}
+
+	// Expand: extended fields in raw map → SDK struct fields
+	expanded := expandTaskInputs(inputRaw)
+	require.Len(t, expanded, 1)
+
+	inp := expanded[0]
+	require.NotNil(t, inp.VisibleRule, "expandTaskInputs must set VisibleRule")
+	require.Equal(t, visibleRule, *inp.VisibleRule)
+
+	require.NotNil(t, inp.Properties, "expandTaskInputs must set Properties")
+	require.Equal(t, propVal, (*inp.Properties)[propKey])
+
+	require.NotNil(t, inp.Aliases, "expandTaskInputs must set Aliases")
+	require.Len(t, *inp.Aliases, 1)
+	require.Equal(t, alias, (*inp.Aliases)[0])
+
+	// Flatten: SDK struct → map, assert extended fields come back
+	flattened := flattenTaskInputs(&[]taskagent.TaskInputDefinition{inp})
+	require.Len(t, flattened, 1)
+
+	m := flattened[0].(map[string]interface{})
+	require.Equal(t, visibleRule, m["visible_rule"].(string))
+
+	props := m["properties"].(map[string]string)
+	require.Equal(t, propVal, props[propKey])
+
+	aliases := m["aliases"].([]string)
+	require.Len(t, aliases, 1)
+	require.Equal(t, alias, aliases[0])
+}
