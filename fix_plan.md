@@ -14,6 +14,11 @@
 - [x] AC5: GIVEN docs/release-definition-gap-matrix.md WHEN it is refreshed after this cycle THEN container_image_trigger row is marked 'mapped' and all 8 previously-writable gaps are marked 'mapped'
   - Done in iteration 1 (commit 6cedfd8d). All 8 writable gaps now 'mapped' in matrix.
 
+## Iteration 2 (2026-06-17)
+
+- Fixed terrafmt alignment issue in `hclReleaseDefinitionBlockSyntax` fixture (commit 3dd9975b).
+- All offline quality gates now pass: gofmt ✓, go build ✓, go vet ✓, terrafmt-check ✓, acceptance test package compiles ✓.
+
 ## Remaining
 
 - AC1, AC2, AC3: live gate run against real ADO (TF_ACC=1). The orchestrator will run these via quality_gate_cmd. No further code changes needed.

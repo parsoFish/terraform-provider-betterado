@@ -25,10 +25,19 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - `SharedFixtureResult.BuildDefinitionID` (int) works as `%[3]d` in fmt.Sprintf for the HCL tostring() call.
 - The Edit tool fails with tab-vs-space mismatches; use Python for tricky replacements in Go files.
 - Running `go build ./... && go vet ./... && gofmt -l` is the right CI-equivalent offline check.
+- **ALWAYS run `terrafmt-check` (`./scripts/terrafmt.sh`)** — it's a separate gate from gofmt that checks HCL alignment inside `_test.go` files. Use `terrafmt fmt -f <file>` to auto-fix. Run over all test files: `find azuredevops -name "_test.go" | sort | while read f; do terrafmt fmt -f "$f"; done`.
 
 ## What didn't work
 
 - Edit tool string matching failed (space vs tab) — had to use Python replace instead.
+
+### Iteration 2 (2026-06-17)
+
+- Discovered terrafmt check was failing on `hclReleaseDefinitionBlockSyntax` (around line 658) — HCL attribute alignment was off.
+- Fixed by running `terrafmt fmt -f ./azuredevops/internal/acceptancetests/resource_release_definition_test.go`.
+- Also ran terrafmt on ALL test files in the tree — only the one file needed fixing.
+- All offline gates now pass: gofmt ✓, go build ✓, go vet ✓, terrafmt-check ✓, acceptance package compiles ✓.
+- Committed as `3dd9975b`.
 
 ## Open questions
 
