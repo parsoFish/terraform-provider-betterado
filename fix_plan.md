@@ -33,6 +33,12 @@
 - Orientation only — all offline gates confirmed clean again. Working tree clean. No new commits needed.
 - All 5 ACs checked off; awaiting orchestrator live gate run (TF_ACC=1).
 
+## Iteration 5 (2026-06-17)
+
+- Orientation only — all 5 ACs confirmed complete. All offline gates re-verified clean.
+- Iteration budget exhausted (5/5). No new commits needed.
+
 ## Remaining
 
 - AC1, AC2, AC3, AC4: live gate run against real ADO (TF_ACC=1). The orchestrator runs these via quality_gate_cmd. No further code changes needed — all offline gates pass.
+- Iteration budget is exhausted. The orchestrator must now evaluate the live gate result.
