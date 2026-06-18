@@ -29,7 +29,7 @@ terraform {
   required_providers {
     betterado = {
       source  = "parsoFish/betterado"
-      version = "~> 0.1.0"
+      version = ">= 0.2.0"
     }
   }
 }
@@ -205,13 +205,13 @@ resource "betterado_release_definition" "example" {
   variable {
     name           = "DeployTimeout"
     value          = "300"
-    allow_override = true          # can be changed at release time
+    allow_override = true # can be changed at release time
   }
 
   variable {
     name      = "SigningKey"
     value     = "demo-signing-key"
-    is_secret = true               # masked in logs and API reads
+    is_secret = true # masked in logs and API reads
   }
 
   # ── Artifact: links to the CI build pipeline ───────────────────────────────
@@ -230,7 +230,7 @@ resource "betterado_release_definition" "example" {
   # ═══════════════════════════════════════════════════════════════════════════
   # Environment 1: Dev — fully automated, fast feedback loop
   # ═══════════════════════════════════════════════════════════════════════════
-  environment {
+  stages {
     name = "Dev"
     rank = 1
 
@@ -248,10 +248,10 @@ resource "betterado_release_definition" "example" {
       }
 
       approval_options {
-        release_creator_can_be_approver                                = false
-        enforce_identity_revalidation                                  = false
-        timeout_in_minutes                                             = 0
-        execution_order                                                = "beforeGates"
+        release_creator_can_be_approver                                 = false
+        enforce_identity_revalidation                                   = false
+        timeout_in_minutes                                              = 0
+        execution_order                                                 = "beforeGates"
         auto_triggered_and_previous_environment_approved_can_be_skipped = false
       }
     }
@@ -329,7 +329,7 @@ resource "betterado_release_definition" "example" {
   # ═══════════════════════════════════════════════════════════════════════════
   # Environment 2: Staging — depends on Dev, multi-step pipeline, demands
   # ═══════════════════════════════════════════════════════════════════════════
-  environment {
+  stages {
     name = "Staging"
     rank = 2
 
@@ -450,7 +450,7 @@ resource "betterado_release_definition" "example" {
   # ═══════════════════════════════════════════════════════════════════════════
   # Environment 3: Production — human approval, strict retention, secrets
   # ═══════════════════════════════════════════════════════════════════════════
-  environment {
+  stages {
     name = "Production"
     rank = 3
 
@@ -485,10 +485,10 @@ resource "betterado_release_definition" "example" {
       }
 
       approval_options {
-        release_creator_can_be_approver                                = true
-        enforce_identity_revalidation                                  = true
-        timeout_in_minutes                                             = 1440
-        execution_order                                                = "beforeGates"
+        release_creator_can_be_approver                                 = true
+        enforce_identity_revalidation                                   = true
+        timeout_in_minutes                                              = 1440
+        execution_order                                                 = "beforeGates"
         auto_triggered_and_previous_environment_approved_can_be_skipped = false
       }
     }

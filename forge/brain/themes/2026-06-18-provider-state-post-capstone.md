@@ -16,14 +16,13 @@ Net-new surface, all live-proven against real ADO and documented in the registry
   `container_image_trigger`, artifact-tag triggers, `createReleaseOnBuildTagging`,
   schedule + source-repo triggers, `environment_trigger`. 8/8 writable gaps closed.
 - **`betterado_release_folder`** — reviewed → confirmed complete (both writable fields).
-- **`betterado_release_definition_permissions`** — ACL bits on a pipeline. Four
-  are **live-proven** by the acceptance suite (`ViewReleases`,
-  `EditReleaseEnvironment`, `DeleteReleases`, `CreateReleases`); the ReleaseManagement
-  namespace exposes more actions, untested (keys are validated by ADO at apply,
-  not the schema). NOTE: `docs/release-definition-permissions-gap-matrix.md` + the
-  legacy permissions example use a DIFFERENT name set (`ViewReleasePipeline`,
-  `ManageReleasesSettings`, `QueueRelease`…) — a doc/code inconsistency to reconcile
-  against the live namespace.
+- **`betterado_release_definition_permissions`** — **all 13** writable
+  ReleaseManagement ACL bits, keyed by the namespace's real action names
+  (`ViewReleaseDefinition`, `EditReleaseDefinition`, `ManageReleaseSettings`,
+  `ManageReleases`, `ViewReleases`, …). All applied + idempotent in `demo/standing/`
+  (2026-06-19). The gap matrix + the legacy example previously listed fabricated
+  names (`ViewReleasePipeline`, `QueueRelease`…) — corrected against the live
+  `GET _apis/securitynamespaces` (namespace c788c23e-…).
 - **`betterado_task_group`** — incl. input metadata: `icon_url`, `visible_rule`,
   `properties`, `aliases`.
 - Data sources: release_definition (+ history, revision, list), release_folder, task_group.

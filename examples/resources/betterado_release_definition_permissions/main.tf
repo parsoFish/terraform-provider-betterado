@@ -10,7 +10,7 @@ resource "betterado_release_definition" "example" {
   project_id = betterado_project.example.id
   name       = "ExamplePipeline"
 
-  environment {
+  stages {
     name = "Production"
     rank = 1
 
@@ -54,18 +54,20 @@ resource "betterado_release_definition_permissions" "example" {
   principal             = data.betterado_group.readers.id
   release_definition_id = betterado_release_definition.example.id
 
+  # Keyed by the ReleaseManagement namespace action names (validated by ADO at apply).
   permissions = {
-    ViewReleases                 = "Allow"
-    EditReleaseEnvironment       = "Deny"
-    DeleteReleases               = "Deny"
-    ManageReleasesSettings       = "Allow"
-    ViewReleasePipeline          = "Allow"
-    EditReleasePipeline          = "Allow"
-    DeleteReleasePipeline        = "Deny"
+    ViewReleaseDefinition        = "Allow"
+    EditReleaseDefinition        = "Allow"
+    DeleteReleaseDefinition      = "Deny"
     ManageReleaseApprovers       = "NotSet"
+    ManageReleases               = "Allow"
+    ViewReleases                 = "Allow"
     CreateReleases               = "Allow"
-    QueueRelease                 = "Allow"
+    EditReleaseEnvironment       = "Deny"
+    DeleteReleaseEnvironment     = "Deny"
     AdministerReleasePermissions = "Deny"
+    DeleteReleases               = "Deny"
     ManageDeployments            = "Allow"
+    ManageReleaseSettings        = "Allow"
   }
 }

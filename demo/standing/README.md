@@ -15,7 +15,7 @@ be left deployed for review.
 |---|---|---|
 | `release-definition.tf` | `betterado_release_definition` | **`stages`** (the rename from `environment`); the full `triggers` block — `cd_artifact_trigger` (branch + tag filters, `create_release_on_build_tagging`), `schedule_trigger`, `source_repo_trigger`, **`container_image_trigger`**; `workflow_task` **`timeout_in_minutes` + `retry_count_on_task_failure`**; pre/post **`*_deployment_gates`**; `deployment_input` **`override_inputs` + `parallel_execution`**; **`environment_trigger`**; approvals + `approval_options`, conditions, variables, env options, execution + retention policy |
 | `release-folder.tf` | `betterado_release_folder` | both writable fields (`path`, `description`) |
-| `permissions.tf` | `betterado_release_definition_permissions` | the four **live-proven** ACL keys (`ViewReleases`, `EditReleaseEnvironment`, `DeleteReleases`, `CreateReleases`) |
+| `permissions.tf` | `betterado_release_definition_permissions` | **all 13** writable ReleaseManagement ACL keys (real action names) — applied + idempotent |
 | `task-group.tf` | `betterado_task_group` | `icon_url` + input metadata: `visible_rule`, `properties`, `aliases`, `group_name` |
 | `data-sources.tf` | data sources | read-back of the definition, folder, and task group |
 

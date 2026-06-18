@@ -71,10 +71,10 @@ workflow_task {
   options; policies; artifacts; triggers; variables + groups). The demo sets a
   non-default value on essentially every field.
 - **`betterado_release_folder`** — organises pipelines into a folder tree.
-- **`betterado_release_definition_permissions`** — ACL bits on the pipeline. The
-  demo sets the four keys the live acceptance suite verifies (`ViewReleases`,
-  `EditReleaseEnvironment`, `DeleteReleases`, `CreateReleases`); the namespace
-  exposes more actions, added here only once a live test covers them.
+- **`betterado_release_definition_permissions`** — **all 13** writable bits of the
+  ReleaseManagement namespace, keyed by the real action names (`ViewReleaseDefinition`,
+  `ManageReleaseSettings`, `ManageReleases`, …). Applied and idempotent in the standing
+  demo — every key round-trips.
 - **`betterado_task_group`** — reusable steps, with the v0.2.0 input metadata
   (`icon_url`, `visible_rule`, `properties`, `aliases`).
 

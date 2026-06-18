@@ -58,7 +58,7 @@ resource "betterado_release_definition" "app" {
   name       = "app-release"
   project_id = var.project_id
 
-  environment {
+  stages {
     name = "Production"
     rank = 1
 
