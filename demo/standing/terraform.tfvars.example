@@ -1,0 +1,11 @@
+# Copy to terraform.tfvars and fill in real values from your Azure DevOps org.
+# (terraform.tfvars is gitignored — never commit real org values.)
+
+ado_org_url             = "https://dev.azure.com/your-org"
+ado_pat                 = "your-personal-access-token" # Release read/write/manage
+project_id              = "00000000-0000-0000-0000-000000000000"
+project_name            = "YourProject"
+queue_id                = 1   # an agent pool queue in the project
+build_definition_id     = 1   # an existing build pipeline that emits the artifact
+approver_id             = "00000000-0000-0000-0000-000000000000" # a real user/group
+permission_principal_id = "00000000-0000-0000-0000-000000000000" # group/user descriptor
