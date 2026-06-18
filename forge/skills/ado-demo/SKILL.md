@@ -129,9 +129,16 @@ resource ON THE DEMO PAGE, never by asking for the resources to be re-stood-up:
   `GET /_apis/distributedtask/tasks` (filter `runsOn` = `Server` for agentless).
   (INIT-1 wasted two apply attempts guessing a Delay task GUID/version.)
 
-If creds are absent (CI without the PAT), the live tier is skipped and the demo
-degrades to the offline gomock floor — **state that explicitly in `essence`**;
-never fabricate a screenshot or claim a live pass that didn't run.
+Branch the `essence` text on whether the live tier actually ran:
+
+- **Creds present (the normal cycle)** — the acceptance test ran live. `essence`
+  MUST describe the live apply → API GET round-trip → idempotency re-plan → clean
+  destroy and reference the captured REST evidence. It MUST NOT say "offline
+  floor", "gomock floor", or "TF_ACC skipped" — the live tier was NOT skipped.
+- **Creds absent (CI without the PAT)** — only then is the live tier skipped and
+  the demo degrades to the offline gomock floor; state THAT explicitly in `essence`.
+
+Never fabricate a screenshot or claim a live pass that didn't run.
 
 ## Workflow
 
