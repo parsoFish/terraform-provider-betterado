@@ -27,61 +27,45 @@ resource "betterado_release_definition" "example" {
     is_secret = true
   }
 
-  stages = [
-    {
-      name = "Production"
-      rank = 1
+  stages {
+    name = "Production"
+    rank = 1
 
-      # Stage-scoped secret (round-trips cleanly).
-      variable = [
-        {
-          name      = "DEPLOY_TOKEN"
-          value     = "replace-me"
-          is_secret = true
-        }
-      ]
-
-      deploy_phase = [
-        {
-          name       = "Agent job"
-          rank       = 1
-          phase_type = "agentBasedDeployment"
-        }
-      ]
-
-      retention_policy = [
-        {
-          days_to_keep     = 30
-          releases_to_keep = 3
-          retain_build     = true
-        }
-      ]
-
-      # ADO requires both pre- and post-deploy approval blocks (VS402877).
-      pre_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
-      post_deploy_approval = [
-        {
-          approver = [
-            {
-              id           = "00000000-0000-0000-0000-000000000000"
-              is_automated = true
-              rank         = 1
-            }
-          ]
-        }
-      ]
+    # Stage-scoped secret (round-trips cleanly).
+    variable {
+      name      = "DEPLOY_TOKEN"
+      value     = "replace-me"
+      is_secret = true
     }
-  ]
+
+    deploy_phase {
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }
+
+    # ADO requires both pre- and post-deploy approval blocks (VS402877).
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }
+    }
+  }
 }
 
 variable "project_id" {

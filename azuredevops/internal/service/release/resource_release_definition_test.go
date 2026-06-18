@@ -2920,51 +2920,102 @@ func TestReleaseDefinition_SourceRepoTrigger_RoundTrip(t *testing.T) {
 	require.Equal(t, branchFilter, bfFlat[0], "AC2: branch_filters[0] must round-trip correctly")
 }
 
-// ── WI-2: StagesSchemaConfigMode ──────────────────────────────────────────
+// ── 25. ContainerImageTrigger expand/flatten round-trip ───────────────────
 
-// TestReleaseDefinition_StagesSchemaConfigMode verifies that the stages TypeList
-// and its key sub-block TypeList entries (deploy_phase, retention_policy) all carry
-// ConfigMode: schema.SchemaConfigModeAttr, enabling array/attribute HCL syntax.
-//
-// AC1: this test MUST fail on the unmodified (WI-1-only) schema because stages has no
-// ConfigMode set.  AC3: after this WI's schema changes the test must pass (exit 0).
-func TestReleaseDefinition_StagesSchemaConfigMode(t *testing.T) {
-	s := ResourceReleaseDefinition().Schema
+// TestReleaseDefinition_ContainerImageTrigger_ExpandFlatten verifies that a
+// container_image_trigger block (AC1 + AC2) round-trips correctly through
+// expandReleaseDefinition → flattenReleaseDefinition.
+func TestReleaseDefinition_ContainerImageTrigger_ExpandFlatten(t *testing.T) {
+	artifactAlias := "_myImage"
+	label := "v1.2.3"
 
-	// ── AC1 / AC3: stages itself
-	stagesEntry, ok := s["stages"]
-	if !ok {
-		t.Fatal("schema key 'stages' not found in ResourceReleaseDefinition().Schema")
-	}
-	if stagesEntry.ConfigMode != schema.SchemaConfigModeAttr {
-		t.Errorf("stages.ConfigMode = %v; want schema.SchemaConfigModeAttr (%v)",
-			stagesEntry.ConfigMode, schema.SchemaConfigModeAttr)
-	}
+	resourceData := schema.TestResourceDataRaw(t, ResourceReleaseDefinition().Schema, map[string]interface{}{
+		"project_id":          testReleaseDefinitionProjectID.String(),
+		"name":                "ContainerImageTriggerDef",
+		"path":                "\\",
+		"description":         "",
+		"release_name_format": "Release-$(rev:r)",
+		"revision":            0,
+		"variable":            []interface{}{},
+		"variable_groups":     []interface{}{},
+		"tags":                []interface{}{},
+		"stages": []interface{}{
+			map[string]interface{}{
+				"id":                   0,
+				"name":                 "Production",
+				"rank":                 1,
+				"owner":                "",
+				"variable":             []interface{}{},
+				"variable_groups":      []interface{}{},
+				"condition":            []interface{}{},
+				"pre_deploy_approval":  []interface{}{},
+				"post_deploy_approval": []interface{}{},
+				"deploy_phase": []interface{}{
+					map[string]interface{}{
+						"name":             "Agent phase",
+						"rank":             1,
+						"phase_type":       "agentBasedDeployment",
+						"deployment_input": []interface{}{},
+						"workflow_task":    []interface{}{},
+					},
+				},
+				"retention_policy":    []interface{}{},
+				"environment_options": []interface{}{},
+				"execution_policy":    []interface{}{},
+			},
+		},
+		"artifact": []interface{}{},
+		"triggers": []interface{}{
+			map[string]interface{}{
+				"cd_artifact_trigger": []interface{}{},
+				"schedule_trigger":    []interface{}{},
+				"source_repo_trigger": []interface{}{},
+				"container_image_trigger": []interface{}{
+					map[string]interface{}{
+						"artifact_alias": artifactAlias,
+						"label":          label,
+					},
+				},
+			},
+		},
+	})
 
-	// Dig into stages Elem to find deploy_phase and retention_policy
-	stagesResource, ok := stagesEntry.Elem.(*schema.Resource)
-	if !ok {
-		t.Fatal("stages.Elem is not *schema.Resource")
-	}
-	stagesSchema := stagesResource.Schema
+	// AC1 (expand): expandReleaseDefinition must produce one containerImage trigger
+	expanded, _, err := expandReleaseDefinition(resourceData)
+	require.NoError(t, err)
+	require.NotNil(t, expanded.Triggers)
+	require.Len(t, *expanded.Triggers, 1, "AC1: Triggers slice must have exactly one entry")
 
-	// ── deploy_phase
-	deployPhaseEntry, ok := stagesSchema["deploy_phase"]
-	if !ok {
-		t.Fatal("schema key 'deploy_phase' not found inside stages.Elem.Schema")
-	}
-	if deployPhaseEntry.ConfigMode != schema.SchemaConfigModeAttr {
-		t.Errorf("stages.deploy_phase.ConfigMode = %v; want schema.SchemaConfigModeAttr (%v)",
-			deployPhaseEntry.ConfigMode, schema.SchemaConfigModeAttr)
-	}
+	trigRaw := (*expanded.Triggers)[0]
+	trigMap, ok := trigRaw.(map[string]interface{})
+	require.True(t, ok, "AC1: trigger entry must be a map[string]interface{}")
+	require.Equal(t, "containerImage", trigMap["triggerType"], "AC1: triggerType must be containerImage")
 
-	// ── retention_policy
-	retentionPolicyEntry, ok := stagesSchema["retention_policy"]
-	if !ok {
-		t.Fatal("schema key 'retention_policy' not found inside stages.Elem.Schema")
-	}
-	if retentionPolicyEntry.ConfigMode != schema.SchemaConfigModeAttr {
-		t.Errorf("stages.retention_policy.ConfigMode = %v; want schema.SchemaConfigModeAttr (%v)",
-			retentionPolicyEntry.ConfigMode, schema.SchemaConfigModeAttr)
-	}
+	conds, ok := trigMap["triggerConditions"].([]interface{})
+	require.True(t, ok, "AC1: triggerConditions must be []interface{}")
+	require.Len(t, conds, 1, "AC1: triggerConditions must have exactly one entry")
+
+	condMap, ok := conds[0].(map[string]interface{})
+	require.True(t, ok, "AC1: triggerConditions[0] must be map[string]interface{}")
+	require.Equal(t, artifactAlias, condMap["artifactAlias"], "AC1: artifactAlias must be set correctly")
+	require.Equal(t, label, condMap["label"], "AC1: label must be set correctly")
+
+	// AC2 (flatten): flattenReleaseDefinition must round-trip container_image_trigger fields
+	expandedID := testReleaseDefinitionID
+	expanded.Id = &expandedID
+	flattenReleaseDefinition(resourceData, expanded, testReleaseDefinitionProjectID.String())
+
+	triggersRaw, ok := resourceData.GetOk("triggers")
+	require.True(t, ok, "AC2: triggers block must be present in state after flatten")
+	triggersList := triggersRaw.([]interface{})
+	require.Len(t, triggersList, 1)
+
+	trigsMap := triggersList[0].(map[string]interface{})
+	ciTriggers, ok := trigsMap["container_image_trigger"].([]interface{})
+	require.True(t, ok, "AC2: container_image_trigger must be []interface{}")
+	require.Len(t, ciTriggers, 1, "AC2: container_image_trigger must have exactly one entry")
+
+	ciMap := ciTriggers[0].(map[string]interface{})
+	require.Equal(t, artifactAlias, ciMap["artifact_alias"], "AC2: artifact_alias must round-trip correctly")
+	require.Equal(t, label, ciMap["label"], "AC2: label must round-trip correctly")
 }
