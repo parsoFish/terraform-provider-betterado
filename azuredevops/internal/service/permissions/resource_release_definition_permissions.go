@@ -136,13 +136,21 @@ func resourceReleaseDefinitionPermissionsDelete(d *schema.ResourceData, m interf
 // Examples:
 //
 //	projectID="abc123", definitionID=7  →  "abc123/7"
+//	projectID="abc123", no definitionID →  "abc123"
+//
+// NOTE: We use GetOkExists (deprecated) rather than GetOk for release_definition_id
+// because GetOk returns false for any zero value (including definitionID=0), which
+// would incorrectly produce a project-scoped token for a valid definition with ID=0.
+// GetOkExists checks only Exists && !Computed, which correctly distinguishes between
+// "field not set" and "field set to 0". See SA1019 suppression below.
 func createReleaseDefinitionToken(d *schema.ResourceData, _ *client.AggregatedClient) (string, error) {
 	projectID, ok := d.GetOk("project_id")
 	if !ok {
 		return "", fmt.Errorf("failed to get 'project_id' from schema")
 	}
 
-	releaseDefinitionID, ok := d.GetOk("release_definition_id")
+	//nolint:staticcheck // SA1019: GetOkExists is deprecated but required to distinguish unset from zero (definitionID=0 must produce "projectId/0", not "projectId")
+	releaseDefinitionID, ok := d.GetOkExists("release_definition_id")
 	if !ok {
 		// project-level token (no definition scoping)
 		return projectID.(string), nil
