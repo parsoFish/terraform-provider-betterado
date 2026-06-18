@@ -81,7 +81,7 @@ variable "project_id" {
 
 - `author` (String)
 - `description` (String)
-- `icon_url` (String) URL of the task group icon. Optional.
+- `icon_url` (String)
 - `input` (Block List) (see [below for nested schema](#nestedblock--input))
 - `instance_name_format` (String)
 - `runs_on` (List of String)
@@ -139,15 +139,15 @@ Required:
 
 Optional:
 
-- `aliases` (List of String) Alternative names for this input parameter.
+- `aliases` (List of String)
 - `default_value` (String)
 - `group_name` (String)
 - `help_markdown` (String)
 - `options` (Map of String)
-- `properties` (Map of String) Additional metadata key/value pairs for this input.
+- `properties` (Map of String)
 - `required` (Boolean)
 - `type` (String)
-- `visible_rule` (String) Conditional visibility expression (e.g. `"targetType = filePath"`).
+- `visible_rule` (String)
 
 
 <a id="nestedblock--timeouts"></a>
