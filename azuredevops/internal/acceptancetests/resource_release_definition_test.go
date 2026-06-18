@@ -40,6 +40,9 @@ func TestAccReleaseDefinition_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "stages.0.name", "Production"),
 					resource.TestCheckResourceAttr(tfNode, "stages.0.deploy_phase.#", "1"),
 					resource.TestCheckResourceAttr(tfNode, "stages.0.deploy_phase.0.name", "Agent job"),
+					// AC4/WI-5: capture live evidence (a real vsrm REST GET) before destroy
+					// so forge demo render can back-fill it into demo.json. Best-effort.
+					captureReleaseEvidence(tfNode),
 				),
 			},
 			{
@@ -2376,4 +2379,124 @@ resource "betterado_release_definition" "test" {
   }
 }
 `, name, fixture.ProjectID)
+}
+
+// TestAccReleaseDefinition_withContainerImageTrigger verifies that a
+// container_image_trigger round-trips through the ADO Release API.
+//
+// AC2/WI-5: apply succeeds, triggers.0.container_image_trigger.0.artifact_alias and
+// .label round-trip cleanly, idempotency re-plan produces no diff, destroy cleans up.
+// AC4/WI-5: captureReleaseEvidence is called while the resource is live (before destroy)
+// so .forge/live-evidence/acceptance-resource.json is written with the real vsrm REST GET URL.
+func TestAccReleaseDefinition_withContainerImageTrigger(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclReleaseDefinitionWithContainerImageTrigger(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "triggers.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "triggers.0.container_image_trigger.#", "1"),
+					resource.TestCheckResourceAttr(tfNode,
+						"triggers.0.container_image_trigger.0.artifact_alias", "_build"),
+					resource.TestCheckResourceAttr(tfNode,
+						"triggers.0.container_image_trigger.0.label", "latest"),
+					captureReleaseEvidence(tfNode),
+				),
+			},
+			{
+				Config:             hclReleaseDefinitionWithContainerImageTrigger(name, fixture),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+// hclReleaseDefinitionWithContainerImageTrigger returns HCL for a
+// betterado_release_definition that exercises the container_image_trigger block
+// inside the triggers block. The artifact alias "_build" matches the fixture's
+// build artifact alias (fixture wires a Build artifact with alias "_build").
+//
+// A runOnServer phase avoids requiring a real agent queue for this focused test.
+// Pre/post approvals (VS402877) and retention_policy (VS402982) are present.
+// Arg layout: %[1]q = name, %[2]q = fixture.ProjectID, %[3]d = fixture.BuildDefinitionID.
+func hclReleaseDefinitionWithContainerImageTrigger(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  # Build artifact — required so the container_image_trigger can reference
+  # artifact alias "_build". Uses the fixture's pre-created build definition.
+  artifact {
+    alias      = "_build"
+    type       = "Build"
+    is_primary = true
+
+    definition_reference = {
+      definition = tostring(%[3]d)
+      project    = %[2]q
+    }
+  }
+
+  # Triggers block: one container_image_trigger on the "_build" artifact alias.
+  triggers {
+    container_image_trigger {
+      artifact_alias = "_build"
+      label          = "latest"
+
+    }
+  }
+
+  stages {
+    name = "Production"
+    rank = 1
+
+    # runOnServer phase — no real agent queue required for this focused trigger test.
+    deploy_phase {
+      name       = "Agentless job"
+      rank       = 1
+      phase_type = "runOnServer"
+
+    }
+
+    retention_policy {
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+
+    }
+
+    # ADO VS402877: both pre- and post-deploy approvals are mandatory.
+    pre_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+    post_deploy_approval {
+      approver {
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+
+      }
+
+    }
+
+  }
+}
+`, name, fixture.ProjectID, fixture.BuildDefinitionID)
 }
