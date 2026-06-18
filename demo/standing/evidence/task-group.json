@@ -1,0 +1,119 @@
+{
+    "count": 1,
+    "value": [
+        {
+            "tasks": [
+                {
+                    "environment": {},
+                    "displayName": "Health check",
+                    "alwaysRun": false,
+                    "continueOnError": false,
+                    "condition": "succeeded()",
+                    "enabled": true,
+                    "timeoutInMinutes": 0,
+                    "retryCountOnTaskFailure": 0,
+                    "inputs": {
+                        "script": "Write-Host \"Health check for $(target)\"",
+                        "targetType": "inline"
+                    },
+                    "task": {
+                        "id": "e213ff0f-5d5c-4791-802d-52ea3e7be1f1",
+                        "versionSpec": "2.*",
+                        "definitionType": "task"
+                    }
+                },
+                {
+                    "environment": {},
+                    "displayName": "Run deployment",
+                    "alwaysRun": false,
+                    "continueOnError": true,
+                    "condition": "succeeded()",
+                    "enabled": true,
+                    "timeoutInMinutes": 0,
+                    "retryCountOnTaskFailure": 0,
+                    "inputs": {
+                        "script": "echo 'Deploying to $(target) (dryRun=$(dryRun))'",
+                        "targetType": "inline"
+                    },
+                    "task": {
+                        "id": "6c731c3c-3c68-459a-a5c9-bde6e6595b5b",
+                        "versionSpec": "3.*",
+                        "definitionType": "task"
+                    }
+                }
+            ],
+            "runsOn": [
+                "Agent",
+                "DeploymentGroup"
+            ],
+            "revision": 1,
+            "createdBy": {
+                "displayName": "david.g.parsonson",
+                "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+                "uniqueName": "david.g.parsonson@gmail.com"
+            },
+            "createdOn": "2026-06-18T21:52:42.437Z",
+            "modifiedBy": {
+                "displayName": "david.g.parsonson",
+                "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+                "uniqueName": "david.g.parsonson@gmail.com"
+            },
+            "modifiedOn": "2026-06-18T21:52:42.437Z",
+            "id": "3dc37e79-a0cb-4b4c-b91c-bfe8d5957dba",
+            "name": "betterado-standing-deploy-steps",
+            "version": {
+                "major": 1,
+                "minor": 0,
+                "patch": 0,
+                "isTest": false
+            },
+            "iconUrl": "https://cdn.vsassets.io/v/M183_20210324.1/_content/Header/default-avatar.png",
+            "friendlyName": "Standing Demo \u2014 Deploy Steps",
+            "description": "Reusable deployment task group managed by Terraform (standing demo)",
+            "category": "Deploy",
+            "definitionType": "metaTask",
+            "author": "platform-team",
+            "demands": [],
+            "groups": [],
+            "inputs": [
+                {
+                    "aliases": [
+                        "targetEnv",
+                        "deployTarget"
+                    ],
+                    "options": {},
+                    "properties": {
+                        "EndpointFilterRule": ""
+                    },
+                    "name": "target",
+                    "label": "Deployment Target",
+                    "defaultValue": "staging",
+                    "required": true,
+                    "type": "string",
+                    "helpMarkDown": "The environment slot to deploy to.",
+                    "visibleRule": "type = string",
+                    "groupName": "Targets"
+                },
+                {
+                    "aliases": [],
+                    "options": {},
+                    "properties": {},
+                    "name": "dryRun",
+                    "label": "Dry run",
+                    "defaultValue": "false",
+                    "type": "boolean",
+                    "helpMarkDown": "When true, print actions without applying them.",
+                    "groupName": ""
+                }
+            ],
+            "satisfies": [],
+            "sourceDefinitions": [],
+            "dataSourceBindings": [],
+            "instanceNameFormat": "Deploy: $(target)",
+            "preJobExecution": {},
+            "execution": {},
+            "postJobExecution": {},
+            "_buildConfigMapping": {}
+        }
+    ]
+}

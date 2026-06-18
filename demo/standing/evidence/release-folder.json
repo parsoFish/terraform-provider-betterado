@@ -1,0 +1,25 @@
+{
+    "count": 1,
+    "value": [
+        {
+            "path": "\\betterado-standing-demo",
+            "description": "Folder holding the standing-demo release pipelines.",
+            "createdOn": "2026-06-18T21:52:42.88Z",
+            "createdBy": {
+                "displayName": "david.g.parsonson",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+                "_links": {
+                    "avatar": {
+                        "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+                    }
+                },
+                "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+                "uniqueName": "david.g.parsonson@gmail.com",
+                "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+                "descriptor": "msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+            },
+            "lastChangedDate": "0001-01-01T00:00:00",
+            "lastChangedBy": null
+        }
+    ]
+}

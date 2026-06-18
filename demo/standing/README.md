@@ -56,10 +56,14 @@ resources **standing** for portal review; run `terraform destroy` when done.
 
 ## Validation status
 
+- **Standing live.** This config is applied and standing in the
+  `betterado-standing-demo` ADO project (release definition id 2). It applied
+  cleanly (5 resources) and the post-apply `terraform plan` is **No changes**
+  (idempotent — no perpetual diff). Captured REST evidence is in `evidence/`.
 - **Schema-valid** against the built v0.2.0 provider — `terraform validate` passes
-  with zero errors (run in CI-equivalent form with the dev build above). This is
-  the creds-free correctness gate every commit to this dir must hold.
-- **Live round-trip** of each individual feature is proven by the acceptance
-  suite (`azuredevops/internal/acceptancetests/`, `TF_ACC=1`) — apply → API GET →
-  idempotency → destroy. `refresh-evidence.sh` reproduces that for this combined
-  config and captures the evidence here.
+  with zero errors (the creds-free correctness gate every commit to this dir holds).
+- **Per-feature live round-trip** is also proven by the acceptance suite
+  (`azuredevops/internal/acceptancetests/`, `TF_ACC=1`) — apply → API GET →
+  idempotency → destroy.
+
+`prereqs.tf` creates the shared work-item query the deployment gates require.

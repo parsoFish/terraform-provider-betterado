@@ -44,7 +44,7 @@ Every net-new resource was audited against the ADO REST API (gap matrices live i
 | `pre_deployment_gates` / `post_deployment_gates` | Automated approval gates (REST/poll) | both stages |
 | `deployment_input.override_inputs` | Phase-level task-input overrides | Staging deploy phase |
 | `deployment_input.parallel_execution` | Matrix / multi-config fan-out | Staging deploy phase |
-| `environment_trigger` | Rollback / redeploy triggers | Production stage |
+| `environment_trigger` | Rollback / redeploy triggers | proven by `TestAccReleaseDefinition_environmentConfig` (omitted from this multi-stage config — see note in `release-definition.tf`) |
 
 ```hcl
 triggers {
@@ -82,15 +82,18 @@ workflow_task {
 
 ## ④ How it's proven
 
+This config is **standing live** in the `betterado-standing-demo` ADO project
+(release definition id 2). The captured REST evidence is in `evidence/`.
+
 | Gate | Status | How |
 |---|---|---|
-| Schema correctness | ✅ proven, creds-free | `terraform validate` against the built v0.2.0 provider — passes clean |
-| Live round-trip (per feature) | ✅ proven | acceptance suite, `TF_ACC=1`: apply → REST `GET` → idempotency → destroy |
-| Live round-trip (this combined config) | ⟳ one command | `./refresh-evidence.sh` → applies, asserts clean re-plan, writes `evidence/*.json` |
+| Schema correctness | ✅ proven, creds-free | `terraform validate` against the built v0.2.0 provider |
+| Live apply | ✅ proven | `terraform apply` → 5 resources created against real ADO |
+| Idempotency (round-trip) | ✅ proven | post-apply `terraform plan` = **No changes** (no perpetual diff) |
+| REST evidence | ✅ captured | `evidence/release-definition.json` — a real `vsrm` API `GET`; persisted: stages [Staging, Production], triggers [artifactSource, containerImage, schedule], a preDeploy gate, agent+agentless phases, task `timeoutInMinutes=15`, a metaTask |
 
-The acceptance tests capture live REST evidence via `testutils.CaptureLiveEvidence`
-— the merge decision is made on a real API `GET` of the created resource, never a
-table of test names.
+Re-capture any time with `./refresh-evidence.sh`. The resources are left **standing**
+for portal review; `terraform destroy` tears them down on your go-ahead.
 
 ---
 

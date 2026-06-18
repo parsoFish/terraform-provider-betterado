@@ -1,0 +1,564 @@
+{
+    "source": "restApi",
+    "revision": 2,
+    "description": "Standing demo \u2014 every betterado_release_definition feature shipped in v0.2.0, applied live.",
+    "createdBy": {
+        "displayName": "david.g.parsonson",
+        "url": "https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+        "_links": {
+            "avatar": {
+                "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+            }
+        },
+        "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+        "uniqueName": "david.g.parsonson@gmail.com",
+        "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+        "descriptor": "msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+    },
+    "createdOn": "2026-06-18T21:52:44.673Z",
+    "modifiedBy": {
+        "displayName": "david.g.parsonson",
+        "url": "https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+        "_links": {
+            "avatar": {
+                "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+            }
+        },
+        "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+        "uniqueName": "david.g.parsonson@gmail.com",
+        "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+        "descriptor": "msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+    },
+    "modifiedOn": "2026-06-18T21:55:26.707Z",
+    "isDeleted": false,
+    "isDisabled": false,
+    "variables": {
+        "AppVersion": {
+            "value": "1.0.0"
+        },
+        "DeployTimeout": {
+            "value": "300",
+            "allowOverride": true
+        },
+        "SigningKey": {
+            "value": null,
+            "isSecret": true
+        }
+    },
+    "variableGroups": [],
+    "environments": [
+        {
+            "id": 15,
+            "name": "Staging",
+            "rank": 1,
+            "owner": {
+                "displayName": "david.g.parsonson",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+                "_links": {
+                    "avatar": {
+                        "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+                    }
+                },
+                "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+                "uniqueName": "david.g.parsonson@gmail.com",
+                "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+                "descriptor": "msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+            },
+            "variables": {
+                "TargetSlot": {
+                    "value": "staging"
+                }
+            },
+            "variableGroups": [],
+            "preDeployApprovals": {
+                "approvals": [
+                    {
+                        "rank": 1,
+                        "isAutomated": true,
+                        "isNotificationOn": false,
+                        "id": 61
+                    }
+                ],
+                "approvalOptions": {
+                    "requiredApproverCount": 0,
+                    "releaseCreatorCanBeApprover": true,
+                    "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+                    "enforceIdentityRevalidation": false,
+                    "timeoutInMinutes": 720,
+                    "executionOrder": "beforeGates"
+                }
+            },
+            "deployStep": {
+                "id": 65
+            },
+            "postDeployApprovals": {
+                "approvals": [
+                    {
+                        "rank": 1,
+                        "isAutomated": true,
+                        "isNotificationOn": false,
+                        "id": 67
+                    }
+                ]
+            },
+            "deployPhases": [
+                {
+                    "deploymentInput": {
+                        "parallelExecution": {
+                            "multipliers": "Configuration",
+                            "maxNumberOfAgents": 2,
+                            "continueOnError": false,
+                            "parallelExecutionType": "multiConfiguration"
+                        },
+                        "agentSpecification": {
+                            "identifier": "ubuntu-22.04"
+                        },
+                        "skipArtifactsDownload": false,
+                        "artifactsDownloadInput": {
+                            "downloadInputs": []
+                        },
+                        "queueId": 1917,
+                        "demands": [
+                            "Agent.Version -gtVersion 2.0"
+                        ],
+                        "enableAccessToken": false,
+                        "timeoutInMinutes": 120,
+                        "jobCancelTimeoutInMinutes": 1,
+                        "condition": "succeeded()",
+                        "overrideInputs": {}
+                    },
+                    "rank": 1,
+                    "phaseType": "agentBasedDeployment",
+                    "name": "Agent phase",
+                    "refName": null,
+                    "workflowTasks": [
+                        {
+                            "taskId": "d9bafed4-0b18-4f58-968d-86655b4d2ce9",
+                            "version": "2.*",
+                            "name": "Deploy artifacts",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 15,
+                            "retryCountOnTaskFailure": 2,
+                            "definitionType": "task",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "environment": {},
+                            "inputs": {
+                                "script": "echo Deploying $(AppVersion) to Staging"
+                            }
+                        },
+                        {
+                            "taskId": "3dc37e79-a0cb-4b4c-b91c-bfe8d5957dba",
+                            "version": "1.*",
+                            "name": "Standard Deploy Steps",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 0,
+                            "retryCountOnTaskFailure": 0,
+                            "definitionType": "metaTask",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "environment": {},
+                            "inputs": {
+                                "target": "staging"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "deploymentInput": {
+                        "parallelExecution": {
+                            "parallelExecutionType": "none"
+                        },
+                        "proofOfPresenceTenants": {},
+                        "timeoutInMinutes": 0,
+                        "jobCancelTimeoutInMinutes": 1,
+                        "condition": "succeeded()",
+                        "overrideInputs": {}
+                    },
+                    "rank": 2,
+                    "phaseType": "runOnServer",
+                    "name": "Agentless phase",
+                    "refName": null,
+                    "workflowTasks": [
+                        {
+                            "taskId": "28782b92-5e8e-4458-9751-a71cd1492bae",
+                            "version": "1.*",
+                            "name": "Delay",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 0,
+                            "retryCountOnTaskFailure": 0,
+                            "definitionType": "task",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "environment": {},
+                            "inputs": {
+                                "delayForMinutes": "1"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "environmentOptions": {
+                "emailNotificationType": "Always",
+                "emailRecipients": "release.environment.owner;release.creator",
+                "skipArtifactsDownload": false,
+                "timeoutInMinutes": 0,
+                "enableAccessToken": false,
+                "publishDeploymentStatus": true,
+                "badgeEnabled": true,
+                "autoLinkWorkItems": false,
+                "pullRequestDeploymentEnabled": false
+            },
+            "demands": [],
+            "conditions": [
+                {
+                    "name": "ReleaseStarted",
+                    "conditionType": "event",
+                    "value": "",
+                    "result": null
+                }
+            ],
+            "executionPolicy": {
+                "concurrencyCount": 1,
+                "queueDepthCount": 0
+            },
+            "schedules": [],
+            "currentRelease": {
+                "id": 0,
+                "url": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/releases/0",
+                "_links": {}
+            },
+            "retentionPolicy": {
+                "daysToKeep": 60,
+                "releasesToKeep": 5,
+                "retainBuild": true
+            },
+            "properties": {},
+            "preDeploymentGates": {
+                "id": 64,
+                "gatesOptions": {
+                    "isEnabled": true,
+                    "timeout": 60,
+                    "samplingInterval": 5,
+                    "stabilizationTime": 0,
+                    "minimumSuccessDuration": 0
+                },
+                "gates": [
+                    {
+                        "tasks": [
+                            {
+                                "taskId": "f1e4b0e6-017e-4819-8a48-ef19ae96e289",
+                                "version": "0.*",
+                                "name": "Query Work Items",
+                                "enabled": true,
+                                "alwaysRun": false,
+                                "continueOnError": false,
+                                "timeoutInMinutes": 0,
+                                "retryCountOnTaskFailure": 0,
+                                "definitionType": "task",
+                                "overrideInputs": {},
+                                "condition": "succeeded()",
+                                "environment": {},
+                                "inputs": {
+                                    "queryId": "d8efefd6-2040-4f15-8477-ca32cf97693b"
+                                }
+                            }
+                        ],
+                        "isGenerated": false
+                    }
+                ]
+            },
+            "postDeploymentGates": {
+                "id": 68,
+                "gatesOptions": {
+                    "isEnabled": true,
+                    "timeout": 60,
+                    "samplingInterval": 5,
+                    "stabilizationTime": 0,
+                    "minimumSuccessDuration": 0
+                },
+                "gates": [
+                    {
+                        "tasks": [
+                            {
+                                "taskId": "f1e4b0e6-017e-4819-8a48-ef19ae96e289",
+                                "version": "0.*",
+                                "name": "Query Work Items",
+                                "enabled": true,
+                                "alwaysRun": false,
+                                "continueOnError": false,
+                                "timeoutInMinutes": 0,
+                                "retryCountOnTaskFailure": 0,
+                                "definitionType": "task",
+                                "overrideInputs": {},
+                                "condition": "succeeded()",
+                                "environment": {},
+                                "inputs": {
+                                    "queryId": "d8efefd6-2040-4f15-8477-ca32cf97693b"
+                                }
+                            }
+                        ],
+                        "isGenerated": false
+                    }
+                ]
+            },
+            "environmentTriggers": [],
+            "badgeUrl": "https://vsrm.dev.azure.com/davidgparsonson/_apis/public/Release/badge/6ddb680c-093d-4953-9561-2266eb7af800/2/15"
+        },
+        {
+            "id": 16,
+            "name": "Production",
+            "rank": 2,
+            "owner": {
+                "displayName": "david.g.parsonson",
+                "url": "https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+                "_links": {
+                    "avatar": {
+                        "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+                    }
+                },
+                "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+                "uniqueName": "david.g.parsonson@gmail.com",
+                "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+                "descriptor": "msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+            },
+            "variables": {
+                "MaintenanceWindow": {
+                    "value": "02:00-04:00 UTC",
+                    "allowOverride": true
+                }
+            },
+            "variableGroups": [],
+            "preDeployApprovals": {
+                "approvals": [
+                    {
+                        "rank": 1,
+                        "isAutomated": false,
+                        "isNotificationOn": false,
+                        "approver": {
+                            "displayName": "[betterado-standing-demo]\\Contributors",
+                            "url": "https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/498cd925-7179-4908-8a34-d5c4291b6062",
+                            "_links": {
+                                "avatar": {
+                                    "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/vssgp.Uy0xLTktMTU1MTM3NDI0NS0yMDgxOTg1MDktMTAyNDAyMTMyMS0yNTA2MTcwOTgyLTM5NTA3MDQ2NDAtMS00MjA1MjE1NjY2LTEwOTg2Mjc2NTQtMjE1NTcyNzU0MS0yMjkzNjM2MTY2"
+                                }
+                            },
+                            "id": "498cd925-7179-4908-8a34-d5c4291b6062",
+                            "uniqueName": "vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800\\Contributors",
+                            "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/vssgp.Uy0xLTktMTU1MTM3NDI0NS0yMDgxOTg1MDktMTAyNDAyMTMyMS0yNTA2MTcwOTgyLTM5NTA3MDQ2NDAtMS00MjA1MjE1NjY2LTEwOTg2Mjc2NTQtMjE1NTcyNzU0MS0yMjkzNjM2MTY2",
+                            "isContainer": true,
+                            "descriptor": "vssgp.Uy0xLTktMTU1MTM3NDI0NS0yMDgxOTg1MDktMTAyNDAyMTMyMS0yNTA2MTcwOTgyLTM5NTA3MDQ2NDAtMS00MjA1MjE1NjY2LTEwOTg2Mjc2NTQtMjE1NTcyNzU0MS0yMjkzNjM2MTY2"
+                        },
+                        "id": 62
+                    }
+                ],
+                "approvalOptions": {
+                    "requiredApproverCount": 0,
+                    "releaseCreatorCanBeApprover": true,
+                    "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
+                    "enforceIdentityRevalidation": true,
+                    "timeoutInMinutes": 1440,
+                    "executionOrder": "beforeGates"
+                }
+            },
+            "deployStep": {
+                "id": 63
+            },
+            "postDeployApprovals": {
+                "approvals": [
+                    {
+                        "rank": 1,
+                        "isAutomated": true,
+                        "isNotificationOn": false,
+                        "id": 66
+                    }
+                ]
+            },
+            "deployPhases": [
+                {
+                    "deploymentInput": {
+                        "parallelExecution": {
+                            "parallelExecutionType": "none"
+                        },
+                        "agentSpecification": {
+                            "identifier": "ubuntu-22.04"
+                        },
+                        "skipArtifactsDownload": false,
+                        "artifactsDownloadInput": {
+                            "downloadInputs": []
+                        },
+                        "queueId": 1917,
+                        "demands": [],
+                        "enableAccessToken": false,
+                        "timeoutInMinutes": 180,
+                        "jobCancelTimeoutInMinutes": 1,
+                        "condition": "succeeded()",
+                        "overrideInputs": {}
+                    },
+                    "rank": 1,
+                    "phaseType": "agentBasedDeployment",
+                    "name": "Deploy to Production",
+                    "refName": null,
+                    "workflowTasks": [
+                        {
+                            "taskId": "d9bafed4-0b18-4f58-968d-86655b4d2ce9",
+                            "version": "2.*",
+                            "name": "Deploy to production",
+                            "refName": "",
+                            "enabled": true,
+                            "alwaysRun": false,
+                            "continueOnError": false,
+                            "timeoutInMinutes": 0,
+                            "retryCountOnTaskFailure": 0,
+                            "definitionType": "task",
+                            "overrideInputs": {},
+                            "condition": "succeeded()",
+                            "environment": {},
+                            "inputs": {
+                                "script": "echo Deploying $(AppVersion) to Production"
+                            }
+                        }
+                    ]
+                }
+            ],
+            "environmentOptions": {
+                "emailNotificationType": "Always",
+                "emailRecipients": "release.environment.owner;release.creator",
+                "skipArtifactsDownload": false,
+                "timeoutInMinutes": 0,
+                "enableAccessToken": false,
+                "publishDeploymentStatus": true,
+                "badgeEnabled": true,
+                "autoLinkWorkItems": true,
+                "pullRequestDeploymentEnabled": false
+            },
+            "demands": [],
+            "conditions": [
+                {
+                    "name": "Staging",
+                    "conditionType": "environmentState",
+                    "value": "4",
+                    "result": null
+                }
+            ],
+            "executionPolicy": {
+                "concurrencyCount": 1,
+                "queueDepthCount": 1
+            },
+            "schedules": [],
+            "currentRelease": {
+                "id": 0,
+                "url": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/releases/0",
+                "_links": {}
+            },
+            "retentionPolicy": {
+                "daysToKeep": 7,
+                "releasesToKeep": 1,
+                "retainBuild": true
+            },
+            "properties": {},
+            "preDeploymentGates": {
+                "id": 0,
+                "gatesOptions": null,
+                "gates": []
+            },
+            "postDeploymentGates": {
+                "id": 0,
+                "gatesOptions": null,
+                "gates": []
+            },
+            "environmentTriggers": [],
+            "badgeUrl": "https://vsrm.dev.azure.com/davidgparsonson/_apis/public/Release/badge/6ddb680c-093d-4953-9561-2266eb7af800/2/16"
+        }
+    ],
+    "artifacts": [
+        {
+            "sourceId": "6ddb680c-093d-4953-9561-2266eb7af800:79",
+            "type": "Build",
+            "alias": "_build",
+            "definitionReference": {
+                "defaultVersionType": {
+                    "id": "latestType",
+                    "name": "Latest"
+                },
+                "definition": {
+                    "id": "79",
+                    "name": null
+                },
+                "project": {
+                    "id": "6ddb680c-093d-4953-9561-2266eb7af800",
+                    "name": null
+                },
+                "artifactSourceDefinitionUrl": {
+                    "id": "https://dev.azure.com/davidgparsonson/_permalink/_build/index?collectionId=c7331e41-8ebd-4afb-a765-7929e93c660f&projectId=6ddb680c-093d-4953-9561-2266eb7af800&definitionId=79",
+                    "name": ""
+                }
+            },
+            "isPrimary": true,
+            "isRetained": false
+        }
+    ],
+    "triggers": [
+        {
+            "artifactAlias": "_build",
+            "triggerConditions": [
+                {
+                    "sourceBranch": "refs/heads/main",
+                    "tags": [
+                        "prod-ready",
+                        "signed"
+                    ],
+                    "tagFilter": null,
+                    "useBuildDefinitionBranch": false,
+                    "createReleaseOnBuildTagging": true
+                }
+            ],
+            "triggerType": "artifactSource"
+        },
+        {
+            "schedule": {
+                "jobId": "573d91dd-903d-48d5-be78-82c2583f8b43",
+                "timeZoneId": "UTC",
+                "startHours": 2,
+                "startMinutes": 0,
+                "scheduleOnlyWithChanges": true,
+                "daysToRelease": 62
+            },
+            "triggerType": "schedule"
+        },
+        {
+            "alias": "_build",
+            "tagFilters": [
+                {
+                    "pattern": "latest"
+                }
+            ],
+            "triggerType": "containerImage"
+        }
+    ],
+    "releaseNameFormat": "Release-$(rev:r)",
+    "tags": [],
+    "properties": {},
+    "id": 2,
+    "name": "betterado-standing-showcase",
+    "path": "\\",
+    "projectReference": null,
+    "url": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/definitions/2",
+    "_links": {
+        "self": {
+            "href": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/definitions/2"
+        },
+        "web": {
+            "href": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_release?definitionId=2"
+        }
+    }
+}
