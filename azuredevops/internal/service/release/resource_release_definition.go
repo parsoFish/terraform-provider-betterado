@@ -113,9 +113,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 				},
 			},
 			"stages": {
-				Type:       schema.TypeList,
-				Required:   true,
-				MinItems:   1,
+				Type:     schema.TypeList,
+				Required: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -140,8 +140,8 @@ func ResourceReleaseDefinition() *schema.Resource {
 							ValidateFunc: validation.IsUUID,
 						},
 						"variable": {
-							Type:       schema.TypeSet,
-							Optional:   true,
+							Type:     schema.TypeSet,
+							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -175,9 +175,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"condition": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -198,27 +198,27 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"pre_deploy_approval": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							MaxItems:   1,
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: approvalSchema(),
 							},
 						},
 						"post_deploy_approval": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							MaxItems:   1,
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: approvalSchema(),
 							},
 						},
 						"deploy_phase": {
-							Type:       schema.TypeList,
-							Required:   true,
-							MinItems:   1,
+							Type:     schema.TypeList,
+							Required: true,
+							MinItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -238,9 +238,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 										ValidateFunc: validation.StringInSlice([]string{"agentBasedDeployment", "runOnServer", "machineGroupBasedDeployment"}, false),
 									},
 									"deployment_input": {
-										Type:       schema.TypeList,
-										Optional:   true,
-										MaxItems:   1,
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"queue_id": {
@@ -294,9 +294,9 @@ func ResourceReleaseDefinition() *schema.Resource {
 													Description: "Phase-level task input overrides (e.g. for parameterised task groups).",
 												},
 												"parallel_execution": {
-													Type:       schema.TypeList,
-													Optional:   true,
-													MaxItems:   1,
+													Type:     schema.TypeList,
+													Optional: true,
+													MaxItems: 1,
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"type": {
@@ -330,8 +330,8 @@ func ResourceReleaseDefinition() *schema.Resource {
 										},
 									},
 									"workflow_task": {
-										Type:       schema.TypeList,
-										Optional:   true,
+										Type:     schema.TypeList,
+										Optional: true,
 										Elem: &schema.Resource{
 											Schema: workflowTaskSchema(),
 										},
@@ -340,10 +340,10 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"retention_policy": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							MaxItems:   1,
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"days_to_keep": {
@@ -367,10 +367,10 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"environment_options": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							MaxItems:   1,
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"email_notification_type": {
@@ -424,10 +424,10 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"execution_policy": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							MaxItems:   1,
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"concurrency_count": {
@@ -446,24 +446,24 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"pre_deployment_gates": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							MaxItems:   1,
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: deploymentGatesSchema(),
 							},
 						},
 						"post_deployment_gates": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							MaxItems:   1,
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: deploymentGatesSchema(),
 							},
 						},
 						"environment_trigger": {
-							Type:       schema.TypeList,
-							Optional:   true,
+							Type:     schema.TypeList,
+							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"definition_environment_id": {
@@ -490,8 +490,8 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"schedule": {
-							Type:       schema.TypeList,
-							Optional:   true,
+							Type:     schema.TypeList,
+							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"days_to_release": {
@@ -527,14 +527,14 @@ func ResourceReleaseDefinition() *schema.Resource {
 							},
 						},
 						"process_parameters": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							MaxItems:   1,
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"input": {
-										Type:       schema.TypeList,
-										Optional:   true,
+										Type:     schema.TypeList,
+										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
@@ -725,6 +725,26 @@ func ResourceReleaseDefinition() *schema.Resource {
 								},
 							},
 						},
+						"container_image_trigger": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"artifact_alias": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+										Description:  "Alias of the container-image artifact this trigger monitors.",
+									},
+									"label": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Default:     "",
+										Description: "Image tag/label to filter on (empty = any tag).",
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -735,8 +755,8 @@ func ResourceReleaseDefinition() *schema.Resource {
 func approvalSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"approver": {
-			Type:       schema.TypeList,
-			Optional:   true,
+			Type:     schema.TypeList,
+			Optional: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"id": {
@@ -759,10 +779,10 @@ func approvalSchema() map[string]*schema.Schema {
 			},
 		},
 		"approval_options": {
-			Type:       schema.TypeList,
-			Optional:   true,
-			Computed:   true,
-			MaxItems:   1,
+			Type:     schema.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"required_approver_count": {
@@ -806,9 +826,9 @@ func approvalSchema() map[string]*schema.Schema {
 func deploymentGatesSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"gates_options": {
-			Type:       schema.TypeList,
-			Optional:   true,
-			MaxItems:   1,
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"is_enabled": {
@@ -844,14 +864,14 @@ func deploymentGatesSchema() map[string]*schema.Schema {
 			},
 		},
 		"gate": {
-			Type:       schema.TypeList,
-			Optional:   true,
+			Type:     schema.TypeList,
+			Optional: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"task": {
-						Type:       schema.TypeList,
-						Required:   true,
-						MinItems:   1,
+						Type:     schema.TypeList,
+						Required: true,
+						MinItems: 1,
 						Elem: &schema.Resource{
 							Schema: workflowTaskSchema(),
 						},
@@ -2703,6 +2723,25 @@ func expandTriggers(input []interface{}) []interface{} {
 		}
 	}
 
+	// Container image triggers — one entry per container_image_trigger block
+	if ciEntries, ok := trigMap["container_image_trigger"].([]interface{}); ok {
+		for _, raw := range ciEntries {
+			if raw == nil {
+				continue
+			}
+			ct := raw.(map[string]interface{})
+			cond := map[string]interface{}{
+				"artifactAlias": ct["artifact_alias"].(string),
+				"label":         ct["label"].(string),
+			}
+			trigEntry := map[string]interface{}{
+				"triggerType":       "containerImage",
+				"triggerConditions": []interface{}{cond},
+			}
+			result = append(result, trigEntry)
+		}
+	}
+
 	return result
 }
 
@@ -2784,6 +2823,7 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 	var cdArtifactTriggers []interface{}
 	var scheduleTriggers []interface{}
 	var sourceRepoTriggers []interface{}
+	var containerImageTriggers []interface{}
 
 	for _, raw := range *triggers {
 		// Marshal to JSON and back to get a clean map[string]interface{}
@@ -2861,13 +2901,28 @@ func flattenTriggers(triggers *[]interface{}) []interface{} {
 				srt["branch_filters"] = bfs
 			}
 			sourceRepoTriggers = append(sourceRepoTriggers, srt)
+
+		case "containerImage":
+			if tc, ok := trigMap["triggerConditions"].([]interface{}); ok {
+				for _, rawCond := range tc {
+					if cMap, ok := rawCond.(map[string]interface{}); ok {
+						alias, _ := cMap["artifactAlias"].(string)
+						label, _ := cMap["label"].(string)
+						containerImageTriggers = append(containerImageTriggers, map[string]interface{}{
+							"artifact_alias": alias,
+							"label":          label,
+						})
+					}
+				}
+			}
 		}
 	}
 
 	triggersMap := map[string]interface{}{
-		"cd_artifact_trigger": cdArtifactTriggers,
-		"schedule_trigger":    scheduleTriggers,
-		"source_repo_trigger": sourceRepoTriggers,
+		"cd_artifact_trigger":     cdArtifactTriggers,
+		"schedule_trigger":        scheduleTriggers,
+		"source_repo_trigger":     sourceRepoTriggers,
+		"container_image_trigger": containerImageTriggers,
 	}
 	return []interface{}{triggersMap}
 }
