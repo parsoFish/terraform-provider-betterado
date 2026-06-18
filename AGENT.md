@@ -39,6 +39,14 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - All offline gates now pass: gofmt ✓, go build ✓, go vet ✓, terrafmt-check ✓, acceptance package compiles ✓.
 - Committed as `3dd9975b`.
 
+### Iteration 3 (2026-06-17)
+
+- Identified gap: `TestAccReleaseDefinition_basic` was missing an explicit idempotency step (AC1 says "idempotency re-plan produces no diff" but test only had apply + import steps).
+- Added idempotency step to `_basic`: `PlanOnly:true, ExpectNonEmptyPlan:false` (after the import step).
+- Made `ExpectNonEmptyPlan:false` explicit in `_complete`'s idempotency step (AC3 says "ExpectNonEmptyPlan: false" explicitly).
+- All offline gates pass: gofmt ✓, go build ✓, go vet ✓, terrafmt-check ✓, acceptance package compiles ✓.
+- Committed as `8c591b62`.
+
 ## Open questions
 
 - The quality gate cmd in the WI is `TF_ACC=1 go test -tags all -run TestAccReleaseDefinition_basic|..._withContainerImageTrigger|..._complete`. This runs live against real ADO. The orchestrator will run that gate; we can't run it offline without credentials.
