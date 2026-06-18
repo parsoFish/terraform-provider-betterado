@@ -77,6 +77,11 @@
 
 > parity: **match**/**within** = unchanged · **new** = newly added, no prior baseline (the *after* column is the result — PASS means the new test is green) · **diverged** = regressed vs baseline (the only state that signals a problem).
 
+### Live evidence — acceptance-resource
+
+- **After:** Real API GET against the live system: https://vsrm.dev.azure.com/davidgparsonson/_apis/accesscontrollists/c788c23e-1b46-4162-8f5e-d7585343b5de?token=2a58323b-0258-4ccf-aa5d-8e32010bcd95%2F1&api-version=7.1
+- **Live evidence (real API GET):** `https://vsrm.dev.azure.com/davidgparsonson/_apis/accesscontrollists/c788c23e-1b46-4162-8f5e-d7585343b5de?token=2a58323b-0258-4ccf-aa5d-8e32010bcd95%2F1&api-version=7.1` _(captured 2026-06-18T11:02:36Z)_
+
 ## Test Evidence
 
 | test | result | delta |

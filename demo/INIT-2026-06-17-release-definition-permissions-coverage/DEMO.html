@@ -130,7 +130,7 @@
     <span>project <strong>terraform-provider-betterado</strong></span>
     <span>before <code>main</code> → after <code>HEAD</code></span>
     <span>branch <code>INIT-2026-06-17-release-definition-permissions-coverage</code></span>
-    <span>generated 2026-06-18T10:54:10.654Z</span>
+    <span>generated 2026-06-18T11:04:01.924Z</span>
   </div>
   <p class="essence">Brings betterado_release_definition_permissions to full API-coverage: a gap matrix documenting all 12 writable ReleaseManagement2 permission bits, unit tests for project-scoped and edge-case token paths, a full-coverage acceptance test with live ACL evidence capture, and enriched docs + examples.</p>
 </header>
@@ -250,6 +250,17 @@
     <p class="verdict v-new">Verdict: <strong>NEW (no prior baseline)</strong></p>
     <p class="legend"><strong>match</strong>/<strong>within</strong> = unchanged from baseline · <strong>new</strong> = newly added, no prior baseline (see the <em>after</em> column for the result — a PASS means the new test is green) · <strong>diverged</strong> = regressed vs baseline (the only state that signals a problem)</p>
     <p class="note">No gap matrix existed; the writable permission bits were only partially documented in comments within the resource Go file.</p><p class="note">docs/release-definition-permissions-gap-matrix.md created with namespace ID, all 12 permission bits (name, bit value, writable flag, description), token format section, and example HCL. Every bit confirmed writable via live ADO probe (SetAccessControlEntries).</p>
+  </div>
+
+  <div class="checkpoint">
+    <h3><span class="step">5</span> Live evidence — acceptance-resource <span class="kind">harness</span></h3>
+    <table class="harness">
+      <thead><tr><th>metric</th><th>before</th><th>after</th><th>Δ</th><th>parity</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="verdict v-incomplete">Verdict: <strong>NO METRICS</strong></p>
+    <p class="legend"><strong>match</strong>/<strong>within</strong> = unchanged from baseline · <strong>new</strong> = newly added, no prior baseline (see the <em>after</em> column for the result — a PASS means the new test is green) · <strong>diverged</strong> = regressed vs baseline (the only state that signals a problem)</p>
+    <p class="note">Real API GET against the live system: https://vsrm.dev.azure.com/davidgparsonson/_apis/accesscontrollists/c788c23e-1b46-4162-8f5e-d7585343b5de?token=2a58323b-0258-4ccf-aa5d-8e32010bcd95%2F1&amp;api-version=7.1</p>
   </div>
 </section>
 

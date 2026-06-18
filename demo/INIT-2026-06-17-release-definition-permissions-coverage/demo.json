@@ -105,6 +105,17 @@
           "parity": "incomplete"
         }
       ]
+    },
+    {
+      "label": "acceptance-resource",
+      "kind": "harness",
+      "caption": "Live evidence — acceptance-resource",
+      "afterNote": "Real API GET against the live system: https://vsrm.dev.azure.com/davidgparsonson/_apis/accesscontrollists/c788c23e-1b46-4162-8f5e-d7585343b5de?token=2a58323b-0258-4ccf-aa5d-8e32010bcd95%2F1&api-version=7.1",
+      "liveEvidence": {
+        "url": "https://vsrm.dev.azure.com/davidgparsonson/_apis/accesscontrollists/c788c23e-1b46-4162-8f5e-d7585343b5de?token=2a58323b-0258-4ccf-aa5d-8e32010bcd95%2F1&api-version=7.1",
+        "capturedAt": "2026-06-18T11:02:36Z",
+        "response": ""
+      }
     }
   ],
   "acEvaluations": [
