@@ -124,13 +124,13 @@ func TestAccReleaseDefinitionPermissions_AllWritablePermissions(t *testing.T) {
 		"ViewReleases":                 "Allow",
 		"EditReleaseEnvironment":       "Deny",
 		"DeleteReleases":               "Deny",
-		"ManageReleasesSettings":       "Allow",
-		"ViewReleasePipeline":          "Allow",
-		"EditReleasePipeline":          "Allow",
-		"DeleteReleasePipeline":        "Deny",
+		"ManageReleaseSettings":        "Allow",
+		"ViewReleaseDefinition":        "Allow",
+		"EditReleaseDefinition":        "Allow",
+		"DeleteReleaseDefinition":      "Deny",
 		"ManageReleaseApprovers":       "NotSet",
 		"CreateReleases":               "Allow",
-		"QueueRelease":                 "Allow",
+		"ManageReleases":               "Allow",
 		"AdministerReleasePermissions": "Deny",
 		"ManageDeployments":            "Allow",
 	}
@@ -152,13 +152,13 @@ func TestAccReleaseDefinitionPermissions_AllWritablePermissions(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.ViewReleases", "allow"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.EditReleaseEnvironment", "deny"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.DeleteReleases", "deny"),
-					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.ManageReleasesSettings", "allow"),
-					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.ViewReleasePipeline", "allow"),
-					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.EditReleasePipeline", "allow"),
-					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.DeleteReleasePipeline", "deny"),
+					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.ManageReleaseSettings", "allow"),
+					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.ViewReleaseDefinition", "allow"),
+					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.EditReleaseDefinition", "allow"),
+					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.DeleteReleaseDefinition", "deny"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.ManageReleaseApprovers", "notset"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.CreateReleases", "allow"),
-					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.QueueRelease", "allow"),
+					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.ManageReleases", "allow"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.AdministerReleasePermissions", "deny"),
 					resource.TestCheckResourceAttr(tfNodeRoot, "permissions.ManageDeployments", "allow"),
 					captureReleaseDefinitionPermissionsEvidence(tfNodeRoot),
@@ -221,7 +221,7 @@ resource "betterado_release_definition" "release" {
   project_id = betterado_project.project.id
   name       = "%[2]s"
 
-  environment {
+  stages {
     name = "Production"
     rank = 1
 

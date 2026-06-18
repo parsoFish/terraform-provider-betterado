@@ -75,6 +75,8 @@ linters-settings:
       - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceDiff).SetNewComputed
       - (*github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema.ResourceData).Set
       - io.Close
+      # Best-effort demo live-evidence capture — discard by contract (never fails a test).
+      - github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils.CaptureLiveEvidence
   misspell:
     ignore-words:
       - hdinsight
