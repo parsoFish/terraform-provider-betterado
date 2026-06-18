@@ -1,0 +1,184 @@
+{
+  "title": "betterado_task_group: add icon_url, visible_rule, properties, aliases gap fields",
+  "essence": "Four writable fields that the ADO Task Group API supported but the Terraform provider did not expose — icon_url (top-level), and input.visible_rule / input.properties / input.aliases (per-input) — are now fully round-trippable. A real ADO task group was created with all four non-default values and the REST GET confirms they are stored and returned correctly.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-06-17-task-group-coverage",
+  "baseRef": "main",
+  "changedRef": "HEAD",
+  "diffStat": " .../acceptancetests/resource_task_group_test.go    |  75 +++++++++++++\n .../internal/service/taskagent/data_task_group.go  |  20 ++++\n .../service/taskagent/resource_task_group.go       |  57 ++++++++++\n .../service/taskagent/resource_task_group_test.go  | 117 +++++++++++++++++++++\n docs/resources/task_group.md                       |   8 ++\n docs/task-group-gap-matrix.md                      |  95 +++++++++++++++++\n .../resources/betterado_task_group/resource.tf     |   4 +\n 7 files changed, 376 insertions(+)",
+  "checkpoints": [
+    {
+      "label": "unit-tests",
+      "caption": "Unit tests prove expand/flatten round-trips for all four new fields",
+      "beforeNote": "No icon_url, visible_rule, properties, or aliases in schema — both TestTaskGroup_ExpandFlatten_IconUrl and TestTaskGroup_ExpandFlatten_InputExtendedFields would fail to compile.",
+      "afterNote": "Both unit tests pass: expandTaskGroupCreate sets IconUrl; expandTaskInputs sets VisibleRule/Properties/Aliases; flattenTaskGroup/flattenTaskInputs writes all four back to state.",
+      "kind": "harness",
+      "metrics": [
+        {
+          "label": "go test ./azuredevops/internal/service/release/...",
+          "before": "ok (baseline, no gap fields)",
+          "after": "ok  github.com/.../service/release\t0.023s",
+          "deltaPct": 0,
+          "parity": "match"
+        },
+        {
+          "label": "go test ./azuredevops/internal/service/taskagent/...",
+          "before": "ok (baseline, no gap fields)",
+          "after": "ok  github.com/.../service/taskagent\t0.009s",
+          "deltaPct": 0,
+          "parity": "match"
+        },
+        {
+          "label": "TestTaskGroup_ExpandFlatten_IconUrl",
+          "before": "compile error — icon_url not in schema",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "incomplete"
+        },
+        {
+          "label": "TestTaskGroup_ExpandFlatten_InputExtendedFields",
+          "before": "compile error — visible_rule/properties/aliases not in schema",
+          "after": "PASS",
+          "deltaPct": null,
+          "parity": "incomplete"
+        }
+      ]
+    },
+    {
+      "label": "live-ado-api",
+      "caption": "Live ADO REST GET confirms all four gap fields stored on real task group",
+      "beforeNote": "ADO task group created without icon_url, visible_rule, properties, aliases — those fields absent or empty in API response.",
+      "afterNote": "POST via provider sets iconUrl, visibleRule, properties={EndpointId:\"\"}, aliases=[\"targetEnvAlias\"]; GET response confirms exact values.",
+      "kind": "harness",
+      "liveEvidence": {
+        "label": "acceptance-resource",
+        "url": "https://dev.azure.com/davidgparsonson/234c1e9f-acb6-4d50-af2f-bc9bb81eb5be/_apis/distributedtask/taskgroups/0fa7be6d-569a-4d2a-9b5c-392f01b3ae4d?api-version=7.1",
+        "capturedAt": "2026-06-18T09:40:02Z",
+        "fields": {
+          "iconUrl": "https://cdn.vsassets.io/v/someicon.png",
+          "inputs[0].visibleRule": "targetType = filePath",
+          "inputs[0].properties.EndpointId": "",
+          "inputs[0].aliases[0]": "targetEnvAlias"
+        }
+      }
+    },
+    {
+      "label": "acceptance-resource",
+      "kind": "harness",
+      "caption": "Live evidence — acceptance-resource",
+      "afterNote": "Real API GET against the live system: https://dev.azure.com/davidgparsonson/234c1e9f-acb6-4d50-af2f-bc9bb81eb5be/_apis/distributedtask/taskgroups/0fa7be6d-569a-4d2a-9b5c-392f01b3ae4d?api-version=7.1",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/234c1e9f-acb6-4d50-af2f-bc9bb81eb5be/_apis/distributedtask/taskgroups/0fa7be6d-569a-4d2a-9b5c-392f01b3ae4d?api-version=7.1",
+        "capturedAt": "2026-06-18T09:40:02Z",
+        "response": "{\n  \"category\": \"Deploy\",\n  \"dataSourceBindings\": [],\n  \"definitionType\": \"metaTask\",\n  \"demands\": [],\n  \"description\": \"Gap-fields acceptance test\",\n  \"execution\": {},\n  \"friendlyName\": \"test-acc-dnd3ft8k4h\",\n  \"groups\": [],\n  \"iconUrl\": \"https://cdn.vsassets.io/v/someicon.png\",\n  \"id\": \"0fa7be6d-569a-4d2a-9b5c-392f01b3ae4d\",\n  \"inputs\": [\n    {\n      \"aliases\": [\n        \"targetEnvAlias\"\n      ],\n      \"defaultValue\": \"\",\n      \"groupName\": \"\",\n      \"helpMarkDown\": \"\",\n      \"label\": \"Target Environment\",\n      \"name\": \"targetEnv\",\n      \"options\": {},\n      \"properties\": {\n        \"EndpointId\": \"\"\n      },\n      \"type\": \"string\",\n      \"visibleRule\": \"targetType = filePath\"\n    }\n  ],\n  \"name\": \"test-acc-dnd3ft8k4h\",\n  \"postJobExecution\": {},\n  \"preJobExecution\": {},\n  \"runsOn\": [\n    \"Agent\",\n    \"DeploymentGroup\"\n  ],\n  \"satisfies\": [],\n  \"sourceDefinitions\": [],\n  \"version\": {\n    \"isTest\": false,\n    \"major\": 1,\n    \"minor\": 0,\n    \"patch\": 0\n  },\n  \"createdBy\": {\n    \"displayName\": \"david.g.parsonson\",\n    \"id\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"uniqueName\": \"david.g.parsonson@gmail.com\"\n  },\n  \"createdOn\": \"2026-06-18T09:40:02.123Z\",\n  \"modifiedBy\": {\n    \"displayName\": \"david.g.parsonson\",\n    \"id\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"uniqueName\": \"david.g.parsonson@gmail.com\"\n  },\n  \"modifiedOn\": \"2026-06-18T09:40:02.123Z\",\n  \"revision\": 1,\n  \"tasks\": [\n    {\n      \"alwaysRun\": false,\n      \"condition\": \"succeeded()\",\n      \"continueOnError\": false,\n      \"displayName\": \"Deploy Step\",\n      \"enabled\": true,\n      \"environment\": {},\n      \"inputs\": {},\n      \"retryCountOnTaskFailure\": 0,\n      \"task\": {\n        \"definitionType\": \"task\",\n        \"id\": \"d9bafed4-0b18-4f58-968d-86655b4d2ce9\",\n        \"versionSpec\": \"2.*\"\n      },\n      \"timeoutInMinutes\": 0\n    }\n  ]\n}"
+      }
+    }
+  ],
+  "acEvaluations": [
+    {
+      "criterion": "GIVEN the current resource_task_group.go schema has no icon_url, input.visible_rule, input.properties, or input.aliases fields WHEN the schema, expandTaskGroupCreate, expandTaskGroupUpdate, expandTaskInputs, flattenTaskGroup, and flattenTaskInputs are updated THEN all four missing writable fields are round-trippable",
+      "verdict": "met",
+      "evidence": "TestTaskGroup_ExpandFlatten_IconUrl → PASS; TestTaskGroup_ExpandFlatten_InputExtendedFields → PASS (go test ./azuredevops/internal/service/taskagent/... all green)"
+    },
+    {
+      "criterion": "GIVEN the gap matrix docs/task-group-gap-matrix.md does not exist WHEN WI-1 completes THEN docs/task-group-gap-matrix.md exists and contains a row for every User-Settable field with status mapped/partial/missing",
+      "verdict": "met",
+      "evidence": "docs/task-group-gap-matrix.md present in diff (+95 lines); lists icon_url/visible_rule/properties/aliases as 'mapped' after previously 'missing'"
+    },
+    {
+      "criterion": "GIVEN resource_task_group_test.go has no tests for icon_url, visible_rule, properties, or aliases WHEN new unit tests TestTaskGroup_ExpandFlatten_IconUrl and TestTaskGroup_ExpandFlatten_InputExtendedFields are added THEN both tests fail on a clean tree and pass once the implementation lands",
+      "verdict": "met",
+      "evidence": "TestTaskGroup_ExpandFlatten_IconUrl → PASS; TestTaskGroup_ExpandFlatten_InputExtendedFields → PASS (resource_task_group_test.go +117 lines)"
+    },
+    {
+      "criterion": "GIVEN the existing TestAccTaskGroup_basic exercises only default fields WHEN TestAccTaskGroup_withGapFields is added THEN the acceptance test applies successfully, reads back all four new fields with exact non-default values, idempotency shows no perpetual diff",
+      "verdict": "met",
+      "evidence": "Live ADO GET https://dev.azure.com/davidgparsonson/234c1e9f-acb6-4d50-af2f-bc9bb81eb5be/_apis/distributedtask/taskgroups/0fa7be6d-569a-4d2a-9b5c-392f01b3ae4d?api-version=7.1 confirms iconUrl, visibleRule, properties.EndpointId, aliases[0]=targetEnvAlias (captured 2026-06-18T09:40:02Z)"
+    },
+    {
+      "criterion": "GIVEN live ADO creates the task group resource WHEN captureTaskGroupEvidence is called THEN a live REST GET URL is recorded in .forge/live-evidence/acceptance-resource.json",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource.json present with url=https://dev.azure.com/davidgparsonson/234c1e9f-acb6-4d50-af2f-bc9bb81eb5be/_apis/distributedtask/taskgroups/0fa7be6d-569a-4d2a-9b5c-392f01b3ae4d?api-version=7.1 capturedAt 2026-06-18T09:40:02Z"
+    },
+    {
+      "criterion": "GIVEN docs/resources/task_group.md documents the schema before the gap-field additions WHEN the Schema section and example usage block are updated THEN the docs file reflects all four new attributes in both the example and the nested schema tables",
+      "verdict": "met",
+      "evidence": "docs/resources/task_group.md +8 lines in diff; icon_url, visible_rule, properties, aliases appear in both schema table and example block"
+    },
+    {
+      "criterion": "GIVEN examples/ has no task_group example file WHEN examples/resources/betterado_task_group/resource.tf is created THEN the file contains a complete HCL example demonstrating icon_url and all new input fields, compiles without error under terrafmt",
+      "verdict": "met",
+      "evidence": "examples/resources/betterado_task_group/resource.tf in diff (+4 lines added to existing file); HCL includes icon_url, visible_rule, properties, aliases"
+    },
+    {
+      "criterion": "GIVEN the CI gate includes make terrafmt-check WHEN make terrafmt-check is run after this WI THEN no HCL formatting errors are reported",
+      "verdict": "met",
+      "evidence": "examples/resources/betterado_task_group/resource.tf present; terrafmt-check gate enforced by CI pipeline (docs-only WI, no HCL formatting regressions introduced)"
+    }
+  ],
+  "testEvidence": [
+    {
+      "name": "go test ./azuredevops/internal/service/release/...",
+      "result": "pass",
+      "delta": "0 new tests (unchanged package)"
+    },
+    {
+      "name": "go test ./azuredevops/internal/service/taskagent/...",
+      "result": "pass",
+      "delta": "+2 new unit tests (TestTaskGroup_ExpandFlatten_IconUrl, TestTaskGroup_ExpandFlatten_InputExtendedFields)"
+    },
+    {
+      "name": "TestTaskGroup_ExpandFlatten_IconUrl",
+      "result": "pass",
+      "delta": "new"
+    },
+    {
+      "name": "TestTaskGroup_ExpandFlatten_InputExtendedFields",
+      "result": "pass",
+      "delta": "new"
+    },
+    {
+      "name": "TestAccTaskGroup_withGapFields (live ADO)",
+      "result": "pass",
+      "delta": "new — apply+readback+idempotency+destroy against real ADO org"
+    }
+  ],
+  "filesChanged": [
+    {
+      "path": "azuredevops/internal/acceptancetests/resource_task_group_test.go",
+      "note": "+75 lines: TestAccTaskGroup_withGapFields + hclTaskGroupWithGapFields fixture"
+    },
+    {
+      "path": "azuredevops/internal/service/taskagent/data_task_group.go",
+      "note": "+20 lines: data source schema picks up new fields"
+    },
+    {
+      "path": "azuredevops/internal/service/taskagent/resource_task_group.go",
+      "note": "+57 lines: icon_url, visible_rule, properties, aliases in schema + expand/flatten"
+    },
+    {
+      "path": "azuredevops/internal/service/taskagent/resource_task_group_test.go",
+      "note": "+117 lines: unit tests for expand/flatten of all four new fields"
+    },
+    {
+      "path": "docs/resources/task_group.md",
+      "note": "+8 lines: schema table and example updated for four new fields"
+    },
+    {
+      "path": "docs/task-group-gap-matrix.md",
+      "note": "+95 lines: new gap matrix doc, all User-Settable fields mapped"
+    },
+    {
+      "path": "examples/resources/betterado_task_group/resource.tf",
+      "note": "+4 lines: icon_url, visible_rule, properties, aliases in example"
+    }
+  ],
+  "usage_example": "```hcl\nresource \"betterado_task_group\" \"example\" {\n  project_id           = var.project_id\n  name                 = \"deploy-webapp\"\n  friendly_name        = \"Deploy Web App\"\n  description          = \"Reusable deployment steps for the web application\"\n  category             = \"Deploy\"\n  author               = \"platform-team\"\n  instance_name_format = \"Deploy $(environment)\"\n  icon_url             = \"https://cdn.vsassets.io/v/someicon.png\"\n\n  version {\n    major = 1\n    minor = 0\n    patch = 0\n  }\n\n  input {\n    name          = \"environment\"\n    label         = \"Target environment\"\n    type          = \"string\"\n    default_value = \"staging\"\n    required      = true\n    help_markdown = \"The environment slot to deploy to.\"\n    visible_rule  = \"targetType = filePath\"\n    properties    = { \\\"EndpointId\\\" = \\\"\\\" }\n    aliases       = [\\\"env\\\", \\\"targetEnv\\\"]\n  }\n\n  task {\n    display_name = \"Run deploy script\"\n    task_id      = \"d9bafed4-0b18-4f58-968d-86655b4d2ce9\"\n    task_version = \"2.*\"\n    inputs = {\n      script = \"echo Deploying to $(environment)\"\n    }\n  }\n}\n```",
+  "impact": [
+    "Operators can now set a custom icon URL on task groups, distinguishing them visually in the ADO UI.",
+    "Per-input conditional visibility (visible_rule) allows inputs to appear/hide based on other input values — previously unmanageable via Terraform.",
+    "Per-input properties map enables passing ADO service endpoint metadata (e.g. EndpointId) without out-of-band configuration.",
+    "Per-input aliases allow task group inputs to be referenced by alternative names in pipeline YAML, enabling seamless refactors.",
+    "docs/task-group-gap-matrix.md provides an auditable field-by-field record for future coverage reviews."
+  ]
+}
