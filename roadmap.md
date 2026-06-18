@@ -48,6 +48,18 @@ Bundle includes fixtures + live acceptance + demo.
 Produce `docs/release-definition-permissions-gap-matrix.md`, implement every
 writable gap. Bundle includes fixtures + live acceptance + demo.
 
+## Future — holistic Plugin Framework migration
+
+`stages` (and other nested collections) stay as **blocks** for now. True
+array-structured nested attributes with omittable/defaulted fields (`stages = [{
+name = "Prod" }]`, rest left blank) are impossible in SDKv2 — `ConfigMode:Attr`
+forces consumers to null-fill every nested attribute at every level. The clean
+path is `terraform-plugin-framework` (`ListNestedAttribute` + typed defaults).
+Scoped as a **separate, holistic, roadmap-scale initiative**: migrate the whole
+provider SDKv2 → Framework (incrementally via `terraform-plugin-mux` during the
+transition, ending mux-free), not a permanent releases-only partial. Tracked here;
+not part of the current refinement frontier.
+
 ## Standing definition of done (per initiative)
 
 Two-gate model (see `.forge/project.json` standing ACs + `forge/brain/profile.md`):

@@ -2,88 +2,64 @@
 
 ## Purpose
 
-Rename a schema field and/or convert a nested **block** collection into an
-assignable **list-of-object attribute**, so the generated Terraform reads
-naturally (`stages = [ { … }, { … } ]` instead of repeated `stages { … }`
-blocks) and can be built with HCL `for` / `concat` / `merge` expressions. The
-canonical use is renaming release_definition `environment` → `stages` and making
-stages (and other nested collections) array-assignable.
+Rename a user-facing schema field cleanly (no back-compat alias), keeping the
+project's nested collections as **blocks**. The canonical use is renaming
+release_definition `environment` → `stages`.
 
 ## When to use
 
-- Renaming a user-facing schema field to a friendlier name (no back-compat alias).
-- Converting a `TypeList`/`TypeSet` of `*schema.Resource` from block syntax to
-  attribute (array) syntax for readability.
+- Renaming a user-facing schema field to a friendlier name.
+- Reshaping a nested structure for readability.
 
-## Background: block vs attribute (SDK v2)
+## Do NOT use `ConfigMode: SchemaConfigModeAttr` (array syntax) in this provider
 
-A nested `TypeList`/`TypeSet` whose `Elem` is a `*schema.Resource` is, by default,
-configured in HCL as repeated **blocks**:
-```hcl
-stages { name = "Prod" }
-stages { name = "QA" }
-```
-Add `ConfigMode: schema.SchemaConfigModeAttr` to the schema entry and the same
-collection becomes an **attribute** assignable as an array of objects:
-```hcl
-stages = [
-  { name = "Prod" /* … */ },
-  { name = "QA"   /* … */ },
-]
-```
-The expand/flatten code is unchanged in shape (it still reads
-`d.Get("stages").([]interface{})` of `map[string]interface{}`); only the HCL
-surface and a few schema constraints change.
+It is tempting to flip a nested `TypeList`/`TypeSet` to `ConfigMode:
+schema.SchemaConfigModeAttr` to get assignable array syntax (`stages = [{ … }]`).
+**Don't** — it has a structural SDKv2 limitation that makes the provider worse:
 
-## Workflow
+- ConfigModeAttr only changes how the PARENT collection renders (block vs
+  assignable attribute). It does NOT propagate optionality into the nested
+  object's members. SDKv2 lowers the element with `cty.Object(atys)` (never
+  `cty.ObjectWithOptionalAttrs`), so **every** nested attribute becomes required
+  in the object literal — even ones marked `Optional` / `Optional+Computed`.
+- A consumer must then null-fill EVERY field at EVERY nesting level
+  (`variable = [{ name = "X", value = "v", is_secret = null, allow_override = null }]`,
+  plus null for every unused stage field, plus full `deploy_phase` objects, …).
+  `Default` does not help — it is apply-layer only, not part of the decode type.
+- The recursion makes configs exhaustively verbose — strictly worse ergonomics
+  than blocks, which let a consumer omit unused fields entirely.
 
-### 1. Rename the field (if renaming)
+**Array-structured nested attributes with omittable/defaulted fields require the
+`terraform-plugin-framework`** (its `ListNestedAttribute` emits real optional
+object attributes + typed defaults). That is a deliberate, separately-scoped
+**holistic provider migration** (SDKv2 → Framework via mux), tracked in the
+roadmap — NOT a per-resource change. Until then, keep nested collections as blocks.
+
+## Workflow — a clean rename (block syntax)
+
+### 1. Rename the field
 - Change the schema map key (`"environment"` → `"stages"`) in `resource_<name>.go`.
-- Update every `d.Get("environment")` / `d.Set("environment", …)` / `d.GetOk(...)`
-  and any nested references to the new key. Grep the whole package for the old key.
+- Update every `d.Get/Set/GetOk` reference and any nested references to the new
+  key. Grep the whole package for the old key.
 - Rename the expand/flatten helpers for clarity (`expandEnvironments` →
   `expandStages`) and their call sites.
-- Update examples (`examples/resources/<resource>/*.tf`), docs
-  (`docs/resources/*` / templates), and acceptance-test HCL fixtures.
+- Update examples (`examples/resources/<resource>/*.tf`), docs, and acceptance-test
+  HCL fixtures — all using **block** syntax (`stages { … }`, repeated blocks for a
+  list; unused fields simply omitted).
 - This is a **breaking** change — no alias, no deprecation shim.
 
-### 2. Convert blocks → attribute array
-For each nested collection to convert, add to its schema entry:
-```go
-"stages": {
-    Type:       schema.TypeList,
-    ConfigMode: schema.SchemaConfigModeAttr,   // <- assignable as an array
-    Required:   true,                          // or Optional
-    Elem:       &schema.Resource{ Schema: map[string]*schema.Schema{ /* … */ } },
-},
-```
-Apply the same to the inner collections you want array-style (e.g.
-`deploy_phase`, `artifact`, `variable`) where it improves readability.
-
-### 3. Honour the ConfigModeAttr constraints (the gotchas)
-- A `SchemaConfigModeAttr` collection generally must be `Optional` or `Required`,
-  **not** purely `Computed`. A nested element field that is `Optional + Computed`
-  can warn/err under attr mode — make server-assigned fields (`id`, `rank` if
-  server-owned) `Computed` only, and keep user-set fields `Optional`/`Required`.
-- `MaxItems: 1` + `ConfigModeAttr` models a single assignable object
-  (`x = { … }`); use it for the single-object blocks (retention_policy,
-  execution_policy, approvals) if you want them attribute-style too.
-- Don't mix block and attribute syntax for the same field — pick one.
-- Re-run `terrafmt` after editing example/doc HCL; attribute arrays must be
-  `terrafmt`-clean for the CI gate.
-
-### 4. Prove it (two-gate + demo)
-- Update unit tests for the renamed/reshaped schema; non-default values + read-back.
-- Update / add a `TF_ACC` acceptance test that applies the array-style HCL against
-  real ADO, asserts via provider read, runs an idempotency re-plan
-  (`ExpectNonEmptyPlan: false`), and destroys cleanly.
-- Capture a live-evidence demo (see the `ado-demo` skill): the array-style `.tf`
-  plans + applies, then an API GET shows the created stages.
+### 2. Prove it (two-gate + demo)
+- Update unit tests for the renamed schema; non-default values + read-back.
+- Update / add a `TF_ACC` acceptance test that applies the renamed **block** HCL
+  against real ADO, asserts via provider read, runs an idempotency re-plan
+  (`ExpectNonEmptyPlan: false`), and destroys cleanly. Gate the WI on this live test.
+- Capture live evidence (see the `ado-demo` skill): the renamed `.tf` plans +
+  applies, then an API GET shows the created resource (`captureReleaseEvidence`).
 - Run the CI-equivalent gate (`make test && golangci-lint run ./... &&
   make terrafmt-check`) green.
 
 ## Definition of done
 
-The renamed, array-assignable schema applies + round-trips against live ADO, is
-idempotent, the CI gate is green, examples + docs use the new array syntax, and
-the plan + demo are recorded under `forge/history/<initiative-id>/`.
+The renamed (block-syntax) schema applies + round-trips against live ADO, is
+idempotent, the CI gate is green, examples + docs use the renamed blocks, and the
+plan + demo are recorded under `forge/history/<initiative-id>/`.
