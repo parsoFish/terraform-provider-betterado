@@ -188,10 +188,12 @@ func captureReleaseDefinitionPermissionsEvidence(tfNode string) resource.TestChe
 		if projectID == "" || releaseDefinitionID == "" {
 			return nil
 		}
+		// Release definition ACL lives on the vsrm host, not dev.azure.com.
 		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+		vsrmURL := strings.Replace(orgURL, "https://dev.azure.com", "https://vsrm.dev.azure.com", 1)
 		url := fmt.Sprintf(
 			"%s/_apis/accesscontrollists/c788c23e-1b46-4162-8f5e-d7585343b5de?token=%s%%2F%s&api-version=7.1",
-			orgURL,
+			vsrmURL,
 			projectID, releaseDefinitionID,
 		)
 		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, nil)
