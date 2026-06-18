@@ -8,6 +8,7 @@ resource "betterado_task_group" "example" {
   category             = "Deploy"
   author               = "platform-team"
   instance_name_format = "Deploy $(environment)"
+  icon_url             = "https://cdn.vsassets.io/v/someicon.png"
 
   version {
     major = 1
@@ -23,6 +24,9 @@ resource "betterado_task_group" "example" {
     default_value = "staging"
     required      = true
     help_markdown = "The environment slot to deploy to."
+    visible_rule  = "targetType = filePath"
+    properties    = { "EndpointId" = "" }
+    aliases       = ["targetEnvAlias"]
   }
 
   # Task steps executed when the group runs.

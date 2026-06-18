@@ -27,6 +27,7 @@ resource "betterado_task_group" "example" {
   category             = "Deploy"
   author               = "platform-team"
   instance_name_format = "Deploy $(environment)"
+  icon_url             = "https://cdn.vsassets.io/v/someicon.png"
 
   version {
     major = 1
@@ -42,6 +43,9 @@ resource "betterado_task_group" "example" {
     default_value = "staging"
     required      = true
     help_markdown = "The environment slot to deploy to."
+    visible_rule  = "targetType = filePath"
+    properties    = { "EndpointId" = "" }
+    aliases       = ["targetEnvAlias"]
   }
 
   # Task steps executed when the group runs.
@@ -77,6 +81,7 @@ variable "project_id" {
 
 - `author` (String)
 - `description` (String)
+- `icon_url` (String) URL of the task group icon. Optional.
 - `input` (Block List) (see [below for nested schema](#nestedblock--input))
 - `instance_name_format` (String)
 - `runs_on` (List of String)
@@ -134,12 +139,15 @@ Required:
 
 Optional:
 
+- `aliases` (List of String) Alternative names for this input parameter.
 - `default_value` (String)
 - `group_name` (String)
 - `help_markdown` (String)
 - `options` (Map of String)
+- `properties` (Map of String) Additional metadata key/value pairs for this input.
 - `required` (Boolean)
 - `type` (String)
+- `visible_rule` (String) Conditional visibility expression (e.g. `"targetType = filePath"`).
 
 
 <a id="nestedblock--timeouts"></a>

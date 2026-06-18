@@ -62,6 +62,11 @@ func ResourceTaskGroup() *schema.Resource {
 				Optional: true,
 				Default:  "",
 			},
+			"icon_url": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "",
+			},
 			"instance_name_format": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -151,6 +156,23 @@ func ResourceTaskGroup() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+						},
+						"visible_rule": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "",
+						},
+						"properties": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"aliases": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
@@ -355,6 +377,9 @@ func expandTaskGroupCreate(d *schema.ResourceData) *taskagent.TaskGroupCreatePar
 	if v, ok := d.GetOk("author"); ok {
 		param.Author = converter.String(v.(string))
 	}
+	if v, ok := d.GetOk("icon_url"); ok {
+		param.IconUrl = converter.String(v.(string))
+	}
 	if v, ok := d.GetOk("instance_name_format"); ok {
 		param.InstanceNameFormat = converter.String(v.(string))
 	}
@@ -392,6 +417,9 @@ func expandTaskGroupUpdate(d *schema.ResourceData) *taskagent.TaskGroupUpdatePar
 	}
 	if v, ok := d.GetOk("author"); ok {
 		param.Author = converter.String(v.(string))
+	}
+	if v, ok := d.GetOk("icon_url"); ok {
+		param.IconUrl = converter.String(v.(string))
 	}
 	if v, ok := d.GetOk("instance_name_format"); ok {
 		param.InstanceNameFormat = converter.String(v.(string))
@@ -446,6 +474,23 @@ func expandTaskInputs(input []interface{}) []taskagent.TaskInputDefinition {
 				optsMap[k] = v.(string)
 			}
 			inp.Options = &optsMap
+		}
+		if vr, ok := m["visible_rule"].(string); ok && vr != "" {
+			inp.VisibleRule = converter.String(vr)
+		}
+		if props, ok := m["properties"].(map[string]interface{}); ok && len(props) > 0 {
+			propsMap := make(map[string]string, len(props))
+			for k, v := range props {
+				propsMap[k] = v.(string)
+			}
+			inp.Properties = &propsMap
+		}
+		if aliases, ok := m["aliases"].([]interface{}); ok && len(aliases) > 0 {
+			aliasStrs := make([]string, len(aliases))
+			for i, a := range aliases {
+				aliasStrs[i] = a.(string)
+			}
+			inp.Aliases = &aliasStrs
 		}
 		inputs[i] = inp
 	}
@@ -513,6 +558,7 @@ func flattenTaskGroup(d *schema.ResourceData, tg *taskagent.TaskGroup) {
 	d.Set("description", converter.ToString(tg.Description, ""))
 	d.Set("category", converter.ToString(tg.Category, ""))
 	d.Set("author", converter.ToString(tg.Author, ""))
+	d.Set("icon_url", converter.ToString(tg.IconUrl, ""))
 	d.Set("instance_name_format", converter.ToString(tg.InstanceNameFormat, ""))
 	d.Set("definition_type", converter.ToString(tg.DefinitionType, ""))
 
@@ -563,6 +609,17 @@ func flattenTaskInputs(inputs *[]taskagent.TaskInputDefinition) []interface{} {
 			m["options"] = *inp.Options
 		} else {
 			m["options"] = map[string]string{}
+		}
+		m["visible_rule"] = converter.ToString(inp.VisibleRule, "")
+		if inp.Properties != nil {
+			m["properties"] = *inp.Properties
+		} else {
+			m["properties"] = map[string]string{}
+		}
+		if inp.Aliases != nil {
+			m["aliases"] = *inp.Aliases
+		} else {
+			m["aliases"] = []string{}
 		}
 		result[i] = m
 	}

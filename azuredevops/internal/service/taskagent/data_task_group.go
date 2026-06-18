@@ -50,6 +50,10 @@ func DataTaskGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"icon_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"instance_name_format": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -124,6 +128,22 @@ func DataTaskGroup() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+						},
+						"visible_rule": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"properties": {
+							Type:     schema.TypeMap,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"aliases": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},

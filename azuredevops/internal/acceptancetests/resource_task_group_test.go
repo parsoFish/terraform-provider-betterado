@@ -91,6 +91,81 @@ resource "betterado_task_group" "test" {
 `, name)
 }
 
+func TestAccTaskGroup_withGapFields(t *testing.T) {
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_task_group.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testutils.PreCheck(t, nil) },
+		Providers:    testutils.GetProviders(),
+		CheckDestroy: checkTaskGroupDestroyed,
+		Steps: []resource.TestStep{
+			// Step 1: create with gap fields and assert exact non-default read-back
+			{
+				Config: hclTaskGroupWithGapFields(name),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(tfNode, "icon_url", "https://cdn.vsassets.io/v/someicon.png"),
+					resource.TestCheckResourceAttr(tfNode, "category", "Deploy"),
+					resource.TestCheckResourceAttr(tfNode, "input.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "input.0.visible_rule", "targetType = filePath"),
+					resource.TestCheckResourceAttr(tfNode, "input.0.aliases.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "input.0.aliases.0", "targetEnvAlias"),
+					resource.TestCheckResourceAttr(tfNode, "input.0.properties.EndpointId", ""),
+					resource.TestCheckResourceAttrSet(tfNode, "revision"),
+					captureTaskGroupEvidence(tfNode),
+				),
+			},
+			// Step 2: idempotency — no perpetual diff
+			{
+				Config:             hclTaskGroupWithGapFields(name),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+func hclTaskGroupWithGapFields(name string) string {
+	return fmt.Sprintf(`
+resource "betterado_project" "test" {
+  name               = "%[1]s"
+  visibility         = "private"
+  version_control    = "Git"
+  work_item_template = "Agile"
+}
+
+resource "betterado_task_group" "test" {
+  project_id    = betterado_project.test.id
+  name          = "%[1]s"
+  friendly_name = "%[1]s"
+  description   = "Gap-fields acceptance test"
+  category      = "Deploy"
+  icon_url      = "https://cdn.vsassets.io/v/someicon.png"
+
+  version {
+    major = 1
+    minor = 0
+    patch = 0
+  }
+
+  input {
+    name         = "targetEnv"
+    label        = "Target Environment"
+    type         = "string"
+    visible_rule = "targetType = filePath"
+    properties   = { "EndpointId" = "" }
+    aliases      = ["targetEnvAlias"]
+  }
+
+  task {
+    display_name = "Deploy Step"
+    task_id      = "d9bafed4-0b18-4f58-968d-86655b4d2ce9"
+    task_version = "2.*"
+  }
+}
+`, name)
+}
+
 func checkTaskGroupDestroyed(s *terraform.State) error {
 	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
 
