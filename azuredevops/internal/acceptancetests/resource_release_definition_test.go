@@ -661,13 +661,13 @@ resource "betterado_release_definition" "test" {
   project_id = %[2]q
 
   stages {
-    name                  = "Production"
-    rank                  = 1
+    name = "Production"
+    rank = 1
 
     deploy_phase {
-      name             = "Agent job"
-      rank             = 1
-      phase_type       = "agentBasedDeployment"
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
 
     }
 
