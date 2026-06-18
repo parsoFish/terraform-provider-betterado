@@ -28,6 +28,11 @@
 - All offline gates still pass: gofmt ✓, go build ✓, go vet ✓, terrafmt-check ✓, acceptance package compiles ✓.
 - Commit: 8c591b62.
 
+## Iteration 4 (2026-06-17)
+
+- Orientation only — all offline gates confirmed clean again. Working tree clean. No new commits needed.
+- All 5 ACs checked off; awaiting orchestrator live gate run (TF_ACC=1).
+
 ## Remaining
 
 - AC1, AC2, AC3, AC4: live gate run against real ADO (TF_ACC=1). The orchestrator runs these via quality_gate_cmd. No further code changes needed — all offline gates pass.

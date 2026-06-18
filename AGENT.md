@@ -47,6 +47,13 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - All offline gates pass: gofmt ✓, go build ✓, go vet ✓, terrafmt-check ✓, acceptance package compiles ✓.
 - Committed as `8c591b62`.
 
+### Iteration 4 (2026-06-17)
+
+- Orientation only — all 5 ACs were completed in prior iterations (1–3).
+- All offline gates confirmed clean: `go build ./...` ✓, `go vet ./...` ✓, `gofmt -l` (our files only) ✓, `./scripts/terrafmt.sh` ✓, acceptance package compiles ✓.
+- Working tree is clean; 6 commits ahead of origin. No new code changes needed.
+- Only remaining step: live gate run by orchestrator (TF_ACC=1).
+
 ## Open questions
 
 - The quality gate cmd in the WI is `TF_ACC=1 go test -tags all -run TestAccReleaseDefinition_basic|..._withContainerImageTrigger|..._complete`. This runs live against real ADO. The orchestrator will run that gate; we can't run it offline without credentials.
