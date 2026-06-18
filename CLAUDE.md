@@ -83,6 +83,20 @@ map → `TypeMap`.
   `forge/skills/` (project-action skills), `forge/history/<initiative-id>/` (plan + demo per cycle).
 - `roadmap.md` — the planning frontier. `.forge/project.json` — the forge contract config.
 
+## Release — publish after a PR merges to main
+
+A merged schema/feature change is not *delivered* until it's published, or
+Terraform consumers can't use the new fields. After a PR closes to `main`:
+
+1. **Docs current** — `make docs` (tfplugindocs regenerates `docs/resources/` +
+   `docs/data-sources/` from the schema), then `git checkout -- docs/guides/`
+   (tfplugindocs deletes the hand-written guides — restore them). Commit.
+2. **Bump the version** — edit `PROVIDER_VERSION.txt` (semver: minor for new
+   features, patch for fixes). Commit.
+3. **Tag + push** — `git tag vX.Y.Z && git push origin main --tags`. The
+   GoReleaser workflow (`.goreleaser.yml`) builds the signed release artifacts
+   for the tag and the Terraform Registry picks up the new version.
+
 ## Fork workflow
 
 `main` carries all betterado work. Pull upstream via `git fetch upstream && git
