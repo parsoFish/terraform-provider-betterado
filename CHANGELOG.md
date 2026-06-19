@@ -7,6 +7,8 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## Unreleased
 
+## [0.3.0] - 2026-06-20
+
 FEATURES:
 
 - **Mux entrypoint:** `main.go` now serves the provider via `tf6muxserver`, multiplexing the existing SDKv2 provider (upgraded to protocol 6 via `tf5to6server`) with a new `terraform-plugin-framework` provider stub (`azuredevops/internal/provider/framework_provider.go`). All existing SDKv2 resources are unaffected; new framework resources are registered by adding to `Resources()` / `DataSources()` in `framework_provider.go` without touching `main.go`.
