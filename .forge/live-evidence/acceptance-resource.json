@@ -1,6 +1,0 @@
-{
-  "capturedAt": "2026-06-19T06:52:50Z",
-  "label": "acceptance-resource",
-  "response": "{\n  \"createdBy\": {\n    \"_links\": {\n      \"avatar\": {\n        \"href\": \"https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx\"\n      }\n    },\n    \"descriptor\": \"msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx\",\n    \"displayName\": \"david.g.parsonson\",\n    \"url\": \"https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"id\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"imageUrl\": \"https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx\",\n    \"uniqueName\": \"david.g.parsonson@gmail.com\"\n  },\n  \"createdOn\": \"2026-06-19T06:52:48.683Z\",\n  \"lastChangedDate\": \"0001-01-01T00:00:00Z\",\n  \"path\": \"\\\\MuxSmokeTest\"\n}",
-  "url": "https://vsrm.dev.azure.com/davidgparsonson/804f6f38-afa3-416e-8d0f-a8a3eec78a4a/_apis/release/folders%5CMuxSmokeTest?api-version=7.1"
-}
