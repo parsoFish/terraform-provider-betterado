@@ -1,16 +1,7 @@
 {
   "northStar": "Feature complete ADO provider that has data and resources defined for all resources available in the ADO API",
   "instructions": "Build and test only the package you're changing (`go test -tags all ./azuredevops/internal/service/<pkg>/...`); the whole-tree `go build ./...` / `go vet ./...` fill the drive. Make the implementation satisfy the tests as written, and write fixtures with non-default values asserted via a read-back. Commit your work; leave git history intact (no resets). The Release API lives on vsrm.dev.azure.com; in Read, treat a 404 as deleted by clearing the id. Project-action skills live under `forge/skills/`; record each initiative's plan + demo under `forge/history/<initiative-id>/` so the repo carries a browsable build record.",
-  "$comment": "forge per-project config (orchestrator reads this; preflight reads .forge/quality_gate_cmd). The default quality gate is the FAST, deterministic, creds-free OFFLINE unit suite scoped to the fork's net-new packages (release + taskagent) — NOT the live TF_ACC acceptance tests (those need a PAT + are 120m-timeout, so they run as sharp per-WI gates / operator confirmation, never as the project default). This pairing is the project-scoped fix for the 2026-05-23 dogfood false-pass (brain: themes/2026-05-23-dogfood-cycle-false-pass-gate.md).",
-  "quality_gate_cmd": [
-    "go",
-    "test",
-    "-tags",
-    "all",
-    "-count=1",
-    "./azuredevops/internal/service/release/...",
-    "./azuredevops/internal/service/taskagent/..."
-  ],
+  "$comment": "forge per-project config. The quality gate is single-sourced from .forge/quality_gate_cmd (preflight AND loadProjectConfig read the sidecar); this file no longer mirrors the key. The gate is the FAST, deterministic, creds-free OFFLINE unit suite scoped to the fork's net-new packages (release + taskagent) — NOT the live TF_ACC acceptance tests (those need a PAT + are 120m-timeout, so they run as sharp per-WI gates / operator confirmation, never as the project default). This pairing is the project-scoped fix for the 2026-05-23 dogfood false-pass (brain: themes/2026-05-23-dogfood-cycle-false-pass-gate.md).",
   "$ci_gate_comment": "The project's FULL CI verification — mirrors the GitHub workflows (golint + terrafmt + unit-test). A 'make CI green' / quality initiative MUST use this as its per-WI quality_gate_cmd (NOT a narrow lint-only proxy), so forge's own gate goes red until CI is genuinely green. `make test` = gofmt-check + `go test ./...` (whole module, incl. provider_test.go resource-count). Auto-fixers for the formatting checks: `make fmt` (gofmt) + `make terrafmt`.",
   "ci_gate": [
     "bash",
@@ -47,8 +38,8 @@
     "Registry docs current: a schema change is NOT done until the published Terraform docs describe it. Run `make docs` (tfplugindocs) so `docs/resources/<resource>.md` + `docs/data-sources/*` document EVERY new/changed attribute, then `git checkout -- docs/guides/` (tfplugindocs deletes the hand-written guides — restore them). Add/refresh the `examples/resources/<resource>/resource.tf` example that the docs embed. Do this BEFORE the PR is opened."
   ],
   "demo": {
-    "$shape_comment": "`harness` is the creds-free FLOOR (offline unit run, always available). betterado is NOT a no-web-UI project — it stands up real resources in a live ADO org (creds in secrets.env) visible via the REST API AND the dev.azure.com portal. The richer demo is LIVE EVIDENCE — terraform apply → API GET + portal screenshots → destroy — codified in the ado-demo skill. The forge demo phase should compose that skill; the shape vocab needs a 'live external system + portal screenshots' option (tracked in forge known-gaps).",
-    "shape": "harness",
+    "$shape_comment": "`live-external`: betterado stands up real resources in a live ADO org (creds in secrets.env) visible via the REST API AND the dev.azure.com portal. The demo is LIVE EVIDENCE — terraform apply -> API GET (liveEvidence.url) + portal screenshots -> destroy — codified in the ado-demo skill, which the forge demo phase composes. The harness unit run is the creds-free FALLBACK when credentials are absent (documented in essence). The demoProcess capture/verify steps drive the executed demo.",
+    "shape": "live-external",
     "skill": "forge/skills/ado-demo/SKILL.md",
     "command": [
       "go",
@@ -89,9 +80,41 @@
     "ado-browser-inspector",
     "ado-demo",
     "resource-scaffolder",
-    "schema-refactor"
+    "schema-refactor",
+    "tfplugindocs-gen",
+    "tf-acceptance-test-author",
+    "ado-release-explorer",
+    "breaking-change-detector"
   ],
   "kb": "terraform-provider-betterado-brain",
   "$artifactRoot_comment": "Committed forge artifacts (Brain 3 + development history) live under forge/ — a single visible home, out of the provider source tree. forge/brain/ is Brain 3; forge/history/<initiative-id>/ holds each cycle's plan + demo. Runtime scratch (_architect/, AGENT.md, worktree demo/) stays gitignored.",
-  "artifactRoot": "forge"
+  "artifactRoot": "forge",
+  "$releaseProcess_comment": "Translates CLAUDE.md 'Release — publish after a PR merges to main'. In-cycle: regenerate registry docs (make docs) + author the changelog DRAFT. Pre-merge: bump PROVIDER_VERSION.txt (semver). Tag + GoReleaser publish stay in CI (.github/workflows/tag-on-changelog.yml tags on the finalised CHANGELOG push to main; release.yml runs GoReleaser on the tag) — forge NEVER runs tag/publish.",
+  "releaseProcess": {
+    "steps": [
+      {
+        "kind": "docs",
+        "phase": "in-cycle",
+        "text": "Regenerate the Terraform Registry docs from the schema so docs/resources/ + docs/data-sources/ describe every new/changed attribute, then restore the hand-written guides tfplugindocs deletes. Refresh the examples/ the docs embed.",
+        "command": [
+          "bash",
+          "-c",
+          "make docs && git checkout -- docs/guides/"
+        ]
+      },
+      {
+        "kind": "changelog",
+        "phase": "in-cycle",
+        "text": "Add a DRAFT changelog entry under ## Unreleased — one bullet per user-visible behaviour change, categorised (FEATURES / ENHANCEMENTS / BUG FIXES / NOTES). The finaliser promotes it to a versioned section post-approval."
+      },
+      {
+        "kind": "version",
+        "phase": "pre-merge",
+        "text": "Bump PROVIDER_VERSION.txt (semver: minor for new features/resources/attributes, patch for fixes). The tag-on-changelog CI workflow reads this file to cut the v<version> tag on merge to main."
+      }
+    ],
+    "versionFile": "PROVIDER_VERSION.txt",
+    "changelogPath": "CHANGELOG.md",
+    "docsDir": "docs"
+  }
 }

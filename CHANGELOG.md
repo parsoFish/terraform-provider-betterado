@@ -7,6 +7,44 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## Unreleased
 
+## 0.2.0
+
+`betterado_release_definition` schema coverage push — full release-pipeline
+surface against the ADO Release API, proven by live TF_ACC acceptance tests with
+REST evidence capture.
+
+FEATURES:
+
+- **New Resource:** `betterado_release_folder` — organise release definitions
+  into ADO release folders, with a live-acceptance test and a gap-matrix audit.
+
+BREAKING CHANGES:
+
+- `betterado_release_definition`: pipeline stages are now declared as repeated
+  `stages { ... }` blocks (renamed from `environment { ... }`). This is a rename
+  with **no alias** — update existing configurations from `environment` to
+  `stages`. (The intermediate array/`ConfigMode: SchemaConfigModeAttr` syntax was
+  reverted to plain blocks so optional stage fields need no null-filling.)
+
+ENHANCEMENTS:
+
+- `betterado_release_definition`: full `betterado_release_definition_permissions`
+  coverage — all 12 writable `ReleaseManagement2` permission bits, with
+  project-scoped and edge-case token handling, documented in a gap matrix.
+- `betterado_release_definition`: new `container_image_trigger` — declare
+  container-image CD triggers natively (the final writable gap from the trigger
+  coverage matrix).
+- `betterado_release_definition`: `deployment_gate` support on stages —
+  pre/post-deploy gates with `sampling_interval` and stabilization windows.
+- Registry docs (`docs/resources/`, `docs/data-sources/`, `examples/`)
+  regenerated from the schema for every new/changed attribute.
+
+NOTES:
+
+- Every schema change in this release is exercised by a `TF_ACC` acceptance test
+  against a live Azure DevOps org (apply → API GET read-back → idempotency
+  re-plan → destroy), with the live REST evidence captured into the cycle demo.
+
 ## 0.1.0 (2026-06-14)
 
 First public release of the `betterado` provider — a fork of

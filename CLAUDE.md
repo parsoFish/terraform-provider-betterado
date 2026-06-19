@@ -92,19 +92,30 @@ map → `TypeMap`.
   `forge/skills/` (project-action skills), `forge/history/<initiative-id>/` (plan + demo per cycle).
 - `roadmap.md` — the planning frontier. `.forge/project.json` — the forge contract config.
 
-## Release — publish after a PR merges to main
+## Release — declared as `releaseProcess`, tagged by CI
 
 A merged schema/feature change is not *delivered* until it's published, or
-Terraform consumers can't use the new fields. After a PR closes to `main`:
+Terraform consumers can't use the new fields. This project declares the repo-side
+prep as `releaseProcess` in `.forge/project.json`, so forge performs it in the
+cycle; **tagging + publishing stay in CI** — forge never runs them.
 
-1. **Docs current** — `make docs` (tfplugindocs regenerates `docs/resources/` +
-   `docs/data-sources/` from the schema), then `git checkout -- docs/guides/`
-   (tfplugindocs deletes the hand-written guides — restore them). Commit.
-2. **Bump the version** — edit `PROVIDER_VERSION.txt` (semver: minor for new
-   features, patch for fixes). Commit.
-3. **Tag + push** — `git tag vX.Y.Z && git push origin main --tags`. The
-   GoReleaser workflow (`.goreleaser.yml`) builds the signed release artifacts
-   for the tag and the Terraform Registry picks up the new version.
+The flow:
+
+1. **In-cycle — docs current** (`releaseProcess` `docs` step): `make docs`
+   (tfplugindocs regenerates `docs/resources/` + `docs/data-sources/` from the
+   schema), then `git checkout -- docs/guides/` (tfplugindocs deletes the
+   hand-written guides — restore them). Refresh the `examples/` the docs embed.
+2. **In-cycle — draft changelog** (`releaseProcess` `changelog` step): add a
+   DRAFT entry under `## Unreleased` in `CHANGELOG.md` (one bullet per
+   user-visible change, categorised). The post-approval finaliser promotes it to
+   a versioned section.
+3. **Pre-merge — bump the version** (`releaseProcess` `version` step): edit
+   `PROVIDER_VERSION.txt` (semver: minor for new features, patch for fixes).
+4. **CI — tag + release** (forge ships, never runs): on merge to `main`,
+   `.github/workflows/tag-on-changelog.yml` reads `PROVIDER_VERSION.txt` and
+   pushes the `vX.Y.Z` tag; that tag push triggers `.github/workflows/release.yml`
+   (GoReleaser, `.goreleaser.yml`), which builds the signed artifacts the
+   Terraform Registry ingests.
 
 ## Fork workflow
 

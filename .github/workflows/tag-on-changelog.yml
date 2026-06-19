@@ -1,0 +1,66 @@
+# tag-on-changelog.yml — the CI half of the forge release contract (C10),
+# adapted for this GoReleaser-based provider.
+#
+# Forge SHIPS the version bump + finalised changelog and NEVER runs tag/publish.
+# The forge release-finalizer commits the finalised CHANGELOG.md entry + the
+# PROVIDER_VERSION.txt bump to the PR branch BEFORE merge; on merge to main this
+# workflow reads that committed version and creates the `v$VERSION` git tag.
+#
+# Tagging is the only thing this workflow does. The EXISTING `release.yml`
+# GoReleaser workflow is triggered by the `v*` tag push and builds + signs the
+# provider artifacts that the Terraform Registry ingests — so the two compose:
+# this workflow is the "tag on changelog", release.yml is the "build on tag".
+#
+# Trigger: a push to main that touches CHANGELOG.md (the finalised changelog is
+# the release signal — forge commits it pre-merge). Guarded on "the version
+# actually changed" so ordinary commits don't cut releases, and idempotent (skips
+# when the tag already exists).
+
+name: tag-on-changelog
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - CHANGELOG.md
+
+permissions:
+  contents: write # create + push tags
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so tag uniqueness can be checked
+
+      - name: Read the finalised version
+        id: version
+        run: |
+          # The forge finalizer bumps PROVIDER_VERSION.txt pre-merge (semver:
+          # minor for features, patch for fixes). That file is the source of truth.
+          VERSION=$(tr -d '[:space:]' < PROVIDER_VERSION.txt)
+          if [ -z "$VERSION" ]; then
+            echo "PROVIDER_VERSION.txt is empty — nothing to release"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # Idempotent: skip when the tag already exists (re-run / no bump).
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "tag v$VERSION already exists — skipping"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create and push the tag
+        if: steps.version.outputs.release == 'true'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+          # The push above triggers .github/workflows/release.yml (GoReleaser),
+          # which builds + signs the release artifacts for the new tag.
