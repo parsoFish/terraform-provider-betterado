@@ -51,6 +51,21 @@ linters:
         - json
         - tfschema
         - computed
+    staticcheck:
+      # Preserve the pre-v2 baseline: golangci v1.64.8 did NOT enable the
+      # stylecheck (ST*) or quickfix (QF*) families, so the v1->v2 upgrade
+      # (required for go1.25) must not suddenly demand fixing ~436 legacy
+      # style findings in inherited upstream code. Keep the real-bug SA*
+      # checks. New code is held to the same bar it was before.
+      checks:
+        - all
+        - -ST1*
+        - -QF1*
+    gocritic:
+      # deprecatedComment is a v2-default gocritic check not enforced under
+      # v1.64.8; it flags 1 pre-existing legacy comment. Disable to match baseline.
+      disabled-checks:
+        - deprecatedComment
   exclusions:
     generated: lax
     presets:

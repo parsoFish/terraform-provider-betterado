@@ -19,9 +19,4 @@ jobs:
     - uses: golangci/golangci-lint-action@v7
       with:
         version: 'v2.12.2'
-        # Scoped to the packages the framework migration touches. Whole-tree
-        # only-new-issues is unusable here: the GitHub diff API caps at 300 files
-        # and the vendored dep change is ~1400 files, so the baseline can't load
-        # and golangci falls back to reporting ~437 pre-existing upstream issues.
-        # The forge local gate covers new issues across the tree via --new-from-rev.
-        args: -v ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... ./azuredevops/internal/provider/...
+        args: -v ./azuredevops/...
