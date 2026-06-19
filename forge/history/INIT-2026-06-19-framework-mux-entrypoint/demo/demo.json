@@ -5,7 +5,7 @@
   "initiativeId": "INIT-2026-06-19-framework-mux-entrypoint",
   "baseRef": "main",
   "changedRef": "INIT-2026-06-19-framework-mux-entrypoint",
-  "diffStat": "1416 files changed, 116537 insertions(+), 49909 deletions(-) (vendor tree + go.mod/go.sum + main.go + framework_provider.go + acceptance test)",
+  "diffStat": "1424 files changed, 117389 insertions(+), 49998 deletions(-) (vendor tree + go.mod/go.sum + main.go + framework_provider.go + acceptance test)",
   "checkpoints": [
     {
       "label": "quality-gate",
@@ -17,21 +17,21 @@
         {
           "label": "azuredevops/internal/service/release",
           "before": null,
-          "after": "pass (0.026s)",
+          "after": "pass (0.023s)",
           "deltaPct": null,
           "parity": "incomplete"
         },
         {
           "label": "azuredevops/internal/service/taskagent",
           "before": null,
-          "after": "pass (0.008s)",
+          "after": "pass (0.009s)",
           "deltaPct": null,
           "parity": "incomplete"
         },
         {
           "label": "azuredevops/internal/service/taskagent/validate",
           "before": null,
-          "after": "pass (0.004s)",
+          "after": "pass (0.005s)",
           "deltaPct": null,
           "parity": "incomplete"
         }
@@ -86,17 +86,17 @@
     {
       "name": "go test -tags all -count=1 ./azuredevops/internal/service/release/...",
       "result": "pass",
-      "delta": "ok 0.026s"
+      "delta": "ok 0.023s"
     },
     {
       "name": "go test -tags all -count=1 ./azuredevops/internal/service/taskagent/...",
       "result": "pass",
-      "delta": "ok 0.008s"
+      "delta": "ok 0.009s"
     },
     {
       "name": "go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate",
       "result": "pass",
-      "delta": "ok 0.004s"
+      "delta": "ok 0.005s"
     },
     {
       "name": "TestAccMuxSdkv2Passthrough (TF_ACC=1, live ADO)",

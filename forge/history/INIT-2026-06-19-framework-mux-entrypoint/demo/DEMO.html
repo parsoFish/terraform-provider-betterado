@@ -153,7 +153,7 @@
     <span><code>INIT-2026-06-19-framework-mux-entrypoint</code></span>
     <span>project <strong>terraform-provider-betterado</strong></span>
     <span>before <code>main</code> → after <code>INIT-2026-06-19-framework-mux-entrypoint</code></span>
-    <span>generated 2026-06-19T07:02:26.833Z</span>
+    <span>generated 2026-06-19T22:47:15.842Z</span>
   </div>
   <p class="essence">main.go now wires terraform-plugin-mux so the binary serves the existing SDKv2 provider (protocol-6 via tf5to6server) alongside a new framework provider stub. A live acceptance test (TestAccMuxSdkv2Passthrough) proves betterado_release_folder is still served correctly under the mux, with a real REST GET captured at .forge/live-evidence/acceptance-resource.json. This is the prerequisite scaffold every framework resource in later initiatives depends on.</p>
 </header>
@@ -220,7 +220,7 @@
     
     <table class="harness">
       <thead><tr><th>metric</th><th>before</th><th>after</th><th>Δ</th><th>parity</th></tr></thead>
-      <tbody><tr class="p-incomplete"><td>azuredevops/internal/service/release</td><td><span class="muted">—</span></td><td>pass (0.026s)</td><td>—</td><td class="verdict-cell">new</td></tr><tr class="p-incomplete"><td>azuredevops/internal/service/taskagent</td><td><span class="muted">—</span></td><td>pass (0.008s)</td><td>—</td><td class="verdict-cell">new</td></tr><tr class="p-incomplete"><td>azuredevops/internal/service/taskagent/validate</td><td><span class="muted">—</span></td><td>pass (0.004s)</td><td>—</td><td class="verdict-cell">new</td></tr></tbody>
+      <tbody><tr class="p-incomplete"><td>azuredevops/internal/service/release</td><td><span class="muted">—</span></td><td>pass (0.023s)</td><td>—</td><td class="verdict-cell">new</td></tr><tr class="p-incomplete"><td>azuredevops/internal/service/taskagent</td><td><span class="muted">—</span></td><td>pass (0.009s)</td><td>—</td><td class="verdict-cell">new</td></tr><tr class="p-incomplete"><td>azuredevops/internal/service/taskagent/validate</td><td><span class="muted">—</span></td><td>pass (0.005s)</td><td>—</td><td class="verdict-cell">new</td></tr></tbody>
     </table>
     <p class="verdict v-new">Verdict: <strong>NEW (no prior baseline)</strong></p>
     <p class="legend"><strong>match</strong>/<strong>within</strong> = unchanged from baseline · <strong>new</strong> = newly added, no prior baseline (see the <em>after</em> column for the result — a PASS means the new test is green) · <strong>diverged</strong> = regressed vs baseline (the only state that signals a problem)</p>
@@ -260,15 +260,15 @@
     <tbody><tr>
         <td>go test -tags all -count=1 ./azuredevops/internal/service/release/...</td>
         <td class="result-pass">pass</td>
-        <td class="muted">ok 0.026s</td>
+        <td class="muted">ok 0.023s</td>
       </tr><tr>
         <td>go test -tags all -count=1 ./azuredevops/internal/service/taskagent/...</td>
         <td class="result-pass">pass</td>
-        <td class="muted">ok 0.008s</td>
+        <td class="muted">ok 0.009s</td>
       </tr><tr>
         <td>go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate</td>
         <td class="result-pass">pass</td>
-        <td class="muted">ok 0.004s</td>
+        <td class="muted">ok 0.005s</td>
       </tr><tr>
         <td>TestAccMuxSdkv2Passthrough (TF_ACC=1, live ADO)</td>
         <td class="result-pass">pass</td>
@@ -290,7 +290,7 @@
       <li><code>vendor/modules.txt</code> <span class="muted">— Updated vendor manifest for new deps</span></li>
     </ul>
   
-  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>INIT-2026-06-19-framework-mux-entrypoint</code></summary><pre class="diff-stat">1416 files changed, 116537 insertions(+), 49909 deletions(-) (vendor tree + go.mod/go.sum + main.go + framework_provider.go + acceptance test)</pre></details>
+  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>INIT-2026-06-19-framework-mux-entrypoint</code></summary><pre class="diff-stat">1424 files changed, 117389 insertions(+), 49998 deletions(-) (vendor tree + go.mod/go.sum + main.go + framework_provider.go + acceptance test)</pre></details>
 </section>
 
 

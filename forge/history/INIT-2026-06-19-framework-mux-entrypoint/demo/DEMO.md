@@ -24,9 +24,9 @@
 
 | metric | before | after | Δ | parity |
 |---|---|---|---|---|
-| azuredevops/internal/service/release | — | pass (0.026s) | — | new |
-| azuredevops/internal/service/taskagent | — | pass (0.008s) | — | new |
-| azuredevops/internal/service/taskagent/validate | — | pass (0.004s) | — | new |
+| azuredevops/internal/service/release | — | pass (0.023s) | — | new |
+| azuredevops/internal/service/taskagent | — | pass (0.009s) | — | new |
+| azuredevops/internal/service/taskagent/validate | — | pass (0.005s) | — | new |
 
 > parity: **match**/**within** = unchanged · **new** = newly added, no prior baseline (the *after* column is the result — PASS means the new test is green) · **diverged** = regressed vs baseline (the only state that signals a problem).
 
@@ -44,9 +44,9 @@
 
 | test | result | delta |
 |---|---|---|
-| go test -tags all -count=1 ./azuredevops/internal/service/release/... | pass | ok 0.026s |
-| go test -tags all -count=1 ./azuredevops/internal/service/taskagent/... | pass | ok 0.008s |
-| go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate | pass | ok 0.004s |
+| go test -tags all -count=1 ./azuredevops/internal/service/release/... | pass | ok 0.023s |
+| go test -tags all -count=1 ./azuredevops/internal/service/taskagent/... | pass | ok 0.009s |
+| go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate | pass | ok 0.005s |
 | TestAccMuxSdkv2Passthrough (TF_ACC=1, live ADO) | pass | live evidence captured at 2026-06-19T06:54:30Z |
 
 > result: **pass**/**fail** · **skip** = not run in this gate (e.g. a live test with no credentials present) — not a failure · delta **new** = test added by this change.
@@ -61,7 +61,7 @@
 - `vendor/modules.txt` — Updated vendor manifest for new deps
 
 ```
-1416 files changed, 116537 insertions(+), 49909 deletions(-) (vendor tree + go.mod/go.sum + main.go + framework_provider.go + acceptance test)
+1424 files changed, 117389 insertions(+), 49998 deletions(-) (vendor tree + go.mod/go.sum + main.go + framework_provider.go + acceptance test)
 ```
 
 ## Usage
