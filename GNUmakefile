@@ -105,6 +105,11 @@ vet:
 
 ci: depscheck lint test
 
+clean:
+	@echo "==> Sweeping build output + forge architect scratch (dist/, _architect/)..."
+	rm -rf dist _architect
+	@echo "==> Done."
+
 clean-cache:
 	@echo "==> Cleaning Go build and test caches..."
 	go clean -cache -testcache
@@ -119,4 +124,4 @@ docs:
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@$(TFPLUGINDOCS_VERSION)
 	tfplugindocs generate --provider-name betterado
 
-.PHONY: build test testacc vet fmt fmtcheck lint tools test-compile clean-cache docs
+.PHONY: build test testacc vet fmt fmtcheck lint tools test-compile clean clean-cache docs
