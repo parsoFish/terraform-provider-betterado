@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # full history so golangci-lint only-new-issues can diff against the PR base
 
     - name: Set up Go
       uses: actions/setup-go@v4
