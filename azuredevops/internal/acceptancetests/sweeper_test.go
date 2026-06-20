@@ -31,14 +31,14 @@ func TestMain(m *testing.M) {
 var fixtureProjectNameRE = regexp.MustCompile(`^test-acc-[a-z0-9]{10}$`)
 
 var keepProjects = map[string]bool{
-	"DPLife":                  true,
-	"Ohana":                   true,
-	"PublicProjects":          true,
+	"DPLife":         true,
+	"Ohana":          true,
+	"PublicProjects": true,
+	// Also the persistent shared release-fixture project (SharedFixtureProjectName
+	// == "betterado-standing-demo"): reused across runs for BOTH the standing demo
+	// and live acceptance, and must NEVER be reaped — reaping soft-deletes it
+	// (28-day retention, counts toward the 1000-project cap) and reintroduces the leak.
 	"betterado-standing-demo": true,
-	// The persistent shared release-fixture project is reused across runs and must
-	// NEVER be reaped — reaping it would soft-delete it (28-day retention, counts
-	// toward the 1000-project cap) and force a recreate, reintroducing the leak.
-	SharedFixtureProjectName: true,
 }
 
 // isFixtureProject reports whether a project name is an acceptance-test leftover

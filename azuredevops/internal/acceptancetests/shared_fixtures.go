@@ -298,22 +298,25 @@ func gatesStep(queryID string) *releaseapi.ReleaseDefinitionGatesStep {
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 // SharedFixtureProjectName is the single, PERSISTENT ADO project all release
-// acceptance fixtures share. It is created once (if absent) and REUSED across
-// runs, and NEVER deleted — ADO soft-deletes projects (28-day retention) and
-// soft-deleted projects count toward the org's 1000-project cap, so creating +
-// deleting a fresh project per run fills the recycle bin and eventually blocks
-// all project creation org-wide (see brain theme
-// 2026-06-20-ado-org-project-limit-blocks-test-creates). Per-run sub-resources
-// (repo, build def, variable groups, release def, work-item query) are still
-// created with unique names and torn down in t.Cleanup; only the project
-// persists. Allowlisted in the sweeper (keepProjects) so it is never reaped; the
-// name is intentionally NOT the test-acc-* pattern.
-const SharedFixtureProjectName = "betterado-acc-shared-fixture"
+// acceptance fixtures share. It is the SAME long-lived project that hosts the
+// standing demo — reused for both so live acceptance tests can run immediately
+// without creating a project (the org sits at the 1000-project cap; creates fail
+// — see brain theme 2026-06-20-ado-org-project-limit-blocks-test-creates).
+//
+// It is REUSED across runs and NEVER deleted: ADO soft-deletes projects (28-day
+// retention) and soft-deleted projects count toward the 1000-project cap, so a
+// create+delete per run fills the recycle bin and eventually blocks all project
+// creation org-wide. Per-run sub-resources (repo, build def, variable groups,
+// release def, work-item query) are created with unique `test-acc-*` names and
+// torn down in t.Cleanup — they don't count toward the project cap and never
+// touch the standing-demo's own resources (different names/IDs). Allowlisted in
+// the sweeper (keepProjects) so it is never reaped.
+const SharedFixtureProjectName = "betterado-standing-demo"
 
-// resolveOrCreateFixtureProject returns the shared persistent fixture project,
-// creating it once if it does not yet exist. It NEVER deletes the project — that
-// is the whole point (see SharedFixtureProjectName). Creating it needs one free
-// project slot in the org; once it exists every later run reuses it.
+// resolveOrCreateFixtureProject returns the shared persistent fixture project.
+// Normally it already exists (it's the standing-demo project) and is reused as-is;
+// the create path is a fallback for a fresh org and NEVER deletes the project (see
+// SharedFixtureProjectName). Creating it would need one free project slot.
 func resolveOrCreateFixtureProject(t *testing.T, clients *client.AggregatedClient) *core.TeamProject {
 	t.Helper()
 
