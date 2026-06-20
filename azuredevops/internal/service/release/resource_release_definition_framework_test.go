@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	releaseapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/release"
@@ -491,6 +492,29 @@ func TestFrameworkReleaseDefinition_expandTriggers(t *testing.T) {
 	assert.Equal(t, int64(2), schModels[0].StartHours.ValueInt64())
 	assert.Equal(t, int64(30), schModels[0].StartMinutes.ValueInt64())
 	assert.Equal(t, "UTC", schModels[0].TimeZoneID.ValueString())
+}
+
+// TestReleaseDefinitionFramework_UpgradeState verifies that UpgradeState() returns a map with
+// exactly one entry keyed at version 0.
+func TestReleaseDefinitionFramework_UpgradeState(t *testing.T) {
+	ctx := context.Background()
+	r := &releaseDefinitionFrameworkResource{}
+
+	upgraders := r.UpgradeState(ctx)
+	require.Len(t, upgraders, 1, "UpgradeState must return exactly one upgrader")
+	_, ok := upgraders[0]
+	assert.True(t, ok, "UpgradeState map must contain key 0")
+}
+
+// TestReleaseDefinitionFramework_SchemaVersion verifies that Schema() declares Version 1.
+func TestReleaseDefinitionFramework_SchemaVersion(t *testing.T) {
+	ctx := context.Background()
+	r := &releaseDefinitionFrameworkResource{}
+
+	resp := &resource.SchemaResponse{}
+	r.Schema(ctx, resource.SchemaRequest{}, resp)
+	require.False(t, resp.Diagnostics.HasError(), "Schema() must not error: %s", resp.Diagnostics)
+	assert.Equal(t, int64(1), resp.Schema.Version, "Schema.Version must be 1")
 }
 
 // TestFrameworkReleaseDefinition_staleRevisionRetry verifies that retryOnStaleRevision detects

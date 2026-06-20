@@ -121,8 +121,9 @@ func (m useStateForUnknownModifier) PlanModifyString(_ context.Context, req plan
 
 // Compile-time interface checks.
 var (
-	_ resource.Resource              = (*TaskGroupResource)(nil)
-	_ resource.ResourceWithConfigure = (*TaskGroupResource)(nil)
+	_ resource.Resource                 = (*TaskGroupResource)(nil)
+	_ resource.ResourceWithConfigure    = (*TaskGroupResource)(nil)
+	_ resource.ResourceWithUpgradeState = (*TaskGroupResource)(nil)
 )
 
 // TaskGroupResource is the terraform-plugin-framework implementation of
@@ -146,6 +147,7 @@ func (r *TaskGroupResource) Metadata(_ context.Context, _ resource.MetadataReque
 
 func (r *TaskGroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Version: 1,
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed: true,
@@ -1012,4 +1014,14 @@ func flattenTaskGroupFramework(ctx context.Context, model *taskGroupModel, tg *t
 	}
 
 	return diags
+}
+
+// ── State upgraders ───────────────────────────────────────────────────────────
+
+// UpgradeState implements resource.ResourceWithUpgradeState.
+// Version 0 → 1: renames task.environment map to task.env (see state_upgrade_v0.go).
+func (r *TaskGroupResource) UpgradeState(_ context.Context) map[int64]resource.StateUpgrader {
+	return map[int64]resource.StateUpgrader{
+		0: taskGroupStateUpgraderV0(),
+	}
 }

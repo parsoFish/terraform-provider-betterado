@@ -23,8 +23,9 @@ import (
 
 // Ensure the resource satisfies the framework interface.
 var (
-	_ resource.Resource                = &releaseDefinitionFrameworkResource{}
-	_ resource.ResourceWithImportState = &releaseDefinitionFrameworkResource{}
+	_ resource.Resource                 = &releaseDefinitionFrameworkResource{}
+	_ resource.ResourceWithImportState  = &releaseDefinitionFrameworkResource{}
+	_ resource.ResourceWithUpgradeState = &releaseDefinitionFrameworkResource{}
 )
 
 // releaseDefinitionFrameworkResource is the terraform-plugin-framework implementation of
@@ -379,6 +380,7 @@ func (r *releaseDefinitionFrameworkResource) Metadata(_ context.Context, req res
 
 func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
+		Version:             1,
 		MarkdownDescription: "Manages an Azure DevOps release definition (pipeline).",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -2816,4 +2818,14 @@ func flattenTriggersFramework(ctx context.Context, triggers *[]interface{}) (typ
 	list, d := types.ListValue(elemType, []attr.Value{trigObj})
 	diags.Append(d...)
 	return list, diags
+}
+
+// ── State upgraders ───────────────────────────────────────────────────────────
+
+// UpgradeState implements resource.ResourceWithUpgradeState.
+// Version 0 → 1: renames the flat environment list to stages (see state_upgrade_v0.go).
+func (r *releaseDefinitionFrameworkResource) UpgradeState(_ context.Context) map[int64]resource.StateUpgrader {
+	return map[int64]resource.StateUpgrader{
+		0: releaseDefinitionStateUpgraderV0(),
+	}
 }

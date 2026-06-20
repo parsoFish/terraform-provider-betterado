@@ -7,6 +7,21 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-06-20
+
+### Breaking Changes
+
+- `betterado_release_definition`: `environment` attribute renamed to `stages` (HCL configs must
+  update `environment { ... }` blocks to `stages = [{ ... }]` array syntax).
+- `betterado_task_group`: `task`, `input`, and `version` nested blocks now use HCL array-of-objects
+  syntax (`task = [{ ... }]`, `input = [{ ... }]`, `version = [{ ... }]`).
+
+### Added
+
+- State upgrade path from schema version 0 (0.x provider) to version 1 for both
+  `betterado_release_definition` and `betterado_task_group`. Existing Terraform state written
+  by the 0.x SDKv2 provider is automatically upgraded by `terraform init`.
+
 ## [0.5.0] - 2026-06-19
 
 ### Added
