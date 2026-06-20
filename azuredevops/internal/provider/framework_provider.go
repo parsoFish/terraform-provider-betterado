@@ -26,7 +26,7 @@ func NewFrameworkProvider() provider.Provider {
 }
 
 func (p *BetteradoFrameworkProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "azuredevops"
+	resp.TypeName = "betterado"
 }
 
 // Schema mirrors every attribute from the SDKv2 provider schema exactly.

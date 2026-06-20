@@ -25,8 +25,8 @@ func TestFrameworkProvider_HasTaskGroupResource(t *testing.T) {
 	for _, factory := range factories {
 		r := factory()
 		var metaResp resource.MetadataResponse
-		r.Metadata(context.Background(), resource.MetadataRequest{ProviderTypeName: "azuredevops"}, &metaResp)
-		if metaResp.TypeName == "azuredevops_betterado_task_group" || metaResp.TypeName == "betterado_task_group" {
+		r.Metadata(context.Background(), resource.MetadataRequest{ProviderTypeName: "betterado"}, &metaResp)
+		if metaResp.TypeName == "betterado_task_group" || metaResp.TypeName == "betterado_betterado_task_group" {
 			found = true
 			break
 		}
