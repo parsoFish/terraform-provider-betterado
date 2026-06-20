@@ -301,7 +301,7 @@ func TestAccReleaseDefinition_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "release_name_format", "Release-$(rev:r)"),
 
 					// definition-level variable
-					resource.TestCheckResourceAttr(tfNode, "variable.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "variables.%", "1"),
 
 					// artifact block set
 					resource.TestCheckResourceAttr(tfNode, "artifact.#", "1"),
@@ -326,7 +326,7 @@ func TestAccReleaseDefinition_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "stages.0.rank", "1"),
 
 					// env-level variable
-					resource.TestCheckResourceAttr(tfNode, "stages.0.variable.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "stages.0.variables.%", "1"),
 
 					// real queue_id set (not 0), agent_specification, demands, skip_artifacts_download, enable_access_token
 					// AC2/WI-9: agent_specification persists as "ubuntu-22.04"
@@ -682,52 +682,45 @@ resource "betterado_release_definition" "test" {
   name       = %[1]q
   project_id = %[2]q
 
-  stages {
+  stages = [{
     name = "Production"
     rank = 1
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
+    }]
 
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
+      }]
+    }]
 
     # ADO requires BOTH pre- and post-deploy approvals (VS402877).
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
+      }]
+    }]
+  }]
 }
 `, name, fixture.ProjectID)
 }
 
 // hclReleaseDefinitionBlockSyntax creates a minimal release definition using
-// block syntax (stages { … }, deploy_phase { … }, etc.) — the canonical HCL form.
+// attribute syntax (stages = [{…}], deploy_phase = [{…}], etc.).
 // This is the fixture for TestAccReleaseDefinition_blockSyntax.
 func hclReleaseDefinitionBlockSyntax(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
@@ -735,45 +728,38 @@ resource "betterado_release_definition" "test" {
   name       = %[1]q
   project_id = %[2]q
 
-  stages {
+  stages = [{
     name = "Production"
     rank = 1
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
+    }]
 
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
+    }]
 
-      }
-
-    }
-
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
+      }]
+    }]
+  }]
 }
 `, name, fixture.ProjectID)
 }
@@ -791,33 +777,29 @@ resource "betterado_release_definition" "test" {
   name       = "%[2]s"
   project_id = betterado_project.test.id
 
-  stages {
+  stages = [{
     name = "Production"
     rank = 1
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
+    }]
 
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
+      }]
+    }]
 
     # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
     # stage, else create fails with VS402877 ("Pre-approvals or post-approvals
@@ -825,17 +807,14 @@ resource "betterado_release_definition" "test" {
     # minimal fixtures carried only pre and were never live-run (only _complete
     # was INIT-1's merge gate), so the gap surfaced when every test was finally
     # run with TF_ACC.
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
+      }]
+    }]
+  }]
 }
 `, base, name)
 }
@@ -857,41 +836,36 @@ resource "betterado_release_definition" "test" {
   name       = "%[2]s"
   project_id = betterado_project.test.id
 
-  stages {
+  stages = [{
     name = "Production"
     rank = 1
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
 
-      deployment_input {
+      deployment_input = [{
         queue_id                      = data.betterado_agent_queue.test.id
         timeout_in_minutes            = 0
         job_cancel_timeout_in_minutes = 1
         condition                     = "succeeded()"
+      }]
+    }]
 
-      }
-
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
+      }]
+    }]
 
     # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
     # stage, else create fails with VS402877 ("Pre-approvals or post-approvals
@@ -899,17 +873,14 @@ resource "betterado_release_definition" "test" {
     # minimal fixtures carried only pre and were never live-run (only _complete
     # was INIT-1's merge gate), so the gap surfaced when every test was finally
     # run with TF_ACC.
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
+      }]
+    }]
+  }]
 }
 `, base, name)
 }
@@ -924,57 +895,49 @@ resource "betterado_release_definition" "test" {
   name       = "%[2]s"
   project_id = betterado_project.test.id
 
-  stages {
+  stages = [{
     name = "Production"
     rank = 1
 
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
 
-      }
-
-      approval_options {
+      approval_options = [{
         release_creator_can_be_approver                                 = false
         enforce_identity_revalidation                                   = false
         timeout_in_minutes                                              = 1440
         execution_order                                                 = "beforeGates"
         auto_triggered_and_previous_environment_approved_can_be_skipped = false
-
-      }
-
-    }
+      }]
+    }]
 
     # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
     # stage (VS402877).
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
+    }]
 
-      }
-
-    }
-
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
-
-    }
+    }]
 
     # ADO REST 7.2 requires a stage-level retention policy (VS402982).
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
-
-    }
-
-  }
+    }]
+  }]
 }
 `, base, name)
 }
@@ -991,47 +954,41 @@ resource "betterado_release_definition" "test" {
   name       = "%[2]s"
   project_id = betterado_project.test.id
 
-  stages {
+  stages = [{
     name = "Production"
     rank = 1
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
+    }]
 
-    }
-
-    environment_options {
+    environment_options = [{
       email_notification_type   = "OnlyOnFailure"
       publish_deployment_status = true
       badge_enabled             = false
       auto_link_work_items      = false
+    }]
 
-    }
-
-    execution_policy {
+    execution_policy = [{
       concurrency_count = 1
       queue_depth_count = 0
+    }]
 
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
+      }]
+    }]
 
     # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
     # stage, else create fails with VS402877 ("Pre-approvals or post-approvals
@@ -1039,17 +996,14 @@ resource "betterado_release_definition" "test" {
     # minimal fixtures carried only pre and were never live-run (only _complete
     # was INIT-1's merge gate), so the gap surfaced when every test was finally
     # run with TF_ACC.
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
+      }]
+    }]
+  }]
 }
 `, base, name)
 }
@@ -1130,13 +1084,12 @@ resource "betterado_release_definition" "test" {
   release_name_format = "Release-$(rev:r)"
 
   # definition-level variable (non-default)
-  variable {
-    name  = "MY_VAR"
-    value = "hello-complete"
+  variables = {
+    MY_VAR = { value = "hello-complete" }
   }
 
   # Build artifact — the definition_reference ties to the build definition above.
-  artifact {
+  artifact = [{
     alias      = "_build"
     type       = "Build"
     is_primary = true
@@ -1145,21 +1098,21 @@ resource "betterado_release_definition" "test" {
       definition = tostring(betterado_build_definition.test.id)
       project    = betterado_project.test.id
     }
-  }
+  }]
 
   # cd_artifact_trigger fires on every build of _build; schedule_trigger at 02:00 UTC daily.
   # IMPORTANT: stages 0 must have condition { name = "ReleaseStarted", condition_type = "event" }
   # so that ADO allows the schedule trigger to create releases (ADO rejects otherwise).
-  triggers {
-    cd_artifact_trigger {
+  triggers = [{
+    cd_artifact_trigger = [{
       artifact_alias = "_build"
-      branch_filter {
+      branch_filter = [{
         include = ["refs/heads/main"]
         exclude = []
-      }
-    }
+      }]
+    }]
 
-    schedule_trigger {
+    schedule_trigger = [{
       schedule_only_with_changes = true
       start_hours                = 2
       start_minutes              = 0
@@ -1167,33 +1120,31 @@ resource "betterado_release_definition" "test" {
       days_to_release            = 62 # Mon–Fri (bits 1+2+4+8+16+32 = 62)
       # Note: branch_filter is not included because ADO does not return branchFilters
       # for schedule triggers in the GET response, which would cause a perpetual diff.
-    }
-  }
+    }]
+  }]
 
-  stages {
+  stages = [{
     name = "Staging"
     rank = 1
 
     # Required by ADO when schedule_trigger is used (schedules release creation event)
-    condition {
+    condition = [{
       name           = "ReleaseStarted"
       condition_type = "event"
       value          = ""
-
-    }
+    }]
 
     # stage-level variable (non-default)
-    variable {
-      name  = "ENV_VAR"
-      value = "staging-complete"
+    variables = {
+      ENV_VAR = { value = "staging-complete" }
     }
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent phase"
       rank       = 1
       phase_type = "agentBasedDeployment"
 
-      deployment_input {
+      deployment_input = [{
         queue_id                      = data.betterado_agent_queue.test.id
         agent_specification           = "ubuntu-22.04"
         timeout_in_minutes            = 60
@@ -1204,195 +1155,167 @@ resource "betterado_release_definition" "test" {
 
         demands = ["Agent.Version -gtVersion 2.0"]
 
-        parallel_execution {
+        parallel_execution = [{
           type                 = "multiConfiguration"
           max_number_of_agents = 2
           multipliers          = ["Configuration"]
           continue_on_error    = false
-
-        }
-
-      }
-
-    }
-    deploy_phase {
+        }]
+      }]
+    },
+    {
       name       = "Agentless phase"
       rank       = 2
       phase_type = "runOnServer"
 
-      deployment_input {
+      deployment_input = [{
         timeout_in_minutes            = 0
         job_cancel_timeout_in_minutes = 1
         condition                     = "succeeded()"
+      }]
 
-      }
-
-      workflow_task {
-        name    = "Delay"
-        task_id = "28782b92-5e8e-4458-9751-a71cd1492bae"
-        version = "1.*"
-        enabled = true
+      workflow_task = [{
+        display_name = "Delay"
+        task_id      = "28782b92-5e8e-4458-9751-a71cd1492bae"
+        version_spec = "1.*"
+        enabled      = true
         inputs = {
           delayForMinutes = "1"
         }
-      }
-
-    }
+      }]
+    }]
 
     # environment options (non-default)
-    environment_options {
+    environment_options = [{
       email_notification_type   = "Always"
       publish_deployment_status = true
       badge_enabled             = false
       auto_link_work_items      = false
-
-    }
+    }]
 
     # execution policy (non-default)
-    execution_policy {
+    execution_policy = [{
       concurrency_count = 1
       queue_depth_count = 0
-
-    }
+    }]
 
     # retention policy (non-default)
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 14
       releases_to_keep = 5
       retain_build     = false
-
-    }
+    }]
 
     # pre_deploy_approval with non-default approval_options
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
 
-      }
-
-      approval_options {
+      approval_options = [{
         release_creator_can_be_approver                                 = true
         enforce_identity_revalidation                                   = false
         timeout_in_minutes                                              = 720
         execution_order                                                 = "beforeGates"
         auto_triggered_and_previous_environment_approved_can_be_skipped = false
-
-      }
-
-    }
+      }]
+    }]
 
     # post_deploy_approval (non-default: normally automated)
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
+      }]
+    }]
 
     # pre_deployment_gates with a real ServerGate task: queryWorkItems
-    pre_deployment_gates {
-      gates_options {
+    pre_deployment_gates = [{
+      gates_options = [{
         is_enabled               = true
         timeout                  = 60
         sampling_interval        = 5
         stabilization_time       = 0
         minimum_success_duration = 0
+      }]
 
-      }
-
-      gate {
-        task {
-          name    = "Query Work Items"
-          task_id = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
-          version = "0.*"
-          enabled = true
+      gate = [{
+        task = [{
+          display_name = "Query Work Items"
+          task_id      = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
+          version_spec = "0.*"
+          enabled      = true
           inputs = {
             queryId = betterado_workitemquery.gate_query.id
           }
-        }
-
-      }
-
-    }
+        }]
+      }]
+    }]
 
     # post_deployment_gates with the same ServerGate task
-    post_deployment_gates {
-      gates_options {
+    post_deployment_gates = [{
+      gates_options = [{
         is_enabled               = true
         timeout                  = 60
         sampling_interval        = 5
         stabilization_time       = 0
         minimum_success_duration = 0
+      }]
 
-      }
-
-      gate {
-        task {
-          name    = "Query Work Items"
-          task_id = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
-          version = "0.*"
-          enabled = true
+      gate = [{
+        task = [{
+          display_name = "Query Work Items"
+          task_id      = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
+          version_spec = "0.*"
+          enabled      = true
           inputs = {
             queryId = betterado_workitemquery.gate_query.id
           }
-        }
-
-      }
-
-    }
-
-  }
-  stages {
+        }]
+      }]
+    }]
+  },
+  {
     name = "Production"
     rank = 2
 
-    condition {
+    condition = [{
       name           = "Staging"
       condition_type = "environmentState"
       value          = "4"
+    }]
 
-    }
-
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
+    }]
 
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
+    }]
 
-      }
-
-    }
-
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
+      }]
+    }]
+  }]
 }
 `, name)
 }
@@ -2082,7 +2005,7 @@ resource "betterado_release_definition" "test" {
   project_id = %[2]q
 
   # Build artifact — references the shared pre-created build definition.
-  artifact {
+  artifact = [{
     alias      = "_build"
     type       = "Build"
     is_primary = true
@@ -2091,56 +2014,53 @@ resource "betterado_release_definition" "test" {
       definition = tostring(%[3]d)
       project    = %[2]q
     }
-  }
+  }]
 
   # Triggers block: combines PR #19 cd_artifact_trigger enhancements with source_repo_trigger.
-  triggers {
+  triggers = [{
     # CD artifact trigger with tag_filter and new boolean flags (PR #19).
-    cd_artifact_trigger {
+    cd_artifact_trigger = [{
       artifact_alias                  = "_build"
       use_build_definition_branch     = true
       create_release_on_build_tagging = true
 
       # tag_filter — builds tagged "stable" will fire this trigger.
-      tag_filter {
+      tag_filter = [{
         tags = ["stable"]
-      }
-    }
+      }]
+    }]
 
     # Source-repo trigger on the same artifact alias (PR #19).
-    source_repo_trigger {
+    source_repo_trigger = [{
       alias          = "_build"
       branch_filters = ["refs/heads/main"]
-    }
-  }
+    }]
+  }]
 
-  stages {
+  stages = [{
     name = "Staging"
     rank = 1
 
     # ADO requires an "event" condition on the stage when environment_trigger
     # is combined with a cd_artifact_trigger (schedules release creation event).
-    condition {
+    condition = [{
       name           = "ReleaseStarted"
       condition_type = "event"
       value          = ""
-
-    }
+    }]
 
     # environment_trigger (PR #18): re-deploy on rollback.
-    environment_trigger {
+    environment_trigger = [{
       trigger_type = "rollbackRedeploy"
-
-    }
+    }]
 
     # schedule (PR #18): weekday releases at 03:00 UTC.
-    schedule {
+    schedule = [{
       days_to_release = 62
       start_hours     = 3
       start_minutes   = 0
       time_zone_id    = "UTC"
-
-    }
+    }]
 
     # properties (PR #18): arbitrary key-value metadata.
     properties = {
@@ -2148,49 +2068,41 @@ resource "betterado_release_definition" "test" {
     }
 
     # runOnServer phase — no real agent queue required for this combined test.
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agentless job"
       rank       = 1
       phase_type = "runOnServer"
 
-      deployment_input {
+      deployment_input = [{
         timeout_in_minutes            = 0
         job_cancel_timeout_in_minutes = 1
         condition                     = "succeeded()"
+      }]
+    }]
 
-      }
-
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
-
-    }
+    }]
 
     # ADO VS402877: both pre- and post-deploy approvals are mandatory.
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
+    }]
 
-      }
-
-    }
-
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
+      }]
+    }]
+  }]
 }
 `, name, fixture.ProjectID, fixture.BuildDefinitionID)
 }
@@ -2336,6 +2248,80 @@ resource "betterado_release_definition" "test" {
         is_secret = true
       }
     }
+
+    deploy_phase = [{
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }]
+
+    retention_policy = [{
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }]
+
+    pre_deploy_approval = [{
+      approver = [{
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }]
+    }]
+
+    post_deploy_approval = [{
+      approver = [{
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }]
+    }]
+  }]
+}
+`, name, fixture.ProjectID)
+}
+
+// TestAccReleaseDefinition_withDefinitionTags verifies that definition-level
+// tags are stored by ADO and round-trip cleanly through the provider.
+func TestAccReleaseDefinition_withDefinitionTags(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclReleaseDefinitionWithDefinitionTags(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(tfNode, "tags.#", "2"),
+					resource.TestCheckTypeSetElemAttr(tfNode, "tags.*", "team-a"),
+					resource.TestCheckTypeSetElemAttr(tfNode, "tags.*", "prod"),
+				),
+			},
+			// Idempotency re-plan: no diff on second apply.
+			{
+				Config:             hclReleaseDefinitionWithDefinitionTags(name, fixture),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+func hclReleaseDefinitionWithDefinitionTags(name string, fixture SharedFixtureResult) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  tags = ["team-a", "prod"]
+
+  stages = [{
+    name = "Production"
+    rank = 1
 
     deploy_phase = [{
       name       = "Agent job"

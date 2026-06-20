@@ -183,6 +183,32 @@ func (useStateForUnknownMap) PlanModifyMap(_ context.Context, req planmodifier.M
 	resp.PlanValue = req.StateValue
 }
 
+// ── Set plan modifiers ───────────────────────────────────────────────────────
+
+// useStateForUnknownSet is equivalent to setplanmodifier.UseStateForUnknown().
+type useStateForUnknownSet struct{}
+
+func useStateForUnknownSetModifier() planmodifier.Set { return useStateForUnknownSet{} }
+
+func (useStateForUnknownSet) Description(_ context.Context) string {
+	return "use prior state value when plan is unknown"
+}
+
+func (useStateForUnknownSet) MarkdownDescription(_ context.Context) string {
+	return "use prior state value when plan is unknown"
+}
+
+func (useStateForUnknownSet) PlanModifySet(_ context.Context, req planmodifier.SetRequest, resp *planmodifier.SetResponse) {
+	if !req.PlanValue.IsUnknown() {
+		return
+	}
+	// No prior state (create) — leave Unknown so Terraform shows "(known after apply)".
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+		return
+	}
+	resp.PlanValue = req.StateValue
+}
+
 // requiresReplaceString is equivalent to stringplanmodifier.RequiresReplace().
 type requiresReplaceString struct{}
 

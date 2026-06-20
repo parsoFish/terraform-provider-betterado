@@ -55,6 +55,7 @@ type releaseDefinitionModel struct {
 	Path              types.String `tfsdk:"path"`
 	Description       types.String `tfsdk:"description"`
 	ReleaseNameFormat types.String `tfsdk:"release_name_format"`
+	Tags              types.Set    `tfsdk:"tags"`
 	Revision          types.Int64  `tfsdk:"revision"`
 	Stages            types.List   `tfsdk:"stages"`
 	Variables         types.Map    `tfsdk:"variables"`
@@ -702,6 +703,13 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 				Computed:            true,
 				Default:             staticString("Release-$(rev:r)"),
 				MarkdownDescription: "Format string for auto-generated release names.",
+			},
+			"tags": schema.SetAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Definition-level tags applied to the release definition.",
+				PlanModifiers:       []planmodifier.Set{useStateForUnknownSetModifier()},
 			},
 			"revision": schema.Int64Attribute{
 				Computed:            true,
@@ -1890,6 +1898,7 @@ func (r *releaseDefinitionFrameworkResource) ImportState(ctx context.Context, re
 		Description:       types.StringValue(""),
 		ReleaseNameFormat: types.StringValue(""),
 		Revision:          types.Int64Value(0),
+		Tags:              types.SetNull(types.StringType),
 		Stages:            types.ListNull(types.ObjectType{AttrTypes: stageAttrTypes}),
 		Variables:         types.MapNull(types.ObjectType{AttrTypes: variableValueAttrTypes}),
 		VariableGroups:    types.ListNull(types.Int64Type),
@@ -1999,6 +2008,15 @@ func expandReleaseDefinitionFramework(ctx context.Context, model *releaseDefinit
 			return nil, projectID, fmt.Errorf("expanding triggers: %w", err)
 		}
 		def.Triggers = &triggers
+	}
+
+	// Definition-level tags
+	if !model.Tags.IsNull() && !model.Tags.IsUnknown() {
+		var tags []string
+		if d := model.Tags.ElementsAs(ctx, &tags, false); d.HasError() {
+			return nil, projectID, fmt.Errorf("expanding tags: %s", d)
+		}
+		def.Tags = &tags
 	}
 
 	return def, projectID, nil
@@ -2683,6 +2701,23 @@ func flattenReleaseDefinitionFramework(ctx context.Context, def *releaseapi.Rele
 	defTriggers, d := flattenTriggersFramework(ctx, def.Triggers)
 	diags.Append(d...)
 	model.Triggers = defTriggers
+
+	// Definition-level tags. ADO's CreateReleaseDefinition response does not echo
+	// tags even though it persists them, so when the API returns none, preserve
+	// the planned/prior value (the model already carries it on create and read)
+	// rather than clobbering to empty — only fall back to an empty set when the
+	// model has no known value (e.g. import).
+	if def.Tags != nil && len(*def.Tags) > 0 {
+		tagVals := make([]attr.Value, len(*def.Tags))
+		for i, t := range *def.Tags {
+			tagVals[i] = types.StringValue(t)
+		}
+		tagsSet, d := types.SetValue(types.StringType, tagVals)
+		diags.Append(d...)
+		model.Tags = tagsSet
+	} else if model.Tags.IsNull() || model.Tags.IsUnknown() {
+		model.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
 
 	return diags
 }

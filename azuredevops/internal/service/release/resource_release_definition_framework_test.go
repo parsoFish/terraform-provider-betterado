@@ -31,6 +31,7 @@ func TestFrameworkReleaseDefinition_expandTopLevel(t *testing.T) {
 		Path:              types.StringValue(`\`),
 		Description:       types.StringValue(""),
 		ReleaseNameFormat: types.StringValue("Release-$(rev:r)"),
+		Tags:              types.SetValueMust(types.StringType, nil),
 		Revision:          types.Int64Value(0),
 		Stages:            types.ListValueMust(types.ObjectType{AttrTypes: stageAttrTypes}, nil),
 	}
