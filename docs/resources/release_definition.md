@@ -24,22 +24,22 @@ successful deployment. Adding it to a new environment causes ADO error `TF400898
 
 ```terraform
 # A classic release pipeline with a single Production stage fed by a build
-# artifact. See the full feature demo under examples/release_definition/.
+# artifact — uses the new array (attribute-assignment) syntax introduced in
+# the framework rewrite. Both block syntax and array syntax are accepted.
 resource "betterado_release_definition" "example" {
   name       = "app-release"
   project_id = var.project_id
 
-  # CI build that produces the deployable artifact.
-  artifact {
-    source_id  = "${var.project_id}:${var.build_definition_id}"
+  # CI build that produces the deployable artifact (array syntax).
+  artifact = [{
+    alias      = "_build"
     type       = "Build"
-    alias      = "ci-build"
     is_primary = true
     definition_reference = {
-      definition = var.build_definition_id
+      definition = tostring(var.build_definition_id)
       project    = var.project_id
     }
-  }
+  }]
 
   # Definition-level variables (a secret value is stored encrypted by ADO).
   variable {
@@ -52,45 +52,46 @@ resource "betterado_release_definition" "example" {
     is_secret = true
   }
 
-  stages {
+  # Stages array syntax — each stage is an object in the list.
+  stages = [{
     name = "Production"
     rank = 1
 
     # Stage-scoped secret (round-trips cleanly).
-    variable {
+    variable = [{
       name      = "DEPLOY_TOKEN"
       value     = "replace-me"
       is_secret = true
-    }
+    }]
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
-    }
+    }]
 
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
-    }
+    }]
 
     # ADO requires both pre- and post-deploy approval blocks (VS402877).
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-      }
-    }
-    post_deploy_approval {
-      approver {
+      }]
+    }]
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-      }
-    }
-  }
+      }]
+    }]
+  }]
 }
 
 variable "project_id" {
@@ -107,511 +108,346 @@ variable "build_definition_id" {
 
 ### Required
 
-- `name` (String)
-- `project_id` (String)
-- `stages` (Block List, Min: 1) (see [below for nested schema](#nestedblock--stages))
+- `name` (String) Name of the release definition.
+- `project_id` (String) UUID of the project that owns this release definition.
+- `stages` (Attributes List) List of deployment stages (mapped from ADO 'environments'). (see [below for nested schema](#nestedatt--stages))
 
 ### Optional
 
-- `artifact` (Block List) (see [below for nested schema](#nestedblock--artifact))
-- `description` (String)
-- `path` (String)
-- `release_name_format` (String)
-- `tags` (Set of String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- `triggers` (Block List, Max: 1) (see [below for nested schema](#nestedblock--triggers))
-- `variable` (Block Set) (see [below for nested schema](#nestedblock--variable))
-- `variable_groups` (List of Number)
+- `artifact` (Attributes List) Artifact sources linked to this release definition. (see [below for nested schema](#nestedatt--artifact))
+- `description` (String) Optional description for this release definition.
+- `path` (String) Folder path within the release definitions hierarchy.
+- `release_name_format` (String) Format string for auto-generated release names.
+- `triggers` (Attributes List) Release triggers (CD artifact and schedule). (see [below for nested schema](#nestedatt--triggers))
+- `variable_groups` (List of Number) IDs of variable groups linked to this release definition.
+- `variables` (Attributes Map) Definition-level variables keyed by variable name. (see [below for nested schema](#nestedatt--variables))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `revision` (Number)
+- `revision` (Number) Current revision number (managed by ADO; used for optimistic concurrency).
 
-<a id="nestedblock--stages"></a>
+<a id="nestedatt--stages"></a>
 ### Nested Schema for `stages`
 
 Required:
 
-- `deploy_phase` (Block List, Min: 1) (see [below for nested schema](#nestedblock--stages--deploy_phase))
-- `name` (String)
-- `rank` (Number)
+- `name` (String) Name of the stage.
 
 Optional:
 
-- `condition` (Block List) (see [below for nested schema](#nestedblock--stages--condition))
-- `environment_options` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--environment_options))
-- `environment_trigger` (Block List) (see [below for nested schema](#nestedblock--stages--environment_trigger))
-- `execution_policy` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--execution_policy))
-- `id` (Number)
-- `owner` (String)
-- `post_deploy_approval` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--post_deploy_approval))
-- `post_deployment_gates` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--post_deployment_gates))
-- `pre_deploy_approval` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--pre_deploy_approval))
-- `pre_deployment_gates` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--pre_deployment_gates))
-- `process_parameters` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--process_parameters))
-- `properties` (Map of String)
-- `retention_policy` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--retention_policy))
-- `schedule` (Block List) (see [below for nested schema](#nestedblock--stages--schedule))
-- `variable` (Block Set) (see [below for nested schema](#nestedblock--stages--variable))
-- `variable_groups` (List of Number)
+- `condition` (Attributes List) Conditions that must be met before the stage runs. (see [below for nested schema](#nestedatt--stages--condition))
+- `deploy_phase` (Attributes List) Deploy phases for this stage. (see [below for nested schema](#nestedatt--stages--deploy_phase))
+- `environment_options` (Attributes List) Stage-level execution options (max 1 block). (see [below for nested schema](#nestedatt--stages--environment_options))
+- `post_deploy_approval` (Attributes List) Post-deployment approval configuration (max 1 block). (see [below for nested schema](#nestedatt--stages--post_deploy_approval))
+- `post_deployment_gates` (Attributes List) Post-deployment gates configuration (max 1 block). (see [below for nested schema](#nestedatt--stages--post_deployment_gates))
+- `pre_deploy_approval` (Attributes List) Pre-deployment approval configuration (max 1 block). (see [below for nested schema](#nestedatt--stages--pre_deploy_approval))
+- `pre_deployment_gates` (Attributes List) Pre-deployment gates configuration (max 1 block). (see [below for nested schema](#nestedatt--stages--pre_deployment_gates))
+- `rank` (Number) Execution order rank of the stage (1-based).
+- `retention_policy` (Attributes List) Retention policy for this stage's releases (max 1 block). (see [below for nested schema](#nestedatt--stages--retention_policy))
+- `variable_groups` (List of Number) IDs of variable groups linked to this stage.
+- `variables` (Attributes Map) Stage-level variables keyed by variable name. (see [below for nested schema](#nestedatt--stages--variables))
 
-<a id="nestedblock--stages--deploy_phase"></a>
-### Nested Schema for `stages.deploy_phase`
-
-Required:
-
-- `name` (String)
-- `rank` (Number)
-
-Optional:
-
-- `deployment_input` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--deploy_phase--deployment_input))
-- `phase_type` (String)
-- `workflow_task` (Block List) (see [below for nested schema](#nestedblock--stages--deploy_phase--workflow_task))
-
-<a id="nestedblock--stages--deploy_phase--deployment_input"></a>
-### Nested Schema for `stages.deploy_phase.deployment_input`
-
-Optional:
-
-- `agent_specification` (String)
-- `condition` (String)
-- `demands` (List of String)
-- `enable_access_token` (Boolean)
-- `job_cancel_timeout_in_minutes` (Number)
-- `override_inputs` (Map of String) Phase-level task input overrides (e.g. for parameterised task groups).
-- `parallel_execution` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--deploy_phase--deployment_input--parallel_execution))
-- `queue_id` (Number)
-- `skip_artifacts_download` (Boolean)
-- `timeout_in_minutes` (Number)
-
-<a id="nestedblock--stages--deploy_phase--deployment_input--parallel_execution"></a>
-### Nested Schema for `stages.deploy_phase.deployment_input.parallel_execution`
-
-Optional:
-
-- `continue_on_error` (Boolean)
-- `max_number_of_agents` (Number)
-- `multipliers` (List of String)
-- `type` (String)
-
-
-
-<a id="nestedblock--stages--deploy_phase--workflow_task"></a>
-### Nested Schema for `stages.deploy_phase.workflow_task`
-
-Required:
-
-- `name` (String)
-- `task_id` (String)
-
-Optional:
-
-- `always_run` (Boolean)
-- `condition` (String)
-- `continue_on_error` (Boolean)
-- `definition_type` (String)
-- `enabled` (Boolean)
-- `inputs` (Map of String)
-- `retry_count_on_task_failure` (Number) Number of times to retry the task on failure.
-- `timeout_in_minutes` (Number) Per-task timeout in minutes (0 = use the phase default).
-- `version` (String)
-
-
-
-<a id="nestedblock--stages--condition"></a>
+<a id="nestedatt--stages--condition"></a>
 ### Nested Schema for `stages.condition`
 
 Required:
 
-- `condition_type` (String)
-- `name` (String)
+- `condition_type` (String) Type of condition: event, environmentState, artifact, undefined.
+- `name` (String) Condition name.
 
 Optional:
 
-- `value` (String)
+- `value` (String) Condition value expression.
 
 
-<a id="nestedblock--stages--environment_options"></a>
+<a id="nestedatt--stages--deploy_phase"></a>
+### Nested Schema for `stages.deploy_phase`
+
+Optional:
+
+- `deployment_input` (Attributes List) Deployment input configuration (max 1 block). (see [below for nested schema](#nestedatt--stages--deploy_phase--deployment_input))
+- `name` (String) Name of the deploy phase.
+- `phase_type` (String) Type of the deploy phase: agentBasedDeployment, runOnServer, machineGroupBasedDeployment.
+- `rank` (Number) Rank of the deploy phase.
+- `workflow_task` (Attributes List) Workflow tasks for this deploy phase. (see [below for nested schema](#nestedatt--stages--deploy_phase--workflow_task))
+
+<a id="nestedatt--stages--deploy_phase--deployment_input"></a>
+### Nested Schema for `stages.deploy_phase.deployment_input`
+
+Optional:
+
+- `agent_specification` (String) Agent specification identifier (e.g. ubuntu-latest).
+- `condition` (String) Condition that must be satisfied before the phase runs.
+- `demands` (List of String) List of demands for agent selection.
+- `enable_access_token` (Boolean) Whether to enable OAuth access token for scripts in this phase.
+- `parallel_execution` (Attributes List) Parallel execution configuration (max 1 block). (see [below for nested schema](#nestedatt--stages--deploy_phase--deployment_input--parallel_execution))
+- `queue_id` (Number) ID of the agent queue to use for this phase.
+- `skip_artifacts_download` (Boolean) Whether to skip downloading artifacts for this phase.
+- `timeout_in_minutes` (Number) Timeout in minutes for the phase (0 = no timeout).
+
+<a id="nestedatt--stages--deploy_phase--deployment_input--parallel_execution"></a>
+### Nested Schema for `stages.deploy_phase.deployment_input.parallel_execution`
+
+Optional:
+
+- `max_number_of_agents` (Number) Maximum number of agents to use for parallel execution.
+- `multipliers` (List of String) Variable names used as multipliers for multi-configuration.
+- `type` (String) Parallel execution type: noPar, multiConfiguration, multiMachine.
+
+
+
+<a id="nestedatt--stages--deploy_phase--workflow_task"></a>
+### Nested Schema for `stages.deploy_phase.workflow_task`
+
+Required:
+
+- `task_id` (String) UUID of the task definition.
+
+Optional:
+
+- `always_run` (Boolean) Whether the task runs even if a previous step failed.
+- `condition` (String) Run condition expression for the task.
+- `display_name` (String) Display name for the task step.
+- `enabled` (Boolean) Whether the task is enabled.
+- `inputs` (Map of String) Task-specific input values as key/value pairs.
+- `retry_count_on_task_failure` (Number) Number of retries on task failure.
+- `timeout_in_minutes` (Number) Timeout in minutes for the task (0 = no timeout).
+- `version_spec` (String) Version spec for the task (e.g. '1.*', '0.*').
+
+
+
+<a id="nestedatt--stages--environment_options"></a>
 ### Nested Schema for `stages.environment_options`
 
 Optional:
 
-- `auto_link_work_items` (Boolean)
-- `badge_enabled` (Boolean)
-- `email_notification_type` (String)
-- `email_recipients` (String)
-- `enable_access_token` (Boolean)
-- `publish_deployment_status` (Boolean)
-- `pull_request_deployment_enabled` (Boolean)
-- `skip_artifacts_download` (Boolean)
-- `timeout_in_minutes` (Number)
+- `auto_link_workitems` (Boolean) Whether to auto-link work items to the deployment.
+- `badge_enabled` (Boolean) Whether to show a badge for this stage.
+- `email_notification_type` (String) When to send email notifications: OnlyOnFailure, Always, Never.
+- `publish_deployment_status` (Boolean) Whether to publish deployment status to the ADO build.
+- `publish_deployment_status_to_devops_project_settings` (Boolean) Whether to publish deployment status to the project settings page.
 
 
-<a id="nestedblock--stages--environment_trigger"></a>
-### Nested Schema for `stages.environment_trigger`
-
-Optional:
-
-- `definition_environment_id` (Number)
-- `trigger_content` (String)
-- `trigger_type` (String)
-
-
-<a id="nestedblock--stages--execution_policy"></a>
-### Nested Schema for `stages.execution_policy`
-
-Optional:
-
-- `concurrency_count` (Number)
-- `queue_depth_count` (Number)
-
-
-<a id="nestedblock--stages--post_deploy_approval"></a>
+<a id="nestedatt--stages--post_deploy_approval"></a>
 ### Nested Schema for `stages.post_deploy_approval`
 
 Optional:
 
-- `approval_options` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--post_deploy_approval--approval_options))
-- `approver` (Block List) (see [below for nested schema](#nestedblock--stages--post_deploy_approval--approver))
+- `approval_options` (Attributes List) Approval policy options (max 1 block). (see [below for nested schema](#nestedatt--stages--post_deploy_approval--approval_options))
+- `approver` (Attributes List) List of approvers. (see [below for nested schema](#nestedatt--stages--post_deploy_approval--approver))
 
-<a id="nestedblock--stages--post_deploy_approval--approval_options"></a>
+<a id="nestedatt--stages--post_deploy_approval--approval_options"></a>
 ### Nested Schema for `stages.post_deploy_approval.approval_options`
 
 Optional:
 
-- `auto_triggered_and_previous_environment_approved_can_be_skipped` (Boolean)
-- `enforce_identity_revalidation` (Boolean)
-- `execution_order` (String)
-- `release_creator_can_be_approver` (Boolean)
-- `required_approver_count` (Number)
-- `timeout_in_minutes` (Number)
+- `auto_triggered_and_previous_environment_approved_can_be_skipped` (Boolean) Whether auto-triggered deployments can skip approval if previous stage was approved.
+- `enforce_identity_revalidation` (Boolean) Whether to revalidate approver identity before completing.
+- `execution_order` (String) Order of approval execution relative to gates: beforeGates, afterSuccessfulGates, afterGatesAlways.
+- `release_creator_can_be_approver` (Boolean) Whether the release creator can approve their own deployment.
+- `required_approver_count` (Number) Number of approvals required (0 = all).
+- `timeout_in_minutes` (Number) Timeout in minutes (0 = no timeout).
 
 
-<a id="nestedblock--stages--post_deploy_approval--approver"></a>
+<a id="nestedatt--stages--post_deploy_approval--approver"></a>
 ### Nested Schema for `stages.post_deploy_approval.approver`
 
 Required:
 
-- `id` (String)
+- `id` (String) UUID of the approver identity.
 
 Optional:
 
-- `is_automated` (Boolean)
-- `rank` (Number)
+- `is_automated` (Boolean) Whether this approval step is automated.
+- `rank` (Number) Execution order of this approver.
 
 
 
-<a id="nestedblock--stages--post_deployment_gates"></a>
+<a id="nestedatt--stages--post_deployment_gates"></a>
 ### Nested Schema for `stages.post_deployment_gates`
 
 Optional:
 
-- `gate` (Block List) (see [below for nested schema](#nestedblock--stages--post_deployment_gates--gate))
-- `gates_options` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--post_deployment_gates--gates_options))
+- `gate` (Attributes List) Individual gate definitions (tasks are implemented in WI-2). (see [below for nested schema](#nestedatt--stages--post_deployment_gates--gate))
+- `gates_options` (Attributes List) Gate evaluation options (max 1 block). (see [below for nested schema](#nestedatt--stages--post_deployment_gates--gates_options))
 
-<a id="nestedblock--stages--post_deployment_gates--gate"></a>
+<a id="nestedatt--stages--post_deployment_gates--gate"></a>
 ### Nested Schema for `stages.post_deployment_gates.gate`
 
-Required:
+Optional:
 
-- `task` (Block List, Min: 1) (see [below for nested schema](#nestedblock--stages--post_deployment_gates--gate--task))
+- `task` (Attributes List) Workflow tasks within this gate (stub — full implementation in WI-2). (see [below for nested schema](#nestedatt--stages--post_deployment_gates--gate--task))
 
-<a id="nestedblock--stages--post_deployment_gates--gate--task"></a>
+<a id="nestedatt--stages--post_deployment_gates--gate--task"></a>
 ### Nested Schema for `stages.post_deployment_gates.gate.task`
 
 Required:
 
-- `name` (String)
-- `task_id` (String)
-
-Optional:
-
-- `always_run` (Boolean)
-- `condition` (String)
-- `continue_on_error` (Boolean)
-- `definition_type` (String)
-- `enabled` (Boolean)
-- `inputs` (Map of String)
-- `retry_count_on_task_failure` (Number) Number of times to retry the task on failure.
-- `timeout_in_minutes` (Number) Per-task timeout in minutes (0 = use the phase default).
-- `version` (String)
+- `name` (String) Task name.
+- `task_id` (String) Task definition UUID.
 
 
 
-<a id="nestedblock--stages--post_deployment_gates--gates_options"></a>
+<a id="nestedatt--stages--post_deployment_gates--gates_options"></a>
 ### Nested Schema for `stages.post_deployment_gates.gates_options`
 
 Optional:
 
-- `is_enabled` (Boolean)
-- `minimum_success_duration` (Number)
-- `sampling_interval` (Number)
-- `stabilization_time` (Number)
-- `timeout` (Number)
+- `is_enabled` (Boolean) Whether gates are enabled for this stage.
+- `minimum_success_duration` (Number) Minimum duration in minutes for gates to stay green before passing.
+- `sampling_interval` (Number) Interval in minutes between gate evaluations.
+- `stabilization_time` (Number) Delay in minutes before the first gate evaluation.
+- `timeout` (Number) Timeout in minutes after which gates fail.
 
 
 
-<a id="nestedblock--stages--pre_deploy_approval"></a>
+<a id="nestedatt--stages--pre_deploy_approval"></a>
 ### Nested Schema for `stages.pre_deploy_approval`
 
 Optional:
 
-- `approval_options` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--pre_deploy_approval--approval_options))
-- `approver` (Block List) (see [below for nested schema](#nestedblock--stages--pre_deploy_approval--approver))
+- `approval_options` (Attributes List) Approval policy options (max 1 block). (see [below for nested schema](#nestedatt--stages--pre_deploy_approval--approval_options))
+- `approver` (Attributes List) List of approvers. (see [below for nested schema](#nestedatt--stages--pre_deploy_approval--approver))
 
-<a id="nestedblock--stages--pre_deploy_approval--approval_options"></a>
+<a id="nestedatt--stages--pre_deploy_approval--approval_options"></a>
 ### Nested Schema for `stages.pre_deploy_approval.approval_options`
 
 Optional:
 
-- `auto_triggered_and_previous_environment_approved_can_be_skipped` (Boolean)
-- `enforce_identity_revalidation` (Boolean)
-- `execution_order` (String)
-- `release_creator_can_be_approver` (Boolean)
-- `required_approver_count` (Number)
-- `timeout_in_minutes` (Number)
+- `auto_triggered_and_previous_environment_approved_can_be_skipped` (Boolean) Whether auto-triggered deployments can skip approval if previous stage was approved.
+- `enforce_identity_revalidation` (Boolean) Whether to revalidate approver identity before completing.
+- `execution_order` (String) Order of approval execution relative to gates: beforeGates, afterSuccessfulGates, afterGatesAlways.
+- `release_creator_can_be_approver` (Boolean) Whether the release creator can approve their own deployment.
+- `required_approver_count` (Number) Number of approvals required (0 = all).
+- `timeout_in_minutes` (Number) Timeout in minutes (0 = no timeout).
 
 
-<a id="nestedblock--stages--pre_deploy_approval--approver"></a>
+<a id="nestedatt--stages--pre_deploy_approval--approver"></a>
 ### Nested Schema for `stages.pre_deploy_approval.approver`
 
 Required:
 
-- `id` (String)
+- `id` (String) UUID of the approver identity.
 
 Optional:
 
-- `is_automated` (Boolean)
-- `rank` (Number)
+- `is_automated` (Boolean) Whether this approval step is automated.
+- `rank` (Number) Execution order of this approver.
 
 
 
-<a id="nestedblock--stages--pre_deployment_gates"></a>
+<a id="nestedatt--stages--pre_deployment_gates"></a>
 ### Nested Schema for `stages.pre_deployment_gates`
 
 Optional:
 
-- `gate` (Block List) (see [below for nested schema](#nestedblock--stages--pre_deployment_gates--gate))
-- `gates_options` (Block List, Max: 1) (see [below for nested schema](#nestedblock--stages--pre_deployment_gates--gates_options))
+- `gate` (Attributes List) Individual gate definitions (tasks are implemented in WI-2). (see [below for nested schema](#nestedatt--stages--pre_deployment_gates--gate))
+- `gates_options` (Attributes List) Gate evaluation options (max 1 block). (see [below for nested schema](#nestedatt--stages--pre_deployment_gates--gates_options))
 
-<a id="nestedblock--stages--pre_deployment_gates--gate"></a>
+<a id="nestedatt--stages--pre_deployment_gates--gate"></a>
 ### Nested Schema for `stages.pre_deployment_gates.gate`
 
-Required:
+Optional:
 
-- `task` (Block List, Min: 1) (see [below for nested schema](#nestedblock--stages--pre_deployment_gates--gate--task))
+- `task` (Attributes List) Workflow tasks within this gate (stub — full implementation in WI-2). (see [below for nested schema](#nestedatt--stages--pre_deployment_gates--gate--task))
 
-<a id="nestedblock--stages--pre_deployment_gates--gate--task"></a>
+<a id="nestedatt--stages--pre_deployment_gates--gate--task"></a>
 ### Nested Schema for `stages.pre_deployment_gates.gate.task`
 
 Required:
 
-- `name` (String)
-- `task_id` (String)
-
-Optional:
-
-- `always_run` (Boolean)
-- `condition` (String)
-- `continue_on_error` (Boolean)
-- `definition_type` (String)
-- `enabled` (Boolean)
-- `inputs` (Map of String)
-- `retry_count_on_task_failure` (Number) Number of times to retry the task on failure.
-- `timeout_in_minutes` (Number) Per-task timeout in minutes (0 = use the phase default).
-- `version` (String)
+- `name` (String) Task name.
+- `task_id` (String) Task definition UUID.
 
 
 
-<a id="nestedblock--stages--pre_deployment_gates--gates_options"></a>
+<a id="nestedatt--stages--pre_deployment_gates--gates_options"></a>
 ### Nested Schema for `stages.pre_deployment_gates.gates_options`
 
 Optional:
 
-- `is_enabled` (Boolean)
-- `minimum_success_duration` (Number)
-- `sampling_interval` (Number)
-- `stabilization_time` (Number)
-- `timeout` (Number)
+- `is_enabled` (Boolean) Whether gates are enabled for this stage.
+- `minimum_success_duration` (Number) Minimum duration in minutes for gates to stay green before passing.
+- `sampling_interval` (Number) Interval in minutes between gate evaluations.
+- `stabilization_time` (Number) Delay in minutes before the first gate evaluation.
+- `timeout` (Number) Timeout in minutes after which gates fail.
 
 
 
-<a id="nestedblock--stages--process_parameters"></a>
-### Nested Schema for `stages.process_parameters`
-
-Optional:
-
-- `input` (Block List) (see [below for nested schema](#nestedblock--stages--process_parameters--input))
-
-<a id="nestedblock--stages--process_parameters--input"></a>
-### Nested Schema for `stages.process_parameters.input`
-
-Required:
-
-- `name` (String)
-
-Optional:
-
-- `default_value` (String)
-- `parameter_type` (String)
-
-
-
-<a id="nestedblock--stages--retention_policy"></a>
+<a id="nestedatt--stages--retention_policy"></a>
 ### Nested Schema for `stages.retention_policy`
 
 Optional:
 
-- `days_to_keep` (Number)
-- `releases_to_keep` (Number)
-- `retain_build` (Boolean)
+- `days_to_keep` (Number) Number of days to keep releases.
+- `releases_to_keep` (Number) Number of releases to retain.
+- `retain_build` (Boolean) Whether to retain the triggering build.
 
 
-<a id="nestedblock--stages--schedule"></a>
-### Nested Schema for `stages.schedule`
-
-Optional:
-
-- `days_to_release` (Number)
-- `job_id` (String)
-- `start_hours` (Number)
-- `start_minutes` (Number)
-- `time_zone_id` (String)
-
-
-<a id="nestedblock--stages--variable"></a>
-### Nested Schema for `stages.variable`
-
-Required:
-
-- `name` (String)
+<a id="nestedatt--stages--variables"></a>
+### Nested Schema for `stages.variables`
 
 Optional:
 
-- `allow_override` (Boolean)
-- `is_secret` (Boolean)
-- `value` (String)
+- `allow_override` (Boolean) Whether the variable can be overridden at release time.
+- `is_secret` (Boolean) Whether the variable is a secret.
+- `value` (String) Variable value.
 
 
 
-<a id="nestedblock--artifact"></a>
+<a id="nestedatt--artifact"></a>
 ### Nested Schema for `artifact`
 
 Required:
 
-- `alias` (String)
-- `definition_reference` (Map of String)
-- `type` (String)
+- `alias` (String) Artifact source alias (e.g. '_build').
 
 Optional:
 
-- `is_primary` (Boolean)
+- `definition_reference` (Map of String) Key/value pairs describing the artifact source (user-set keys round-trip; API-computed keys are stripped).
+- `is_primary` (Boolean) Whether this is the primary artifact.
+- `type` (String) Artifact type (e.g. 'Build', 'Git').
 
 
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
-
-
-<a id="nestedblock--triggers"></a>
+<a id="nestedatt--triggers"></a>
 ### Nested Schema for `triggers`
 
 Optional:
 
-- `cd_artifact_trigger` (Block List) (see [below for nested schema](#nestedblock--triggers--cd_artifact_trigger))
-- `container_image_trigger` (Block List) (see [below for nested schema](#nestedblock--triggers--container_image_trigger))
-- `schedule_trigger` (Block List) (see [below for nested schema](#nestedblock--triggers--schedule_trigger))
-- `source_repo_trigger` (Block List) (see [below for nested schema](#nestedblock--triggers--source_repo_trigger))
+- `cd_artifact_trigger` (Attributes List) CD artifact trigger (max 1 per triggers block). (see [below for nested schema](#nestedatt--triggers--cd_artifact_trigger))
+- `schedule_trigger` (Attributes List) Schedule trigger (max 1 per triggers block). (see [below for nested schema](#nestedatt--triggers--schedule_trigger))
 
-<a id="nestedblock--triggers--cd_artifact_trigger"></a>
+<a id="nestedatt--triggers--cd_artifact_trigger"></a>
 ### Nested Schema for `triggers.cd_artifact_trigger`
 
-Required:
-
-- `artifact_alias` (String)
-
 Optional:
 
-- `branch_filter` (Block List, Max: 1) (see [below for nested schema](#nestedblock--triggers--cd_artifact_trigger--branch_filter))
-- `create_release_on_build_tagging` (Boolean)
-- `tag_filter` (Block List, Max: 1) (see [below for nested schema](#nestedblock--triggers--cd_artifact_trigger--tag_filter))
-- `use_build_definition_branch` (Boolean)
-
-<a id="nestedblock--triggers--cd_artifact_trigger--branch_filter"></a>
-### Nested Schema for `triggers.cd_artifact_trigger.branch_filter`
-
-Optional:
-
-- `exclude` (List of String)
-- `include` (List of String)
+- `artifact_alias` (String) Alias of the artifact that triggers this release.
+- `branch_filters` (List of String) Branch filter expressions for this CD trigger.
 
 
-<a id="nestedblock--triggers--cd_artifact_trigger--tag_filter"></a>
-### Nested Schema for `triggers.cd_artifact_trigger.tag_filter`
-
-Required:
-
-- `tags` (List of String)
-
-
-
-<a id="nestedblock--triggers--container_image_trigger"></a>
-### Nested Schema for `triggers.container_image_trigger`
-
-Required:
-
-- `artifact_alias` (String) Alias of the container-image artifact this trigger monitors.
-
-Optional:
-
-- `label` (String) Image tag/label to filter on (empty = any tag).
-
-
-<a id="nestedblock--triggers--schedule_trigger"></a>
+<a id="nestedatt--triggers--schedule_trigger"></a>
 ### Nested Schema for `triggers.schedule_trigger`
 
 Optional:
 
-- `days_to_release` (Number)
-- `schedule_only_with_changes` (Boolean)
-- `start_hours` (Number)
-- `start_minutes` (Number)
-- `time_zone_id` (String)
+- `days_to_release` (Number) Bitmask of days (0=all) on which to trigger.
+- `schedule_only_with_changes` (Boolean) Only trigger when there are new changes.
+- `start_hours` (Number) Hour of the day to start (0-23).
+- `start_minutes` (Number) Minute of the hour to start (0-59).
+- `time_zone_id` (String) Time zone identifier (e.g. 'UTC', 'Eastern Standard Time').
 
 
-<a id="nestedblock--triggers--source_repo_trigger"></a>
-### Nested Schema for `triggers.source_repo_trigger`
 
-Required:
-
-- `alias` (String)
+<a id="nestedatt--variables"></a>
+### Nested Schema for `variables`
 
 Optional:
 
-- `branch_filters` (List of String)
-
-
-
-<a id="nestedblock--variable"></a>
-### Nested Schema for `variable`
-
-Required:
-
-- `name` (String)
-
-Optional:
-
-- `allow_override` (Boolean)
-- `is_secret` (Boolean)
-- `value` (String)
+- `allow_override` (Boolean) Whether the variable can be overridden at release time.
+- `is_secret` (Boolean) Whether the variable is a secret.
+- `value` (String) Variable value.
 
 ## Import
 
