@@ -48,7 +48,7 @@ Bundle includes fixtures + live acceptance + demo.
 Produce `docs/release-definition-permissions-gap-matrix.md`, implement every
 writable gap. Bundle includes fixtures + live acceptance + demo.
 
-## Future — holistic Plugin Framework migration
+## Future: holistic terraform-plugin-framework migration
 
 `stages` (and other nested collections) stay as **blocks** for now. True
 array-structured nested attributes with omittable/defaulted fields (`stages = [{
@@ -59,6 +59,26 @@ Scoped as a **separate, holistic, roadmap-scale initiative**: migrate the whole
 provider SDKv2 → Framework (incrementally via `terraform-plugin-mux` during the
 transition, ending mux-free), not a permanent releases-only partial. Tracked here;
 not part of the current refinement frontier.
+
+### Phase 1 — completed this release cycle
+
+`betterado_release_definition` and `betterado_task_group` have been migrated to
+`terraform-plugin-framework`. The `terraform-plugin-mux` scaffold introduced in
+the framework-migration initiative (`INIT-2026-06-19-framework-state-upgraders`)
+is the **extension point** for wiring additional resources: each new resource
+registers its `resource.Resource` / `datasource.DataSource` implementation in the
+framework provider, and the mux router transparently routes traffic between SDKv2
+and framework resources during the incremental migration.
+
+### Phase 2 — remaining candidates
+
+The following SDKv2 resources are queued as phase-2 migration candidates once the
+phase-1 pattern is validated:
+
+- `betterado_release_folder`
+- `betterado_release_definition_permissions`
+- Upstream-inherited resources (build definitions, repositories, service
+  endpoints, policies, and other ADO surfaces carried from the upstream fork)
 
 ## Standing definition of done (per initiative)
 
