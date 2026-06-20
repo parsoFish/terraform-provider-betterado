@@ -1486,63 +1486,53 @@ resource "betterado_release_definition" "test" {
   name       = %[1]q
   project_id = %[2]q
 
-  stages {
+  stages = [{
     name = "Staging"
     rank = 1
 
-    environment_trigger {
+    environment_trigger = [{
       trigger_type = "rollbackRedeploy"
+    }]
 
-    }
-
-    schedule {
+    schedule = [{
       days_to_release = 62
       start_hours     = 3
       start_minutes   = 0
       time_zone_id    = "UTC"
-
-    }
+    }]
 
     properties = {
       env = "staging"
     }
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
+    }]
 
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
+    }]
 
-      }
-
-    }
-
-    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
+      }]
+    }]
+  }]
 }
 `, name, fixture.ProjectID)
 }
@@ -1875,46 +1865,38 @@ resource "betterado_release_definition" "test" {
   project_id  = %[2]q
   description = "base-description"
 
-  stages {
+  stages = [{
     name = "Staging"
     rank = 1
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
+    }]
 
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
+    }]
 
-      }
-
-    }
-
-    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
+      }]
+    }]
+  }]
 }
 `, name, fixture.ProjectID)
 }
@@ -1935,86 +1917,69 @@ resource "betterado_release_definition" "test" {
   project_id  = %[2]q
   description = "updated-description"
 
-  stages {
+  stages = [{
     name = "Staging"
     rank = 1
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
+    }]
 
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
+    }]
 
-      }
-
-    }
-
-    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
-  stages {
+      }]
+    }]
+  }, {
     name = "Production"
     rank = 2
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
+    }]
 
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
+    }]
 
-      }
-
-    }
-
-    # ADO requires BOTH pre- and post-deploy approvals (VS402877).
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
+      }]
+    }]
+  }]
 }
 `, name, fixture.ProjectID)
 }

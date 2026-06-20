@@ -10,12 +10,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	distributedtaskcommon "github.com/microsoft/azure-devops-go-api/azuredevops/v7/distributedtaskcommon"
 	releaseapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/release"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
 
@@ -77,6 +77,13 @@ type stageModel struct {
 	DeployPhase         types.List   `tfsdk:"deploy_phase"`
 	Variables           types.Map    `tfsdk:"variables"`
 	VariableGroups      types.List   `tfsdk:"variable_groups"`
+	ExecutionPolicy     types.List   `tfsdk:"execution_policy"`
+	EnvironmentTrigger  types.List   `tfsdk:"environment_trigger"`
+	Schedule            types.List   `tfsdk:"schedule"`
+	ProcessParameters   types.List   `tfsdk:"process_parameters"`
+	Properties          types.Map    `tfsdk:"properties"`
+	Owner               types.String `tfsdk:"owner"`
+	StageID             types.Int64  `tfsdk:"id"`
 }
 
 // variableValueModel is the nested-attribute value object for a single variable entry.
@@ -208,6 +215,40 @@ type retentionPolicyModel struct {
 	DaysToKeep     types.Int64 `tfsdk:"days_to_keep"`
 	ReleasesToKeep types.Int64 `tfsdk:"releases_to_keep"`
 	RetainBuild    types.Bool  `tfsdk:"retain_build"`
+}
+
+// executionPolicyModel maps releaseapi.EnvironmentExecutionPolicy.
+type executionPolicyModel struct {
+	ConcurrencyCount types.Int64 `tfsdk:"concurrency_count"`
+	QueueDepthCount  types.Int64 `tfsdk:"queue_depth_count"`
+}
+
+// environmentTriggerModel maps releaseapi.EnvironmentTrigger.
+type environmentTriggerModel struct {
+	DefinitionEnvironmentID types.Int64  `tfsdk:"definition_environment_id"`
+	TriggerType             types.String `tfsdk:"trigger_type"`
+	TriggerContent          types.String `tfsdk:"trigger_content"`
+}
+
+// stageScheduleModel maps releaseapi.ReleaseSchedule at stage level.
+type stageScheduleModel struct {
+	DaysToRelease types.Int64  `tfsdk:"days_to_release"`
+	StartHours    types.Int64  `tfsdk:"start_hours"`
+	StartMinutes  types.Int64  `tfsdk:"start_minutes"`
+	TimeZoneID    types.String `tfsdk:"time_zone_id"`
+	JobID         types.String `tfsdk:"job_id"`
+}
+
+// processParametersModel maps distributedtaskcommon.ProcessParameters.
+type processParametersModel struct {
+	Input types.List `tfsdk:"input"`
+}
+
+// processParameterInputModel maps distributedtaskcommon.TaskInputDefinitionBase.
+type processParameterInputModel struct {
+	Name          types.String `tfsdk:"name"`
+	DefaultValue  types.String `tfsdk:"default_value"`
+	ParameterType types.String `tfsdk:"parameter_type"`
 }
 
 // approvalModel maps to releaseapi.ReleaseDefinitionApprovals.
@@ -360,6 +401,35 @@ var variableValueAttrTypes = map[string]attr.Type{
 	"allow_override": types.BoolType,
 }
 
+var executionPolicyAttrTypes = map[string]attr.Type{
+	"concurrency_count": types.Int64Type,
+	"queue_depth_count": types.Int64Type,
+}
+
+var environmentTriggerAttrTypes = map[string]attr.Type{
+	"definition_environment_id": types.Int64Type,
+	"trigger_type":              types.StringType,
+	"trigger_content":           types.StringType,
+}
+
+var stageScheduleAttrTypes = map[string]attr.Type{
+	"days_to_release": types.Int64Type,
+	"start_hours":     types.Int64Type,
+	"start_minutes":   types.Int64Type,
+	"time_zone_id":    types.StringType,
+	"job_id":          types.StringType,
+}
+
+var processParameterInputAttrTypes = map[string]attr.Type{
+	"name":           types.StringType,
+	"default_value":  types.StringType,
+	"parameter_type": types.StringType,
+}
+
+var processParametersAttrTypes = map[string]attr.Type{
+	"input": types.ListType{ElemType: types.ObjectType{AttrTypes: processParameterInputAttrTypes}},
+}
+
 // artifactAttrTypes is the attr.Type map for a single artifact list element.
 var artifactAttrTypes = map[string]attr.Type{
 	"alias":                types.StringType,
@@ -433,6 +503,13 @@ var stageAttrTypes = map[string]attr.Type{
 	"deploy_phase":          types.ListType{ElemType: types.ObjectType{AttrTypes: deployPhaseAttrTypes}},
 	"variables":             types.MapType{ElemType: types.ObjectType{AttrTypes: variableValueAttrTypes}},
 	"variable_groups":       types.ListType{ElemType: types.Int64Type},
+	"execution_policy":      types.ListType{ElemType: types.ObjectType{AttrTypes: executionPolicyAttrTypes}},
+	"environment_trigger":   types.ListType{ElemType: types.ObjectType{AttrTypes: environmentTriggerAttrTypes}},
+	"schedule":              types.ListType{ElemType: types.ObjectType{AttrTypes: stageScheduleAttrTypes}},
+	"process_parameters":    types.ListType{ElemType: types.ObjectType{AttrTypes: processParametersAttrTypes}},
+	"properties":            types.MapType{ElemType: types.StringType},
+	"owner":                 types.StringType,
+	"id":                    types.Int64Type,
 }
 
 // -------------------------------------------------------------------------
@@ -469,46 +546,76 @@ func (r *releaseDefinitionFrameworkResource) ModifyPlan(ctx context.Context, req
 		return
 	}
 
-	var stateRevision types.Int64
-	resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("revision"), &stateRevision)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	// Mask `revision` in the planned object to the prior-state value, then
-	// compare against prior state. If the rest of the plan is byte-identical,
-	// this is a no-op (ADO will NOT bump the revision) and we pin revision to
-	// prior so it stops rendering as `~ revision = N -> (known after apply)`.
-	// Otherwise it is a real change: force revision to unknown so ADO's
-	// server-incremented value is accepted at apply (the framework otherwise
-	// leaves the prior value in the plan, which yields "inconsistent result
-	// after apply" when ADO bumps it).
-	planMasked, err := setObjectAttr(ctx, req.Plan.Raw, "revision", stateRevision)
-	if err != nil {
-		resp.Diagnostics.AddError("revision plan comparison failed", err.Error())
-		return
-	}
-	if planMasked.Equal(req.State.Raw) {
-		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("revision"), stateRevision)...)
-	} else {
-		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("revision"), types.Int64Unknown())...)
+	// The framework's plan gate (MarkComputedNilsAsUnknown) flips every
+	// config-null Computed attribute to unknown whenever the proposed new state
+	// differs from prior state — which happens on EVERY plan, because Terraform
+	// core nulls the config-omitted Optional+Computed nested blocks under the
+	// Required `stages` list. On a true no-op this leaves a spray of
+	// `(known after apply)` diffs (revision, stage ids, ADO-assigned environment
+	// ids, …) and, worse, "inconsistent result after apply" when ADO re-assigns
+	// those server-managed values on the next write.
+	//
+	// If the ONLY differences between the proposed plan and prior state are
+	// attributes the gate marked unknown, this is a genuine no-op: snap the whole
+	// plan back to prior state so the plan is empty and nothing is sent to ADO.
+	// On any real change, leave the plan untouched so server-(re)assigned
+	// computed values are accepted at apply.
+	if planIsNoOp(req.Plan.Raw, req.State.Raw) {
+		resp.Plan.Raw = req.State.Raw.Copy()
 	}
 }
 
-// setObjectAttr returns a copy of obj (an object tftypes.Value) with the named
-// top-level attribute replaced by v's Terraform value. Used to mask an
-// attribute before comparing two object values for equality.
-func setObjectAttr(ctx context.Context, obj tftypes.Value, name string, v attr.Value) (tftypes.Value, error) {
-	var attrs map[string]tftypes.Value
-	if err := obj.As(&attrs); err != nil {
-		return obj, err
+// planIsNoOp reports whether `plan` equals `state` everywhere `plan` carries a
+// known value — i.e. every difference is an unknown introduced by the framework's
+// computed-nil gate. Such a plan represents no real change. A known value that
+// differs from prior state (or a changed collection length) is a real change.
+func planIsNoOp(plan, state tftypes.Value) bool {
+	if !plan.IsKnown() {
+		return true // unknown subtree — would be snapped back to prior state
 	}
-	tfVal, err := v.ToTerraformValue(ctx)
-	if err != nil {
-		return obj, err
+	if plan.IsNull() || state.IsNull() {
+		return plan.Equal(state)
 	}
-	attrs[name] = tfVal
-	return tftypes.NewValue(obj.Type(), attrs), nil
+	ty := plan.Type()
+	switch {
+	case ty.Is(tftypes.Object{}), ty.Is(tftypes.Map{}):
+		var pm, sm map[string]tftypes.Value
+		if err := plan.As(&pm); err != nil {
+			return plan.Equal(state)
+		}
+		if err := state.As(&sm); err != nil {
+			return false
+		}
+		if len(pm) != len(sm) {
+			return false
+		}
+		for k, pv := range pm {
+			sv, ok := sm[k]
+			if !ok || !planIsNoOp(pv, sv) {
+				return false
+			}
+		}
+		return true
+	case ty.Is(tftypes.List{}), ty.Is(tftypes.Set{}), ty.Is(tftypes.Tuple{}):
+		var pl, sl []tftypes.Value
+		if err := plan.As(&pl); err != nil {
+			return plan.Equal(state)
+		}
+		if err := state.As(&sl); err != nil {
+			return false
+		}
+		if len(pl) != len(sl) {
+			return false
+		}
+		for i := range pl {
+			if !planIsNoOp(pl[i], sl[i]) {
+				return false
+			}
+		}
+		return true
+	default:
+		return plan.Equal(state)
+	}
 }
 
 func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -722,6 +829,147 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
 							ElementType:         types.Int64Type,
 							MarkdownDescription: "IDs of variable groups linked to this stage.",
+						},
+						"execution_policy": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Execution policy for concurrent deployments (max 1 block).",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"concurrency_count": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticInt64(0),
+										MarkdownDescription: "Max concurrent deployments (0 = unlimited).",
+									},
+									"queue_depth_count": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticInt64(0),
+										MarkdownDescription: "Max queue depth (0 = unlimited).",
+									},
+								},
+							},
+						},
+						"environment_trigger": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Environment-level triggers (e.g. rollback/redeploy).",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"definition_environment_id": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										MarkdownDescription: "ID of the source environment for this trigger (ADO-assigned when not set).",
+									},
+									"trigger_type": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticString(""),
+										MarkdownDescription: "Trigger type: rollbackRedeploy, deploymentGroupRedeploy, undefined.",
+									},
+									"trigger_content": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										MarkdownDescription: "Serialised trigger content (ADO internal).",
+									},
+								},
+							},
+						},
+						"schedule": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Stage-level scheduled deployment triggers.",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"days_to_release": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticInt64(127),
+										MarkdownDescription: "Bitmask of days to release (127 = all days).",
+									},
+									"start_hours": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticInt64(0),
+										MarkdownDescription: "Hour of day to start (0-23).",
+									},
+									"start_minutes": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticInt64(0),
+										MarkdownDescription: "Minute of hour to start (0-59).",
+									},
+									"time_zone_id": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticString("UTC"),
+										MarkdownDescription: "Time zone identifier (e.g. 'UTC', 'Eastern Standard Time').",
+									},
+									"job_id": schema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "ADO-assigned job UUID for the schedule.",
+									},
+								},
+							},
+						},
+						"process_parameters": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Process parameters (max 1 block).",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"input": schema.ListNestedAttribute{
+										Optional:            true,
+										Computed:            true,
+										PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+										MarkdownDescription: "Input parameter definitions.",
+										NestedObject: schema.NestedAttributeObject{
+											Attributes: map[string]schema.Attribute{
+												"name": schema.StringAttribute{
+													Optional:            true,
+													Computed:            true,
+													Default:             staticString(""),
+													MarkdownDescription: "Parameter name.",
+												},
+												"default_value": schema.StringAttribute{
+													Optional:            true,
+													Computed:            true,
+													Default:             staticString(""),
+													MarkdownDescription: "Default value.",
+												},
+												"parameter_type": schema.StringAttribute{
+													Optional:            true,
+													Computed:            true,
+													Default:             staticString(""),
+													MarkdownDescription: "Parameter type string.",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"properties": schema.MapAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.Map{useStateForUnknownMapModifier()},
+							ElementType:         types.StringType,
+							MarkdownDescription: "Stage-level properties (key/value string pairs). ADO wraps values in {\"$type\":\"System.String\",\"$value\":\"...\"} on the wire; this is handled automatically.",
+						},
+						"owner": schema.StringAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.String{useStateForUnknown()},
+							MarkdownDescription: "Identity UUID of the stage owner (ADO-assigned when not set).",
+						},
+						"id": schema.Int64Attribute{
+							Computed:            true,
+							MarkdownDescription: "ADO-assigned ID of this stage.",
 						},
 					},
 				},
@@ -1709,6 +1957,130 @@ func expandStagesFramework(ctx context.Context, stagesList types.List) ([]releas
 			env.VariableGroups = &groups
 		}
 
+		// Execution policy
+		if !s.ExecutionPolicy.IsNull() && !s.ExecutionPolicy.IsUnknown() {
+			var epModels []executionPolicyModel
+			if d := s.ExecutionPolicy.ElementsAs(ctx, &epModels, false); !d.HasError() && len(epModels) > 0 {
+				ep := epModels[0]
+				cc := int(ep.ConcurrencyCount.ValueInt64())
+				qd := int(ep.QueueDepthCount.ValueInt64())
+				env.ExecutionPolicy = &releaseapi.EnvironmentExecutionPolicy{
+					ConcurrencyCount: &cc,
+					QueueDepthCount:  &qd,
+				}
+			}
+		}
+
+		// Environment triggers
+		if !s.EnvironmentTrigger.IsNull() && !s.EnvironmentTrigger.IsUnknown() {
+			var trigModels []environmentTriggerModel
+			if d := s.EnvironmentTrigger.ElementsAs(ctx, &trigModels, false); !d.HasError() && len(trigModels) > 0 {
+				triggers := make([]releaseapi.EnvironmentTrigger, 0, len(trigModels))
+				for _, tm := range trigModels {
+					t := releaseapi.EnvironmentTrigger{}
+					if !tm.DefinitionEnvironmentID.IsNull() && !tm.DefinitionEnvironmentID.IsUnknown() {
+						id := int(tm.DefinitionEnvironmentID.ValueInt64())
+						t.DefinitionEnvironmentId = &id
+					}
+					if !tm.TriggerType.IsNull() && !tm.TriggerType.IsUnknown() && tm.TriggerType.ValueString() != "" {
+						ttVal := releaseapi.EnvironmentTriggerType(tm.TriggerType.ValueString())
+						t.TriggerType = &ttVal
+					}
+					if !tm.TriggerContent.IsNull() && !tm.TriggerContent.IsUnknown() && tm.TriggerContent.ValueString() != "" {
+						tc := tm.TriggerContent.ValueString()
+						t.TriggerContent = &tc
+					}
+					triggers = append(triggers, t)
+				}
+				env.EnvironmentTriggers = &triggers
+			}
+		}
+
+		// Stage-level schedules
+		if !s.Schedule.IsNull() && !s.Schedule.IsUnknown() {
+			var schedModels []stageScheduleModel
+			if d := s.Schedule.ElementsAs(ctx, &schedModels, false); !d.HasError() && len(schedModels) > 0 {
+				scheds := make([]releaseapi.ReleaseSchedule, 0, len(schedModels))
+				for _, sm := range schedModels {
+					rs := releaseapi.ReleaseSchedule{}
+					if !sm.DaysToRelease.IsNull() && !sm.DaysToRelease.IsUnknown() {
+						sd := releaseapi.ScheduleDays(strconv.Itoa(int(sm.DaysToRelease.ValueInt64())))
+						rs.DaysToRelease = &sd
+					}
+					if !sm.StartHours.IsNull() && !sm.StartHours.IsUnknown() {
+						h := int(sm.StartHours.ValueInt64())
+						rs.StartHours = &h
+					}
+					if !sm.StartMinutes.IsNull() && !sm.StartMinutes.IsUnknown() {
+						m := int(sm.StartMinutes.ValueInt64())
+						rs.StartMinutes = &m
+					}
+					if !sm.TimeZoneID.IsNull() && !sm.TimeZoneID.IsUnknown() && sm.TimeZoneID.ValueString() != "" {
+						tz := sm.TimeZoneID.ValueString()
+						rs.TimeZoneId = &tz
+					}
+					if !sm.JobID.IsNull() && !sm.JobID.IsUnknown() && sm.JobID.ValueString() != "" {
+						if parsed, err := uuid.Parse(sm.JobID.ValueString()); err == nil {
+							rs.JobId = &parsed
+						}
+					}
+					scheds = append(scheds, rs)
+				}
+				env.Schedules = &scheds
+			}
+		}
+
+		// Process parameters
+		if !s.ProcessParameters.IsNull() && !s.ProcessParameters.IsUnknown() {
+			var ppModels []processParametersModel
+			if d := s.ProcessParameters.ElementsAs(ctx, &ppModels, false); !d.HasError() && len(ppModels) > 0 {
+				pm := ppModels[0]
+				pp := &distributedtaskcommon.ProcessParameters{}
+				if !pm.Input.IsNull() && !pm.Input.IsUnknown() {
+					var inputModels []processParameterInputModel
+					if d2 := pm.Input.ElementsAs(ctx, &inputModels, false); !d2.HasError() && len(inputModels) > 0 {
+						inputs := make([]distributedtaskcommon.TaskInputDefinitionBase, 0, len(inputModels))
+						for _, im := range inputModels {
+							inp := distributedtaskcommon.TaskInputDefinitionBase{}
+							if !im.Name.IsNull() && !im.Name.IsUnknown() {
+								inp.Name = converter.String(im.Name.ValueString())
+							}
+							if !im.DefaultValue.IsNull() && !im.DefaultValue.IsUnknown() {
+								inp.DefaultValue = converter.String(im.DefaultValue.ValueString())
+							}
+							if !im.ParameterType.IsNull() && !im.ParameterType.IsUnknown() {
+								inp.Type = converter.String(im.ParameterType.ValueString())
+							}
+							inputs = append(inputs, inp)
+						}
+						pp.Inputs = &inputs
+					}
+				}
+				env.ProcessParameters = pp
+			}
+		}
+
+		// Properties — wrap each value as {"$type":"System.String","$value":"..."}
+		if !s.Properties.IsNull() && !s.Properties.IsUnknown() {
+			var propsMap map[string]string
+			if d := s.Properties.ElementsAs(ctx, &propsMap, false); !d.HasError() && len(propsMap) > 0 {
+				wrapped := make(map[string]interface{}, len(propsMap))
+				for k, v := range propsMap {
+					wrapped[k] = map[string]interface{}{
+						"$type":  "System.String",
+						"$value": v,
+					}
+				}
+				env.Properties = wrapped
+			}
+		}
+
+		// Owner
+		if !s.Owner.IsNull() && !s.Owner.IsUnknown() && s.Owner.ValueString() != "" {
+			ownerID := s.Owner.ValueString()
+			env.Owner = &webapi.IdentityRef{Id: &ownerID}
+		}
+
 		envs = append(envs, env)
 	}
 	return envs, nil
@@ -2128,6 +2500,38 @@ func flattenStagesFramework(ctx context.Context, envs []releaseapi.ReleaseDefini
 		stageVarGroups, d := flattenVariableGroupsFramework(env.VariableGroups)
 		diags.Append(d...)
 
+		// Execution policy
+		execPolicy, d := flattenExecutionPolicyFramework(env.ExecutionPolicy)
+		diags.Append(d...)
+
+		// Environment triggers
+		envTriggers, d := flattenEnvironmentTriggersFramework(env.EnvironmentTriggers)
+		diags.Append(d...)
+
+		// Stage-level schedules
+		stageSchedules, d := flattenStageSchedulesFramework(env.Schedules)
+		diags.Append(d...)
+
+		// Process parameters
+		processParams, d := flattenProcessParametersFramework(env.ProcessParameters)
+		diags.Append(d...)
+
+		// Properties — unwrap ADO's {"$type":"System.String","$value":"..."} wrapper
+		stageProps, d := flattenStagePropertiesFramework(env.Properties)
+		diags.Append(d...)
+
+		// Owner
+		ownerStr := ""
+		if env.Owner != nil && env.Owner.Id != nil {
+			ownerStr = *env.Owner.Id
+		}
+
+		// Stage ID
+		stageID := int64(0)
+		if env.Id != nil {
+			stageID = int64(*env.Id)
+		}
+
 		rank := int64(0)
 		if env.Rank != nil {
 			rank = int64(*env.Rank)
@@ -2150,6 +2554,13 @@ func flattenStagesFramework(ctx context.Context, envs []releaseapi.ReleaseDefini
 			"deploy_phase":          deployPhases,
 			"variables":             stageVars,
 			"variable_groups":       stageVarGroups,
+			"execution_policy":      execPolicy,
+			"environment_trigger":   envTriggers,
+			"schedule":              stageSchedules,
+			"process_parameters":    processParams,
+			"properties":            stageProps,
+			"owner":                 types.StringValue(ownerStr),
+			"id":                    types.Int64Value(stageID),
 		})
 		diags.Append(d...)
 		stageObjects = append(stageObjects, stageObj)
@@ -2379,6 +2790,186 @@ func flattenDeploymentGatesFramework(step *releaseapi.ReleaseDefinitionGatesStep
 	list, d := types.ListValue(elemType, []attr.Value{obj})
 	diags.Append(d...)
 	return list, diags
+}
+
+// flattenExecutionPolicyFramework converts EnvironmentExecutionPolicy to a types.List.
+func flattenExecutionPolicyFramework(ep *releaseapi.EnvironmentExecutionPolicy) (types.List, diag.Diagnostics) {
+	elemType := types.ObjectType{AttrTypes: executionPolicyAttrTypes}
+	if ep == nil {
+		return types.ListValueMust(elemType, []attr.Value{}), nil
+	}
+	cc := int64(0)
+	if ep.ConcurrencyCount != nil {
+		cc = int64(*ep.ConcurrencyCount)
+	}
+	qd := int64(0)
+	if ep.QueueDepthCount != nil {
+		qd = int64(*ep.QueueDepthCount)
+	}
+	obj, diags := types.ObjectValue(executionPolicyAttrTypes, map[string]attr.Value{
+		"concurrency_count": types.Int64Value(cc),
+		"queue_depth_count": types.Int64Value(qd),
+	})
+	if diags.HasError() {
+		return types.ListValueMust(elemType, []attr.Value{}), diags
+	}
+	list, d := types.ListValue(elemType, []attr.Value{obj})
+	diags.Append(d...)
+	return list, diags
+}
+
+// flattenEnvironmentTriggersFramework converts []EnvironmentTrigger to a types.List.
+func flattenEnvironmentTriggersFramework(triggers *[]releaseapi.EnvironmentTrigger) (types.List, diag.Diagnostics) {
+	elemType := types.ObjectType{AttrTypes: environmentTriggerAttrTypes}
+	if triggers == nil || len(*triggers) == 0 {
+		return types.ListValueMust(elemType, []attr.Value{}), nil
+	}
+	var diags diag.Diagnostics
+	objs := make([]attr.Value, 0, len(*triggers))
+	for _, t := range *triggers {
+		defEnvID := int64(0)
+		if t.DefinitionEnvironmentId != nil {
+			defEnvID = int64(*t.DefinitionEnvironmentId)
+		}
+		trigType := ""
+		if t.TriggerType != nil {
+			trigType = string(*t.TriggerType)
+		}
+		trigContent := ""
+		if t.TriggerContent != nil {
+			trigContent = *t.TriggerContent
+		}
+		obj, d := types.ObjectValue(environmentTriggerAttrTypes, map[string]attr.Value{
+			"definition_environment_id": types.Int64Value(defEnvID),
+			"trigger_type":              types.StringValue(trigType),
+			"trigger_content":           types.StringValue(trigContent),
+		})
+		diags.Append(d...)
+		objs = append(objs, obj)
+	}
+	list, d := types.ListValue(elemType, objs)
+	diags.Append(d...)
+	return list, diags
+}
+
+// flattenStageSchedulesFramework converts []ReleaseSchedule to a types.List.
+func flattenStageSchedulesFramework(scheds *[]releaseapi.ReleaseSchedule) (types.List, diag.Diagnostics) {
+	elemType := types.ObjectType{AttrTypes: stageScheduleAttrTypes}
+	if scheds == nil || len(*scheds) == 0 {
+		return types.ListValueMust(elemType, []attr.Value{}), nil
+	}
+	var diags diag.Diagnostics
+	objs := make([]attr.Value, 0, len(*scheds))
+	for _, s := range *scheds {
+		days := int64(127)
+		if s.DaysToRelease != nil {
+			if d, err := strconv.Atoi(string(*s.DaysToRelease)); err == nil {
+				days = int64(d)
+			}
+		}
+		startH := int64(0)
+		if s.StartHours != nil {
+			startH = int64(*s.StartHours)
+		}
+		startM := int64(0)
+		if s.StartMinutes != nil {
+			startM = int64(*s.StartMinutes)
+		}
+		tz := "UTC"
+		if s.TimeZoneId != nil {
+			tz = *s.TimeZoneId
+		}
+		jobID := ""
+		if s.JobId != nil {
+			jobID = s.JobId.String()
+		}
+		obj, d := types.ObjectValue(stageScheduleAttrTypes, map[string]attr.Value{
+			"days_to_release": types.Int64Value(days),
+			"start_hours":     types.Int64Value(startH),
+			"start_minutes":   types.Int64Value(startM),
+			"time_zone_id":    types.StringValue(tz),
+			"job_id":          types.StringValue(jobID),
+		})
+		diags.Append(d...)
+		objs = append(objs, obj)
+	}
+	list, d := types.ListValue(elemType, objs)
+	diags.Append(d...)
+	return list, diags
+}
+
+// flattenProcessParametersFramework converts ProcessParameters to a types.List.
+func flattenProcessParametersFramework(pp *distributedtaskcommon.ProcessParameters) (types.List, diag.Diagnostics) {
+	elemType := types.ObjectType{AttrTypes: processParametersAttrTypes}
+	if pp == nil {
+		return types.ListValueMust(elemType, []attr.Value{}), nil
+	}
+	var diags diag.Diagnostics
+	inputElemType := types.ObjectType{AttrTypes: processParameterInputAttrTypes}
+	var inputObjs []attr.Value
+	if pp.Inputs != nil {
+		inputObjs = make([]attr.Value, 0, len(*pp.Inputs))
+		for _, inp := range *pp.Inputs {
+			name := ""
+			if inp.Name != nil {
+				name = *inp.Name
+			}
+			dv := ""
+			if inp.DefaultValue != nil {
+				dv = *inp.DefaultValue
+			}
+			pt := ""
+			if inp.Type != nil {
+				pt = *inp.Type
+			}
+			iObj, d := types.ObjectValue(processParameterInputAttrTypes, map[string]attr.Value{
+				"name":           types.StringValue(name),
+				"default_value":  types.StringValue(dv),
+				"parameter_type": types.StringValue(pt),
+			})
+			diags.Append(d...)
+			inputObjs = append(inputObjs, iObj)
+		}
+	}
+	inputList, d := types.ListValue(inputElemType, inputObjs)
+	diags.Append(d...)
+
+	obj, d := types.ObjectValue(processParametersAttrTypes, map[string]attr.Value{
+		"input": inputList,
+	})
+	diags.Append(d...)
+	list, d := types.ListValue(elemType, []attr.Value{obj})
+	diags.Append(d...)
+	return list, diags
+}
+
+// flattenStagePropertiesFramework unwraps ADO's {"$type":"System.String","$value":"..."}
+// wrapper from stage properties and returns a types.Map of string values.
+func flattenStagePropertiesFramework(properties interface{}) (types.Map, diag.Diagnostics) {
+	if properties == nil {
+		return types.MapValueMust(types.StringType, map[string]attr.Value{}), nil
+	}
+	props, ok := properties.(map[string]interface{})
+	if !ok || len(props) == 0 {
+		return types.MapValueMust(types.StringType, map[string]attr.Value{}), nil
+	}
+	attrs := make(map[string]attr.Value, len(props))
+	for k, v := range props {
+		switch cv := v.(type) {
+		case string:
+			attrs[k] = types.StringValue(cv)
+		case map[string]interface{}:
+			// Unwrap ADO's {"$type":"System.String","$value":"..."} wrapper.
+			if val, ok := cv["$value"].(string); ok {
+				attrs[k] = types.StringValue(val)
+			} else {
+				attrs[k] = types.StringValue(fmt.Sprintf("%v", v))
+			}
+		default:
+			attrs[k] = types.StringValue(fmt.Sprintf("%v", v))
+		}
+	}
+	return types.MapValue(types.StringType, attrs)
 }
 
 // -------------------------------------------------------------------------
