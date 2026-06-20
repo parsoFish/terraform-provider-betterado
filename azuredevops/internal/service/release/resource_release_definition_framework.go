@@ -96,14 +96,45 @@ type artifactModel struct {
 
 // triggerModel is the list-element for the heterogeneous triggers list.
 type triggerModel struct {
-	CdArtifactTrigger types.List `tfsdk:"cd_artifact_trigger"`
-	ScheduleTrigger   types.List `tfsdk:"schedule_trigger"`
+	CdArtifactTrigger     types.List `tfsdk:"cd_artifact_trigger"`
+	ScheduleTrigger       types.List `tfsdk:"schedule_trigger"`
+	SourceRepoTrigger     types.List `tfsdk:"source_repo_trigger"`
+	ContainerImageTrigger types.List `tfsdk:"container_image_trigger"`
+	PullRequestTrigger    types.List `tfsdk:"pull_request_trigger"`
 }
 
 // cdArtifactTriggerModel maps to the ADO "artifactSource" trigger.
 type cdArtifactTriggerModel struct {
-	ArtifactAlias types.String `tfsdk:"artifact_alias"`
+	ArtifactAlias               types.String `tfsdk:"artifact_alias"`
+	BranchFilters               types.List   `tfsdk:"branch_filters"`
+	TagFilter                   types.List   `tfsdk:"tag_filter"`
+	UseBuildDefinitionBranch    types.Bool   `tfsdk:"use_build_definition_branch"`
+	CreateReleaseOnBuildTagging types.Bool   `tfsdk:"create_release_on_build_tagging"`
+}
+
+// tagFilterModel maps to the tag_filter nested block inside cd_artifact_trigger.
+type tagFilterModel struct {
+	Tags types.List `tfsdk:"tags"`
+}
+
+// sourceRepoTriggerModel maps to the ADO "sourceRepo" trigger.
+type sourceRepoTriggerModel struct {
+	Alias         types.String `tfsdk:"alias"`
 	BranchFilters types.List   `tfsdk:"branch_filters"`
+}
+
+// containerImageTriggerModel maps to the ADO "containerImage" trigger.
+type containerImageTriggerModel struct {
+	ArtifactAlias types.String `tfsdk:"artifact_alias"`
+	Label         types.String `tfsdk:"label"`
+}
+
+// pullRequestTriggerModel maps to the ADO "pullRequest" trigger.
+type pullRequestTriggerModel struct {
+	ArtifactAlias        types.String `tfsdk:"artifact_alias"`
+	TargetBranches       types.List   `tfsdk:"target_branches"`
+	Tags                 types.List   `tfsdk:"tags"`
+	UseArtifactReference types.Bool   `tfsdk:"use_artifact_reference"`
 }
 
 // scheduleTriggerModel maps to the ADO "schedule" trigger.
@@ -337,10 +368,18 @@ var artifactAttrTypes = map[string]attr.Type{
 	"definition_reference": types.MapType{ElemType: types.StringType},
 }
 
+// tagFilterAttrTypes is the attr.Type map for a tag_filter element.
+var tagFilterAttrTypes = map[string]attr.Type{
+	"tags": types.ListType{ElemType: types.StringType},
+}
+
 // cdArtifactTriggerAttrTypes is the attr.Type map for a cd_artifact_trigger element.
 var cdArtifactTriggerAttrTypes = map[string]attr.Type{
-	"artifact_alias": types.StringType,
-	"branch_filters": types.ListType{ElemType: types.StringType},
+	"artifact_alias":                  types.StringType,
+	"branch_filters":                  types.ListType{ElemType: types.StringType},
+	"tag_filter":                      types.ListType{ElemType: types.ObjectType{AttrTypes: tagFilterAttrTypes}},
+	"use_build_definition_branch":     types.BoolType,
+	"create_release_on_build_tagging": types.BoolType,
 }
 
 // scheduleTriggerAttrTypes is the attr.Type map for a schedule_trigger element.
@@ -352,10 +391,33 @@ var scheduleTriggerAttrTypes = map[string]attr.Type{
 	"days_to_release":            types.Int64Type,
 }
 
+// sourceRepoTriggerAttrTypes is the attr.Type map for a source_repo_trigger element.
+var sourceRepoTriggerAttrTypes = map[string]attr.Type{
+	"alias":          types.StringType,
+	"branch_filters": types.ListType{ElemType: types.StringType},
+}
+
+// containerImageTriggerAttrTypes is the attr.Type map for a container_image_trigger element.
+var containerImageTriggerAttrTypes = map[string]attr.Type{
+	"artifact_alias": types.StringType,
+	"label":          types.StringType,
+}
+
+// pullRequestTriggerAttrTypes is the attr.Type map for a pull_request_trigger element.
+var pullRequestTriggerAttrTypes = map[string]attr.Type{
+	"artifact_alias":         types.StringType,
+	"target_branches":        types.ListType{ElemType: types.StringType},
+	"tags":                   types.ListType{ElemType: types.StringType},
+	"use_artifact_reference": types.BoolType,
+}
+
 // triggerAttrTypes is the attr.Type map for a single triggers list element.
 var triggerAttrTypes = map[string]attr.Type{
-	"cd_artifact_trigger": types.ListType{ElemType: types.ObjectType{AttrTypes: cdArtifactTriggerAttrTypes}},
-	"schedule_trigger":    types.ListType{ElemType: types.ObjectType{AttrTypes: scheduleTriggerAttrTypes}},
+	"cd_artifact_trigger":     types.ListType{ElemType: types.ObjectType{AttrTypes: cdArtifactTriggerAttrTypes}},
+	"schedule_trigger":        types.ListType{ElemType: types.ObjectType{AttrTypes: scheduleTriggerAttrTypes}},
+	"source_repo_trigger":     types.ListType{ElemType: types.ObjectType{AttrTypes: sourceRepoTriggerAttrTypes}},
+	"container_image_trigger": types.ListType{ElemType: types.ObjectType{AttrTypes: containerImageTriggerAttrTypes}},
+	"pull_request_trigger":    types.ListType{ElemType: types.ObjectType{AttrTypes: pullRequestTriggerAttrTypes}},
 }
 
 var stageAttrTypes = map[string]attr.Type{
@@ -717,12 +779,13 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
-				MarkdownDescription: "Release triggers (CD artifact and schedule).",
+				MarkdownDescription: "Release triggers (CD artifact, schedule, source repo, container image, pull request).",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"cd_artifact_trigger": schema.ListNestedAttribute{
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
 							MarkdownDescription: "CD artifact trigger (max 1 per triggers block).",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
@@ -738,12 +801,41 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 										ElementType:         types.StringType,
 										MarkdownDescription: "Branch filter expressions for this CD trigger.",
 									},
+									"tag_filter": schema.ListNestedAttribute{
+										Optional:            true,
+										Computed:            true,
+										PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+										MarkdownDescription: "Build-tag filter (ADO 7.1 does not persist tagFilter.pattern — only the tags list round-trips).",
+										NestedObject: schema.NestedAttributeObject{
+											Attributes: map[string]schema.Attribute{
+												"tags": schema.ListAttribute{
+													Optional:            true,
+													Computed:            true,
+													ElementType:         types.StringType,
+													MarkdownDescription: "Build tags that must be present to trigger.",
+												},
+											},
+										},
+									},
+									"use_build_definition_branch": schema.BoolAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticBool(false),
+										MarkdownDescription: "Use the build definition's default branch as the trigger source branch.",
+									},
+									"create_release_on_build_tagging": schema.BoolAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticBool(false),
+										MarkdownDescription: "Create a release when the build is tagged.",
+									},
 								},
 							},
 						},
 						"schedule_trigger": schema.ListNestedAttribute{
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
 							MarkdownDescription: "Schedule trigger (max 1 per triggers block).",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
@@ -776,6 +868,84 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 										Computed:            true,
 										Default:             staticInt64(0),
 										MarkdownDescription: "Bitmask of days (0=all) on which to trigger.",
+									},
+								},
+							},
+						},
+						"source_repo_trigger": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Source repository trigger (triggerType=sourceRepo).",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"alias": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticString(""),
+										MarkdownDescription: "Alias of the source repository artifact.",
+									},
+									"branch_filters": schema.ListAttribute{
+										Optional:            true,
+										Computed:            true,
+										ElementType:         types.StringType,
+										MarkdownDescription: "Branch filter expressions for this source-repo trigger.",
+									},
+								},
+							},
+						},
+						"container_image_trigger": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Container image trigger (triggerType=containerImage).",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"artifact_alias": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticString(""),
+										MarkdownDescription: "Alias of the container-image artifact this trigger monitors.",
+									},
+									"label": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticString(""),
+										MarkdownDescription: "Image tag/label to filter on (empty = any tag).",
+									},
+								},
+							},
+						},
+						"pull_request_trigger": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Pull request trigger (triggerType=pullRequest).",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"artifact_alias": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticString(""),
+										MarkdownDescription: "Alias of the artifact associated with the pull request trigger.",
+									},
+									"target_branches": schema.ListAttribute{
+										Optional:            true,
+										Computed:            true,
+										ElementType:         types.StringType,
+										MarkdownDescription: "Target branches that trigger on pull request (e.g. refs/heads/main).",
+									},
+									"tags": schema.ListAttribute{
+										Optional:            true,
+										Computed:            true,
+										ElementType:         types.StringType,
+										MarkdownDescription: "Pull request tags that must be present to trigger.",
+									},
+									"use_artifact_reference": schema.BoolAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticBool(true),
+										MarkdownDescription: "When true (default), ADO derives the pull request code repository reference from the linked source-based artifact. Required by ADO for artifact-linked pull request triggers.",
 									},
 								},
 							},
@@ -2744,19 +2914,7 @@ func expandTriggersFramework(ctx context.Context, list types.List) ([]interface{
 					"triggerType":   "artifactSource",
 					"artifactAlias": cd.ArtifactAlias.ValueString(),
 				}
-				if !cd.BranchFilters.IsNull() && !cd.BranchFilters.IsUnknown() {
-					var bfs []string
-					if d := cd.BranchFilters.ElementsAs(ctx, &bfs, false); d.HasError() {
-						return nil, fmt.Errorf("decoding branch_filters: %s", d)
-					}
-					if len(bfs) > 0 {
-						conditions := make([]map[string]interface{}, 0, len(bfs))
-						for _, bf := range bfs {
-							conditions = append(conditions, map[string]interface{}{"sourceBranch": bf})
-						}
-						trigEntry["triggerConditions"] = conditions
-					}
-				}
+				trigEntry["triggerConditions"] = expandCdArtifactTriggerConditionsFramework(ctx, cd)
 				result = append(result, trigEntry)
 			}
 		}
@@ -2780,19 +2938,170 @@ func expandTriggersFramework(ctx context.Context, list types.List) ([]interface{
 				})
 			}
 		}
+		// Source repo triggers
+		if !t.SourceRepoTrigger.IsNull() && !t.SourceRepoTrigger.IsUnknown() {
+			var srtModels []sourceRepoTriggerModel
+			if d := t.SourceRepoTrigger.ElementsAs(ctx, &srtModels, false); d.HasError() {
+				return nil, fmt.Errorf("decoding source_repo_trigger: %s", d)
+			}
+			for _, srt := range srtModels {
+				trigEntry := map[string]interface{}{
+					"triggerType": "sourceRepo",
+					"alias":       srt.Alias.ValueString(),
+				}
+				if !srt.BranchFilters.IsNull() && !srt.BranchFilters.IsUnknown() {
+					var bfs []string
+					if d := srt.BranchFilters.ElementsAs(ctx, &bfs, false); d.HasError() {
+						return nil, fmt.Errorf("decoding source_repo_trigger branch_filters: %s", d)
+					}
+					if len(bfs) > 0 {
+						trigEntry["branchFilters"] = bfs
+					}
+				}
+				result = append(result, trigEntry)
+			}
+		}
+		// Container image triggers
+		if !t.ContainerImageTrigger.IsNull() && !t.ContainerImageTrigger.IsUnknown() {
+			var ciModels []containerImageTriggerModel
+			if d := t.ContainerImageTrigger.ElementsAs(ctx, &ciModels, false); d.HasError() {
+				return nil, fmt.Errorf("decoding container_image_trigger: %s", d)
+			}
+			for _, ci := range ciModels {
+				trigEntry := map[string]interface{}{
+					"triggerType": "containerImage",
+					"alias":       ci.ArtifactAlias.ValueString(),
+				}
+				if label := ci.Label.ValueString(); label != "" {
+					trigEntry["tagFilters"] = []interface{}{
+						map[string]interface{}{"pattern": label},
+					}
+				}
+				result = append(result, trigEntry)
+			}
+		}
+		// Pull request triggers
+		if !t.PullRequestTrigger.IsNull() && !t.PullRequestTrigger.IsUnknown() {
+			var prModels []pullRequestTriggerModel
+			if d := t.PullRequestTrigger.ElementsAs(ctx, &prModels, false); d.HasError() {
+				return nil, fmt.Errorf("decoding pull_request_trigger: %s", d)
+			}
+			for _, pr := range prModels {
+				trigEntry := map[string]interface{}{
+					"triggerType":   "pullRequest",
+					"artifactAlias": pr.ArtifactAlias.ValueString(),
+				}
+				// Each (target_branch, tags) combination maps to one PullRequestFilter condition.
+				// We build a single condition per trigger entry carrying both target_branches and tags.
+				var targetBranches []string
+				if !pr.TargetBranches.IsNull() && !pr.TargetBranches.IsUnknown() {
+					if d := pr.TargetBranches.ElementsAs(ctx, &targetBranches, false); d.HasError() {
+						return nil, fmt.Errorf("decoding pull_request_trigger target_branches: %s", d)
+					}
+				}
+				var prTags []string
+				if !pr.Tags.IsNull() && !pr.Tags.IsUnknown() {
+					if d := pr.Tags.ElementsAs(ctx, &prTags, false); d.HasError() {
+						return nil, fmt.Errorf("decoding pull_request_trigger tags: %s", d)
+					}
+				}
+				if len(targetBranches) > 0 || len(prTags) > 0 {
+					conditions := make([]map[string]interface{}, 0)
+					for _, tb := range targetBranches {
+						cond := map[string]interface{}{"targetBranch": tb}
+						if len(prTags) > 0 {
+							cond["tags"] = prTags
+						}
+						conditions = append(conditions, cond)
+					}
+					if len(conditions) == 0 && len(prTags) > 0 {
+						// tags without target_branches: emit one condition with empty targetBranch
+						conditions = append(conditions, map[string]interface{}{
+							"targetBranch": "",
+							"tags":         prTags,
+						})
+					}
+					trigEntry["triggerConditions"] = conditions
+				}
+				// ADO requires a non-null repository reference for a pull request
+				// trigger. For source-based (Build) artifacts, useArtifactReference
+				// tells ADO to derive it from the linked artifact.
+				useArtifactRef := true
+				if !pr.UseArtifactReference.IsNull() && !pr.UseArtifactReference.IsUnknown() {
+					useArtifactRef = pr.UseArtifactReference.ValueBool()
+				}
+				trigEntry["pullRequestConfiguration"] = map[string]interface{}{
+					"useArtifactReference": useArtifactRef,
+				}
+				result = append(result, trigEntry)
+			}
+		}
 	}
 	return result, nil
 }
 
+// expandCdArtifactTriggerConditionsFramework builds the triggerConditions slice for a
+// cd_artifact_trigger, incorporating branch_filters, tag_filter, use_build_definition_branch,
+// and create_release_on_build_tagging. Mirrors expandArtifactTriggerConditions from the SDK v2 file.
+func expandCdArtifactTriggerConditionsFramework(ctx context.Context, cd cdArtifactTriggerModel) []map[string]interface{} {
+	var conditions []map[string]interface{}
+	if !cd.BranchFilters.IsNull() && !cd.BranchFilters.IsUnknown() {
+		var bfs []string
+		if d := cd.BranchFilters.ElementsAs(ctx, &bfs, false); !d.HasError() {
+			for _, bf := range bfs {
+				conditions = append(conditions, map[string]interface{}{"sourceBranch": bf})
+			}
+		}
+	}
+
+	// Gather tag_filter tags, use_build_definition_branch, create_release_on_build_tagging.
+	var tags []string
+	if !cd.TagFilter.IsNull() && !cd.TagFilter.IsUnknown() {
+		var tfModels []tagFilterModel
+		if d := cd.TagFilter.ElementsAs(ctx, &tfModels, false); !d.HasError() && len(tfModels) > 0 {
+			tf := tfModels[0]
+			if !tf.Tags.IsNull() && !tf.Tags.IsUnknown() {
+				_ = tf.Tags.ElementsAs(ctx, &tags, false)
+			}
+		}
+	}
+	useBuildBranch := cd.UseBuildDefinitionBranch.ValueBool()
+	createOnTagging := cd.CreateReleaseOnBuildTagging.ValueBool()
+
+	hasExtras := len(tags) > 0 || useBuildBranch || createOnTagging
+	if !hasExtras {
+		return conditions
+	}
+
+	// Emit extras on the first condition. If no branch conditions exist, create
+	// a synthetic entry with empty sourceBranch as the container.
+	if len(conditions) == 0 {
+		conditions = []map[string]interface{}{{"sourceBranch": ""}}
+	}
+	if len(tags) > 0 {
+		conditions[0]["tags"] = tags
+	}
+	if useBuildBranch {
+		conditions[0]["useBuildDefinitionBranch"] = true
+	}
+	if createOnTagging {
+		conditions[0]["createReleaseOnBuildTagging"] = true
+	}
+	return conditions
+}
+
 // flattenTriggersFramework converts the ADO polymorphic *[]interface{} into types.List
-// (ListNestedAttribute of triggerModel). All CD artifact triggers from the API are grouped
-// into the first list element's cd_artifact_trigger list; all schedule triggers into
-// schedule_trigger. We emit at most one triggerModel list element (matches the typical ADO shape).
+// (ListNestedAttribute of triggerModel). All trigger variants from the API are grouped
+// into a single triggerModel list element (matches the typical ADO shape).
 func flattenTriggersFramework(ctx context.Context, triggers *[]interface{}) (types.List, diag.Diagnostics) {
 	_ = ctx
 	elemType := types.ObjectType{AttrTypes: triggerAttrTypes}
 	cdElemType := types.ObjectType{AttrTypes: cdArtifactTriggerAttrTypes}
 	schElemType := types.ObjectType{AttrTypes: scheduleTriggerAttrTypes}
+	srtElemType := types.ObjectType{AttrTypes: sourceRepoTriggerAttrTypes}
+	ciElemType := types.ObjectType{AttrTypes: containerImageTriggerAttrTypes}
+	prElemType := types.ObjectType{AttrTypes: pullRequestTriggerAttrTypes}
+	tagFilterElemType := types.ObjectType{AttrTypes: tagFilterAttrTypes}
 
 	if triggers == nil || len(*triggers) == 0 {
 		return types.ListValueMust(elemType, []attr.Value{}), nil
@@ -2801,6 +3110,9 @@ func flattenTriggersFramework(ctx context.Context, triggers *[]interface{}) (typ
 	var diags diag.Diagnostics
 	var cdObjs []attr.Value
 	var schObjs []attr.Value
+	var srtObjs []attr.Value
+	var ciObjs []attr.Value
+	var prObjs []attr.Value
 
 	for _, raw := range *triggers {
 		data, err := json.Marshal(raw)
@@ -2819,23 +3131,61 @@ func flattenTriggersFramework(ctx context.Context, triggers *[]interface{}) (typ
 				alias = v
 			}
 			var bfVals []attr.Value
+			var tagVals []attr.Value
+			useBuildBranch := false
+			createOnTagging := false
 			if conds, ok := trigMap["triggerConditions"].([]interface{}); ok {
-				for _, c := range conds {
+				for i, c := range conds {
 					if cm, ok := c.(map[string]interface{}); ok {
 						if sb, ok := cm["sourceBranch"].(string); ok && sb != "" {
 							bfVals = append(bfVals, types.StringValue(sb))
+						}
+						// Read extras from the first condition entry only.
+						if i == 0 {
+							if v, ok := cm["tags"].([]interface{}); ok {
+								for _, t := range v {
+									if s, ok := t.(string); ok {
+										tagVals = append(tagVals, types.StringValue(s))
+									}
+								}
+							}
+							if v, ok := cm["useBuildDefinitionBranch"].(bool); ok {
+								useBuildBranch = v
+							}
+							if v, ok := cm["createReleaseOnBuildTagging"].(bool); ok {
+								createOnTagging = v
+							}
 						}
 					}
 				}
 			}
 			bfList, d := types.ListValue(types.StringType, bfVals)
 			diags.Append(d...)
+
+			// Build tag_filter list: one element if any tags, empty list otherwise.
+			var tagFilterObjs []attr.Value
+			if len(tagVals) > 0 {
+				tagList, d2 := types.ListValue(types.StringType, tagVals)
+				diags.Append(d2...)
+				tfObj, d2 := types.ObjectValue(tagFilterAttrTypes, map[string]attr.Value{
+					"tags": tagList,
+				})
+				diags.Append(d2...)
+				tagFilterObjs = append(tagFilterObjs, tfObj)
+			}
+			tagFilterList, d := types.ListValue(tagFilterElemType, tagFilterObjs)
+			diags.Append(d...)
+
 			obj, d := types.ObjectValue(cdArtifactTriggerAttrTypes, map[string]attr.Value{
-				"artifact_alias": types.StringValue(alias),
-				"branch_filters": bfList,
+				"artifact_alias":                  types.StringValue(alias),
+				"branch_filters":                  bfList,
+				"tag_filter":                      tagFilterList,
+				"use_build_definition_branch":     types.BoolValue(useBuildBranch),
+				"create_release_on_build_tagging": types.BoolValue(createOnTagging),
 			})
 			diags.Append(d...)
 			cdObjs = append(cdObjs, obj)
+
 		case "schedule":
 			onlyChanges := false
 			startHours := int64(0)
@@ -2868,10 +3218,95 @@ func flattenTriggersFramework(ctx context.Context, triggers *[]interface{}) (typ
 			})
 			diags.Append(d...)
 			schObjs = append(schObjs, obj)
+
+		case "sourceRepo":
+			alias := ""
+			if v, ok := trigMap["alias"].(string); ok {
+				alias = v
+			}
+			var bfVals []attr.Value
+			if bfs, ok := trigMap["branchFilters"].([]interface{}); ok {
+				for _, bf := range bfs {
+					if s, ok := bf.(string); ok {
+						bfVals = append(bfVals, types.StringValue(s))
+					}
+				}
+			}
+			bfList, d := types.ListValue(types.StringType, bfVals)
+			diags.Append(d...)
+			obj, d := types.ObjectValue(sourceRepoTriggerAttrTypes, map[string]attr.Value{
+				"alias":          types.StringValue(alias),
+				"branch_filters": bfList,
+			})
+			diags.Append(d...)
+			srtObjs = append(srtObjs, obj)
+
+		case "containerImage":
+			alias := ""
+			if v, ok := trigMap["alias"].(string); ok {
+				alias = v
+			}
+			label := ""
+			if tfs, ok := trigMap["tagFilters"].([]interface{}); ok && len(tfs) > 0 {
+				if tf, ok := tfs[0].(map[string]interface{}); ok {
+					label, _ = tf["pattern"].(string)
+				}
+			}
+			obj, d := types.ObjectValue(containerImageTriggerAttrTypes, map[string]attr.Value{
+				"artifact_alias": types.StringValue(alias),
+				"label":          types.StringValue(label),
+			})
+			diags.Append(d...)
+			ciObjs = append(ciObjs, obj)
+
+		case "pullRequest":
+			artifactAlias := ""
+			if v, ok := trigMap["artifactAlias"].(string); ok {
+				artifactAlias = v
+			}
+			var targetBranchVals []attr.Value
+			var prTagVals []attr.Value
+			if conds, ok := trigMap["triggerConditions"].([]interface{}); ok {
+				for _, c := range conds {
+					if cm, ok := c.(map[string]interface{}); ok {
+						if tb, ok := cm["targetBranch"].(string); ok && tb != "" {
+							targetBranchVals = append(targetBranchVals, types.StringValue(tb))
+						}
+						// Collect tags from the first condition that has them.
+						if len(prTagVals) == 0 {
+							if v, ok := cm["tags"].([]interface{}); ok {
+								for _, t := range v {
+									if s, ok := t.(string); ok {
+										prTagVals = append(prTagVals, types.StringValue(s))
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			tbList, d := types.ListValue(types.StringType, targetBranchVals)
+			diags.Append(d...)
+			prTagList, d := types.ListValue(types.StringType, prTagVals)
+			diags.Append(d...)
+			useArtifactRef := true
+			if pc, ok := trigMap["pullRequestConfiguration"].(map[string]interface{}); ok {
+				if v, ok := pc["useArtifactReference"].(bool); ok {
+					useArtifactRef = v
+				}
+			}
+			obj, d := types.ObjectValue(pullRequestTriggerAttrTypes, map[string]attr.Value{
+				"artifact_alias":         types.StringValue(artifactAlias),
+				"target_branches":        tbList,
+				"tags":                   prTagList,
+				"use_artifact_reference": types.BoolValue(useArtifactRef),
+			})
+			diags.Append(d...)
+			prObjs = append(prObjs, obj)
 		}
 	}
 
-	if len(cdObjs) == 0 && len(schObjs) == 0 {
+	if len(cdObjs) == 0 && len(schObjs) == 0 && len(srtObjs) == 0 && len(ciObjs) == 0 && len(prObjs) == 0 {
 		return types.ListValueMust(elemType, []attr.Value{}), diags
 	}
 
@@ -2879,10 +3314,19 @@ func flattenTriggersFramework(ctx context.Context, triggers *[]interface{}) (typ
 	diags.Append(d...)
 	schList, d := types.ListValue(schElemType, schObjs)
 	diags.Append(d...)
+	srtList, d := types.ListValue(srtElemType, srtObjs)
+	diags.Append(d...)
+	ciList, d := types.ListValue(ciElemType, ciObjs)
+	diags.Append(d...)
+	prList, d := types.ListValue(prElemType, prObjs)
+	diags.Append(d...)
 
 	trigObj, d := types.ObjectValue(triggerAttrTypes, map[string]attr.Value{
-		"cd_artifact_trigger": cdList,
-		"schedule_trigger":    schList,
+		"cd_artifact_trigger":     cdList,
+		"schedule_trigger":        schList,
+		"source_repo_trigger":     srtList,
+		"container_image_trigger": ciList,
+		"pull_request_trigger":    prList,
 	})
 	diags.Append(d...)
 

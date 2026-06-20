@@ -412,8 +412,11 @@ func TestFrameworkReleaseDefinition_expandTriggers(t *testing.T) {
 
 	// Build cd_artifact_trigger
 	cdObj, diags := types.ObjectValue(cdArtifactTriggerAttrTypes, map[string]attr.Value{
-		"artifact_alias": types.StringValue("_build"),
-		"branch_filters": types.ListValueMust(types.StringType, []attr.Value{}),
+		"artifact_alias":                  types.StringValue("_build"),
+		"branch_filters":                  types.ListValueMust(types.StringType, []attr.Value{}),
+		"tag_filter":                      types.ListValueMust(types.ObjectType{AttrTypes: tagFilterAttrTypes}, []attr.Value{}),
+		"use_build_definition_branch":     types.BoolValue(false),
+		"create_release_on_build_tagging": types.BoolValue(false),
 	})
 	require.False(t, diags.HasError(), "build cd trigger: %s", diags)
 	cdList, diags := types.ListValue(types.ObjectType{AttrTypes: cdArtifactTriggerAttrTypes}, []attr.Value{cdObj})
@@ -431,10 +434,17 @@ func TestFrameworkReleaseDefinition_expandTriggers(t *testing.T) {
 	schList, diags := types.ListValue(types.ObjectType{AttrTypes: scheduleTriggerAttrTypes}, []attr.Value{schObj})
 	require.False(t, diags.HasError(), "build sch list: %s", diags)
 
-	// Build trigger model
+	// Build trigger model (empty lists for new trigger types not exercised by this test)
+	emptySourceRepoList := types.ListValueMust(types.ObjectType{AttrTypes: sourceRepoTriggerAttrTypes}, []attr.Value{})
+	emptyCIList := types.ListValueMust(types.ObjectType{AttrTypes: containerImageTriggerAttrTypes}, []attr.Value{})
+	emptyPRList := types.ListValueMust(types.ObjectType{AttrTypes: pullRequestTriggerAttrTypes}, []attr.Value{})
+
 	trigObj, diags := types.ObjectValue(triggerAttrTypes, map[string]attr.Value{
-		"cd_artifact_trigger": cdList,
-		"schedule_trigger":    schList,
+		"cd_artifact_trigger":     cdList,
+		"schedule_trigger":        schList,
+		"source_repo_trigger":     emptySourceRepoList,
+		"container_image_trigger": emptyCIList,
+		"pull_request_trigger":    emptyPRList,
 	})
 	require.False(t, diags.HasError(), "build trigger obj: %s", diags)
 	trigList, diags := types.ListValue(types.ObjectType{AttrTypes: triggerAttrTypes}, []attr.Value{trigObj})
