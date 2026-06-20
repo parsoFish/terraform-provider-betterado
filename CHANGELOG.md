@@ -7,6 +7,8 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-06-20
+
 ### ENHANCEMENTS
 
 - `betterado_release_definition`: Terraform registry docs (`docs/resources/release_definition.md`) now
