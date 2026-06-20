@@ -7,6 +7,24 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### ENHANCEMENTS
+
+- `betterado_release_definition`: Terraform registry docs (`docs/resources/release_definition.md`) now
+  show HCL examples using array-of-objects syntax (`stages = [{…}]`, `artifact = [{…}]`,
+  `deploy_phase = [{…}]`) regenerated from the framework schema via `make docs`.
+- `betterado_task_group`: Terraform registry docs (`docs/resources/task_group.md`) now show
+  HCL examples using array-of-objects syntax (`task = [{…}]`, `input = [{…}]`, `version = [{…}]`)
+  regenerated from the framework schema via `make docs`.
+
+### NOTES
+
+- `GNUmakefile`: `make docs` target now runs `git checkout -- docs/guides/` after `tfplugindocs`
+  to restore hand-written authentication guides that tfplugindocs deletes during regeneration.
+- `roadmap.md`: "Future: holistic terraform-plugin-framework migration" section updated with
+  explicit phase-2 candidate list (`betterado_release_folder`, `betterado_release_definition_permissions`,
+  upstream-inherited resources) and identification of the `terraform-plugin-mux` scaffold
+  (`INIT-2026-06-19-framework-state-upgraders`) as the extension point for further migrations.
+
 ## [1.0.0] - 2026-06-20
 
 ### Breaking Changes
