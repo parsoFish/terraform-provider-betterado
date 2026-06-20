@@ -148,7 +148,6 @@ func Provider() *schema.Provider {
 			"betterado_servicehook_webhook_tfs":                     servicehook.ResourceServicehookWebhookTfs(),
 			"betterado_service_principal_entitlement":               memberentitlementmanagement.ResourceServicePrincipalEntitlement(),
 			"betterado_tagging_permissions":                         permissions.ResourceTaggingPermissions(),
-			"betterado_task_group":                                  taskagent.ResourceTaskGroup(),
 			"betterado_team":                                        core.ResourceTeam(),
 			"betterado_team_administrators":                         core.ResourceTeamAdministrators(),
 			"betterado_team_members":                                core.ResourceTeamMembers(),

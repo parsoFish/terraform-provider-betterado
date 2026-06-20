@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 )
 
 // BetteradoFrameworkProvider is the terraform-plugin-framework provider stub.
@@ -52,7 +53,9 @@ func (p *BetteradoFrameworkProvider) Configure(_ context.Context, _ provider.Con
 // No changes to main.go are needed after the mux is wired in this file.
 
 func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
-	return []func() resource.Resource{}
+	return []func() resource.Resource{
+		taskagent.NewTaskGroupResource,
+	}
 }
 
 func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() datasource.DataSource {
