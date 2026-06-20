@@ -1,5 +1,3 @@
-//go:build all || resource_release_definition
-
 package release
 
 import (

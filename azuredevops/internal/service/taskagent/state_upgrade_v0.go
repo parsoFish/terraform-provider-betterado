@@ -1,5 +1,3 @@
-//go:build all || resource_task_group_framework
-
 package taskagent
 
 import (
