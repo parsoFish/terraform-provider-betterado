@@ -1,12 +1,40 @@
 ---
-title: ADO org 1000-project limit blocks live acceptance test creates
-description: The davidgparsonson ADO test org is at the 1000-project cap; any live test that creates a project via TF resource or direct API fails with HTTP 400. Workaround is using GetProjects(stateFilter=wellFormed, top=1) to resolve an existing project.
+title: ADO org 1000-project limit blocks live acceptance test creates — it's the SOFT-DELETE recycle bin, not active projects
+description: The davidgparsonson org hits the 1000-project cap with only 4 ACTIVE projects — 996 SOFT-DELETED projects (stateFilter=deleted, 28-day retention) count toward the cap but are hidden from the portal/normal API. ADO has no purge API; `make sweep` soft-deletes (feeds the bin) so it's counterproductive. Durable fix: tests must REUSE an existing project (data "betterado_project" / GetProjects), never create.
 category: antipattern
 created_at: 2026-06-20
 updated_at: 2026-06-20
 ---
 
 # ADO org 1000-project limit blocks live acceptance test creates
+
+## Real root cause (verified 2026-06-20)
+
+The org shows **4 active projects** (portal + `GET _apis/projects`, even
+`stateFilter=all`). But project creates fail with "already has 1000 projects."
+The hidden cause: **`GET _apis/projects?stateFilter=deleted` returns 996** —
+soft-deleted projects. ADO soft-deletes a project on delete and retains it ~28
+days; **soft-deleted projects count toward the 1000-project org cap** but are NOT
+shown by the portal or the default/`all` list API. 4 active + 996 soft-deleted =
+1000. 992 of the 996 are named `test-acc-*` (acc-test fixture leaks); none are
+real projects.
+
+Consequences:
+- **`make sweep` is counterproductive** for the quota — it *soft-deletes* active
+  test projects, moving them INTO the recycle bin (still counted), never reducing
+  the count. After it clears the active `test-acc-*`, it deletes 0 while the cap
+  stays pinned.
+- **No public purge API.** `_apis/projects/recycleBin` → 404; nothing in the
+  azure-devops-go SDK. Soft-deleted projects auto-purge only after the 28-day
+  retention. (Per-day soft-delete spread on 2026-06-20: oldest 2026-05-30 →
+  purges ~06-27; the bulk from 06-17/06-18/06-20 won't drain until ~mid-July.)
+- The error's advice ("delete unused projects") is a trap here — deleting
+  soft-deletes, which keeps counting.
+
+Remediation: wait for auto-purge, request a manual recycle-bin purge from MS
+support, OR (durable) stop creating projects in tests — see the standing rule
+below. A full acc-suite run that creates a project per fixture adds dozens of
+soft-deletes per run and accelerates exhaustion.
 
 ## What happened
 
