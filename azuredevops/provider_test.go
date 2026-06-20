@@ -115,7 +115,6 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_servicehook_webhook_tfs",
 		"betterado_service_principal_entitlement",
 		"betterado_tagging_permissions",
-		"betterado_task_group",
 		"betterado_team",
 		"betterado_team_administrators",
 		"betterado_team_members",

@@ -29,14 +29,14 @@ resource "betterado_task_group" "example" {
   instance_name_format = "Deploy $(environment)"
   icon_url             = "https://cdn.vsassets.io/v/someicon.png"
 
-  version {
+  version = [{
     major = 1
     minor = 0
     patch = 0
-  }
+  }]
 
   # Parameterized input surfaced to consumers of the task group.
-  input {
+  input = [{
     name          = "environment"
     label         = "Target environment"
     type          = "string"
@@ -46,10 +46,10 @@ resource "betterado_task_group" "example" {
     visible_rule  = "targetType = filePath"
     properties    = { "EndpointId" = "" }
     aliases       = ["targetEnvAlias"]
-  }
+  }]
 
   # Task steps executed when the group runs.
-  task {
+  task = [{
     display_name = "Run deploy script"
     task_id      = "d9bafed4-0b18-4f58-968d-86655b4d2ce9" # CmdLine@2
     task_version = "2.*"
@@ -57,7 +57,7 @@ resource "betterado_task_group" "example" {
     inputs = {
       script = "echo Deploying to $(environment)"
     }
-  }
+  }]
 }
 
 variable "project_id" {
@@ -74,18 +74,17 @@ variable "project_id" {
 - `friendly_name` (String)
 - `name` (String)
 - `project_id` (String)
-- `task` (Block List, Min: 1) (see [below for nested schema](#nestedblock--task))
-- `version` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--version))
+- `task` (Attributes List) (see [below for nested schema](#nestedatt--task))
 
 ### Optional
 
 - `author` (String)
 - `description` (String)
 - `icon_url` (String)
-- `input` (Block List) (see [below for nested schema](#nestedblock--input))
+- `input` (Attributes List) (see [below for nested schema](#nestedatt--input))
 - `instance_name_format` (String)
 - `runs_on` (List of String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `version` (Attributes List) (see [below for nested schema](#nestedatt--version))
 
 ### Read-Only
 
@@ -93,7 +92,7 @@ variable "project_id" {
 - `id` (String) The ID of this resource.
 - `revision` (Number)
 
-<a id="nestedblock--task"></a>
+<a id="nestedatt--task"></a>
 ### Nested Schema for `task`
 
 Required:
@@ -115,21 +114,7 @@ Optional:
 - `timeout_in_minutes` (Number)
 
 
-<a id="nestedblock--version"></a>
-### Nested Schema for `version`
-
-Required:
-
-- `major` (Number)
-- `minor` (Number)
-- `patch` (Number)
-
-Optional:
-
-- `is_test` (Boolean)
-
-
-<a id="nestedblock--input"></a>
+<a id="nestedatt--input"></a>
 ### Nested Schema for `input`
 
 Required:
@@ -150,15 +135,18 @@ Optional:
 - `visible_rule` (String)
 
 
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
+<a id="nestedatt--version"></a>
+### Nested Schema for `version`
+
+Required:
+
+- `major` (Number)
+- `minor` (Number)
+- `patch` (Number)
 
 Optional:
 
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `is_test` (Boolean)
 
 ## Import
 

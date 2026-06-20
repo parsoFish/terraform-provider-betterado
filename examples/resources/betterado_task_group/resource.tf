@@ -10,14 +10,14 @@ resource "betterado_task_group" "example" {
   instance_name_format = "Deploy $(environment)"
   icon_url             = "https://cdn.vsassets.io/v/someicon.png"
 
-  version {
+  version = [{
     major = 1
     minor = 0
     patch = 0
-  }
+  }]
 
   # Parameterized input surfaced to consumers of the task group.
-  input {
+  input = [{
     name          = "environment"
     label         = "Target environment"
     type          = "string"
@@ -27,10 +27,10 @@ resource "betterado_task_group" "example" {
     visible_rule  = "targetType = filePath"
     properties    = { "EndpointId" = "" }
     aliases       = ["targetEnvAlias"]
-  }
+  }]
 
   # Task steps executed when the group runs.
-  task {
+  task = [{
     display_name = "Run deploy script"
     task_id      = "d9bafed4-0b18-4f58-968d-86655b4d2ce9" # CmdLine@2
     task_version = "2.*"
@@ -38,7 +38,7 @@ resource "betterado_task_group" "example" {
     inputs = {
       script = "echo Deploying to $(environment)"
     }
-  }
+  }]
 }
 
 variable "project_id" {

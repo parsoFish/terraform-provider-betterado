@@ -5,7 +5,17 @@ changelog starts at the first public release of the fork. The inherited history
 from the upstream `microsoft/azuredevops` provider is preserved in
 [`CHANGELOG-upstream.md`](./CHANGELOG-upstream.md).
 
-## Unreleased
+## [Unreleased]
+
+## [0.4.0] - 2026-06-19
+
+ENHANCEMENTS:
+
+- `betterado_task_group`: migrated from Terraform Plugin SDK v2 to Terraform Plugin Framework; `task`, `input`, and `version` are now list-of-object attributes (HCL array-of-objects syntax) with typed defaults eliminating null-fill boilerplate.
+
+FEATURES:
+
+- **New Resource (framework):** `betterado_task_group` is now implemented via `terraform-plugin-framework` (`ListNestedAttribute` for `task`, `input`, and `version`). Configurations must use array-of-objects HCL syntax (`task = [{ ... }]`, `input = [{ ... }]`, `version = [{ ... }]`). Optional task-step fields (`enabled`, `timeout_in_minutes`, `retry_count_on_task_failure`, `always_run`, `inputs`) default to typed zero-values and do not produce a perpetual diff when omitted.
 
 ## [0.3.0] - 2026-06-20
 
