@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	distributedtaskcommon "github.com/microsoft/azure-devops-go-api/azuredevops/v7/distributedtaskcommon"
 	releaseapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/release"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
 
@@ -26,6 +28,7 @@ var (
 	_ resource.Resource                 = &releaseDefinitionFrameworkResource{}
 	_ resource.ResourceWithImportState  = &releaseDefinitionFrameworkResource{}
 	_ resource.ResourceWithUpgradeState = &releaseDefinitionFrameworkResource{}
+	_ resource.ResourceWithModifyPlan   = &releaseDefinitionFrameworkResource{}
 )
 
 // releaseDefinitionFrameworkResource is the terraform-plugin-framework implementation of
@@ -52,6 +55,7 @@ type releaseDefinitionModel struct {
 	Path              types.String `tfsdk:"path"`
 	Description       types.String `tfsdk:"description"`
 	ReleaseNameFormat types.String `tfsdk:"release_name_format"`
+	Tags              types.Set    `tfsdk:"tags"`
 	Revision          types.Int64  `tfsdk:"revision"`
 	Stages            types.List   `tfsdk:"stages"`
 	Variables         types.Map    `tfsdk:"variables"`
@@ -74,6 +78,13 @@ type stageModel struct {
 	DeployPhase         types.List   `tfsdk:"deploy_phase"`
 	Variables           types.Map    `tfsdk:"variables"`
 	VariableGroups      types.List   `tfsdk:"variable_groups"`
+	ExecutionPolicy     types.List   `tfsdk:"execution_policy"`
+	EnvironmentTrigger  types.List   `tfsdk:"environment_trigger"`
+	Schedule            types.List   `tfsdk:"schedule"`
+	ProcessParameters   types.List   `tfsdk:"process_parameters"`
+	Properties          types.Map    `tfsdk:"properties"`
+	Owner               types.String `tfsdk:"owner"`
+	StageID             types.Int64  `tfsdk:"id"`
 }
 
 // variableValueModel is the nested-attribute value object for a single variable entry.
@@ -93,14 +104,45 @@ type artifactModel struct {
 
 // triggerModel is the list-element for the heterogeneous triggers list.
 type triggerModel struct {
-	CdArtifactTrigger types.List `tfsdk:"cd_artifact_trigger"`
-	ScheduleTrigger   types.List `tfsdk:"schedule_trigger"`
+	CdArtifactTrigger     types.List `tfsdk:"cd_artifact_trigger"`
+	ScheduleTrigger       types.List `tfsdk:"schedule_trigger"`
+	SourceRepoTrigger     types.List `tfsdk:"source_repo_trigger"`
+	ContainerImageTrigger types.List `tfsdk:"container_image_trigger"`
+	PullRequestTrigger    types.List `tfsdk:"pull_request_trigger"`
 }
 
 // cdArtifactTriggerModel maps to the ADO "artifactSource" trigger.
 type cdArtifactTriggerModel struct {
-	ArtifactAlias types.String `tfsdk:"artifact_alias"`
+	ArtifactAlias               types.String `tfsdk:"artifact_alias"`
+	BranchFilters               types.List   `tfsdk:"branch_filters"`
+	TagFilter                   types.List   `tfsdk:"tag_filter"`
+	UseBuildDefinitionBranch    types.Bool   `tfsdk:"use_build_definition_branch"`
+	CreateReleaseOnBuildTagging types.Bool   `tfsdk:"create_release_on_build_tagging"`
+}
+
+// tagFilterModel maps to the tag_filter nested block inside cd_artifact_trigger.
+type tagFilterModel struct {
+	Tags types.List `tfsdk:"tags"`
+}
+
+// sourceRepoTriggerModel maps to the ADO "sourceRepo" trigger.
+type sourceRepoTriggerModel struct {
+	Alias         types.String `tfsdk:"alias"`
 	BranchFilters types.List   `tfsdk:"branch_filters"`
+}
+
+// containerImageTriggerModel maps to the ADO "containerImage" trigger.
+type containerImageTriggerModel struct {
+	ArtifactAlias types.String `tfsdk:"artifact_alias"`
+	Label         types.String `tfsdk:"label"`
+}
+
+// pullRequestTriggerModel maps to the ADO "pullRequest" trigger.
+type pullRequestTriggerModel struct {
+	ArtifactAlias        types.String `tfsdk:"artifact_alias"`
+	TargetBranches       types.List   `tfsdk:"target_branches"`
+	Tags                 types.List   `tfsdk:"tags"`
+	UseArtifactReference types.Bool   `tfsdk:"use_artifact_reference"`
 }
 
 // scheduleTriggerModel maps to the ADO "schedule" trigger.
@@ -123,14 +165,16 @@ type deployPhaseModel struct {
 
 // deploymentInputModel maps to the deploymentInput object inside a deploy phase.
 type deploymentInputModel struct {
-	QueueID               types.Int64  `tfsdk:"queue_id"`
-	Condition             types.String `tfsdk:"condition"`
-	TimeoutInMinutes      types.Int64  `tfsdk:"timeout_in_minutes"`
-	SkipArtifactsDownload types.Bool   `tfsdk:"skip_artifacts_download"`
-	EnableAccessToken     types.Bool   `tfsdk:"enable_access_token"`
-	AgentSpecification    types.String `tfsdk:"agent_specification"`
-	Demands               types.List   `tfsdk:"demands"`
-	ParallelExecution     types.List   `tfsdk:"parallel_execution"`
+	QueueID                   types.Int64  `tfsdk:"queue_id"`
+	Condition                 types.String `tfsdk:"condition"`
+	TimeoutInMinutes          types.Int64  `tfsdk:"timeout_in_minutes"`
+	JobCancelTimeoutInMinutes types.Int64  `tfsdk:"job_cancel_timeout_in_minutes"`
+	SkipArtifactsDownload     types.Bool   `tfsdk:"skip_artifacts_download"`
+	EnableAccessToken         types.Bool   `tfsdk:"enable_access_token"`
+	AgentSpecification        types.String `tfsdk:"agent_specification"`
+	OverrideInputs            types.Map    `tfsdk:"override_inputs"`
+	Demands                   types.List   `tfsdk:"demands"`
+	ParallelExecution         types.List   `tfsdk:"parallel_execution"`
 }
 
 // parallelExecutionModel maps to the parallelExecution object inside deployment_input.
@@ -151,6 +195,7 @@ type workflowTaskModel struct {
 	TimeoutInMinutes        types.Int64  `tfsdk:"timeout_in_minutes"`
 	RetryCountOnTaskFailure types.Int64  `tfsdk:"retry_count_on_task_failure"`
 	Inputs                  types.Map    `tfsdk:"inputs"`
+	DefinitionType          types.String `tfsdk:"definition_type"`
 }
 
 // conditionModel maps to releaseapi.Condition.
@@ -163,9 +208,14 @@ type conditionModel struct {
 // environmentOptionsModel maps to releaseapi.EnvironmentOptions.
 type environmentOptionsModel struct {
 	EmailNotificationType                          types.String `tfsdk:"email_notification_type"`
+	EmailRecipients                                types.String `tfsdk:"email_recipients"`
+	SkipArtifactsDownload                          types.Bool   `tfsdk:"skip_artifacts_download"`
+	TimeoutInMinutes                               types.Int64  `tfsdk:"timeout_in_minutes"`
+	EnableAccessToken                              types.Bool   `tfsdk:"enable_access_token"`
 	PublishDeploymentStatus                        types.Bool   `tfsdk:"publish_deployment_status"`
 	BadgeEnabled                                   types.Bool   `tfsdk:"badge_enabled"`
 	AutoLinkWorkItems                              types.Bool   `tfsdk:"auto_link_workitems"`
+	PullRequestDeploymentEnabled                   types.Bool   `tfsdk:"pull_request_deployment_enabled"`
 	PublishDeploymentStatusToDevopsProjectSettings types.Bool   `tfsdk:"publish_deployment_status_to_devops_project_settings"`
 }
 
@@ -174,6 +224,40 @@ type retentionPolicyModel struct {
 	DaysToKeep     types.Int64 `tfsdk:"days_to_keep"`
 	ReleasesToKeep types.Int64 `tfsdk:"releases_to_keep"`
 	RetainBuild    types.Bool  `tfsdk:"retain_build"`
+}
+
+// executionPolicyModel maps releaseapi.EnvironmentExecutionPolicy.
+type executionPolicyModel struct {
+	ConcurrencyCount types.Int64 `tfsdk:"concurrency_count"`
+	QueueDepthCount  types.Int64 `tfsdk:"queue_depth_count"`
+}
+
+// environmentTriggerModel maps releaseapi.EnvironmentTrigger.
+type environmentTriggerModel struct {
+	DefinitionEnvironmentID types.Int64  `tfsdk:"definition_environment_id"`
+	TriggerType             types.String `tfsdk:"trigger_type"`
+	TriggerContent          types.String `tfsdk:"trigger_content"`
+}
+
+// stageScheduleModel maps releaseapi.ReleaseSchedule at stage level.
+type stageScheduleModel struct {
+	DaysToRelease types.Int64  `tfsdk:"days_to_release"`
+	StartHours    types.Int64  `tfsdk:"start_hours"`
+	StartMinutes  types.Int64  `tfsdk:"start_minutes"`
+	TimeZoneID    types.String `tfsdk:"time_zone_id"`
+	JobID         types.String `tfsdk:"job_id"`
+}
+
+// processParametersModel maps distributedtaskcommon.ProcessParameters.
+type processParametersModel struct {
+	Input types.List `tfsdk:"input"`
+}
+
+// processParameterInputModel maps distributedtaskcommon.TaskInputDefinitionBase.
+type processParameterInputModel struct {
+	Name          types.String `tfsdk:"name"`
+	DefaultValue  types.String `tfsdk:"default_value"`
+	ParameterType types.String `tfsdk:"parameter_type"`
 }
 
 // approvalModel maps to releaseapi.ReleaseDefinitionApprovals.
@@ -214,6 +298,27 @@ type gatesOptionsModel struct {
 	MinimumSuccessDuration types.Int64 `tfsdk:"minimum_success_duration"`
 }
 
+// gateTaskModel maps to a single gate task (releaseapi.WorkflowTask inside a gate).
+// Mirrors workflowTaskModel but uses version_spec + display_name to match the
+// workflow_task block, plus definition_type from the API.
+type gateTaskModel struct {
+	TaskID                  types.String `tfsdk:"task_id"`
+	DisplayName             types.String `tfsdk:"display_name"`
+	VersionSpec             types.String `tfsdk:"version_spec"`
+	Enabled                 types.Bool   `tfsdk:"enabled"`
+	AlwaysRun               types.Bool   `tfsdk:"always_run"`
+	Condition               types.String `tfsdk:"condition"`
+	TimeoutInMinutes        types.Int64  `tfsdk:"timeout_in_minutes"`
+	RetryCountOnTaskFailure types.Int64  `tfsdk:"retry_count_on_task_failure"`
+	Inputs                  types.Map    `tfsdk:"inputs"`
+	DefinitionType          types.String `tfsdk:"definition_type"`
+}
+
+// gateModel maps to releaseapi.ReleaseDefinitionGate.
+type gateModel struct {
+	Task types.List `tfsdk:"task"`
+}
+
 // -------------------------------------------------------------------------
 // attr.Type helpers
 // -------------------------------------------------------------------------
@@ -225,10 +330,15 @@ var conditionAttrTypes = map[string]attr.Type{
 }
 
 var environmentOptionsAttrTypes = map[string]attr.Type{
-	"email_notification_type":   types.StringType,
-	"publish_deployment_status": types.BoolType,
-	"badge_enabled":             types.BoolType,
-	"auto_link_workitems":       types.BoolType,
+	"email_notification_type":                              types.StringType,
+	"email_recipients":                                     types.StringType,
+	"skip_artifacts_download":                              types.BoolType,
+	"timeout_in_minutes":                                   types.Int64Type,
+	"enable_access_token":                                  types.BoolType,
+	"publish_deployment_status":                            types.BoolType,
+	"badge_enabled":                                        types.BoolType,
+	"auto_link_workitems":                                  types.BoolType,
+	"pull_request_deployment_enabled":                      types.BoolType,
 	"publish_deployment_status_to_devops_project_settings": types.BoolType,
 }
 
@@ -266,21 +376,6 @@ var gatesOptionsAttrTypes = map[string]attr.Type{
 	"minimum_success_duration": types.Int64Type,
 }
 
-// gateTaskAttrTypes — stub; tasks are implemented in WI-2.
-var gateTaskAttrTypes = map[string]attr.Type{
-	"name":    types.StringType,
-	"task_id": types.StringType,
-}
-
-var gateAttrTypes = map[string]attr.Type{
-	"task": types.ListType{ElemType: types.ObjectType{AttrTypes: gateTaskAttrTypes}},
-}
-
-var deploymentGatesAttrTypes = map[string]attr.Type{
-	"gates_options": types.ListType{ElemType: types.ObjectType{AttrTypes: gatesOptionsAttrTypes}},
-	"gate":          types.ListType{ElemType: types.ObjectType{AttrTypes: gateAttrTypes}},
-}
-
 // Deploy-phase attr type maps.
 var parallelExecutionAttrTypes = map[string]attr.Type{
 	"type":                 types.StringType,
@@ -289,14 +384,16 @@ var parallelExecutionAttrTypes = map[string]attr.Type{
 }
 
 var deploymentInputAttrTypes = map[string]attr.Type{
-	"queue_id":                types.Int64Type,
-	"condition":               types.StringType,
-	"timeout_in_minutes":      types.Int64Type,
-	"skip_artifacts_download": types.BoolType,
-	"enable_access_token":     types.BoolType,
-	"agent_specification":     types.StringType,
-	"demands":                 types.ListType{ElemType: types.StringType},
-	"parallel_execution":      types.ListType{ElemType: types.ObjectType{AttrTypes: parallelExecutionAttrTypes}},
+	"queue_id":                      types.Int64Type,
+	"condition":                     types.StringType,
+	"timeout_in_minutes":            types.Int64Type,
+	"job_cancel_timeout_in_minutes": types.Int64Type,
+	"skip_artifacts_download":       types.BoolType,
+	"enable_access_token":           types.BoolType,
+	"agent_specification":           types.StringType,
+	"override_inputs":               types.MapType{ElemType: types.StringType},
+	"demands":                       types.ListType{ElemType: types.StringType},
+	"parallel_execution":            types.ListType{ElemType: types.ObjectType{AttrTypes: parallelExecutionAttrTypes}},
 }
 
 var workflowTaskAttrTypes = map[string]attr.Type{
@@ -309,6 +406,30 @@ var workflowTaskAttrTypes = map[string]attr.Type{
 	"timeout_in_minutes":          types.Int64Type,
 	"retry_count_on_task_failure": types.Int64Type,
 	"inputs":                      types.MapType{ElemType: types.StringType},
+	"definition_type":             types.StringType,
+}
+
+// gateTaskAttrTypes mirrors workflowTaskAttrTypes — gate tasks share the same API shape.
+var gateTaskAttrTypes = map[string]attr.Type{
+	"task_id":                     types.StringType,
+	"display_name":                types.StringType,
+	"version_spec":                types.StringType,
+	"enabled":                     types.BoolType,
+	"always_run":                  types.BoolType,
+	"condition":                   types.StringType,
+	"timeout_in_minutes":          types.Int64Type,
+	"retry_count_on_task_failure": types.Int64Type,
+	"inputs":                      types.MapType{ElemType: types.StringType},
+	"definition_type":             types.StringType,
+}
+
+var gateAttrTypes = map[string]attr.Type{
+	"task": types.ListType{ElemType: types.ObjectType{AttrTypes: gateTaskAttrTypes}},
+}
+
+var deploymentGatesAttrTypes = map[string]attr.Type{
+	"gates_options": types.ListType{ElemType: types.ObjectType{AttrTypes: gatesOptionsAttrTypes}},
+	"gate":          types.ListType{ElemType: types.ObjectType{AttrTypes: gateAttrTypes}},
 }
 
 var deployPhaseAttrTypes = map[string]attr.Type{
@@ -326,6 +447,35 @@ var variableValueAttrTypes = map[string]attr.Type{
 	"allow_override": types.BoolType,
 }
 
+var executionPolicyAttrTypes = map[string]attr.Type{
+	"concurrency_count": types.Int64Type,
+	"queue_depth_count": types.Int64Type,
+}
+
+var environmentTriggerAttrTypes = map[string]attr.Type{
+	"definition_environment_id": types.Int64Type,
+	"trigger_type":              types.StringType,
+	"trigger_content":           types.StringType,
+}
+
+var stageScheduleAttrTypes = map[string]attr.Type{
+	"days_to_release": types.Int64Type,
+	"start_hours":     types.Int64Type,
+	"start_minutes":   types.Int64Type,
+	"time_zone_id":    types.StringType,
+	"job_id":          types.StringType,
+}
+
+var processParameterInputAttrTypes = map[string]attr.Type{
+	"name":           types.StringType,
+	"default_value":  types.StringType,
+	"parameter_type": types.StringType,
+}
+
+var processParametersAttrTypes = map[string]attr.Type{
+	"input": types.ListType{ElemType: types.ObjectType{AttrTypes: processParameterInputAttrTypes}},
+}
+
 // artifactAttrTypes is the attr.Type map for a single artifact list element.
 var artifactAttrTypes = map[string]attr.Type{
 	"alias":                types.StringType,
@@ -334,10 +484,18 @@ var artifactAttrTypes = map[string]attr.Type{
 	"definition_reference": types.MapType{ElemType: types.StringType},
 }
 
+// tagFilterAttrTypes is the attr.Type map for a tag_filter element.
+var tagFilterAttrTypes = map[string]attr.Type{
+	"tags": types.ListType{ElemType: types.StringType},
+}
+
 // cdArtifactTriggerAttrTypes is the attr.Type map for a cd_artifact_trigger element.
 var cdArtifactTriggerAttrTypes = map[string]attr.Type{
-	"artifact_alias": types.StringType,
-	"branch_filters": types.ListType{ElemType: types.StringType},
+	"artifact_alias":                  types.StringType,
+	"branch_filters":                  types.ListType{ElemType: types.StringType},
+	"tag_filter":                      types.ListType{ElemType: types.ObjectType{AttrTypes: tagFilterAttrTypes}},
+	"use_build_definition_branch":     types.BoolType,
+	"create_release_on_build_tagging": types.BoolType,
 }
 
 // scheduleTriggerAttrTypes is the attr.Type map for a schedule_trigger element.
@@ -349,10 +507,33 @@ var scheduleTriggerAttrTypes = map[string]attr.Type{
 	"days_to_release":            types.Int64Type,
 }
 
+// sourceRepoTriggerAttrTypes is the attr.Type map for a source_repo_trigger element.
+var sourceRepoTriggerAttrTypes = map[string]attr.Type{
+	"alias":          types.StringType,
+	"branch_filters": types.ListType{ElemType: types.StringType},
+}
+
+// containerImageTriggerAttrTypes is the attr.Type map for a container_image_trigger element.
+var containerImageTriggerAttrTypes = map[string]attr.Type{
+	"artifact_alias": types.StringType,
+	"label":          types.StringType,
+}
+
+// pullRequestTriggerAttrTypes is the attr.Type map for a pull_request_trigger element.
+var pullRequestTriggerAttrTypes = map[string]attr.Type{
+	"artifact_alias":         types.StringType,
+	"target_branches":        types.ListType{ElemType: types.StringType},
+	"tags":                   types.ListType{ElemType: types.StringType},
+	"use_artifact_reference": types.BoolType,
+}
+
 // triggerAttrTypes is the attr.Type map for a single triggers list element.
 var triggerAttrTypes = map[string]attr.Type{
-	"cd_artifact_trigger": types.ListType{ElemType: types.ObjectType{AttrTypes: cdArtifactTriggerAttrTypes}},
-	"schedule_trigger":    types.ListType{ElemType: types.ObjectType{AttrTypes: scheduleTriggerAttrTypes}},
+	"cd_artifact_trigger":     types.ListType{ElemType: types.ObjectType{AttrTypes: cdArtifactTriggerAttrTypes}},
+	"schedule_trigger":        types.ListType{ElemType: types.ObjectType{AttrTypes: scheduleTriggerAttrTypes}},
+	"source_repo_trigger":     types.ListType{ElemType: types.ObjectType{AttrTypes: sourceRepoTriggerAttrTypes}},
+	"container_image_trigger": types.ListType{ElemType: types.ObjectType{AttrTypes: containerImageTriggerAttrTypes}},
+	"pull_request_trigger":    types.ListType{ElemType: types.ObjectType{AttrTypes: pullRequestTriggerAttrTypes}},
 }
 
 var stageAttrTypes = map[string]attr.Type{
@@ -368,6 +549,13 @@ var stageAttrTypes = map[string]attr.Type{
 	"deploy_phase":          types.ListType{ElemType: types.ObjectType{AttrTypes: deployPhaseAttrTypes}},
 	"variables":             types.MapType{ElemType: types.ObjectType{AttrTypes: variableValueAttrTypes}},
 	"variable_groups":       types.ListType{ElemType: types.Int64Type},
+	"execution_policy":      types.ListType{ElemType: types.ObjectType{AttrTypes: executionPolicyAttrTypes}},
+	"environment_trigger":   types.ListType{ElemType: types.ObjectType{AttrTypes: environmentTriggerAttrTypes}},
+	"schedule":              types.ListType{ElemType: types.ObjectType{AttrTypes: stageScheduleAttrTypes}},
+	"process_parameters":    types.ListType{ElemType: types.ObjectType{AttrTypes: processParametersAttrTypes}},
+	"properties":            types.MapType{ElemType: types.StringType},
+	"owner":                 types.StringType,
+	"id":                    types.Int64Type,
 }
 
 // -------------------------------------------------------------------------
@@ -376,6 +564,104 @@ var stageAttrTypes = map[string]attr.Type{
 
 func (r *releaseDefinitionFrameworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_release_definition"
+}
+
+// ModifyPlan pins the computed `revision` to its prior-state value on a no-op
+// plan, while leaving it unknown ("known after apply") on a genuine change.
+//
+// Why this is needed: `revision` is Computed with no plan modifier. The
+// framework's plan gate (MarkComputedNilsAsUnknown) flips every config-null
+// Computed attribute to unknown whenever the proposed new state differs from
+// prior state — which happens on EVERY plan, because Terraform core nulls the
+// config-omitted Optional+Computed nested blocks under the Required `stages`
+// list. Those nested blocks are restored by their useStateForUnknown* plan
+// modifiers, but `revision` had none, so it surfaced as a perpetual
+// `~ revision = N -> (known after apply)` diff (the idempotency failure).
+//
+// A plain UseStateForUnknown is wrong for `revision`: ADO increments the
+// revision on every update, so pinning it to prior on a real update produces a
+// "Provider produced inconsistent result after apply". Instead this runs at
+// resource scope — after all attribute plan modifiers have restored the nested
+// blocks — and pins `revision` only when the rest of the planned state is
+// byte-identical to prior state (a true no-op, where ADO will NOT bump the
+// revision). On any real change it leaves `revision` unknown so the
+// server-incremented value is accepted at apply.
+func (r *releaseDefinitionFrameworkResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Create (no prior state) or destroy (null plan): nothing to pin.
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+		return
+	}
+
+	// The framework's plan gate (MarkComputedNilsAsUnknown) flips every
+	// config-null Computed attribute to unknown whenever the proposed new state
+	// differs from prior state — which happens on EVERY plan, because Terraform
+	// core nulls the config-omitted Optional+Computed nested blocks under the
+	// Required `stages` list. On a true no-op this leaves a spray of
+	// `(known after apply)` diffs (revision, stage ids, ADO-assigned environment
+	// ids, …) and, worse, "inconsistent result after apply" when ADO re-assigns
+	// those server-managed values on the next write.
+	//
+	// If the ONLY differences between the proposed plan and prior state are
+	// attributes the gate marked unknown, this is a genuine no-op: snap the whole
+	// plan back to prior state so the plan is empty and nothing is sent to ADO.
+	// On any real change, leave the plan untouched so server-(re)assigned
+	// computed values are accepted at apply.
+	if planIsNoOp(req.Plan.Raw, req.State.Raw) {
+		resp.Plan.Raw = req.State.Raw.Copy()
+	}
+}
+
+// planIsNoOp reports whether `plan` equals `state` everywhere `plan` carries a
+// known value — i.e. every difference is an unknown introduced by the framework's
+// computed-nil gate. Such a plan represents no real change. A known value that
+// differs from prior state (or a changed collection length) is a real change.
+func planIsNoOp(plan, state tftypes.Value) bool {
+	if !plan.IsKnown() {
+		return true // unknown subtree — would be snapped back to prior state
+	}
+	if plan.IsNull() || state.IsNull() {
+		return plan.Equal(state)
+	}
+	ty := plan.Type()
+	switch {
+	case ty.Is(tftypes.Object{}), ty.Is(tftypes.Map{}):
+		var pm, sm map[string]tftypes.Value
+		if err := plan.As(&pm); err != nil {
+			return plan.Equal(state)
+		}
+		if err := state.As(&sm); err != nil {
+			return false
+		}
+		if len(pm) != len(sm) {
+			return false
+		}
+		for k, pv := range pm {
+			sv, ok := sm[k]
+			if !ok || !planIsNoOp(pv, sv) {
+				return false
+			}
+		}
+		return true
+	case ty.Is(tftypes.List{}), ty.Is(tftypes.Set{}), ty.Is(tftypes.Tuple{}):
+		var pl, sl []tftypes.Value
+		if err := plan.As(&pl); err != nil {
+			return plan.Equal(state)
+		}
+		if err := state.As(&sl); err != nil {
+			return false
+		}
+		if len(pl) != len(sl) {
+			return false
+		}
+		for i := range pl {
+			if !planIsNoOp(pl[i], sl[i]) {
+				return false
+			}
+		}
+		return true
+	default:
+		return plan.Equal(state)
+	}
 }
 
 func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -417,6 +703,13 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 				Computed:            true,
 				Default:             staticString("Release-$(rev:r)"),
 				MarkdownDescription: "Format string for auto-generated release names.",
+			},
+			"tags": schema.SetAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Computed:            true,
+				MarkdownDescription: "Definition-level tags applied to the release definition.",
+				PlanModifiers:       []planmodifier.Set{useStateForUnknownSetModifier()},
 			},
 			"revision": schema.Int64Attribute{
 				Computed:            true,
@@ -474,6 +767,29 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 										Default:             staticString("OnlyOnFailure"),
 										MarkdownDescription: "When to send email notifications: OnlyOnFailure, Always, Never.",
 									},
+									"email_recipients": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										MarkdownDescription: "(deprecated) Email recipients for deployment notifications. ADO defaults to 'release.environment.owner;release.creator'.",
+									},
+									"skip_artifacts_download": schema.BoolAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticBool(false),
+										MarkdownDescription: "(deprecated) Whether to skip artifact download for this stage. Prefer deployment_input.skip_artifacts_download.",
+									},
+									"timeout_in_minutes": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticInt64(0),
+										MarkdownDescription: "(deprecated) Timeout in minutes for this stage. Prefer deployment_input.timeout_in_minutes.",
+									},
+									"enable_access_token": schema.BoolAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticBool(false),
+										MarkdownDescription: "(deprecated) Whether to enable OAuth access token. Prefer deployment_input.enable_access_token.",
+									},
 									"publish_deployment_status": schema.BoolAttribute{
 										Optional:            true,
 										Computed:            true,
@@ -491,6 +807,12 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 										Computed:            true,
 										Default:             staticBool(false),
 										MarkdownDescription: "Whether to auto-link work items to the deployment.",
+									},
+									"pull_request_deployment_enabled": schema.BoolAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticBool(false),
+										MarkdownDescription: "Whether pull request deployments are enabled for this stage.",
 									},
 									"publish_deployment_status_to_devops_project_settings": schema.BoolAttribute{
 										Optional:            true,
@@ -590,6 +912,147 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 							ElementType:         types.Int64Type,
 							MarkdownDescription: "IDs of variable groups linked to this stage.",
 						},
+						"execution_policy": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Execution policy for concurrent deployments (max 1 block).",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"concurrency_count": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticInt64(0),
+										MarkdownDescription: "Max concurrent deployments (0 = unlimited).",
+									},
+									"queue_depth_count": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticInt64(0),
+										MarkdownDescription: "Max queue depth (0 = unlimited).",
+									},
+								},
+							},
+						},
+						"environment_trigger": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Environment-level triggers (e.g. rollback/redeploy).",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"definition_environment_id": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										MarkdownDescription: "ID of the source environment for this trigger (ADO-assigned when not set).",
+									},
+									"trigger_type": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticString(""),
+										MarkdownDescription: "Trigger type: rollbackRedeploy, deploymentGroupRedeploy, undefined.",
+									},
+									"trigger_content": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										MarkdownDescription: "Serialised trigger content (ADO internal).",
+									},
+								},
+							},
+						},
+						"schedule": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Stage-level scheduled deployment triggers.",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"days_to_release": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticInt64(127),
+										MarkdownDescription: "Bitmask of days to release (127 = all days).",
+									},
+									"start_hours": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticInt64(0),
+										MarkdownDescription: "Hour of day to start (0-23).",
+									},
+									"start_minutes": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticInt64(0),
+										MarkdownDescription: "Minute of hour to start (0-59).",
+									},
+									"time_zone_id": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticString("UTC"),
+										MarkdownDescription: "Time zone identifier (e.g. 'UTC', 'Eastern Standard Time').",
+									},
+									"job_id": schema.StringAttribute{
+										Computed:            true,
+										MarkdownDescription: "ADO-assigned job UUID for the schedule.",
+									},
+								},
+							},
+						},
+						"process_parameters": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Process parameters (max 1 block).",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"input": schema.ListNestedAttribute{
+										Optional:            true,
+										Computed:            true,
+										PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+										MarkdownDescription: "Input parameter definitions.",
+										NestedObject: schema.NestedAttributeObject{
+											Attributes: map[string]schema.Attribute{
+												"name": schema.StringAttribute{
+													Optional:            true,
+													Computed:            true,
+													Default:             staticString(""),
+													MarkdownDescription: "Parameter name.",
+												},
+												"default_value": schema.StringAttribute{
+													Optional:            true,
+													Computed:            true,
+													Default:             staticString(""),
+													MarkdownDescription: "Default value.",
+												},
+												"parameter_type": schema.StringAttribute{
+													Optional:            true,
+													Computed:            true,
+													Default:             staticString(""),
+													MarkdownDescription: "Parameter type string.",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"properties": schema.MapAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.Map{useStateForUnknownMapModifier()},
+							ElementType:         types.StringType,
+							MarkdownDescription: "Stage-level properties (key/value string pairs). ADO wraps values in {\"$type\":\"System.String\",\"$value\":\"...\"} on the wire; this is handled automatically.",
+						},
+						"owner": schema.StringAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.String{useStateForUnknown()},
+							MarkdownDescription: "Identity UUID of the stage owner (ADO-assigned when not set).",
+						},
+						"id": schema.Int64Attribute{
+							Computed:            true,
+							MarkdownDescription: "ADO-assigned ID of this stage.",
+						},
 					},
 				},
 			},
@@ -646,12 +1109,13 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 				Optional:            true,
 				Computed:            true,
 				PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
-				MarkdownDescription: "Release triggers (CD artifact and schedule).",
+				MarkdownDescription: "Release triggers (CD artifact, schedule, source repo, container image, pull request).",
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"cd_artifact_trigger": schema.ListNestedAttribute{
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
 							MarkdownDescription: "CD artifact trigger (max 1 per triggers block).",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
@@ -667,12 +1131,41 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 										ElementType:         types.StringType,
 										MarkdownDescription: "Branch filter expressions for this CD trigger.",
 									},
+									"tag_filter": schema.ListNestedAttribute{
+										Optional:            true,
+										Computed:            true,
+										PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+										MarkdownDescription: "Build-tag filter (ADO 7.1 does not persist tagFilter.pattern — only the tags list round-trips).",
+										NestedObject: schema.NestedAttributeObject{
+											Attributes: map[string]schema.Attribute{
+												"tags": schema.ListAttribute{
+													Optional:            true,
+													Computed:            true,
+													ElementType:         types.StringType,
+													MarkdownDescription: "Build tags that must be present to trigger.",
+												},
+											},
+										},
+									},
+									"use_build_definition_branch": schema.BoolAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticBool(false),
+										MarkdownDescription: "Use the build definition's default branch as the trigger source branch.",
+									},
+									"create_release_on_build_tagging": schema.BoolAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticBool(false),
+										MarkdownDescription: "Create a release when the build is tagged.",
+									},
 								},
 							},
 						},
 						"schedule_trigger": schema.ListNestedAttribute{
 							Optional:            true,
 							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
 							MarkdownDescription: "Schedule trigger (max 1 per triggers block).",
 							NestedObject: schema.NestedAttributeObject{
 								Attributes: map[string]schema.Attribute{
@@ -709,6 +1202,84 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 								},
 							},
 						},
+						"source_repo_trigger": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Source repository trigger (triggerType=sourceRepo).",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"alias": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticString(""),
+										MarkdownDescription: "Alias of the source repository artifact.",
+									},
+									"branch_filters": schema.ListAttribute{
+										Optional:            true,
+										Computed:            true,
+										ElementType:         types.StringType,
+										MarkdownDescription: "Branch filter expressions for this source-repo trigger.",
+									},
+								},
+							},
+						},
+						"container_image_trigger": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Container image trigger (triggerType=containerImage).",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"artifact_alias": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticString(""),
+										MarkdownDescription: "Alias of the container-image artifact this trigger monitors.",
+									},
+									"label": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticString(""),
+										MarkdownDescription: "Image tag/label to filter on (empty = any tag).",
+									},
+								},
+							},
+						},
+						"pull_request_trigger": schema.ListNestedAttribute{
+							Optional:            true,
+							Computed:            true,
+							PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+							MarkdownDescription: "Pull request trigger (triggerType=pullRequest).",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"artifact_alias": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticString(""),
+										MarkdownDescription: "Alias of the artifact associated with the pull request trigger.",
+									},
+									"target_branches": schema.ListAttribute{
+										Optional:            true,
+										Computed:            true,
+										ElementType:         types.StringType,
+										MarkdownDescription: "Target branches that trigger on pull request (e.g. refs/heads/main).",
+									},
+									"tags": schema.ListAttribute{
+										Optional:            true,
+										Computed:            true,
+										ElementType:         types.StringType,
+										MarkdownDescription: "Pull request tags that must be present to trigger.",
+									},
+									"use_artifact_reference": schema.BoolAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticBool(true),
+										MarkdownDescription: "When true (default), ADO derives the pull request code repository reference from the linked source-based artifact. Required by ADO for artifact-linked pull request triggers.",
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -722,8 +1293,9 @@ func variableValueNestedAttributes() map[string]schema.Attribute {
 		"value": schema.StringAttribute{
 			Optional:            true,
 			Computed:            true,
+			Sensitive:           true,
 			Default:             staticString(""),
-			MarkdownDescription: "Variable value.",
+			MarkdownDescription: "Variable value. Marked sensitive because secret variables are write-only (ADO never returns secret values on read).",
 		},
 		"is_secret": schema.BoolAttribute{
 			Optional:            true,
@@ -863,24 +1435,16 @@ func deploymentGatesNestedAttributes() map[string]schema.Attribute {
 			Optional:            true,
 			Computed:            true,
 			PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
-			MarkdownDescription: "Individual gate definitions (tasks are implemented in WI-2).",
+			MarkdownDescription: "Individual gate definitions.",
 			NestedObject: schema.NestedAttributeObject{
 				Attributes: map[string]schema.Attribute{
 					"task": schema.ListNestedAttribute{
 						Optional:            true,
 						Computed:            true,
-						MarkdownDescription: "Workflow tasks within this gate (stub — full implementation in WI-2).",
+						PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+						MarkdownDescription: "Workflow tasks within this gate.",
 						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"name": schema.StringAttribute{
-									Required:            true,
-									MarkdownDescription: "Task name.",
-								},
-								"task_id": schema.StringAttribute{
-									Required:            true,
-									MarkdownDescription: "Task definition UUID.",
-								},
-							},
+							Attributes: gateTaskNestedAttributes(),
 						},
 					},
 				},
@@ -957,6 +1521,12 @@ func deploymentInputNestedAttributes() map[string]schema.Attribute {
 			Default:             staticInt64(0),
 			MarkdownDescription: "Timeout in minutes for the phase (0 = no timeout).",
 		},
+		"job_cancel_timeout_in_minutes": schema.Int64Attribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticInt64(1),
+			MarkdownDescription: "Timeout in minutes for job cancellation (default 1).",
+		},
 		"skip_artifacts_download": schema.BoolAttribute{
 			Optional:            true,
 			Computed:            true,
@@ -974,6 +1544,13 @@ func deploymentInputNestedAttributes() map[string]schema.Attribute {
 			Computed:            true,
 			Default:             staticString(""),
 			MarkdownDescription: "Agent specification identifier (e.g. ubuntu-latest).",
+		},
+		"override_inputs": schema.MapAttribute{
+			Optional:            true,
+			Computed:            true,
+			ElementType:         types.StringType,
+			PlanModifiers:       []planmodifier.Map{useStateForUnknownMapModifier()},
+			MarkdownDescription: "Phase-level task input overrides (e.g. for parameterised task groups).",
 		},
 		"demands": schema.ListAttribute{
 			Optional:            true,
@@ -1064,6 +1641,77 @@ func workflowTaskNestedAttributes() map[string]schema.Attribute {
 			Computed:            true,
 			ElementType:         types.StringType,
 			MarkdownDescription: "Task-specific input values as key/value pairs.",
+		},
+		"definition_type": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticString("task"),
+			MarkdownDescription: "Task definition type (e.g. 'task', 'metaTask'). Defaults to 'task'.",
+		},
+	}
+}
+
+// gateTaskNestedAttributes returns schema attributes for a task within a gate block.
+// Mirrors workflowTaskNestedAttributes but kept separate for gate-task customisation.
+func gateTaskNestedAttributes() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"task_id": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "UUID of the gate task definition.",
+		},
+		"display_name": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticString(""),
+			MarkdownDescription: "Display name for the gate task step.",
+		},
+		"version_spec": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticString("0.*"),
+			MarkdownDescription: "Version spec for the gate task (e.g. '0.*', '1.*').",
+		},
+		"enabled": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticBool(true),
+			MarkdownDescription: "Whether the gate task is enabled.",
+		},
+		"always_run": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticBool(false),
+			MarkdownDescription: "Whether the gate task always runs.",
+		},
+		"condition": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticString("succeeded()"),
+			MarkdownDescription: "Run condition expression for the gate task.",
+		},
+		"timeout_in_minutes": schema.Int64Attribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticInt64(0),
+			MarkdownDescription: "Timeout in minutes for the gate task (0 = no timeout).",
+		},
+		"retry_count_on_task_failure": schema.Int64Attribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticInt64(0),
+			MarkdownDescription: "Number of retries on gate task failure.",
+		},
+		"inputs": schema.MapAttribute{
+			Optional:            true,
+			Computed:            true,
+			ElementType:         types.StringType,
+			MarkdownDescription: "Gate task-specific input values as key/value pairs.",
+		},
+		"definition_type": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticString("task"),
+			MarkdownDescription: "Gate task definition type (e.g. 'task', 'metaTask'). Defaults to 'task'.",
 		},
 	}
 }
@@ -1251,6 +1899,7 @@ func (r *releaseDefinitionFrameworkResource) ImportState(ctx context.Context, re
 		Description:       types.StringValue(""),
 		ReleaseNameFormat: types.StringValue(""),
 		Revision:          types.Int64Value(0),
+		Tags:              types.SetNull(types.StringType),
 		Stages:            types.ListNull(types.ObjectType{AttrTypes: stageAttrTypes}),
 		Variables:         types.MapNull(types.ObjectType{AttrTypes: variableValueAttrTypes}),
 		VariableGroups:    types.ListNull(types.Int64Type),
@@ -1362,6 +2011,15 @@ func expandReleaseDefinitionFramework(ctx context.Context, model *releaseDefinit
 		def.Triggers = &triggers
 	}
 
+	// Definition-level tags
+	if !model.Tags.IsNull() && !model.Tags.IsUnknown() {
+		var tags []string
+		if d := model.Tags.ElementsAs(ctx, &tags, false); d.HasError() {
+			return nil, projectID, fmt.Errorf("expanding tags: %s", d)
+		}
+		def.Tags = &tags
+	}
+
 	return def, projectID, nil
 }
 
@@ -1468,6 +2126,130 @@ func expandStagesFramework(ctx context.Context, stagesList types.List) ([]releas
 			env.VariableGroups = &groups
 		}
 
+		// Execution policy
+		if !s.ExecutionPolicy.IsNull() && !s.ExecutionPolicy.IsUnknown() {
+			var epModels []executionPolicyModel
+			if d := s.ExecutionPolicy.ElementsAs(ctx, &epModels, false); !d.HasError() && len(epModels) > 0 {
+				ep := epModels[0]
+				cc := int(ep.ConcurrencyCount.ValueInt64())
+				qd := int(ep.QueueDepthCount.ValueInt64())
+				env.ExecutionPolicy = &releaseapi.EnvironmentExecutionPolicy{
+					ConcurrencyCount: &cc,
+					QueueDepthCount:  &qd,
+				}
+			}
+		}
+
+		// Environment triggers
+		if !s.EnvironmentTrigger.IsNull() && !s.EnvironmentTrigger.IsUnknown() {
+			var trigModels []environmentTriggerModel
+			if d := s.EnvironmentTrigger.ElementsAs(ctx, &trigModels, false); !d.HasError() && len(trigModels) > 0 {
+				triggers := make([]releaseapi.EnvironmentTrigger, 0, len(trigModels))
+				for _, tm := range trigModels {
+					t := releaseapi.EnvironmentTrigger{}
+					if !tm.DefinitionEnvironmentID.IsNull() && !tm.DefinitionEnvironmentID.IsUnknown() {
+						id := int(tm.DefinitionEnvironmentID.ValueInt64())
+						t.DefinitionEnvironmentId = &id
+					}
+					if !tm.TriggerType.IsNull() && !tm.TriggerType.IsUnknown() && tm.TriggerType.ValueString() != "" {
+						ttVal := releaseapi.EnvironmentTriggerType(tm.TriggerType.ValueString())
+						t.TriggerType = &ttVal
+					}
+					if !tm.TriggerContent.IsNull() && !tm.TriggerContent.IsUnknown() && tm.TriggerContent.ValueString() != "" {
+						tc := tm.TriggerContent.ValueString()
+						t.TriggerContent = &tc
+					}
+					triggers = append(triggers, t)
+				}
+				env.EnvironmentTriggers = &triggers
+			}
+		}
+
+		// Stage-level schedules
+		if !s.Schedule.IsNull() && !s.Schedule.IsUnknown() {
+			var schedModels []stageScheduleModel
+			if d := s.Schedule.ElementsAs(ctx, &schedModels, false); !d.HasError() && len(schedModels) > 0 {
+				scheds := make([]releaseapi.ReleaseSchedule, 0, len(schedModels))
+				for _, sm := range schedModels {
+					rs := releaseapi.ReleaseSchedule{}
+					if !sm.DaysToRelease.IsNull() && !sm.DaysToRelease.IsUnknown() {
+						sd := releaseapi.ScheduleDays(strconv.Itoa(int(sm.DaysToRelease.ValueInt64())))
+						rs.DaysToRelease = &sd
+					}
+					if !sm.StartHours.IsNull() && !sm.StartHours.IsUnknown() {
+						h := int(sm.StartHours.ValueInt64())
+						rs.StartHours = &h
+					}
+					if !sm.StartMinutes.IsNull() && !sm.StartMinutes.IsUnknown() {
+						m := int(sm.StartMinutes.ValueInt64())
+						rs.StartMinutes = &m
+					}
+					if !sm.TimeZoneID.IsNull() && !sm.TimeZoneID.IsUnknown() && sm.TimeZoneID.ValueString() != "" {
+						tz := sm.TimeZoneID.ValueString()
+						rs.TimeZoneId = &tz
+					}
+					if !sm.JobID.IsNull() && !sm.JobID.IsUnknown() && sm.JobID.ValueString() != "" {
+						if parsed, err := uuid.Parse(sm.JobID.ValueString()); err == nil {
+							rs.JobId = &parsed
+						}
+					}
+					scheds = append(scheds, rs)
+				}
+				env.Schedules = &scheds
+			}
+		}
+
+		// Process parameters
+		if !s.ProcessParameters.IsNull() && !s.ProcessParameters.IsUnknown() {
+			var ppModels []processParametersModel
+			if d := s.ProcessParameters.ElementsAs(ctx, &ppModels, false); !d.HasError() && len(ppModels) > 0 {
+				pm := ppModels[0]
+				pp := &distributedtaskcommon.ProcessParameters{}
+				if !pm.Input.IsNull() && !pm.Input.IsUnknown() {
+					var inputModels []processParameterInputModel
+					if d2 := pm.Input.ElementsAs(ctx, &inputModels, false); !d2.HasError() && len(inputModels) > 0 {
+						inputs := make([]distributedtaskcommon.TaskInputDefinitionBase, 0, len(inputModels))
+						for _, im := range inputModels {
+							inp := distributedtaskcommon.TaskInputDefinitionBase{}
+							if !im.Name.IsNull() && !im.Name.IsUnknown() {
+								inp.Name = converter.String(im.Name.ValueString())
+							}
+							if !im.DefaultValue.IsNull() && !im.DefaultValue.IsUnknown() {
+								inp.DefaultValue = converter.String(im.DefaultValue.ValueString())
+							}
+							if !im.ParameterType.IsNull() && !im.ParameterType.IsUnknown() {
+								inp.Type = converter.String(im.ParameterType.ValueString())
+							}
+							inputs = append(inputs, inp)
+						}
+						pp.Inputs = &inputs
+					}
+				}
+				env.ProcessParameters = pp
+			}
+		}
+
+		// Properties — wrap each value as {"$type":"System.String","$value":"..."}
+		if !s.Properties.IsNull() && !s.Properties.IsUnknown() {
+			var propsMap map[string]string
+			if d := s.Properties.ElementsAs(ctx, &propsMap, false); !d.HasError() && len(propsMap) > 0 {
+				wrapped := make(map[string]interface{}, len(propsMap))
+				for k, v := range propsMap {
+					wrapped[k] = map[string]interface{}{
+						"$type":  "System.String",
+						"$value": v,
+					}
+				}
+				env.Properties = wrapped
+			}
+		}
+
+		// Owner
+		if !s.Owner.IsNull() && !s.Owner.IsUnknown() && s.Owner.ValueString() != "" {
+			ownerID := s.Owner.ValueString()
+			env.Owner = &webapi.IdentityRef{Id: &ownerID}
+		}
+
 		envs = append(envs, env)
 	}
 	return envs, nil
@@ -1533,10 +2315,11 @@ func expandDeployPhasesFramework(ctx context.Context, list types.List) ([]interf
 // expandDeploymentInputFramework converts a deploymentInputModel to the ADO API map shape.
 func expandDeploymentInputFramework(ctx context.Context, m deploymentInputModel, phaseType string) map[string]interface{} {
 	di := map[string]interface{}{
-		"timeoutInMinutes":      int(m.TimeoutInMinutes.ValueInt64()),
-		"condition":             m.Condition.ValueString(),
-		"skipArtifactsDownload": m.SkipArtifactsDownload.ValueBool(),
-		"enableAccessToken":     m.EnableAccessToken.ValueBool(),
+		"timeoutInMinutes":          int(m.TimeoutInMinutes.ValueInt64()),
+		"jobCancelTimeoutInMinutes": int(m.JobCancelTimeoutInMinutes.ValueInt64()),
+		"condition":                 m.Condition.ValueString(),
+		"skipArtifactsDownload":     m.SkipArtifactsDownload.ValueBool(),
+		"enableAccessToken":         m.EnableAccessToken.ValueBool(),
 	}
 
 	// Only include queueId for agent-based phases.
@@ -1549,6 +2332,14 @@ func expandDeploymentInputFramework(ctx context.Context, m deploymentInputModel,
 	agentSpec := m.AgentSpecification.ValueString()
 	if agentSpec != "" {
 		di["agentSpecification"] = map[string]interface{}{"identifier": agentSpec}
+	}
+
+	// Override inputs
+	if !m.OverrideInputs.IsNull() && !m.OverrideInputs.IsUnknown() {
+		var oiMap map[string]string
+		if d := m.OverrideInputs.ElementsAs(ctx, &oiMap, false); !d.HasError() && len(oiMap) > 0 {
+			di["overrideInputs"] = oiMap
+		}
 	}
 
 	// Demands
@@ -1622,6 +2413,10 @@ func expandWorkflowTasksFramework(ctx context.Context, models []workflowTaskMode
 			}
 		}
 
+		if !m.DefinitionType.IsNull() && !m.DefinitionType.IsUnknown() && m.DefinitionType.ValueString() != "" {
+			task.DefinitionType = converter.String(m.DefinitionType.ValueString())
+		}
+
 		if !m.Inputs.IsNull() && !m.Inputs.IsUnknown() {
 			var inputMap map[string]string
 			if d := m.Inputs.ElementsAs(ctx, &inputMap, false); !d.HasError() && len(inputMap) > 0 {
@@ -1629,6 +2424,40 @@ func expandWorkflowTasksFramework(ctx context.Context, models []workflowTaskMode
 			}
 		}
 
+		tasks = append(tasks, task)
+	}
+	return tasks
+}
+
+// expandGateTasksFramework converts []gateTaskModel to []releaseapi.WorkflowTask for a gate.
+func expandGateTasksFramework(ctx context.Context, models []gateTaskModel) []releaseapi.WorkflowTask {
+	tasks := make([]releaseapi.WorkflowTask, 0, len(models))
+	for _, m := range models {
+		timeout := int(m.TimeoutInMinutes.ValueInt64())
+		retryCount := int(m.RetryCountOnTaskFailure.ValueInt64())
+		task := releaseapi.WorkflowTask{
+			Name:                    converter.String(m.DisplayName.ValueString()),
+			Version:                 converter.String(m.VersionSpec.ValueString()),
+			Enabled:                 converter.Bool(m.Enabled.ValueBool()),
+			AlwaysRun:               converter.Bool(m.AlwaysRun.ValueBool()),
+			Condition:               converter.String(m.Condition.ValueString()),
+			TimeoutInMinutes:        &timeout,
+			RetryCountOnTaskFailure: &retryCount,
+		}
+		if taskIDStr := m.TaskID.ValueString(); taskIDStr != "" {
+			if parsed, err := uuid.Parse(taskIDStr); err == nil {
+				task.TaskId = &parsed
+			}
+		}
+		if !m.DefinitionType.IsNull() && !m.DefinitionType.IsUnknown() && m.DefinitionType.ValueString() != "" {
+			task.DefinitionType = converter.String(m.DefinitionType.ValueString())
+		}
+		if !m.Inputs.IsNull() && !m.Inputs.IsUnknown() {
+			var inputMap map[string]string
+			if d := m.Inputs.ElementsAs(ctx, &inputMap, false); !d.HasError() && len(inputMap) > 0 {
+				task.Inputs = &inputMap
+			}
+		}
 		tasks = append(tasks, task)
 	}
 	return tasks
@@ -1660,12 +2489,25 @@ func expandEnvironmentOptionsFramework(ctx context.Context, list types.List) (*r
 		return nil, nil
 	}
 	m := models[0]
-	return &releaseapi.EnvironmentOptions{ //nolint:staticcheck // EmailNotificationType is the legacy field still used by ADO REST v7.1
-		EmailNotificationType:   converter.String(m.EmailNotificationType.ValueString()), //nolint:staticcheck
-		PublishDeploymentStatus: converter.Bool(m.PublishDeploymentStatus.ValueBool()),
-		BadgeEnabled:            converter.Bool(m.BadgeEnabled.ValueBool()),
-		AutoLinkWorkItems:       converter.Bool(m.AutoLinkWorkItems.ValueBool()),
-	}, nil
+	//nolint:staticcheck // deprecated ADO fields preserved for SDK v2 parity
+	opts := &releaseapi.EnvironmentOptions{
+		EmailNotificationType:        converter.String(m.EmailNotificationType.ValueString()),
+		SkipArtifactsDownload:        converter.Bool(m.SkipArtifactsDownload.ValueBool()),
+		EnableAccessToken:            converter.Bool(m.EnableAccessToken.ValueBool()),
+		PublishDeploymentStatus:      converter.Bool(m.PublishDeploymentStatus.ValueBool()),
+		BadgeEnabled:                 converter.Bool(m.BadgeEnabled.ValueBool()),
+		AutoLinkWorkItems:            converter.Bool(m.AutoLinkWorkItems.ValueBool()),
+		PullRequestDeploymentEnabled: converter.Bool(m.PullRequestDeploymentEnabled.ValueBool()),
+	}
+	if !m.TimeoutInMinutes.IsNull() && !m.TimeoutInMinutes.IsUnknown() {
+		v := int(m.TimeoutInMinutes.ValueInt64())
+		opts.TimeoutInMinutes = &v //nolint:staticcheck
+	}
+	// API rejects empty string EmailRecipients; omit blank so ADO uses its default.
+	if !m.EmailRecipients.IsNull() && !m.EmailRecipients.IsUnknown() && m.EmailRecipients.ValueString() != "" {
+		opts.EmailRecipients = converter.String(m.EmailRecipients.ValueString()) //nolint:staticcheck
+	}
+	return opts, nil
 }
 
 func expandRetentionPolicyFramework(ctx context.Context, list types.List) (*releaseapi.EnvironmentRetentionPolicy, error) {
@@ -1776,8 +2618,28 @@ func expandDeploymentGatesFramework(ctx context.Context, list types.List) (*rele
 		}
 	}
 
-	// Gate stubs — tasks are implemented in WI-2.
-	step.Gates = &[]releaseapi.ReleaseDefinitionGate{}
+	// Gates
+	if !m.Gate.IsNull() && !m.Gate.IsUnknown() {
+		var gateModels []gateModel
+		if d := m.Gate.ElementsAs(ctx, &gateModels, false); d.HasError() {
+			return nil, fmt.Errorf("decoding gate: %s", d)
+		}
+		gates := make([]releaseapi.ReleaseDefinitionGate, 0, len(gateModels))
+		for _, g := range gateModels {
+			gate := releaseapi.ReleaseDefinitionGate{}
+			if !g.Task.IsNull() && !g.Task.IsUnknown() {
+				var taskModels []gateTaskModel
+				if d := g.Task.ElementsAs(ctx, &taskModels, false); !d.HasError() && len(taskModels) > 0 {
+					wfTasks := expandGateTasksFramework(ctx, taskModels)
+					gate.Tasks = &wfTasks
+				}
+			}
+			gates = append(gates, gate)
+		}
+		step.Gates = &gates
+	} else {
+		step.Gates = &[]releaseapi.ReleaseDefinitionGate{}
+	}
 
 	return step, nil
 }
@@ -1812,9 +2674,14 @@ func flattenReleaseDefinitionFramework(ctx context.Context, def *releaseapi.Rele
 		model.Revision = types.Int64Value(int64(*def.Revision))
 	}
 
+	// Capture existing plan/prior values before overwriting — needed for
+	// secret variable preservation (ADO never returns secret values on read).
+	existingStages := model.Stages
+	existingVars := model.Variables
+
 	// Stages
 	if def.Environments != nil {
-		stagesList, d := flattenStagesFramework(ctx, *def.Environments)
+		stagesList, d := flattenStagesFramework(ctx, *def.Environments, existingStages)
 		diags.Append(d...)
 		model.Stages = stagesList
 	} else {
@@ -1822,7 +2689,7 @@ func flattenReleaseDefinitionFramework(ctx context.Context, def *releaseapi.Rele
 	}
 
 	// Definition-level variables
-	defVars, d := flattenVariablesFramework(ctx, def.Variables)
+	defVars, d := flattenVariablesFramework(ctx, def.Variables, existingVars)
 	diags.Append(d...)
 	model.Variables = defVars
 
@@ -1841,12 +2708,49 @@ func flattenReleaseDefinitionFramework(ctx context.Context, def *releaseapi.Rele
 	diags.Append(d...)
 	model.Triggers = defTriggers
 
+	// Definition-level tags. ADO's CreateReleaseDefinition response does not echo
+	// tags even though it persists them, so when the API returns none, preserve
+	// the planned/prior value (the model already carries it on create and read)
+	// rather than clobbering to empty — only fall back to an empty set when the
+	// model has no known value (e.g. import).
+	if def.Tags != nil && len(*def.Tags) > 0 {
+		tagVals := make([]attr.Value, len(*def.Tags))
+		for i, t := range *def.Tags {
+			tagVals[i] = types.StringValue(t)
+		}
+		tagsSet, d := types.SetValue(types.StringType, tagVals)
+		diags.Append(d...)
+		model.Tags = tagsSet
+	} else if model.Tags.IsNull() || model.Tags.IsUnknown() {
+		model.Tags = types.SetValueMust(types.StringType, []attr.Value{})
+	}
+
 	return diags
 }
 
-func flattenStagesFramework(ctx context.Context, envs []releaseapi.ReleaseDefinitionEnvironment) (types.List, diag.Diagnostics) {
+func flattenStagesFramework(ctx context.Context, envs []releaseapi.ReleaseDefinitionEnvironment, existingStages types.List) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	stageObjects := make([]attr.Value, 0, len(envs))
+
+	// Build a name→existing-variables lookup from the prior/plan state so we
+	// can preserve secret variable values that ADO never returns on read.
+	existingStageVarsByName := map[string]types.Map{}
+	if !existingStages.IsNull() && !existingStages.IsUnknown() {
+		for _, stageVal := range existingStages.Elements() {
+			stageObj, ok := stageVal.(types.Object)
+			if !ok {
+				continue
+			}
+			attrs := stageObj.Attributes()
+			nameAttr, ok := attrs["name"].(types.String)
+			if !ok || nameAttr.IsNull() || nameAttr.IsUnknown() {
+				continue
+			}
+			if varsAttr, ok := attrs["variables"].(types.Map); ok {
+				existingStageVarsByName[nameAttr.ValueString()] = varsAttr
+			}
+		}
+	}
 
 	for _, env := range envs {
 		// conditions
@@ -1879,13 +2783,50 @@ func flattenStagesFramework(ctx context.Context, envs []releaseapi.ReleaseDefini
 		deployPhases, d := flattenDeployPhasesFramework(ctx, env.DeployPhases)
 		diags.Append(d...)
 
-		// stage-level variables
-		stageVars, d := flattenVariablesFramework(ctx, env.Variables)
+		// stage-level variables — pass existing stage vars for secret preservation
+		stageName := ""
+		if env.Name != nil {
+			stageName = *env.Name
+		}
+		existingStageVars := existingStageVarsByName[stageName] // zero value (null map) if not found
+		stageVars, d := flattenVariablesFramework(ctx, env.Variables, existingStageVars)
 		diags.Append(d...)
 
 		// stage-level variable_groups
 		stageVarGroups, d := flattenVariableGroupsFramework(env.VariableGroups)
 		diags.Append(d...)
+
+		// Execution policy
+		execPolicy, d := flattenExecutionPolicyFramework(env.ExecutionPolicy)
+		diags.Append(d...)
+
+		// Environment triggers
+		envTriggers, d := flattenEnvironmentTriggersFramework(env.EnvironmentTriggers)
+		diags.Append(d...)
+
+		// Stage-level schedules
+		stageSchedules, d := flattenStageSchedulesFramework(env.Schedules)
+		diags.Append(d...)
+
+		// Process parameters
+		processParams, d := flattenProcessParametersFramework(env.ProcessParameters)
+		diags.Append(d...)
+
+		// Properties — unwrap ADO's {"$type":"System.String","$value":"..."} wrapper
+		stageProps, d := flattenStagePropertiesFramework(env.Properties)
+		diags.Append(d...)
+
+		// Owner
+		ownerStr := ""
+		if env.Owner != nil && env.Owner.Id != nil {
+			ownerStr = *env.Owner.Id
+		}
+
+		// Stage ID
+		stageID := int64(0)
+		if env.Id != nil {
+			stageID = int64(*env.Id)
+		}
 
 		rank := int64(0)
 		if env.Rank != nil {
@@ -1909,6 +2850,13 @@ func flattenStagesFramework(ctx context.Context, envs []releaseapi.ReleaseDefini
 			"deploy_phase":          deployPhases,
 			"variables":             stageVars,
 			"variable_groups":       stageVarGroups,
+			"execution_policy":      execPolicy,
+			"environment_trigger":   envTriggers,
+			"schedule":              stageSchedules,
+			"process_parameters":    processParams,
+			"properties":            stageProps,
+			"owner":                 types.StringValue(ownerStr),
+			"id":                    types.Int64Value(stageID),
 		})
 		diags.Append(d...)
 		stageObjects = append(stageObjects, stageObj)
@@ -1958,15 +2906,29 @@ func flattenEnvironmentOptionsFramework(opts *releaseapi.EnvironmentOptions) (ty
 	if opts == nil {
 		return types.ListValueMust(elemType, []attr.Value{}), nil
 	}
+	//nolint:staticcheck // deprecated ADO fields preserved for SDK v2 parity
 	emailType := ""
-	if opts.EmailNotificationType != nil { //nolint:staticcheck // legacy ADO REST v7.1 field
+	if opts.EmailNotificationType != nil { //nolint:staticcheck
 		emailType = *opts.EmailNotificationType //nolint:staticcheck
 	}
+	emailRecipients := ""
+	if opts.EmailRecipients != nil { //nolint:staticcheck
+		emailRecipients = *opts.EmailRecipients //nolint:staticcheck
+	}
+	timeoutMins := int64(0)
+	if opts.TimeoutInMinutes != nil { //nolint:staticcheck
+		timeoutMins = int64(*opts.TimeoutInMinutes) //nolint:staticcheck
+	}
 	obj, diags := types.ObjectValue(environmentOptionsAttrTypes, map[string]attr.Value{
-		"email_notification_type":   types.StringValue(emailType),
-		"publish_deployment_status": types.BoolValue(converter.ToBool(opts.PublishDeploymentStatus, false)),
-		"badge_enabled":             types.BoolValue(converter.ToBool(opts.BadgeEnabled, false)),
-		"auto_link_workitems":       types.BoolValue(converter.ToBool(opts.AutoLinkWorkItems, false)),
+		"email_notification_type":                              types.StringValue(emailType),
+		"email_recipients":                                     types.StringValue(emailRecipients),
+		"skip_artifacts_download":                              types.BoolValue(converter.ToBool(opts.SkipArtifactsDownload, false)), //nolint:staticcheck
+		"timeout_in_minutes":                                   types.Int64Value(timeoutMins),
+		"enable_access_token":                                  types.BoolValue(converter.ToBool(opts.EnableAccessToken, false)), //nolint:staticcheck
+		"publish_deployment_status":                            types.BoolValue(converter.ToBool(opts.PublishDeploymentStatus, false)),
+		"badge_enabled":                                        types.BoolValue(converter.ToBool(opts.BadgeEnabled, false)),
+		"auto_link_workitems":                                  types.BoolValue(converter.ToBool(opts.AutoLinkWorkItems, false)),
+		"pull_request_deployment_enabled":                      types.BoolValue(converter.ToBool(opts.PullRequestDeploymentEnabled, false)),
 		"publish_deployment_status_to_devops_project_settings": types.BoolValue(false),
 	})
 	if diags.HasError() {
@@ -2125,9 +3087,22 @@ func flattenDeploymentGatesFramework(step *releaseapi.ReleaseDefinitionGatesStep
 	optList, d := types.ListValue(gatesOptElemType, optObjs)
 	diags.Append(d...)
 
-	// Gate stubs — tasks implemented in WI-2.
+	// Gates
 	gateElemType := types.ObjectType{AttrTypes: gateAttrTypes}
-	gateList := types.ListValueMust(gateElemType, []attr.Value{})
+	var gateObjs []attr.Value
+	if step.Gates != nil {
+		for _, g := range *step.Gates {
+			gateTaskList, d := flattenGateTasksFramework(g.Tasks)
+			diags.Append(d...)
+			gateObj, d := types.ObjectValue(gateAttrTypes, map[string]attr.Value{
+				"task": gateTaskList,
+			})
+			diags.Append(d...)
+			gateObjs = append(gateObjs, gateObj)
+		}
+	}
+	gateList, d := types.ListValue(gateElemType, gateObjs)
+	diags.Append(d...)
 
 	obj, d := types.ObjectValue(deploymentGatesAttrTypes, map[string]attr.Value{
 		"gates_options": optList,
@@ -2138,6 +3113,260 @@ func flattenDeploymentGatesFramework(step *releaseapi.ReleaseDefinitionGatesStep
 	list, d := types.ListValue(elemType, []attr.Value{obj})
 	diags.Append(d...)
 	return list, diags
+}
+
+// flattenGateTasksFramework converts *[]releaseapi.WorkflowTask (from a gate) to types.List.
+func flattenGateTasksFramework(tasks *[]releaseapi.WorkflowTask) (types.List, diag.Diagnostics) {
+	elemType := types.ObjectType{AttrTypes: gateTaskAttrTypes}
+	if tasks == nil || len(*tasks) == 0 {
+		return types.ListValueMust(elemType, []attr.Value{}), nil
+	}
+	var diags diag.Diagnostics
+	taskObjs := make([]attr.Value, 0, len(*tasks))
+	for _, t := range *tasks {
+		taskID := ""
+		if t.TaskId != nil {
+			taskID = t.TaskId.String()
+		}
+		displayName := ""
+		if t.Name != nil {
+			displayName = *t.Name
+		}
+		versionSpec := "0.*"
+		if t.Version != nil {
+			versionSpec = *t.Version
+		}
+		enabled := true
+		if t.Enabled != nil {
+			enabled = *t.Enabled
+		}
+		alwaysRun := false
+		if t.AlwaysRun != nil {
+			alwaysRun = *t.AlwaysRun
+		}
+		condition := "succeeded()"
+		if t.Condition != nil {
+			condition = *t.Condition
+		}
+		timeout := int64(0)
+		if t.TimeoutInMinutes != nil {
+			timeout = int64(*t.TimeoutInMinutes)
+		}
+		retryCount := int64(0)
+		if t.RetryCountOnTaskFailure != nil {
+			retryCount = int64(*t.RetryCountOnTaskFailure)
+		}
+		definitionType := "task"
+		if t.DefinitionType != nil && *t.DefinitionType != "" {
+			definitionType = *t.DefinitionType
+		}
+		inputsMap := map[string]attr.Value{}
+		if t.Inputs != nil {
+			for k, v := range *t.Inputs {
+				inputsMap[k] = types.StringValue(v)
+			}
+		}
+		inputsTF, d := types.MapValue(types.StringType, inputsMap)
+		diags.Append(d...)
+
+		taskObj, d := types.ObjectValue(gateTaskAttrTypes, map[string]attr.Value{
+			"task_id":                     types.StringValue(taskID),
+			"display_name":                types.StringValue(displayName),
+			"version_spec":                types.StringValue(versionSpec),
+			"enabled":                     types.BoolValue(enabled),
+			"always_run":                  types.BoolValue(alwaysRun),
+			"condition":                   types.StringValue(condition),
+			"timeout_in_minutes":          types.Int64Value(timeout),
+			"retry_count_on_task_failure": types.Int64Value(retryCount),
+			"inputs":                      inputsTF,
+			"definition_type":             types.StringValue(definitionType),
+		})
+		diags.Append(d...)
+		taskObjs = append(taskObjs, taskObj)
+	}
+	taskList, d := types.ListValue(elemType, taskObjs)
+	diags.Append(d...)
+	return taskList, diags
+}
+
+// flattenExecutionPolicyFramework converts EnvironmentExecutionPolicy to a types.List.
+func flattenExecutionPolicyFramework(ep *releaseapi.EnvironmentExecutionPolicy) (types.List, diag.Diagnostics) {
+	elemType := types.ObjectType{AttrTypes: executionPolicyAttrTypes}
+	if ep == nil {
+		return types.ListValueMust(elemType, []attr.Value{}), nil
+	}
+	cc := int64(0)
+	if ep.ConcurrencyCount != nil {
+		cc = int64(*ep.ConcurrencyCount)
+	}
+	qd := int64(0)
+	if ep.QueueDepthCount != nil {
+		qd = int64(*ep.QueueDepthCount)
+	}
+	obj, diags := types.ObjectValue(executionPolicyAttrTypes, map[string]attr.Value{
+		"concurrency_count": types.Int64Value(cc),
+		"queue_depth_count": types.Int64Value(qd),
+	})
+	if diags.HasError() {
+		return types.ListValueMust(elemType, []attr.Value{}), diags
+	}
+	list, d := types.ListValue(elemType, []attr.Value{obj})
+	diags.Append(d...)
+	return list, diags
+}
+
+// flattenEnvironmentTriggersFramework converts []EnvironmentTrigger to a types.List.
+func flattenEnvironmentTriggersFramework(triggers *[]releaseapi.EnvironmentTrigger) (types.List, diag.Diagnostics) {
+	elemType := types.ObjectType{AttrTypes: environmentTriggerAttrTypes}
+	if triggers == nil || len(*triggers) == 0 {
+		return types.ListValueMust(elemType, []attr.Value{}), nil
+	}
+	var diags diag.Diagnostics
+	objs := make([]attr.Value, 0, len(*triggers))
+	for _, t := range *triggers {
+		defEnvID := int64(0)
+		if t.DefinitionEnvironmentId != nil {
+			defEnvID = int64(*t.DefinitionEnvironmentId)
+		}
+		trigType := ""
+		if t.TriggerType != nil {
+			trigType = string(*t.TriggerType)
+		}
+		trigContent := ""
+		if t.TriggerContent != nil {
+			trigContent = *t.TriggerContent
+		}
+		obj, d := types.ObjectValue(environmentTriggerAttrTypes, map[string]attr.Value{
+			"definition_environment_id": types.Int64Value(defEnvID),
+			"trigger_type":              types.StringValue(trigType),
+			"trigger_content":           types.StringValue(trigContent),
+		})
+		diags.Append(d...)
+		objs = append(objs, obj)
+	}
+	list, d := types.ListValue(elemType, objs)
+	diags.Append(d...)
+	return list, diags
+}
+
+// flattenStageSchedulesFramework converts []ReleaseSchedule to a types.List.
+func flattenStageSchedulesFramework(scheds *[]releaseapi.ReleaseSchedule) (types.List, diag.Diagnostics) {
+	elemType := types.ObjectType{AttrTypes: stageScheduleAttrTypes}
+	if scheds == nil || len(*scheds) == 0 {
+		return types.ListValueMust(elemType, []attr.Value{}), nil
+	}
+	var diags diag.Diagnostics
+	objs := make([]attr.Value, 0, len(*scheds))
+	for _, s := range *scheds {
+		days := int64(127)
+		if s.DaysToRelease != nil {
+			if d, err := strconv.Atoi(string(*s.DaysToRelease)); err == nil {
+				days = int64(d)
+			}
+		}
+		startH := int64(0)
+		if s.StartHours != nil {
+			startH = int64(*s.StartHours)
+		}
+		startM := int64(0)
+		if s.StartMinutes != nil {
+			startM = int64(*s.StartMinutes)
+		}
+		tz := "UTC"
+		if s.TimeZoneId != nil {
+			tz = *s.TimeZoneId
+		}
+		jobID := ""
+		if s.JobId != nil {
+			jobID = s.JobId.String()
+		}
+		obj, d := types.ObjectValue(stageScheduleAttrTypes, map[string]attr.Value{
+			"days_to_release": types.Int64Value(days),
+			"start_hours":     types.Int64Value(startH),
+			"start_minutes":   types.Int64Value(startM),
+			"time_zone_id":    types.StringValue(tz),
+			"job_id":          types.StringValue(jobID),
+		})
+		diags.Append(d...)
+		objs = append(objs, obj)
+	}
+	list, d := types.ListValue(elemType, objs)
+	diags.Append(d...)
+	return list, diags
+}
+
+// flattenProcessParametersFramework converts ProcessParameters to a types.List.
+func flattenProcessParametersFramework(pp *distributedtaskcommon.ProcessParameters) (types.List, diag.Diagnostics) {
+	elemType := types.ObjectType{AttrTypes: processParametersAttrTypes}
+	if pp == nil {
+		return types.ListValueMust(elemType, []attr.Value{}), nil
+	}
+	var diags diag.Diagnostics
+	inputElemType := types.ObjectType{AttrTypes: processParameterInputAttrTypes}
+	var inputObjs []attr.Value
+	if pp.Inputs != nil {
+		inputObjs = make([]attr.Value, 0, len(*pp.Inputs))
+		for _, inp := range *pp.Inputs {
+			name := ""
+			if inp.Name != nil {
+				name = *inp.Name
+			}
+			dv := ""
+			if inp.DefaultValue != nil {
+				dv = *inp.DefaultValue
+			}
+			pt := ""
+			if inp.Type != nil {
+				pt = *inp.Type
+			}
+			iObj, d := types.ObjectValue(processParameterInputAttrTypes, map[string]attr.Value{
+				"name":           types.StringValue(name),
+				"default_value":  types.StringValue(dv),
+				"parameter_type": types.StringValue(pt),
+			})
+			diags.Append(d...)
+			inputObjs = append(inputObjs, iObj)
+		}
+	}
+	inputList, d := types.ListValue(inputElemType, inputObjs)
+	diags.Append(d...)
+
+	obj, d := types.ObjectValue(processParametersAttrTypes, map[string]attr.Value{
+		"input": inputList,
+	})
+	diags.Append(d...)
+	list, d := types.ListValue(elemType, []attr.Value{obj})
+	diags.Append(d...)
+	return list, diags
+}
+
+// flattenStagePropertiesFramework unwraps ADO's {"$type":"System.String","$value":"..."}
+// wrapper from stage properties and returns a types.Map of string values.
+func flattenStagePropertiesFramework(properties interface{}) (types.Map, diag.Diagnostics) {
+	if properties == nil {
+		return types.MapValueMust(types.StringType, map[string]attr.Value{}), nil
+	}
+	props, ok := properties.(map[string]interface{})
+	if !ok || len(props) == 0 {
+		return types.MapValueMust(types.StringType, map[string]attr.Value{}), nil
+	}
+	attrs := make(map[string]attr.Value, len(props))
+	for k, v := range props {
+		switch cv := v.(type) {
+		case string:
+			attrs[k] = types.StringValue(cv)
+		case map[string]interface{}:
+			// Unwrap ADO's {"$type":"System.String","$value":"..."} wrapper.
+			if val, ok := cv["$value"].(string); ok {
+				attrs[k] = types.StringValue(val)
+			} else {
+				attrs[k] = types.StringValue(fmt.Sprintf("%v", v))
+			}
+		default:
+			attrs[k] = types.StringValue(fmt.Sprintf("%v", v))
+		}
+	}
+	return types.MapValue(types.StringType, attrs)
 }
 
 // -------------------------------------------------------------------------
@@ -2229,6 +3458,10 @@ func flattenDeploymentInputFramework(_ context.Context, raw interface{}) (types.
 	if v, ok := diMap["timeoutInMinutes"].(float64); ok {
 		timeout = int64(v)
 	}
+	jobCancelTimeout := int64(1)
+	if v, ok := diMap["jobCancelTimeoutInMinutes"].(float64); ok {
+		jobCancelTimeout = int64(v)
+	}
 	skipDownload := false
 	if v, ok := diMap["skipArtifactsDownload"].(bool); ok {
 		skipDownload = v
@@ -2244,6 +3477,19 @@ func flattenDeploymentInputFramework(_ context.Context, raw interface{}) (types.
 		}
 	}
 
+	// override_inputs
+	var diags diag.Diagnostics
+	overrideInputsMap := map[string]attr.Value{}
+	if oi, ok := diMap["overrideInputs"].(map[string]interface{}); ok {
+		for k, v := range oi {
+			if s, ok := v.(string); ok {
+				overrideInputsMap[k] = types.StringValue(s)
+			}
+		}
+	}
+	overrideInputsTF, d := types.MapValue(types.StringType, overrideInputsMap)
+	diags.Append(d...)
+
 	// demands
 	var demandStrs []attr.Value
 	if demands, ok := diMap["demands"].([]interface{}); ok {
@@ -2253,7 +3499,6 @@ func flattenDeploymentInputFramework(_ context.Context, raw interface{}) (types.
 			}
 		}
 	}
-	var diags diag.Diagnostics
 	demandsList, d := types.ListValue(types.StringType, demandStrs)
 	diags.Append(d...)
 
@@ -2262,14 +3507,16 @@ func flattenDeploymentInputFramework(_ context.Context, raw interface{}) (types.
 	diags.Append(d...)
 
 	diObj, d := types.ObjectValue(deploymentInputAttrTypes, map[string]attr.Value{
-		"queue_id":                types.Int64Value(queueID),
-		"condition":               types.StringValue(condition),
-		"timeout_in_minutes":      types.Int64Value(timeout),
-		"skip_artifacts_download": types.BoolValue(skipDownload),
-		"enable_access_token":     types.BoolValue(enableToken),
-		"agent_specification":     types.StringValue(agentSpec),
-		"demands":                 demandsList,
-		"parallel_execution":      parallelExec,
+		"queue_id":                      types.Int64Value(queueID),
+		"condition":                     types.StringValue(condition),
+		"timeout_in_minutes":            types.Int64Value(timeout),
+		"job_cancel_timeout_in_minutes": types.Int64Value(jobCancelTimeout),
+		"skip_artifacts_download":       types.BoolValue(skipDownload),
+		"enable_access_token":           types.BoolValue(enableToken),
+		"agent_specification":           types.StringValue(agentSpec),
+		"override_inputs":               overrideInputsTF,
+		"demands":                       demandsList,
+		"parallel_execution":            parallelExec,
 	})
 	diags.Append(d...)
 
@@ -2399,6 +3646,12 @@ func flattenWorkflowTasksFramework(_ context.Context, raw interface{}) (types.Li
 			retryCount = int64(v)
 		}
 
+		// definition_type
+		definitionType := "task"
+		if v, ok := taskMap["definitionType"].(string); ok && v != "" {
+			definitionType = v
+		}
+
 		// inputs map
 		inputsMap := map[string]attr.Value{}
 		if inputs, ok := taskMap["inputs"].(map[string]interface{}); ok {
@@ -2421,6 +3674,7 @@ func flattenWorkflowTasksFramework(_ context.Context, raw interface{}) (types.Li
 			"timeout_in_minutes":          types.Int64Value(timeout),
 			"retry_count_on_task_failure": types.Int64Value(retryCount),
 			"inputs":                      inputsTF,
+			"definition_type":             types.StringValue(definitionType),
 		})
 		diags.Append(d...)
 		taskObjs = append(taskObjs, taskObj)
@@ -2482,20 +3736,38 @@ func expandVariablesFramework(ctx context.Context, m types.Map) (*map[string]rel
 
 // flattenVariablesFramework converts *map[string]releaseapi.ConfigurationVariableValue into a
 // types.Map (MapNestedAttribute).
-func flattenVariablesFramework(ctx context.Context, vars *map[string]releaseapi.ConfigurationVariableValue) (types.Map, diag.Diagnostics) {
+//
+// existingVars is the prior/plan-time map (before being overwritten by this call).
+// ADO never returns secret variable values; when is_secret=true and the API returns
+// an empty value, we preserve the existing value from existingVars so the provider
+// does not produce an inconsistent result (was <secret>, now "").
+func flattenVariablesFramework(ctx context.Context, vars *map[string]releaseapi.ConfigurationVariableValue, existingVars types.Map) (types.Map, diag.Diagnostics) {
 	elemType := types.ObjectType{AttrTypes: variableValueAttrTypes}
-	mapType := types.MapType{ElemType: elemType}
 	if vars == nil || len(*vars) == 0 {
 		empty, d := types.MapValue(elemType, map[string]attr.Value{})
 		return empty, d
 	}
-	_ = mapType
+
+	// Build a lookup of existing variable values keyed by variable name.
+	existingValsByName := map[string]string{}
+	if !existingVars.IsNull() && !existingVars.IsUnknown() {
+		for k, v := range existingVars.Elements() {
+			obj, ok := v.(types.Object)
+			if !ok {
+				continue
+			}
+			if valAttr, ok := obj.Attributes()["value"].(types.String); ok && !valAttr.IsNull() && !valAttr.IsUnknown() {
+				existingValsByName[k] = valAttr.ValueString()
+			}
+		}
+	}
+
 	var diags diag.Diagnostics
 	objs := make(map[string]attr.Value, len(*vars))
 	for name, v := range *vars {
-		val := ""
+		apiVal := ""
 		if v.Value != nil {
-			val = *v.Value
+			apiVal = *v.Value
 		}
 		isSecret := false
 		if v.IsSecret != nil {
@@ -2504,6 +3776,14 @@ func flattenVariablesFramework(ctx context.Context, vars *map[string]releaseapi.
 		allowOverride := false
 		if v.AllowOverride != nil {
 			allowOverride = *v.AllowOverride
+		}
+		// Secret variables: ADO returns an empty value on read. Preserve the
+		// prior/plan value so the provider does not produce an inconsistent result.
+		val := apiVal
+		if isSecret && apiVal == "" {
+			if existingVal, ok := existingValsByName[name]; ok {
+				val = existingVal
+			}
 		}
 		obj, d := types.ObjectValue(variableValueAttrTypes, map[string]attr.Value{
 			"value":          types.StringValue(val),
@@ -2673,19 +3953,7 @@ func expandTriggersFramework(ctx context.Context, list types.List) ([]interface{
 					"triggerType":   "artifactSource",
 					"artifactAlias": cd.ArtifactAlias.ValueString(),
 				}
-				if !cd.BranchFilters.IsNull() && !cd.BranchFilters.IsUnknown() {
-					var bfs []string
-					if d := cd.BranchFilters.ElementsAs(ctx, &bfs, false); d.HasError() {
-						return nil, fmt.Errorf("decoding branch_filters: %s", d)
-					}
-					if len(bfs) > 0 {
-						conditions := make([]map[string]interface{}, 0, len(bfs))
-						for _, bf := range bfs {
-							conditions = append(conditions, map[string]interface{}{"sourceBranch": bf})
-						}
-						trigEntry["triggerConditions"] = conditions
-					}
-				}
+				trigEntry["triggerConditions"] = expandCdArtifactTriggerConditionsFramework(ctx, cd)
 				result = append(result, trigEntry)
 			}
 		}
@@ -2709,19 +3977,170 @@ func expandTriggersFramework(ctx context.Context, list types.List) ([]interface{
 				})
 			}
 		}
+		// Source repo triggers
+		if !t.SourceRepoTrigger.IsNull() && !t.SourceRepoTrigger.IsUnknown() {
+			var srtModels []sourceRepoTriggerModel
+			if d := t.SourceRepoTrigger.ElementsAs(ctx, &srtModels, false); d.HasError() {
+				return nil, fmt.Errorf("decoding source_repo_trigger: %s", d)
+			}
+			for _, srt := range srtModels {
+				trigEntry := map[string]interface{}{
+					"triggerType": "sourceRepo",
+					"alias":       srt.Alias.ValueString(),
+				}
+				if !srt.BranchFilters.IsNull() && !srt.BranchFilters.IsUnknown() {
+					var bfs []string
+					if d := srt.BranchFilters.ElementsAs(ctx, &bfs, false); d.HasError() {
+						return nil, fmt.Errorf("decoding source_repo_trigger branch_filters: %s", d)
+					}
+					if len(bfs) > 0 {
+						trigEntry["branchFilters"] = bfs
+					}
+				}
+				result = append(result, trigEntry)
+			}
+		}
+		// Container image triggers
+		if !t.ContainerImageTrigger.IsNull() && !t.ContainerImageTrigger.IsUnknown() {
+			var ciModels []containerImageTriggerModel
+			if d := t.ContainerImageTrigger.ElementsAs(ctx, &ciModels, false); d.HasError() {
+				return nil, fmt.Errorf("decoding container_image_trigger: %s", d)
+			}
+			for _, ci := range ciModels {
+				trigEntry := map[string]interface{}{
+					"triggerType": "containerImage",
+					"alias":       ci.ArtifactAlias.ValueString(),
+				}
+				if label := ci.Label.ValueString(); label != "" {
+					trigEntry["tagFilters"] = []interface{}{
+						map[string]interface{}{"pattern": label},
+					}
+				}
+				result = append(result, trigEntry)
+			}
+		}
+		// Pull request triggers
+		if !t.PullRequestTrigger.IsNull() && !t.PullRequestTrigger.IsUnknown() {
+			var prModels []pullRequestTriggerModel
+			if d := t.PullRequestTrigger.ElementsAs(ctx, &prModels, false); d.HasError() {
+				return nil, fmt.Errorf("decoding pull_request_trigger: %s", d)
+			}
+			for _, pr := range prModels {
+				trigEntry := map[string]interface{}{
+					"triggerType":   "pullRequest",
+					"artifactAlias": pr.ArtifactAlias.ValueString(),
+				}
+				// Each (target_branch, tags) combination maps to one PullRequestFilter condition.
+				// We build a single condition per trigger entry carrying both target_branches and tags.
+				var targetBranches []string
+				if !pr.TargetBranches.IsNull() && !pr.TargetBranches.IsUnknown() {
+					if d := pr.TargetBranches.ElementsAs(ctx, &targetBranches, false); d.HasError() {
+						return nil, fmt.Errorf("decoding pull_request_trigger target_branches: %s", d)
+					}
+				}
+				var prTags []string
+				if !pr.Tags.IsNull() && !pr.Tags.IsUnknown() {
+					if d := pr.Tags.ElementsAs(ctx, &prTags, false); d.HasError() {
+						return nil, fmt.Errorf("decoding pull_request_trigger tags: %s", d)
+					}
+				}
+				if len(targetBranches) > 0 || len(prTags) > 0 {
+					conditions := make([]map[string]interface{}, 0)
+					for _, tb := range targetBranches {
+						cond := map[string]interface{}{"targetBranch": tb}
+						if len(prTags) > 0 {
+							cond["tags"] = prTags
+						}
+						conditions = append(conditions, cond)
+					}
+					if len(conditions) == 0 && len(prTags) > 0 {
+						// tags without target_branches: emit one condition with empty targetBranch
+						conditions = append(conditions, map[string]interface{}{
+							"targetBranch": "",
+							"tags":         prTags,
+						})
+					}
+					trigEntry["triggerConditions"] = conditions
+				}
+				// ADO requires a non-null repository reference for a pull request
+				// trigger. For source-based (Build) artifacts, useArtifactReference
+				// tells ADO to derive it from the linked artifact.
+				useArtifactRef := true
+				if !pr.UseArtifactReference.IsNull() && !pr.UseArtifactReference.IsUnknown() {
+					useArtifactRef = pr.UseArtifactReference.ValueBool()
+				}
+				trigEntry["pullRequestConfiguration"] = map[string]interface{}{
+					"useArtifactReference": useArtifactRef,
+				}
+				result = append(result, trigEntry)
+			}
+		}
 	}
 	return result, nil
 }
 
+// expandCdArtifactTriggerConditionsFramework builds the triggerConditions slice for a
+// cd_artifact_trigger, incorporating branch_filters, tag_filter, use_build_definition_branch,
+// and create_release_on_build_tagging. Mirrors expandArtifactTriggerConditions from the SDK v2 file.
+func expandCdArtifactTriggerConditionsFramework(ctx context.Context, cd cdArtifactTriggerModel) []map[string]interface{} {
+	var conditions []map[string]interface{}
+	if !cd.BranchFilters.IsNull() && !cd.BranchFilters.IsUnknown() {
+		var bfs []string
+		if d := cd.BranchFilters.ElementsAs(ctx, &bfs, false); !d.HasError() {
+			for _, bf := range bfs {
+				conditions = append(conditions, map[string]interface{}{"sourceBranch": bf})
+			}
+		}
+	}
+
+	// Gather tag_filter tags, use_build_definition_branch, create_release_on_build_tagging.
+	var tags []string
+	if !cd.TagFilter.IsNull() && !cd.TagFilter.IsUnknown() {
+		var tfModels []tagFilterModel
+		if d := cd.TagFilter.ElementsAs(ctx, &tfModels, false); !d.HasError() && len(tfModels) > 0 {
+			tf := tfModels[0]
+			if !tf.Tags.IsNull() && !tf.Tags.IsUnknown() {
+				_ = tf.Tags.ElementsAs(ctx, &tags, false)
+			}
+		}
+	}
+	useBuildBranch := cd.UseBuildDefinitionBranch.ValueBool()
+	createOnTagging := cd.CreateReleaseOnBuildTagging.ValueBool()
+
+	hasExtras := len(tags) > 0 || useBuildBranch || createOnTagging
+	if !hasExtras {
+		return conditions
+	}
+
+	// Emit extras on the first condition. If no branch conditions exist, create
+	// a synthetic entry with empty sourceBranch as the container.
+	if len(conditions) == 0 {
+		conditions = []map[string]interface{}{{"sourceBranch": ""}}
+	}
+	if len(tags) > 0 {
+		conditions[0]["tags"] = tags
+	}
+	if useBuildBranch {
+		conditions[0]["useBuildDefinitionBranch"] = true
+	}
+	if createOnTagging {
+		conditions[0]["createReleaseOnBuildTagging"] = true
+	}
+	return conditions
+}
+
 // flattenTriggersFramework converts the ADO polymorphic *[]interface{} into types.List
-// (ListNestedAttribute of triggerModel). All CD artifact triggers from the API are grouped
-// into the first list element's cd_artifact_trigger list; all schedule triggers into
-// schedule_trigger. We emit at most one triggerModel list element (matches the typical ADO shape).
+// (ListNestedAttribute of triggerModel). All trigger variants from the API are grouped
+// into a single triggerModel list element (matches the typical ADO shape).
 func flattenTriggersFramework(ctx context.Context, triggers *[]interface{}) (types.List, diag.Diagnostics) {
 	_ = ctx
 	elemType := types.ObjectType{AttrTypes: triggerAttrTypes}
 	cdElemType := types.ObjectType{AttrTypes: cdArtifactTriggerAttrTypes}
 	schElemType := types.ObjectType{AttrTypes: scheduleTriggerAttrTypes}
+	srtElemType := types.ObjectType{AttrTypes: sourceRepoTriggerAttrTypes}
+	ciElemType := types.ObjectType{AttrTypes: containerImageTriggerAttrTypes}
+	prElemType := types.ObjectType{AttrTypes: pullRequestTriggerAttrTypes}
+	tagFilterElemType := types.ObjectType{AttrTypes: tagFilterAttrTypes}
 
 	if triggers == nil || len(*triggers) == 0 {
 		return types.ListValueMust(elemType, []attr.Value{}), nil
@@ -2730,6 +4149,9 @@ func flattenTriggersFramework(ctx context.Context, triggers *[]interface{}) (typ
 	var diags diag.Diagnostics
 	var cdObjs []attr.Value
 	var schObjs []attr.Value
+	var srtObjs []attr.Value
+	var ciObjs []attr.Value
+	var prObjs []attr.Value
 
 	for _, raw := range *triggers {
 		data, err := json.Marshal(raw)
@@ -2748,23 +4170,61 @@ func flattenTriggersFramework(ctx context.Context, triggers *[]interface{}) (typ
 				alias = v
 			}
 			var bfVals []attr.Value
+			var tagVals []attr.Value
+			useBuildBranch := false
+			createOnTagging := false
 			if conds, ok := trigMap["triggerConditions"].([]interface{}); ok {
-				for _, c := range conds {
+				for i, c := range conds {
 					if cm, ok := c.(map[string]interface{}); ok {
 						if sb, ok := cm["sourceBranch"].(string); ok && sb != "" {
 							bfVals = append(bfVals, types.StringValue(sb))
+						}
+						// Read extras from the first condition entry only.
+						if i == 0 {
+							if v, ok := cm["tags"].([]interface{}); ok {
+								for _, t := range v {
+									if s, ok := t.(string); ok {
+										tagVals = append(tagVals, types.StringValue(s))
+									}
+								}
+							}
+							if v, ok := cm["useBuildDefinitionBranch"].(bool); ok {
+								useBuildBranch = v
+							}
+							if v, ok := cm["createReleaseOnBuildTagging"].(bool); ok {
+								createOnTagging = v
+							}
 						}
 					}
 				}
 			}
 			bfList, d := types.ListValue(types.StringType, bfVals)
 			diags.Append(d...)
+
+			// Build tag_filter list: one element if any tags, empty list otherwise.
+			var tagFilterObjs []attr.Value
+			if len(tagVals) > 0 {
+				tagList, d2 := types.ListValue(types.StringType, tagVals)
+				diags.Append(d2...)
+				tfObj, d2 := types.ObjectValue(tagFilterAttrTypes, map[string]attr.Value{
+					"tags": tagList,
+				})
+				diags.Append(d2...)
+				tagFilterObjs = append(tagFilterObjs, tfObj)
+			}
+			tagFilterList, d := types.ListValue(tagFilterElemType, tagFilterObjs)
+			diags.Append(d...)
+
 			obj, d := types.ObjectValue(cdArtifactTriggerAttrTypes, map[string]attr.Value{
-				"artifact_alias": types.StringValue(alias),
-				"branch_filters": bfList,
+				"artifact_alias":                  types.StringValue(alias),
+				"branch_filters":                  bfList,
+				"tag_filter":                      tagFilterList,
+				"use_build_definition_branch":     types.BoolValue(useBuildBranch),
+				"create_release_on_build_tagging": types.BoolValue(createOnTagging),
 			})
 			diags.Append(d...)
 			cdObjs = append(cdObjs, obj)
+
 		case "schedule":
 			onlyChanges := false
 			startHours := int64(0)
@@ -2797,10 +4257,95 @@ func flattenTriggersFramework(ctx context.Context, triggers *[]interface{}) (typ
 			})
 			diags.Append(d...)
 			schObjs = append(schObjs, obj)
+
+		case "sourceRepo":
+			alias := ""
+			if v, ok := trigMap["alias"].(string); ok {
+				alias = v
+			}
+			var bfVals []attr.Value
+			if bfs, ok := trigMap["branchFilters"].([]interface{}); ok {
+				for _, bf := range bfs {
+					if s, ok := bf.(string); ok {
+						bfVals = append(bfVals, types.StringValue(s))
+					}
+				}
+			}
+			bfList, d := types.ListValue(types.StringType, bfVals)
+			diags.Append(d...)
+			obj, d := types.ObjectValue(sourceRepoTriggerAttrTypes, map[string]attr.Value{
+				"alias":          types.StringValue(alias),
+				"branch_filters": bfList,
+			})
+			diags.Append(d...)
+			srtObjs = append(srtObjs, obj)
+
+		case "containerImage":
+			alias := ""
+			if v, ok := trigMap["alias"].(string); ok {
+				alias = v
+			}
+			label := ""
+			if tfs, ok := trigMap["tagFilters"].([]interface{}); ok && len(tfs) > 0 {
+				if tf, ok := tfs[0].(map[string]interface{}); ok {
+					label, _ = tf["pattern"].(string)
+				}
+			}
+			obj, d := types.ObjectValue(containerImageTriggerAttrTypes, map[string]attr.Value{
+				"artifact_alias": types.StringValue(alias),
+				"label":          types.StringValue(label),
+			})
+			diags.Append(d...)
+			ciObjs = append(ciObjs, obj)
+
+		case "pullRequest":
+			artifactAlias := ""
+			if v, ok := trigMap["artifactAlias"].(string); ok {
+				artifactAlias = v
+			}
+			var targetBranchVals []attr.Value
+			var prTagVals []attr.Value
+			if conds, ok := trigMap["triggerConditions"].([]interface{}); ok {
+				for _, c := range conds {
+					if cm, ok := c.(map[string]interface{}); ok {
+						if tb, ok := cm["targetBranch"].(string); ok && tb != "" {
+							targetBranchVals = append(targetBranchVals, types.StringValue(tb))
+						}
+						// Collect tags from the first condition that has them.
+						if len(prTagVals) == 0 {
+							if v, ok := cm["tags"].([]interface{}); ok {
+								for _, t := range v {
+									if s, ok := t.(string); ok {
+										prTagVals = append(prTagVals, types.StringValue(s))
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			tbList, d := types.ListValue(types.StringType, targetBranchVals)
+			diags.Append(d...)
+			prTagList, d := types.ListValue(types.StringType, prTagVals)
+			diags.Append(d...)
+			useArtifactRef := true
+			if pc, ok := trigMap["pullRequestConfiguration"].(map[string]interface{}); ok {
+				if v, ok := pc["useArtifactReference"].(bool); ok {
+					useArtifactRef = v
+				}
+			}
+			obj, d := types.ObjectValue(pullRequestTriggerAttrTypes, map[string]attr.Value{
+				"artifact_alias":         types.StringValue(artifactAlias),
+				"target_branches":        tbList,
+				"tags":                   prTagList,
+				"use_artifact_reference": types.BoolValue(useArtifactRef),
+			})
+			diags.Append(d...)
+			prObjs = append(prObjs, obj)
 		}
 	}
 
-	if len(cdObjs) == 0 && len(schObjs) == 0 {
+	if len(cdObjs) == 0 && len(schObjs) == 0 && len(srtObjs) == 0 && len(ciObjs) == 0 && len(prObjs) == 0 {
 		return types.ListValueMust(elemType, []attr.Value{}), diags
 	}
 
@@ -2808,10 +4353,19 @@ func flattenTriggersFramework(ctx context.Context, triggers *[]interface{}) (typ
 	diags.Append(d...)
 	schList, d := types.ListValue(schElemType, schObjs)
 	diags.Append(d...)
+	srtList, d := types.ListValue(srtElemType, srtObjs)
+	diags.Append(d...)
+	ciList, d := types.ListValue(ciElemType, ciObjs)
+	diags.Append(d...)
+	prList, d := types.ListValue(prElemType, prObjs)
+	diags.Append(d...)
 
 	trigObj, d := types.ObjectValue(triggerAttrTypes, map[string]attr.Value{
-		"cd_artifact_trigger": cdList,
-		"schedule_trigger":    schList,
+		"cd_artifact_trigger":     cdList,
+		"schedule_trigger":        schList,
+		"source_repo_trigger":     srtList,
+		"container_image_trigger": ciList,
+		"pull_request_trigger":    prList,
 	})
 	diags.Append(d...)
 

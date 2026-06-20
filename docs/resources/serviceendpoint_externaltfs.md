@@ -35,7 +35,7 @@ description: |-
 <a id="nestedblock--auth_personal"></a>
 ### Nested Schema for `auth_personal`
 
-Optional:
+Required:
 
 - `personal_access_token` (String, Sensitive) Personal access tokens are applicable only for connections targeting Azure DevOps organization or TFS 2017 (and higher)
 

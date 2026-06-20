@@ -31,6 +31,7 @@ func TestFrameworkReleaseDefinition_expandTopLevel(t *testing.T) {
 		Path:              types.StringValue(`\`),
 		Description:       types.StringValue(""),
 		ReleaseNameFormat: types.StringValue("Release-$(rev:r)"),
+		Tags:              types.SetValueMust(types.StringType, nil),
 		Revision:          types.Int64Value(0),
 		Stages:            types.ListValueMust(types.ObjectType{AttrTypes: stageAttrTypes}, nil),
 	}
@@ -107,6 +108,7 @@ func buildDeployPhaseList(t *testing.T,
 		"timeout_in_minutes":          types.Int64Value(timeoutMins),
 		"retry_count_on_task_failure": types.Int64Value(retryCount),
 		"inputs":                      inputsTF,
+		"definition_type":             types.StringValue("task"),
 	})
 	require.False(t, diags.HasError(), "build task object: %s", diags)
 
@@ -114,6 +116,7 @@ func buildDeployPhaseList(t *testing.T,
 	require.False(t, diags.HasError(), "build task list: %s", diags)
 
 	// Build empty deployment_input list (not needed for this test).
+	// Use nil list — no deployment_input block configured.
 	emptyDIList := types.ListValueMust(types.ObjectType{AttrTypes: deploymentInputAttrTypes}, []attr.Value{})
 
 	// Build deploy_phase object.
@@ -310,7 +313,7 @@ func TestFrameworkReleaseDefinition_flattenVariables(t *testing.T) {
 		},
 	}
 
-	result, diags := flattenVariablesFramework(ctx, &apiVars)
+	result, diags := flattenVariablesFramework(ctx, &apiVars, types.MapNull(types.ObjectType{AttrTypes: variableValueAttrTypes}))
 	require.False(t, diags.HasError(), "flattenVariablesFramework returned errors: %s", diags)
 	require.False(t, result.IsNull())
 	require.False(t, result.IsUnknown())
@@ -412,8 +415,11 @@ func TestFrameworkReleaseDefinition_expandTriggers(t *testing.T) {
 
 	// Build cd_artifact_trigger
 	cdObj, diags := types.ObjectValue(cdArtifactTriggerAttrTypes, map[string]attr.Value{
-		"artifact_alias": types.StringValue("_build"),
-		"branch_filters": types.ListValueMust(types.StringType, []attr.Value{}),
+		"artifact_alias":                  types.StringValue("_build"),
+		"branch_filters":                  types.ListValueMust(types.StringType, []attr.Value{}),
+		"tag_filter":                      types.ListValueMust(types.ObjectType{AttrTypes: tagFilterAttrTypes}, []attr.Value{}),
+		"use_build_definition_branch":     types.BoolValue(false),
+		"create_release_on_build_tagging": types.BoolValue(false),
 	})
 	require.False(t, diags.HasError(), "build cd trigger: %s", diags)
 	cdList, diags := types.ListValue(types.ObjectType{AttrTypes: cdArtifactTriggerAttrTypes}, []attr.Value{cdObj})
@@ -431,10 +437,17 @@ func TestFrameworkReleaseDefinition_expandTriggers(t *testing.T) {
 	schList, diags := types.ListValue(types.ObjectType{AttrTypes: scheduleTriggerAttrTypes}, []attr.Value{schObj})
 	require.False(t, diags.HasError(), "build sch list: %s", diags)
 
-	// Build trigger model
+	// Build trigger model (empty lists for new trigger types not exercised by this test)
+	emptySourceRepoList := types.ListValueMust(types.ObjectType{AttrTypes: sourceRepoTriggerAttrTypes}, []attr.Value{})
+	emptyCIList := types.ListValueMust(types.ObjectType{AttrTypes: containerImageTriggerAttrTypes}, []attr.Value{})
+	emptyPRList := types.ListValueMust(types.ObjectType{AttrTypes: pullRequestTriggerAttrTypes}, []attr.Value{})
+
 	trigObj, diags := types.ObjectValue(triggerAttrTypes, map[string]attr.Value{
-		"cd_artifact_trigger": cdList,
-		"schedule_trigger":    schList,
+		"cd_artifact_trigger":     cdList,
+		"schedule_trigger":        schList,
+		"source_repo_trigger":     emptySourceRepoList,
+		"container_image_trigger": emptyCIList,
+		"pull_request_trigger":    emptyPRList,
 	})
 	require.False(t, diags.HasError(), "build trigger obj: %s", diags)
 	trigList, diags := types.ListValue(types.ObjectType{AttrTypes: triggerAttrTypes}, []attr.Value{trigObj})
