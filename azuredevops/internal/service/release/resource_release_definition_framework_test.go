@@ -107,6 +107,7 @@ func buildDeployPhaseList(t *testing.T,
 		"timeout_in_minutes":          types.Int64Value(timeoutMins),
 		"retry_count_on_task_failure": types.Int64Value(retryCount),
 		"inputs":                      inputsTF,
+		"definition_type":             types.StringValue("task"),
 	})
 	require.False(t, diags.HasError(), "build task object: %s", diags)
 
@@ -114,6 +115,7 @@ func buildDeployPhaseList(t *testing.T,
 	require.False(t, diags.HasError(), "build task list: %s", diags)
 
 	// Build empty deployment_input list (not needed for this test).
+	// Use nil list — no deployment_input block configured.
 	emptyDIList := types.ListValueMust(types.ObjectType{AttrTypes: deploymentInputAttrTypes}, []attr.Value{})
 
 	// Build deploy_phase object.

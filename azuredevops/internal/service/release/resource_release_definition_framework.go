@@ -164,14 +164,16 @@ type deployPhaseModel struct {
 
 // deploymentInputModel maps to the deploymentInput object inside a deploy phase.
 type deploymentInputModel struct {
-	QueueID               types.Int64  `tfsdk:"queue_id"`
-	Condition             types.String `tfsdk:"condition"`
-	TimeoutInMinutes      types.Int64  `tfsdk:"timeout_in_minutes"`
-	SkipArtifactsDownload types.Bool   `tfsdk:"skip_artifacts_download"`
-	EnableAccessToken     types.Bool   `tfsdk:"enable_access_token"`
-	AgentSpecification    types.String `tfsdk:"agent_specification"`
-	Demands               types.List   `tfsdk:"demands"`
-	ParallelExecution     types.List   `tfsdk:"parallel_execution"`
+	QueueID                   types.Int64  `tfsdk:"queue_id"`
+	Condition                 types.String `tfsdk:"condition"`
+	TimeoutInMinutes          types.Int64  `tfsdk:"timeout_in_minutes"`
+	JobCancelTimeoutInMinutes types.Int64  `tfsdk:"job_cancel_timeout_in_minutes"`
+	SkipArtifactsDownload     types.Bool   `tfsdk:"skip_artifacts_download"`
+	EnableAccessToken         types.Bool   `tfsdk:"enable_access_token"`
+	AgentSpecification        types.String `tfsdk:"agent_specification"`
+	OverrideInputs            types.Map    `tfsdk:"override_inputs"`
+	Demands                   types.List   `tfsdk:"demands"`
+	ParallelExecution         types.List   `tfsdk:"parallel_execution"`
 }
 
 // parallelExecutionModel maps to the parallelExecution object inside deployment_input.
@@ -192,6 +194,7 @@ type workflowTaskModel struct {
 	TimeoutInMinutes        types.Int64  `tfsdk:"timeout_in_minutes"`
 	RetryCountOnTaskFailure types.Int64  `tfsdk:"retry_count_on_task_failure"`
 	Inputs                  types.Map    `tfsdk:"inputs"`
+	DefinitionType          types.String `tfsdk:"definition_type"`
 }
 
 // conditionModel maps to releaseapi.Condition.
@@ -204,9 +207,14 @@ type conditionModel struct {
 // environmentOptionsModel maps to releaseapi.EnvironmentOptions.
 type environmentOptionsModel struct {
 	EmailNotificationType                          types.String `tfsdk:"email_notification_type"`
+	EmailRecipients                                types.String `tfsdk:"email_recipients"`
+	SkipArtifactsDownload                          types.Bool   `tfsdk:"skip_artifacts_download"`
+	TimeoutInMinutes                               types.Int64  `tfsdk:"timeout_in_minutes"`
+	EnableAccessToken                              types.Bool   `tfsdk:"enable_access_token"`
 	PublishDeploymentStatus                        types.Bool   `tfsdk:"publish_deployment_status"`
 	BadgeEnabled                                   types.Bool   `tfsdk:"badge_enabled"`
 	AutoLinkWorkItems                              types.Bool   `tfsdk:"auto_link_workitems"`
+	PullRequestDeploymentEnabled                   types.Bool   `tfsdk:"pull_request_deployment_enabled"`
 	PublishDeploymentStatusToDevopsProjectSettings types.Bool   `tfsdk:"publish_deployment_status_to_devops_project_settings"`
 }
 
@@ -289,6 +297,27 @@ type gatesOptionsModel struct {
 	MinimumSuccessDuration types.Int64 `tfsdk:"minimum_success_duration"`
 }
 
+// gateTaskModel maps to a single gate task (releaseapi.WorkflowTask inside a gate).
+// Mirrors workflowTaskModel but uses version_spec + display_name to match the
+// workflow_task block, plus definition_type from the API.
+type gateTaskModel struct {
+	TaskID                  types.String `tfsdk:"task_id"`
+	DisplayName             types.String `tfsdk:"display_name"`
+	VersionSpec             types.String `tfsdk:"version_spec"`
+	Enabled                 types.Bool   `tfsdk:"enabled"`
+	AlwaysRun               types.Bool   `tfsdk:"always_run"`
+	Condition               types.String `tfsdk:"condition"`
+	TimeoutInMinutes        types.Int64  `tfsdk:"timeout_in_minutes"`
+	RetryCountOnTaskFailure types.Int64  `tfsdk:"retry_count_on_task_failure"`
+	Inputs                  types.Map    `tfsdk:"inputs"`
+	DefinitionType          types.String `tfsdk:"definition_type"`
+}
+
+// gateModel maps to releaseapi.ReleaseDefinitionGate.
+type gateModel struct {
+	Task types.List `tfsdk:"task"`
+}
+
 // -------------------------------------------------------------------------
 // attr.Type helpers
 // -------------------------------------------------------------------------
@@ -300,10 +329,15 @@ var conditionAttrTypes = map[string]attr.Type{
 }
 
 var environmentOptionsAttrTypes = map[string]attr.Type{
-	"email_notification_type":   types.StringType,
-	"publish_deployment_status": types.BoolType,
-	"badge_enabled":             types.BoolType,
-	"auto_link_workitems":       types.BoolType,
+	"email_notification_type":                              types.StringType,
+	"email_recipients":                                     types.StringType,
+	"skip_artifacts_download":                              types.BoolType,
+	"timeout_in_minutes":                                   types.Int64Type,
+	"enable_access_token":                                  types.BoolType,
+	"publish_deployment_status":                            types.BoolType,
+	"badge_enabled":                                        types.BoolType,
+	"auto_link_workitems":                                  types.BoolType,
+	"pull_request_deployment_enabled":                      types.BoolType,
 	"publish_deployment_status_to_devops_project_settings": types.BoolType,
 }
 
@@ -341,21 +375,6 @@ var gatesOptionsAttrTypes = map[string]attr.Type{
 	"minimum_success_duration": types.Int64Type,
 }
 
-// gateTaskAttrTypes — stub; tasks are implemented in WI-2.
-var gateTaskAttrTypes = map[string]attr.Type{
-	"name":    types.StringType,
-	"task_id": types.StringType,
-}
-
-var gateAttrTypes = map[string]attr.Type{
-	"task": types.ListType{ElemType: types.ObjectType{AttrTypes: gateTaskAttrTypes}},
-}
-
-var deploymentGatesAttrTypes = map[string]attr.Type{
-	"gates_options": types.ListType{ElemType: types.ObjectType{AttrTypes: gatesOptionsAttrTypes}},
-	"gate":          types.ListType{ElemType: types.ObjectType{AttrTypes: gateAttrTypes}},
-}
-
 // Deploy-phase attr type maps.
 var parallelExecutionAttrTypes = map[string]attr.Type{
 	"type":                 types.StringType,
@@ -364,14 +383,16 @@ var parallelExecutionAttrTypes = map[string]attr.Type{
 }
 
 var deploymentInputAttrTypes = map[string]attr.Type{
-	"queue_id":                types.Int64Type,
-	"condition":               types.StringType,
-	"timeout_in_minutes":      types.Int64Type,
-	"skip_artifacts_download": types.BoolType,
-	"enable_access_token":     types.BoolType,
-	"agent_specification":     types.StringType,
-	"demands":                 types.ListType{ElemType: types.StringType},
-	"parallel_execution":      types.ListType{ElemType: types.ObjectType{AttrTypes: parallelExecutionAttrTypes}},
+	"queue_id":                      types.Int64Type,
+	"condition":                     types.StringType,
+	"timeout_in_minutes":            types.Int64Type,
+	"job_cancel_timeout_in_minutes": types.Int64Type,
+	"skip_artifacts_download":       types.BoolType,
+	"enable_access_token":           types.BoolType,
+	"agent_specification":           types.StringType,
+	"override_inputs":               types.MapType{ElemType: types.StringType},
+	"demands":                       types.ListType{ElemType: types.StringType},
+	"parallel_execution":            types.ListType{ElemType: types.ObjectType{AttrTypes: parallelExecutionAttrTypes}},
 }
 
 var workflowTaskAttrTypes = map[string]attr.Type{
@@ -384,6 +405,30 @@ var workflowTaskAttrTypes = map[string]attr.Type{
 	"timeout_in_minutes":          types.Int64Type,
 	"retry_count_on_task_failure": types.Int64Type,
 	"inputs":                      types.MapType{ElemType: types.StringType},
+	"definition_type":             types.StringType,
+}
+
+// gateTaskAttrTypes mirrors workflowTaskAttrTypes — gate tasks share the same API shape.
+var gateTaskAttrTypes = map[string]attr.Type{
+	"task_id":                     types.StringType,
+	"display_name":                types.StringType,
+	"version_spec":                types.StringType,
+	"enabled":                     types.BoolType,
+	"always_run":                  types.BoolType,
+	"condition":                   types.StringType,
+	"timeout_in_minutes":          types.Int64Type,
+	"retry_count_on_task_failure": types.Int64Type,
+	"inputs":                      types.MapType{ElemType: types.StringType},
+	"definition_type":             types.StringType,
+}
+
+var gateAttrTypes = map[string]attr.Type{
+	"task": types.ListType{ElemType: types.ObjectType{AttrTypes: gateTaskAttrTypes}},
+}
+
+var deploymentGatesAttrTypes = map[string]attr.Type{
+	"gates_options": types.ListType{ElemType: types.ObjectType{AttrTypes: gatesOptionsAttrTypes}},
+	"gate":          types.ListType{ElemType: types.ObjectType{AttrTypes: gateAttrTypes}},
 }
 
 var deployPhaseAttrTypes = map[string]attr.Type{
@@ -714,6 +759,29 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 										Default:             staticString("OnlyOnFailure"),
 										MarkdownDescription: "When to send email notifications: OnlyOnFailure, Always, Never.",
 									},
+									"email_recipients": schema.StringAttribute{
+										Optional:            true,
+										Computed:            true,
+										MarkdownDescription: "(deprecated) Email recipients for deployment notifications. ADO defaults to 'release.environment.owner;release.creator'.",
+									},
+									"skip_artifacts_download": schema.BoolAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticBool(false),
+										MarkdownDescription: "(deprecated) Whether to skip artifact download for this stage. Prefer deployment_input.skip_artifacts_download.",
+									},
+									"timeout_in_minutes": schema.Int64Attribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticInt64(0),
+										MarkdownDescription: "(deprecated) Timeout in minutes for this stage. Prefer deployment_input.timeout_in_minutes.",
+									},
+									"enable_access_token": schema.BoolAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticBool(false),
+										MarkdownDescription: "(deprecated) Whether to enable OAuth access token. Prefer deployment_input.enable_access_token.",
+									},
 									"publish_deployment_status": schema.BoolAttribute{
 										Optional:            true,
 										Computed:            true,
@@ -731,6 +799,12 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 										Computed:            true,
 										Default:             staticBool(false),
 										MarkdownDescription: "Whether to auto-link work items to the deployment.",
+									},
+									"pull_request_deployment_enabled": schema.BoolAttribute{
+										Optional:            true,
+										Computed:            true,
+										Default:             staticBool(false),
+										MarkdownDescription: "Whether pull request deployments are enabled for this stage.",
 									},
 									"publish_deployment_status_to_devops_project_settings": schema.BoolAttribute{
 										Optional:            true,
@@ -1352,24 +1426,16 @@ func deploymentGatesNestedAttributes() map[string]schema.Attribute {
 			Optional:            true,
 			Computed:            true,
 			PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
-			MarkdownDescription: "Individual gate definitions (tasks are implemented in WI-2).",
+			MarkdownDescription: "Individual gate definitions.",
 			NestedObject: schema.NestedAttributeObject{
 				Attributes: map[string]schema.Attribute{
 					"task": schema.ListNestedAttribute{
 						Optional:            true,
 						Computed:            true,
-						MarkdownDescription: "Workflow tasks within this gate (stub — full implementation in WI-2).",
+						PlanModifiers:       []planmodifier.List{useStateForUnknownListModifier()},
+						MarkdownDescription: "Workflow tasks within this gate.",
 						NestedObject: schema.NestedAttributeObject{
-							Attributes: map[string]schema.Attribute{
-								"name": schema.StringAttribute{
-									Required:            true,
-									MarkdownDescription: "Task name.",
-								},
-								"task_id": schema.StringAttribute{
-									Required:            true,
-									MarkdownDescription: "Task definition UUID.",
-								},
-							},
+							Attributes: gateTaskNestedAttributes(),
 						},
 					},
 				},
@@ -1446,6 +1512,12 @@ func deploymentInputNestedAttributes() map[string]schema.Attribute {
 			Default:             staticInt64(0),
 			MarkdownDescription: "Timeout in minutes for the phase (0 = no timeout).",
 		},
+		"job_cancel_timeout_in_minutes": schema.Int64Attribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticInt64(1),
+			MarkdownDescription: "Timeout in minutes for job cancellation (default 1).",
+		},
 		"skip_artifacts_download": schema.BoolAttribute{
 			Optional:            true,
 			Computed:            true,
@@ -1463,6 +1535,13 @@ func deploymentInputNestedAttributes() map[string]schema.Attribute {
 			Computed:            true,
 			Default:             staticString(""),
 			MarkdownDescription: "Agent specification identifier (e.g. ubuntu-latest).",
+		},
+		"override_inputs": schema.MapAttribute{
+			Optional:            true,
+			Computed:            true,
+			ElementType:         types.StringType,
+			PlanModifiers:       []planmodifier.Map{useStateForUnknownMapModifier()},
+			MarkdownDescription: "Phase-level task input overrides (e.g. for parameterised task groups).",
 		},
 		"demands": schema.ListAttribute{
 			Optional:            true,
@@ -1553,6 +1632,77 @@ func workflowTaskNestedAttributes() map[string]schema.Attribute {
 			Computed:            true,
 			ElementType:         types.StringType,
 			MarkdownDescription: "Task-specific input values as key/value pairs.",
+		},
+		"definition_type": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticString("task"),
+			MarkdownDescription: "Task definition type (e.g. 'task', 'metaTask'). Defaults to 'task'.",
+		},
+	}
+}
+
+// gateTaskNestedAttributes returns schema attributes for a task within a gate block.
+// Mirrors workflowTaskNestedAttributes but kept separate for gate-task customisation.
+func gateTaskNestedAttributes() map[string]schema.Attribute {
+	return map[string]schema.Attribute{
+		"task_id": schema.StringAttribute{
+			Required:            true,
+			MarkdownDescription: "UUID of the gate task definition.",
+		},
+		"display_name": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticString(""),
+			MarkdownDescription: "Display name for the gate task step.",
+		},
+		"version_spec": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticString("0.*"),
+			MarkdownDescription: "Version spec for the gate task (e.g. '0.*', '1.*').",
+		},
+		"enabled": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticBool(true),
+			MarkdownDescription: "Whether the gate task is enabled.",
+		},
+		"always_run": schema.BoolAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticBool(false),
+			MarkdownDescription: "Whether the gate task always runs.",
+		},
+		"condition": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticString("succeeded()"),
+			MarkdownDescription: "Run condition expression for the gate task.",
+		},
+		"timeout_in_minutes": schema.Int64Attribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticInt64(0),
+			MarkdownDescription: "Timeout in minutes for the gate task (0 = no timeout).",
+		},
+		"retry_count_on_task_failure": schema.Int64Attribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticInt64(0),
+			MarkdownDescription: "Number of retries on gate task failure.",
+		},
+		"inputs": schema.MapAttribute{
+			Optional:            true,
+			Computed:            true,
+			ElementType:         types.StringType,
+			MarkdownDescription: "Gate task-specific input values as key/value pairs.",
+		},
+		"definition_type": schema.StringAttribute{
+			Optional:            true,
+			Computed:            true,
+			Default:             staticString("task"),
+			MarkdownDescription: "Gate task definition type (e.g. 'task', 'metaTask'). Defaults to 'task'.",
 		},
 	}
 }
@@ -2146,10 +2296,11 @@ func expandDeployPhasesFramework(ctx context.Context, list types.List) ([]interf
 // expandDeploymentInputFramework converts a deploymentInputModel to the ADO API map shape.
 func expandDeploymentInputFramework(ctx context.Context, m deploymentInputModel, phaseType string) map[string]interface{} {
 	di := map[string]interface{}{
-		"timeoutInMinutes":      int(m.TimeoutInMinutes.ValueInt64()),
-		"condition":             m.Condition.ValueString(),
-		"skipArtifactsDownload": m.SkipArtifactsDownload.ValueBool(),
-		"enableAccessToken":     m.EnableAccessToken.ValueBool(),
+		"timeoutInMinutes":          int(m.TimeoutInMinutes.ValueInt64()),
+		"jobCancelTimeoutInMinutes": int(m.JobCancelTimeoutInMinutes.ValueInt64()),
+		"condition":                 m.Condition.ValueString(),
+		"skipArtifactsDownload":     m.SkipArtifactsDownload.ValueBool(),
+		"enableAccessToken":         m.EnableAccessToken.ValueBool(),
 	}
 
 	// Only include queueId for agent-based phases.
@@ -2162,6 +2313,14 @@ func expandDeploymentInputFramework(ctx context.Context, m deploymentInputModel,
 	agentSpec := m.AgentSpecification.ValueString()
 	if agentSpec != "" {
 		di["agentSpecification"] = map[string]interface{}{"identifier": agentSpec}
+	}
+
+	// Override inputs
+	if !m.OverrideInputs.IsNull() && !m.OverrideInputs.IsUnknown() {
+		var oiMap map[string]string
+		if d := m.OverrideInputs.ElementsAs(ctx, &oiMap, false); !d.HasError() && len(oiMap) > 0 {
+			di["overrideInputs"] = oiMap
+		}
 	}
 
 	// Demands
@@ -2235,6 +2394,10 @@ func expandWorkflowTasksFramework(ctx context.Context, models []workflowTaskMode
 			}
 		}
 
+		if !m.DefinitionType.IsNull() && !m.DefinitionType.IsUnknown() && m.DefinitionType.ValueString() != "" {
+			task.DefinitionType = converter.String(m.DefinitionType.ValueString())
+		}
+
 		if !m.Inputs.IsNull() && !m.Inputs.IsUnknown() {
 			var inputMap map[string]string
 			if d := m.Inputs.ElementsAs(ctx, &inputMap, false); !d.HasError() && len(inputMap) > 0 {
@@ -2242,6 +2405,40 @@ func expandWorkflowTasksFramework(ctx context.Context, models []workflowTaskMode
 			}
 		}
 
+		tasks = append(tasks, task)
+	}
+	return tasks
+}
+
+// expandGateTasksFramework converts []gateTaskModel to []releaseapi.WorkflowTask for a gate.
+func expandGateTasksFramework(ctx context.Context, models []gateTaskModel) []releaseapi.WorkflowTask {
+	tasks := make([]releaseapi.WorkflowTask, 0, len(models))
+	for _, m := range models {
+		timeout := int(m.TimeoutInMinutes.ValueInt64())
+		retryCount := int(m.RetryCountOnTaskFailure.ValueInt64())
+		task := releaseapi.WorkflowTask{
+			Name:                    converter.String(m.DisplayName.ValueString()),
+			Version:                 converter.String(m.VersionSpec.ValueString()),
+			Enabled:                 converter.Bool(m.Enabled.ValueBool()),
+			AlwaysRun:               converter.Bool(m.AlwaysRun.ValueBool()),
+			Condition:               converter.String(m.Condition.ValueString()),
+			TimeoutInMinutes:        &timeout,
+			RetryCountOnTaskFailure: &retryCount,
+		}
+		if taskIDStr := m.TaskID.ValueString(); taskIDStr != "" {
+			if parsed, err := uuid.Parse(taskIDStr); err == nil {
+				task.TaskId = &parsed
+			}
+		}
+		if !m.DefinitionType.IsNull() && !m.DefinitionType.IsUnknown() && m.DefinitionType.ValueString() != "" {
+			task.DefinitionType = converter.String(m.DefinitionType.ValueString())
+		}
+		if !m.Inputs.IsNull() && !m.Inputs.IsUnknown() {
+			var inputMap map[string]string
+			if d := m.Inputs.ElementsAs(ctx, &inputMap, false); !d.HasError() && len(inputMap) > 0 {
+				task.Inputs = &inputMap
+			}
+		}
 		tasks = append(tasks, task)
 	}
 	return tasks
@@ -2273,12 +2470,25 @@ func expandEnvironmentOptionsFramework(ctx context.Context, list types.List) (*r
 		return nil, nil
 	}
 	m := models[0]
-	return &releaseapi.EnvironmentOptions{ //nolint:staticcheck // EmailNotificationType is the legacy field still used by ADO REST v7.1
-		EmailNotificationType:   converter.String(m.EmailNotificationType.ValueString()), //nolint:staticcheck
-		PublishDeploymentStatus: converter.Bool(m.PublishDeploymentStatus.ValueBool()),
-		BadgeEnabled:            converter.Bool(m.BadgeEnabled.ValueBool()),
-		AutoLinkWorkItems:       converter.Bool(m.AutoLinkWorkItems.ValueBool()),
-	}, nil
+	//nolint:staticcheck // deprecated ADO fields preserved for SDK v2 parity
+	opts := &releaseapi.EnvironmentOptions{
+		EmailNotificationType:        converter.String(m.EmailNotificationType.ValueString()),
+		SkipArtifactsDownload:        converter.Bool(m.SkipArtifactsDownload.ValueBool()),
+		EnableAccessToken:            converter.Bool(m.EnableAccessToken.ValueBool()),
+		PublishDeploymentStatus:      converter.Bool(m.PublishDeploymentStatus.ValueBool()),
+		BadgeEnabled:                 converter.Bool(m.BadgeEnabled.ValueBool()),
+		AutoLinkWorkItems:            converter.Bool(m.AutoLinkWorkItems.ValueBool()),
+		PullRequestDeploymentEnabled: converter.Bool(m.PullRequestDeploymentEnabled.ValueBool()),
+	}
+	if !m.TimeoutInMinutes.IsNull() && !m.TimeoutInMinutes.IsUnknown() {
+		v := int(m.TimeoutInMinutes.ValueInt64())
+		opts.TimeoutInMinutes = &v //nolint:staticcheck
+	}
+	// API rejects empty string EmailRecipients; omit blank so ADO uses its default.
+	if !m.EmailRecipients.IsNull() && !m.EmailRecipients.IsUnknown() && m.EmailRecipients.ValueString() != "" {
+		opts.EmailRecipients = converter.String(m.EmailRecipients.ValueString()) //nolint:staticcheck
+	}
+	return opts, nil
 }
 
 func expandRetentionPolicyFramework(ctx context.Context, list types.List) (*releaseapi.EnvironmentRetentionPolicy, error) {
@@ -2389,8 +2599,28 @@ func expandDeploymentGatesFramework(ctx context.Context, list types.List) (*rele
 		}
 	}
 
-	// Gate stubs — tasks are implemented in WI-2.
-	step.Gates = &[]releaseapi.ReleaseDefinitionGate{}
+	// Gates
+	if !m.Gate.IsNull() && !m.Gate.IsUnknown() {
+		var gateModels []gateModel
+		if d := m.Gate.ElementsAs(ctx, &gateModels, false); d.HasError() {
+			return nil, fmt.Errorf("decoding gate: %s", d)
+		}
+		gates := make([]releaseapi.ReleaseDefinitionGate, 0, len(gateModels))
+		for _, g := range gateModels {
+			gate := releaseapi.ReleaseDefinitionGate{}
+			if !g.Task.IsNull() && !g.Task.IsUnknown() {
+				var taskModels []gateTaskModel
+				if d := g.Task.ElementsAs(ctx, &taskModels, false); !d.HasError() && len(taskModels) > 0 {
+					wfTasks := expandGateTasksFramework(ctx, taskModels)
+					gate.Tasks = &wfTasks
+				}
+			}
+			gates = append(gates, gate)
+		}
+		step.Gates = &gates
+	} else {
+		step.Gates = &[]releaseapi.ReleaseDefinitionGate{}
+	}
 
 	return step, nil
 }
@@ -2610,15 +2840,29 @@ func flattenEnvironmentOptionsFramework(opts *releaseapi.EnvironmentOptions) (ty
 	if opts == nil {
 		return types.ListValueMust(elemType, []attr.Value{}), nil
 	}
+	//nolint:staticcheck // deprecated ADO fields preserved for SDK v2 parity
 	emailType := ""
-	if opts.EmailNotificationType != nil { //nolint:staticcheck // legacy ADO REST v7.1 field
+	if opts.EmailNotificationType != nil { //nolint:staticcheck
 		emailType = *opts.EmailNotificationType //nolint:staticcheck
 	}
+	emailRecipients := ""
+	if opts.EmailRecipients != nil { //nolint:staticcheck
+		emailRecipients = *opts.EmailRecipients //nolint:staticcheck
+	}
+	timeoutMins := int64(0)
+	if opts.TimeoutInMinutes != nil { //nolint:staticcheck
+		timeoutMins = int64(*opts.TimeoutInMinutes) //nolint:staticcheck
+	}
 	obj, diags := types.ObjectValue(environmentOptionsAttrTypes, map[string]attr.Value{
-		"email_notification_type":   types.StringValue(emailType),
-		"publish_deployment_status": types.BoolValue(converter.ToBool(opts.PublishDeploymentStatus, false)),
-		"badge_enabled":             types.BoolValue(converter.ToBool(opts.BadgeEnabled, false)),
-		"auto_link_workitems":       types.BoolValue(converter.ToBool(opts.AutoLinkWorkItems, false)),
+		"email_notification_type":                              types.StringValue(emailType),
+		"email_recipients":                                     types.StringValue(emailRecipients),
+		"skip_artifacts_download":                              types.BoolValue(converter.ToBool(opts.SkipArtifactsDownload, false)), //nolint:staticcheck
+		"timeout_in_minutes":                                   types.Int64Value(timeoutMins),
+		"enable_access_token":                                  types.BoolValue(converter.ToBool(opts.EnableAccessToken, false)), //nolint:staticcheck
+		"publish_deployment_status":                            types.BoolValue(converter.ToBool(opts.PublishDeploymentStatus, false)),
+		"badge_enabled":                                        types.BoolValue(converter.ToBool(opts.BadgeEnabled, false)),
+		"auto_link_workitems":                                  types.BoolValue(converter.ToBool(opts.AutoLinkWorkItems, false)),
+		"pull_request_deployment_enabled":                      types.BoolValue(converter.ToBool(opts.PullRequestDeploymentEnabled, false)),
 		"publish_deployment_status_to_devops_project_settings": types.BoolValue(false),
 	})
 	if diags.HasError() {
@@ -2777,9 +3021,22 @@ func flattenDeploymentGatesFramework(step *releaseapi.ReleaseDefinitionGatesStep
 	optList, d := types.ListValue(gatesOptElemType, optObjs)
 	diags.Append(d...)
 
-	// Gate stubs — tasks implemented in WI-2.
+	// Gates
 	gateElemType := types.ObjectType{AttrTypes: gateAttrTypes}
-	gateList := types.ListValueMust(gateElemType, []attr.Value{})
+	var gateObjs []attr.Value
+	if step.Gates != nil {
+		for _, g := range *step.Gates {
+			gateTaskList, d := flattenGateTasksFramework(g.Tasks)
+			diags.Append(d...)
+			gateObj, d := types.ObjectValue(gateAttrTypes, map[string]attr.Value{
+				"task": gateTaskList,
+			})
+			diags.Append(d...)
+			gateObjs = append(gateObjs, gateObj)
+		}
+	}
+	gateList, d := types.ListValue(gateElemType, gateObjs)
+	diags.Append(d...)
 
 	obj, d := types.ObjectValue(deploymentGatesAttrTypes, map[string]attr.Value{
 		"gates_options": optList,
@@ -2790,6 +3047,80 @@ func flattenDeploymentGatesFramework(step *releaseapi.ReleaseDefinitionGatesStep
 	list, d := types.ListValue(elemType, []attr.Value{obj})
 	diags.Append(d...)
 	return list, diags
+}
+
+// flattenGateTasksFramework converts *[]releaseapi.WorkflowTask (from a gate) to types.List.
+func flattenGateTasksFramework(tasks *[]releaseapi.WorkflowTask) (types.List, diag.Diagnostics) {
+	elemType := types.ObjectType{AttrTypes: gateTaskAttrTypes}
+	if tasks == nil || len(*tasks) == 0 {
+		return types.ListValueMust(elemType, []attr.Value{}), nil
+	}
+	var diags diag.Diagnostics
+	taskObjs := make([]attr.Value, 0, len(*tasks))
+	for _, t := range *tasks {
+		taskID := ""
+		if t.TaskId != nil {
+			taskID = t.TaskId.String()
+		}
+		displayName := ""
+		if t.Name != nil {
+			displayName = *t.Name
+		}
+		versionSpec := "0.*"
+		if t.Version != nil {
+			versionSpec = *t.Version
+		}
+		enabled := true
+		if t.Enabled != nil {
+			enabled = *t.Enabled
+		}
+		alwaysRun := false
+		if t.AlwaysRun != nil {
+			alwaysRun = *t.AlwaysRun
+		}
+		condition := "succeeded()"
+		if t.Condition != nil {
+			condition = *t.Condition
+		}
+		timeout := int64(0)
+		if t.TimeoutInMinutes != nil {
+			timeout = int64(*t.TimeoutInMinutes)
+		}
+		retryCount := int64(0)
+		if t.RetryCountOnTaskFailure != nil {
+			retryCount = int64(*t.RetryCountOnTaskFailure)
+		}
+		definitionType := "task"
+		if t.DefinitionType != nil && *t.DefinitionType != "" {
+			definitionType = *t.DefinitionType
+		}
+		inputsMap := map[string]attr.Value{}
+		if t.Inputs != nil {
+			for k, v := range *t.Inputs {
+				inputsMap[k] = types.StringValue(v)
+			}
+		}
+		inputsTF, d := types.MapValue(types.StringType, inputsMap)
+		diags.Append(d...)
+
+		taskObj, d := types.ObjectValue(gateTaskAttrTypes, map[string]attr.Value{
+			"task_id":                     types.StringValue(taskID),
+			"display_name":                types.StringValue(displayName),
+			"version_spec":                types.StringValue(versionSpec),
+			"enabled":                     types.BoolValue(enabled),
+			"always_run":                  types.BoolValue(alwaysRun),
+			"condition":                   types.StringValue(condition),
+			"timeout_in_minutes":          types.Int64Value(timeout),
+			"retry_count_on_task_failure": types.Int64Value(retryCount),
+			"inputs":                      inputsTF,
+			"definition_type":             types.StringValue(definitionType),
+		})
+		diags.Append(d...)
+		taskObjs = append(taskObjs, taskObj)
+	}
+	taskList, d := types.ListValue(elemType, taskObjs)
+	diags.Append(d...)
+	return taskList, diags
 }
 
 // flattenExecutionPolicyFramework converts EnvironmentExecutionPolicy to a types.List.
@@ -3061,6 +3392,10 @@ func flattenDeploymentInputFramework(_ context.Context, raw interface{}) (types.
 	if v, ok := diMap["timeoutInMinutes"].(float64); ok {
 		timeout = int64(v)
 	}
+	jobCancelTimeout := int64(1)
+	if v, ok := diMap["jobCancelTimeoutInMinutes"].(float64); ok {
+		jobCancelTimeout = int64(v)
+	}
 	skipDownload := false
 	if v, ok := diMap["skipArtifactsDownload"].(bool); ok {
 		skipDownload = v
@@ -3076,6 +3411,19 @@ func flattenDeploymentInputFramework(_ context.Context, raw interface{}) (types.
 		}
 	}
 
+	// override_inputs
+	var diags diag.Diagnostics
+	overrideInputsMap := map[string]attr.Value{}
+	if oi, ok := diMap["overrideInputs"].(map[string]interface{}); ok {
+		for k, v := range oi {
+			if s, ok := v.(string); ok {
+				overrideInputsMap[k] = types.StringValue(s)
+			}
+		}
+	}
+	overrideInputsTF, d := types.MapValue(types.StringType, overrideInputsMap)
+	diags.Append(d...)
+
 	// demands
 	var demandStrs []attr.Value
 	if demands, ok := diMap["demands"].([]interface{}); ok {
@@ -3085,7 +3433,6 @@ func flattenDeploymentInputFramework(_ context.Context, raw interface{}) (types.
 			}
 		}
 	}
-	var diags diag.Diagnostics
 	demandsList, d := types.ListValue(types.StringType, demandStrs)
 	diags.Append(d...)
 
@@ -3094,14 +3441,16 @@ func flattenDeploymentInputFramework(_ context.Context, raw interface{}) (types.
 	diags.Append(d...)
 
 	diObj, d := types.ObjectValue(deploymentInputAttrTypes, map[string]attr.Value{
-		"queue_id":                types.Int64Value(queueID),
-		"condition":               types.StringValue(condition),
-		"timeout_in_minutes":      types.Int64Value(timeout),
-		"skip_artifacts_download": types.BoolValue(skipDownload),
-		"enable_access_token":     types.BoolValue(enableToken),
-		"agent_specification":     types.StringValue(agentSpec),
-		"demands":                 demandsList,
-		"parallel_execution":      parallelExec,
+		"queue_id":                      types.Int64Value(queueID),
+		"condition":                     types.StringValue(condition),
+		"timeout_in_minutes":            types.Int64Value(timeout),
+		"job_cancel_timeout_in_minutes": types.Int64Value(jobCancelTimeout),
+		"skip_artifacts_download":       types.BoolValue(skipDownload),
+		"enable_access_token":           types.BoolValue(enableToken),
+		"agent_specification":           types.StringValue(agentSpec),
+		"override_inputs":               overrideInputsTF,
+		"demands":                       demandsList,
+		"parallel_execution":            parallelExec,
 	})
 	diags.Append(d...)
 
@@ -3231,6 +3580,12 @@ func flattenWorkflowTasksFramework(_ context.Context, raw interface{}) (types.Li
 			retryCount = int64(v)
 		}
 
+		// definition_type
+		definitionType := "task"
+		if v, ok := taskMap["definitionType"].(string); ok && v != "" {
+			definitionType = v
+		}
+
 		// inputs map
 		inputsMap := map[string]attr.Value{}
 		if inputs, ok := taskMap["inputs"].(map[string]interface{}); ok {
@@ -3253,6 +3608,7 @@ func flattenWorkflowTasksFramework(_ context.Context, raw interface{}) (types.Li
 			"timeout_in_minutes":          types.Int64Value(timeout),
 			"retry_count_on_task_failure": types.Int64Value(retryCount),
 			"inputs":                      inputsTF,
+			"definition_type":             types.StringValue(definitionType),
 		})
 		diags.Append(d...)
 		taskObjs = append(taskObjs, taskObj)

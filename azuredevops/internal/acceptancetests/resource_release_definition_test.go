@@ -1548,87 +1548,75 @@ resource "betterado_release_definition" "test" {
   name       = %[1]q
   project_id = %[2]q
 
-  stages {
+  stages = [{
     name = "Staging"
     rank = 1
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agentless job"
       rank       = 1
       phase_type = "runOnServer"
 
-      deployment_input {
+      deployment_input = [{
         timeout_in_minutes            = 0
         job_cancel_timeout_in_minutes = 1
         condition                     = "succeeded()"
+      }]
+    }]
 
-      }
-
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
 
-      }
-
-      approval_options {
+      approval_options = [{
         release_creator_can_be_approver                                 = false
         enforce_identity_revalidation                                   = false
         timeout_in_minutes                                              = 1440
         execution_order                                                 = "beforeGates"
         auto_triggered_and_previous_environment_approved_can_be_skipped = false
-
-      }
-
-    }
+      }]
+    }]
 
     # ADO requires BOTH pre- and post-deploy approvals (VS402877).
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
+    }]
 
-      }
-
-    }
-
-    pre_deployment_gates {
-      gates_options {
+    pre_deployment_gates = [{
+      gates_options = [{
         is_enabled               = true
         timeout                  = 600
         sampling_interval        = 60
         stabilization_time       = 0
         minimum_success_duration = 0
+      }]
 
-      }
-
-      gate {
-        task {
-          name    = "Query Work Items"
-          task_id = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
-          version = "0.*"
-          enabled = true
+      gate = [{
+        task = [{
+          display_name = "Query Work Items"
+          task_id      = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
+          version_spec = "0.*"
+          enabled      = true
           inputs = {
             queryId = %[3]q
           }
-        }
-
-      }
-
-    }
-
-  }
+        }]
+      }]
+    }]
+  }]
 }
 `, name, fixture.ProjectID, fixture.WorkItemQueryID)
 }
@@ -2229,7 +2217,7 @@ func TestAccReleaseDefinition_withEnvironmentSecretVariable(t *testing.T) {
 				Config: hclReleaseDefinitionWithEnvironmentSecretVariable(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					checkReleaseDefinitionExists(name),
-					resource.TestCheckResourceAttr(tfNode, "stages.0.variable.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "stages.0.variables.%", "1"),
 				),
 			},
 			{
@@ -2284,60 +2272,50 @@ resource "betterado_release_definition" "test" {
   name       = %[1]q
   project_id = %[2]q
 
-  stages {
+  stages = [{
     name = "Production"
     rank = 1
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
 
-      deployment_input {
-      }
-
-      workflow_task {
-        name                        = "Run script"
+      workflow_task = [{
+        display_name                = "Run script"
         task_id                     = "d9bafed4-0b18-4f58-968d-86655b4d2ce9"
-        version                     = "2.*"
+        version_spec                = "2.*"
         timeout_in_minutes          = 15
         retry_count_on_task_failure = 2
 
         inputs = {
           script = "echo deploy"
         }
-      }
+      }]
+    }]
 
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
+    }]
 
-      }
-
-    }
-
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
+      }]
+    }]
+  }]
 }
 `, name, fixture.ProjectID)
 }
@@ -2348,51 +2326,45 @@ resource "betterado_release_definition" "test" {
   name       = %[1]q
   project_id = %[2]q
 
-  stages {
+  stages = [{
     name = "Production"
     rank = 1
 
-    variable {
-      name      = "ENV_SECRET"
-      value     = "env-super-secret"
-      is_secret = true
+    variables = {
+      ENV_SECRET = {
+        value     = "env-super-secret"
+        is_secret = true
+      }
     }
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
+    }]
 
-    }
-
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
+    }]
 
-    }
-
-    pre_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
+      }]
+    }]
 
-      }
-
-    }
-
-    post_deploy_approval {
-      approver {
+    post_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-
-      }
-
-    }
-
-  }
+      }]
+    }]
+  }]
 }
 `, name, fixture.ProjectID)
 }
