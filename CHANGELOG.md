@@ -7,6 +7,10 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## Unreleased
 
+FEATURES:
+
+- **New Resource (framework):** `betterado_task_group` is now implemented via `terraform-plugin-framework` (`ListNestedAttribute` for `task`, `input`, and `version`). Configurations must use array-of-objects HCL syntax (`task = [{ ... }]`, `input = [{ ... }]`, `version = [{ ... }]`). Optional task-step fields (`enabled`, `timeout_in_minutes`, `retry_count_on_task_failure`, `always_run`, `inputs`) default to typed zero-values and do not produce a perpetual diff when omitted.
+
 ## [0.3.0] - 2026-06-20
 
 FEATURES:

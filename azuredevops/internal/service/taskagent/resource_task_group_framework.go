@@ -28,9 +28,11 @@ func defaultString(v string) defaults.String { return staticStringDefault{v} }
 func (d staticStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d staticStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%q`", d.value)
 }
+
 func (d staticStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }
@@ -42,9 +44,11 @@ func defaultBool(v bool) defaults.Bool { return staticBoolDefault{v} }
 func (d staticBoolDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %v", d.value)
 }
+
 func (d staticBoolDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%v`", d.value)
 }
+
 func (d staticBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(d.value)
 }
@@ -56,9 +60,11 @@ func defaultInt64(v int64) defaults.Int64 { return staticInt64Default{v} }
 func (d staticInt64Default) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %d", d.value)
 }
+
 func (d staticInt64Default) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%d`", d.value)
 }
+
 func (d staticInt64Default) DefaultInt64(_ context.Context, _ defaults.Int64Request, resp *defaults.Int64Response) {
 	resp.PlanValue = types.Int64Value(d.value)
 }
@@ -73,9 +79,11 @@ func requiresReplace() planmodifier.String { return requiresReplaceModifier{} }
 func (m requiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m requiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m requiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -94,9 +102,11 @@ func useStateForUnknown() planmodifier.String { return useStateForUnknownModifie
 func (m useStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m useStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m useStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
