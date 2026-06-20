@@ -14,14 +14,15 @@ import (
 // produces no diff (idempotency).
 func TestAccDataReleaseDefinition_ById(t *testing.T) {
 	name := testutils.GenerateResourceName()
+	fixture := SharedReleaseFixture(t)
 	tfDataNode := "data.betterado_release_definition.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclDataReleaseDefinitionById(name),
+				Config: hclDataReleaseDefinitionById(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(tfDataNode, "name",
 						"betterado_release_definition.test", "name"),
@@ -32,7 +33,7 @@ func TestAccDataReleaseDefinition_ById(t *testing.T) {
 			},
 			// Idempotency: a re-plan must produce no diff.
 			{
-				Config:             hclDataReleaseDefinitionById(name),
+				Config:             hclDataReleaseDefinitionById(name, fixture),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -46,14 +47,15 @@ func TestAccDataReleaseDefinition_ById(t *testing.T) {
 // re-plan produces no diff.
 func TestAccDataReleaseDefinition_ByName(t *testing.T) {
 	name := testutils.GenerateResourceName()
+	fixture := SharedReleaseFixture(t)
 	tfDataNode := "data.betterado_release_definition.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclDataReleaseDefinitionByName(name),
+				Config: hclDataReleaseDefinitionByName(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(tfDataNode, "id",
 						"betterado_release_definition.test", "id"),
@@ -65,7 +67,7 @@ func TestAccDataReleaseDefinition_ByName(t *testing.T) {
 			},
 			// Idempotency: a re-plan must produce no diff.
 			{
-				Config:             hclDataReleaseDefinitionByName(name),
+				Config:             hclDataReleaseDefinitionByName(name, fixture),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -78,22 +80,24 @@ func TestAccDataReleaseDefinition_ByName(t *testing.T) {
 // list data source. It asserts the list is non-empty and that a re-plan produces no diff.
 func TestAccDataReleaseDefinitions_List(t *testing.T) {
 	name := testutils.GenerateResourceName()
+	fixture := SharedReleaseFixture(t)
 	tfDataNode := "data.betterado_release_definitions.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclDataReleaseDefinitionsList(name),
+				Config: hclDataReleaseDefinitionsList(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
-					// At least the definition created in the fixture must appear.
-					resource.TestCheckResourceAttr(tfDataNode, "release_definitions.#", "1"),
+					// The list reads every definition in the (shared) project, so
+					// assert it is non-empty rather than an exact count.
+					resource.TestCheckResourceAttrSet(tfDataNode, "release_definitions.0.id"),
 				),
 			},
 			// Idempotency: a re-plan must produce no diff.
 			{
-				Config:             hclDataReleaseDefinitionsList(name),
+				Config:             hclDataReleaseDefinitionsList(name, fixture),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -105,7 +109,7 @@ func TestAccDataReleaseDefinitions_List(t *testing.T) {
 
 // hclDataReleaseDefinitionById builds a Terraform config that creates a project +
 // minimal release definition and then reads it back using release_definition_id.
-func hclDataReleaseDefinitionById(name string) string {
+func hclDataReleaseDefinitionById(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
 %s
 
@@ -113,12 +117,12 @@ data "betterado_release_definition" "test" {
   project_id            = betterado_release_definition.test.project_id
   release_definition_id = tonumber(betterado_release_definition.test.id)
 }
-`, hclReleaseDefinitionBasic(name))
+`, hclReleaseDefinitionBasic(name, fixture))
 }
 
 // hclDataReleaseDefinitionByName builds a Terraform config that creates a project +
 // minimal release definition and then reads it back using the name attribute.
-func hclDataReleaseDefinitionByName(name string) string {
+func hclDataReleaseDefinitionByName(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
 %s
 
@@ -126,17 +130,17 @@ data "betterado_release_definition" "test" {
   project_id = betterado_release_definition.test.project_id
   name       = betterado_release_definition.test.name
 }
-`, hclReleaseDefinitionBasic(name))
+`, hclReleaseDefinitionBasic(name, fixture))
 }
 
 // hclDataReleaseDefinitionsList builds a Terraform config that creates a project +
 // minimal release definition and then lists all definitions in the project.
-func hclDataReleaseDefinitionsList(name string) string {
+func hclDataReleaseDefinitionsList(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
 %s
 
 data "betterado_release_definitions" "test" {
   project_id = betterado_release_definition.test.project_id
 }
-`, hclReleaseDefinitionBasic(name))
+`, hclReleaseDefinitionBasic(name, fixture))
 }

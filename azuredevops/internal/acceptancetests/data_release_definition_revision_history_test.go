@@ -13,21 +13,22 @@ import (
 // Verifies that json_content is non-empty and that a re-plan produces no diff.
 func TestAccDataReleaseDefinitionRevision_Basic(t *testing.T) {
 	name := testutils.GenerateResourceName()
+	fixture := SharedReleaseFixture(t)
 	tfDataNode := "data.betterado_release_definition_revision.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclDataReleaseDefinitionRevision(name),
+				Config: hclDataReleaseDefinitionRevision(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfDataNode, "json_content"),
 				),
 			},
 			// Idempotency.
 			{
-				Config:             hclDataReleaseDefinitionRevision(name),
+				Config:             hclDataReleaseDefinitionRevision(name, fixture),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -40,14 +41,15 @@ func TestAccDataReleaseDefinitionRevision_Basic(t *testing.T) {
 // Verifies at least one revision entry exists and that a re-plan produces no diff.
 func TestAccDataReleaseDefinitionHistory_Basic(t *testing.T) {
 	name := testutils.GenerateResourceName()
+	fixture := SharedReleaseFixture(t)
 	tfDataNode := "data.betterado_release_definition_history.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclDataReleaseDefinitionHistory(name),
+				Config: hclDataReleaseDefinitionHistory(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					// At least one revision entry must exist after creation.
 					resource.TestCheckResourceAttrSet(tfDataNode, "revisions.#"),
@@ -56,7 +58,7 @@ func TestAccDataReleaseDefinitionHistory_Basic(t *testing.T) {
 			},
 			// Idempotency.
 			{
-				Config:             hclDataReleaseDefinitionHistory(name),
+				Config:             hclDataReleaseDefinitionHistory(name, fixture),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -64,7 +66,7 @@ func TestAccDataReleaseDefinitionHistory_Basic(t *testing.T) {
 	})
 }
 
-func hclDataReleaseDefinitionRevision(name string) string {
+func hclDataReleaseDefinitionRevision(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
 %s
 
@@ -73,10 +75,10 @@ data "betterado_release_definition_revision" "test" {
   release_definition_id = tonumber(betterado_release_definition.test.id)
   revision              = betterado_release_definition.test.revision
 }
-`, hclReleaseDefinitionBasic(name))
+`, hclReleaseDefinitionBasic(name, fixture))
 }
 
-func hclDataReleaseDefinitionHistory(name string) string {
+func hclDataReleaseDefinitionHistory(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
 %s
 
@@ -84,5 +86,5 @@ data "betterado_release_definition_history" "test" {
   project_id            = betterado_release_definition.test.project_id
   release_definition_id = tonumber(betterado_release_definition.test.id)
 }
-`, hclReleaseDefinitionBasic(name))
+`, hclReleaseDefinitionBasic(name, fixture))
 }

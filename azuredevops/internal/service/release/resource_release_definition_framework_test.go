@@ -313,7 +313,7 @@ func TestFrameworkReleaseDefinition_flattenVariables(t *testing.T) {
 		},
 	}
 
-	result, diags := flattenVariablesFramework(ctx, &apiVars)
+	result, diags := flattenVariablesFramework(ctx, &apiVars, types.MapNull(types.ObjectType{AttrTypes: variableValueAttrTypes}))
 	require.False(t, diags.HasError(), "flattenVariablesFramework returned errors: %s", diags)
 	require.False(t, result.IsNull())
 	require.False(t, result.IsUnknown())

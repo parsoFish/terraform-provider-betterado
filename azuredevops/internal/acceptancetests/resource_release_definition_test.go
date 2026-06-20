@@ -164,6 +164,7 @@ func TestAccReleaseDefinition_import(t *testing.T) {
 // TestAccReleaseDefinition_withDeploymentInput tests that deployment_input (queue_id) is correctly
 // sent to and read back from the API.
 func TestAccReleaseDefinition_withDeploymentInput(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
 	name := testutils.GenerateResourceName()
 	tfNode := "betterado_release_definition.test"
 
@@ -173,7 +174,7 @@ func TestAccReleaseDefinition_withDeploymentInput(t *testing.T) {
 		CheckDestroy:             checkReleaseDefinitionDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclReleaseDefinitionWithDeploymentInput(name),
+				Config: hclReleaseDefinitionWithDeploymentInput(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					checkReleaseDefinitionExists(name),
 					resource.TestCheckResourceAttr(tfNode, "stages.0.deploy_phase.0.deployment_input.#", "1"),
@@ -188,6 +189,7 @@ func TestAccReleaseDefinition_withDeploymentInput(t *testing.T) {
 
 // TestAccReleaseDefinition_withApprovalOptions tests approval_options on pre/post approvals.
 func TestAccReleaseDefinition_withApprovalOptions(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
 	name := testutils.GenerateResourceName()
 	tfNode := "betterado_release_definition.test"
 
@@ -197,7 +199,7 @@ func TestAccReleaseDefinition_withApprovalOptions(t *testing.T) {
 		CheckDestroy:             checkReleaseDefinitionDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclReleaseDefinitionWithApprovalOptions(name),
+				Config: hclReleaseDefinitionWithApprovalOptions(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					checkReleaseDefinitionExists(name),
 					resource.TestCheckResourceAttr(tfNode, "stages.0.pre_deploy_approval.0.approval_options.#", "1"),
@@ -212,6 +214,7 @@ func TestAccReleaseDefinition_withApprovalOptions(t *testing.T) {
 
 // TestAccReleaseDefinition_withEnvironmentOptions tests environment_options and execution_policy blocks.
 func TestAccReleaseDefinition_withEnvironmentOptions(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
 	name := testutils.GenerateResourceName()
 	tfNode := "betterado_release_definition.test"
 
@@ -221,7 +224,7 @@ func TestAccReleaseDefinition_withEnvironmentOptions(t *testing.T) {
 		CheckDestroy:             checkReleaseDefinitionDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclReleaseDefinitionWithEnvironmentOptions(name),
+				Config: hclReleaseDefinitionWithEnvironmentOptions(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					checkReleaseDefinitionExists(name),
 					resource.TestCheckResourceAttr(tfNode, "stages.0.environment_options.#", "1"),
@@ -239,6 +242,7 @@ func TestAccReleaseDefinition_withEnvironmentOptions(t *testing.T) {
 // TestAccReleaseDefinition_update tests that a release definition can be updated (triggers revision
 // increment and verifies no revision conflicts).
 func TestAccReleaseDefinition_update(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
 	name := testutils.GenerateResourceName()
 	updatedName := name + "-updated"
 	tfNode := "betterado_release_definition.test"
@@ -249,14 +253,14 @@ func TestAccReleaseDefinition_update(t *testing.T) {
 		CheckDestroy:             checkReleaseDefinitionDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclReleaseDefinitionBasic(name),
+				Config: hclReleaseDefinitionBasic(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					checkReleaseDefinitionExists(name),
 					resource.TestCheckResourceAttr(tfNode, "name", name),
 				),
 			},
 			{
-				Config: hclReleaseDefinitionBasic(updatedName),
+				Config: hclReleaseDefinitionBasic(updatedName, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					checkReleaseDefinitionExists(updatedName),
 					resource.TestCheckResourceAttr(tfNode, "name", updatedName),
@@ -283,6 +287,7 @@ func TestAccReleaseDefinition_update(t *testing.T) {
 //   - definition-level and env-level variables
 //   - idempotency (no perpetual diff) verified by ExpectNonEmptyPlan:false (default)
 func TestAccReleaseDefinition_complete(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
 	name := testutils.GenerateResourceName()
 	tfNode := "betterado_release_definition.test"
 
@@ -292,7 +297,7 @@ func TestAccReleaseDefinition_complete(t *testing.T) {
 		CheckDestroy:             checkReleaseDefinitionDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclReleaseDefinitionComplete(name),
+				Config: hclReleaseDefinitionComplete(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					// basic existence + name
 					checkReleaseDefinitionExists(name),
@@ -402,7 +407,7 @@ func TestAccReleaseDefinition_complete(t *testing.T) {
 			},
 			// AC3/WI-5: second step verifies idempotency — no diff (ExpectNonEmptyPlan: false).
 			{
-				Config:             hclReleaseDefinitionComplete(name),
+				Config:             hclReleaseDefinitionComplete(name, fixture),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -764,18 +769,16 @@ resource "betterado_release_definition" "test" {
 `, name, fixture.ProjectID)
 }
 
-// hclReleaseDefinitionBasic creates a minimal release definition with one stage.
+// hclReleaseDefinitionBasic creates a minimal release definition with one stage,
+// referencing the shared fixture project (no inline betterado_project resource).
 // Uses the default agent queue (queue_id omitted from deployment_input since it is optional).
 // retention_policy and pre_deploy_approval are included because ADO REST 7.2 requires them
 // (VS402982 / VS402877). The schema fields remain Optional — only the test HCL is updated.
-func hclReleaseDefinitionBasic(name string) string {
-	base := hclReleaseDefinitionProjectBase(name)
+func hclReleaseDefinitionBasic(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
-%s
-
 resource "betterado_release_definition" "test" {
-  name       = "%[2]s"
-  project_id = betterado_project.test.id
+  name       = %[1]q
+  project_id = %[2]q
 
   stages = [{
     name = "Production"
@@ -816,25 +819,23 @@ resource "betterado_release_definition" "test" {
     }]
   }]
 }
-`, base, name)
+`, name, fixture.ProjectID)
 }
 
 // hclReleaseDefinitionWithDeploymentInput uses data source to get a queue ID for deployment_input.
 // Falls back to the "Azure Pipelines" hosted pool (queue 4 is the default in most orgs).
 // retention_policy and pre_deploy_approval are included to satisfy ADO REST 7.2 (VS402982/VS402877).
-func hclReleaseDefinitionWithDeploymentInput(name string) string {
-	base := hclReleaseDefinitionProjectBase(name)
+// Uses the shared fixture project — no inline betterado_project resource.
+func hclReleaseDefinitionWithDeploymentInput(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
-%s
-
 data "betterado_agent_queue" "test" {
   name       = "Azure Pipelines"
-  project_id = betterado_project.test.id
+  project_id = %[2]q
 }
 
 resource "betterado_release_definition" "test" {
-  name       = "%[2]s"
-  project_id = betterado_project.test.id
+  name       = %[1]q
+  project_id = %[2]q
 
   stages = [{
     name = "Production"
@@ -882,18 +883,16 @@ resource "betterado_release_definition" "test" {
     }]
   }]
 }
-`, base, name)
+`, name, fixture.ProjectID)
 }
 
 // hclReleaseDefinitionWithApprovalOptions creates a release definition with approval_options.
-func hclReleaseDefinitionWithApprovalOptions(name string) string {
-	base := hclReleaseDefinitionProjectBase(name)
+// hclReleaseDefinitionWithApprovalOptions uses the shared fixture project — no inline betterado_project resource.
+func hclReleaseDefinitionWithApprovalOptions(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
-%s
-
 resource "betterado_release_definition" "test" {
-  name       = "%[2]s"
-  project_id = betterado_project.test.id
+  name       = %[1]q
+  project_id = %[2]q
 
   stages = [{
     name = "Production"
@@ -939,20 +938,18 @@ resource "betterado_release_definition" "test" {
     }]
   }]
 }
-`, base, name)
+`, name, fixture.ProjectID)
 }
 
 // hclReleaseDefinitionWithEnvironmentOptions creates a release definition with environment_options
 // and execution_policy blocks.
 // retention_policy and pre_deploy_approval are included to satisfy ADO REST 7.2 (VS402982/VS402877).
-func hclReleaseDefinitionWithEnvironmentOptions(name string) string {
-	base := hclReleaseDefinitionProjectBase(name)
+// Uses the shared fixture project — no inline betterado_project resource.
+func hclReleaseDefinitionWithEnvironmentOptions(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
-%s
-
 resource "betterado_release_definition" "test" {
-  name       = "%[2]s"
-  project_id = betterado_project.test.id
+  name       = %[1]q
+  project_id = %[2]q
 
   stages = [{
     name = "Production"
@@ -1005,7 +1002,7 @@ resource "betterado_release_definition" "test" {
     }]
   }]
 }
-`, base, name)
+`, name, fixture.ProjectID)
 }
 
 // hclReleaseDefinitionComplete creates an exhaustive release definition that sets a NON-DEFAULT
@@ -1020,66 +1017,28 @@ resource "betterado_release_definition" "test" {
 //   - multiConfiguration parallel_execution with multipliers
 //   - runOnServer agentless phase with a Delay workflow task
 //   - pre/post approvals with full approval_options
-//   - pre/post deployment gates with a real ServerGate task (queryWorkItems) referencing a real
-//     shared query created by betterado_workitemquery (AC3/WI-9: non-empty queryId)
+//   - pre/post deployment gates with a real ServerGate task (queryWorkItems) referencing the
+//     shared fixture's work item query (AC3/WI-9: non-empty queryId)
 //   - cd_artifact_trigger + schedule_trigger with NO branch_filter (AC1/WI-9)
 //   - non-default retention_policy
 //   - non-default environment_options and execution_policy
 //   - definition-level + environment-level variables
-//   - Build artifact referencing the git repo + build definition created in this test project
+//   - Build artifact referencing the shared fixture build definition
 //   - condition { name = "ReleaseStarted", condition_type = "event" } on first env (required by ADO
 //     when a schedule_trigger schedules release creation)
-func hclReleaseDefinitionComplete(name string) string {
+//
+// Uses the shared fixture project + build definition — no inline betterado_project resource.
+func hclReleaseDefinitionComplete(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = %[1]q
-  description        = "%[1]s-description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
-# Create a Git repository so we have a real repo for the build definition artifact.
-resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s-repo"
-  initialization {
-    init_type = "Clean"
-  }
-}
-
-# Build definition — provides the artifact source for the cd_artifact_trigger.
-resource "betterado_build_definition" "test" {
-  project_id      = betterado_project.test.id
-  name            = "%[1]s-build"
-  agent_pool_name = "Azure Pipelines"
-
-  repository {
-    repo_type   = "TfsGit"
-    repo_id     = betterado_git_repository.test.id
-    branch_name = betterado_git_repository.test.default_branch
-    yml_path    = "azure-pipelines.yml"
-  }
-}
-
-# Resolve the Azure Pipelines hosted queue for this test project.
+# Resolve the Azure Pipelines hosted queue for the fixture project.
 data "betterado_agent_queue" "test" {
   name       = "Azure Pipelines"
-  project_id = betterado_project.test.id
-}
-
-# Create a shared work-item query so the "Query Work Items" gate task has a real queryId.
-# AC3/WI-9: betterado_workitemquery creates the query under "Shared Queries".
-resource "betterado_workitemquery" "gate_query" {
-  project_id = betterado_project.test.id
-  name       = "All Work Items - Gate Check"
-  area       = "Shared Queries"
-  wiql       = "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @project ORDER BY [System.Id]"
+  project_id = %[2]q
 }
 
 resource "betterado_release_definition" "test" {
   name                = %[1]q
-  project_id          = betterado_project.test.id
+  project_id          = %[2]q
   description         = "Exhaustive acceptance test release definition"
   release_name_format = "Release-$(rev:r)"
 
@@ -1088,15 +1047,15 @@ resource "betterado_release_definition" "test" {
     MY_VAR = { value = "hello-complete" }
   }
 
-  # Build artifact — the definition_reference ties to the build definition above.
+  # Build artifact — the definition_reference ties to the shared fixture build definition.
   artifact = [{
     alias      = "_build"
     type       = "Build"
     is_primary = true
 
     definition_reference = {
-      definition = tostring(betterado_build_definition.test.id)
-      project    = betterado_project.test.id
+      definition = %[3]q
+      project    = %[2]q
     }
   }]
 
@@ -1249,7 +1208,7 @@ resource "betterado_release_definition" "test" {
           version_spec = "0.*"
           enabled      = true
           inputs = {
-            queryId = betterado_workitemquery.gate_query.id
+            queryId = %[4]q
           }
         }]
       }]
@@ -1272,7 +1231,7 @@ resource "betterado_release_definition" "test" {
           version_spec = "0.*"
           enabled      = true
           inputs = {
-            queryId = betterado_workitemquery.gate_query.id
+            queryId = %[4]q
           }
         }]
       }]
@@ -1317,7 +1276,7 @@ resource "betterado_release_definition" "test" {
     }]
   }]
 }
-`, name)
+`, name, fixture.ProjectID, fmt.Sprintf("%d", fixture.BuildDefinitionID), fixture.WorkItemQueryID)
 }
 
 // TestAccReleaseDefinition_approvalsAndGates verifies that non-default approval_options

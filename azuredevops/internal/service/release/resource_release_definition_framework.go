@@ -1293,8 +1293,9 @@ func variableValueNestedAttributes() map[string]schema.Attribute {
 		"value": schema.StringAttribute{
 			Optional:            true,
 			Computed:            true,
+			Sensitive:           true,
 			Default:             staticString(""),
-			MarkdownDescription: "Variable value.",
+			MarkdownDescription: "Variable value. Marked sensitive because secret variables are write-only (ADO never returns secret values on read).",
 		},
 		"is_secret": schema.BoolAttribute{
 			Optional:            true,
@@ -2673,9 +2674,14 @@ func flattenReleaseDefinitionFramework(ctx context.Context, def *releaseapi.Rele
 		model.Revision = types.Int64Value(int64(*def.Revision))
 	}
 
+	// Capture existing plan/prior values before overwriting — needed for
+	// secret variable preservation (ADO never returns secret values on read).
+	existingStages := model.Stages
+	existingVars := model.Variables
+
 	// Stages
 	if def.Environments != nil {
-		stagesList, d := flattenStagesFramework(ctx, *def.Environments)
+		stagesList, d := flattenStagesFramework(ctx, *def.Environments, existingStages)
 		diags.Append(d...)
 		model.Stages = stagesList
 	} else {
@@ -2683,7 +2689,7 @@ func flattenReleaseDefinitionFramework(ctx context.Context, def *releaseapi.Rele
 	}
 
 	// Definition-level variables
-	defVars, d := flattenVariablesFramework(ctx, def.Variables)
+	defVars, d := flattenVariablesFramework(ctx, def.Variables, existingVars)
 	diags.Append(d...)
 	model.Variables = defVars
 
@@ -2722,9 +2728,29 @@ func flattenReleaseDefinitionFramework(ctx context.Context, def *releaseapi.Rele
 	return diags
 }
 
-func flattenStagesFramework(ctx context.Context, envs []releaseapi.ReleaseDefinitionEnvironment) (types.List, diag.Diagnostics) {
+func flattenStagesFramework(ctx context.Context, envs []releaseapi.ReleaseDefinitionEnvironment, existingStages types.List) (types.List, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	stageObjects := make([]attr.Value, 0, len(envs))
+
+	// Build a name→existing-variables lookup from the prior/plan state so we
+	// can preserve secret variable values that ADO never returns on read.
+	existingStageVarsByName := map[string]types.Map{}
+	if !existingStages.IsNull() && !existingStages.IsUnknown() {
+		for _, stageVal := range existingStages.Elements() {
+			stageObj, ok := stageVal.(types.Object)
+			if !ok {
+				continue
+			}
+			attrs := stageObj.Attributes()
+			nameAttr, ok := attrs["name"].(types.String)
+			if !ok || nameAttr.IsNull() || nameAttr.IsUnknown() {
+				continue
+			}
+			if varsAttr, ok := attrs["variables"].(types.Map); ok {
+				existingStageVarsByName[nameAttr.ValueString()] = varsAttr
+			}
+		}
+	}
 
 	for _, env := range envs {
 		// conditions
@@ -2757,8 +2783,13 @@ func flattenStagesFramework(ctx context.Context, envs []releaseapi.ReleaseDefini
 		deployPhases, d := flattenDeployPhasesFramework(ctx, env.DeployPhases)
 		diags.Append(d...)
 
-		// stage-level variables
-		stageVars, d := flattenVariablesFramework(ctx, env.Variables)
+		// stage-level variables — pass existing stage vars for secret preservation
+		stageName := ""
+		if env.Name != nil {
+			stageName = *env.Name
+		}
+		existingStageVars := existingStageVarsByName[stageName] // zero value (null map) if not found
+		stageVars, d := flattenVariablesFramework(ctx, env.Variables, existingStageVars)
 		diags.Append(d...)
 
 		// stage-level variable_groups
@@ -3705,20 +3736,38 @@ func expandVariablesFramework(ctx context.Context, m types.Map) (*map[string]rel
 
 // flattenVariablesFramework converts *map[string]releaseapi.ConfigurationVariableValue into a
 // types.Map (MapNestedAttribute).
-func flattenVariablesFramework(ctx context.Context, vars *map[string]releaseapi.ConfigurationVariableValue) (types.Map, diag.Diagnostics) {
+//
+// existingVars is the prior/plan-time map (before being overwritten by this call).
+// ADO never returns secret variable values; when is_secret=true and the API returns
+// an empty value, we preserve the existing value from existingVars so the provider
+// does not produce an inconsistent result (was <secret>, now "").
+func flattenVariablesFramework(ctx context.Context, vars *map[string]releaseapi.ConfigurationVariableValue, existingVars types.Map) (types.Map, diag.Diagnostics) {
 	elemType := types.ObjectType{AttrTypes: variableValueAttrTypes}
-	mapType := types.MapType{ElemType: elemType}
 	if vars == nil || len(*vars) == 0 {
 		empty, d := types.MapValue(elemType, map[string]attr.Value{})
 		return empty, d
 	}
-	_ = mapType
+
+	// Build a lookup of existing variable values keyed by variable name.
+	existingValsByName := map[string]string{}
+	if !existingVars.IsNull() && !existingVars.IsUnknown() {
+		for k, v := range existingVars.Elements() {
+			obj, ok := v.(types.Object)
+			if !ok {
+				continue
+			}
+			if valAttr, ok := obj.Attributes()["value"].(types.String); ok && !valAttr.IsNull() && !valAttr.IsUnknown() {
+				existingValsByName[k] = valAttr.ValueString()
+			}
+		}
+	}
+
 	var diags diag.Diagnostics
 	objs := make(map[string]attr.Value, len(*vars))
 	for name, v := range *vars {
-		val := ""
+		apiVal := ""
 		if v.Value != nil {
-			val = *v.Value
+			apiVal = *v.Value
 		}
 		isSecret := false
 		if v.IsSecret != nil {
@@ -3727,6 +3776,14 @@ func flattenVariablesFramework(ctx context.Context, vars *map[string]releaseapi.
 		allowOverride := false
 		if v.AllowOverride != nil {
 			allowOverride = *v.AllowOverride
+		}
+		// Secret variables: ADO returns an empty value on read. Preserve the
+		// prior/plan value so the provider does not produce an inconsistent result.
+		val := apiVal
+		if isSecret && apiVal == "" {
+			if existingVal, ok := existingValsByName[name]; ok {
+				val = existingVal
+			}
 		}
 		obj, d := types.ObjectValue(variableValueAttrTypes, map[string]attr.Value{
 			"value":          types.StringValue(val),
