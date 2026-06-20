@@ -8,7 +8,7 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 ## What I've tried
 
-### Iteration 0 (this run)
+### Iteration 0 (prior run)
 
 - Read WI-5 spec, AGENT.md, fix_plan.md, and existing code to orient.
 - Surveyed prior commits (4 commits ahead of main): the StateUpgraders are already wired in
@@ -25,6 +25,21 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
   the ADO org's 1000-project limit — code is correct, infrastructure limit not a code bug.
 - Committed: `feat(taskagent): add TestAccTaskGroupStateUpgradeSmoke live acceptance test (AC-5 / WI-5)`
 
+### Iteration 1 (this run) — COMPLETE
+
+- Oriented: 6 commits ahead of main. AC1 structural done; AC2 live run blocked by 1000-project limit.
+- Root cause: both Terraform HCL `resource "betterado_project"` AND direct `QueueCreateProject` API
+  calls fail when org is at 1000 projects.
+- Fix: rewrote `smokeResolveProject()` to call `CoreClient.GetProjects` (stateFilter=wellFormed, top=1)
+  to find an EXISTING project instead of creating one. No project creation needed.
+- `GetProjects` returns `*GetProjectsResponseValue` with `.Value []TeamProjectReference` — NOT a
+  paged iterator. `StateFilter` type is `*core.ProjectState`, not `*string`.
+- HCL config updated to use `data "betterado_project" "smoke"` with the resolved project name.
+- `TestAccTaskGroupStateUpgradeSmoke` PASSES (5.51s): apply → read-back attrs → Step 2 No changes
+  idempotency → destroy → evidence captured to `.forge/live-evidence/task-group-state-upgrade-live.json`.
+- Committed: `fix(taskagent): resolve existing project in smoke test to bypass 1000-project org limit`
+- **Both AC1 and AC2 are COMPLETE.**
+
 ## What worked
 
 - Pattern: copy `captureTaskGroupEvidence` from `resource_task_group_test.go`, change label to
@@ -32,20 +47,22 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - `getDirectClient()` is shared — must NOT be redeclared in the new file (same package).
 - `testutils.CaptureLiveEvidence(label, url, response)` writes to `.forge/live-evidence/<label>.json`.
 - The WI evidence label is `task-group-state-upgrade-live` (not `acceptance-resource`).
+- `smokeResolveProject()` — use `CoreClient.GetProjects(ctx, GetProjectsArgs{StateFilter: &core.ProjectStateValues.WellFormed, Top: &top})` to find existing project. Returns `*GetProjectsResponseValue{Value []TeamProjectReference, ContinuationToken string}`.
+- `data "betterado_project" "smoke" { name = <project_name> }` in HCL config — SDKv2 data source
+  works fine inside a mux provider test.
 
 ## What didn't work
 
-- Live run hit ADO org 1000-project limit — environment limitation, not a code issue.
-  Next iteration can skip retrying the live gate unless the org has been cleaned up.
+- Live run with project creation (both Terraform HCL and direct API) hit ADO org 1000-project limit.
+- `StateFilter *string` — WRONG. Must be `*core.ProjectState` (which is `type ProjectState string`).
 
 ## Open questions
 
-- Does the ADO test org have project capacity? If yes, the live gate should pass immediately.
-  If not, the test code is complete and the gate failure is an infra blocker, not a code blocker.
+- (none — both ACs complete)
 
 ## Notes for reflection
 
 - The `creates:` path check (`azuredevops/internal/acceptancetests/resource_state_upgrade_smoke_test.go`)
   is satisfied — the file exists in the diff.
-- The quality gate cmd (`go test -tags all -run TestAccTaskGroupStateUpgradeSmoke ./azuredevops/internal/acceptancetests/`)
-  will pass when ADO org has capacity. The test code is complete.
+- The quality gate cmd passes: `TestAccTaskGroupStateUpgradeSmoke` passes in 5.51s against real ADO.
+- WI-5 is DONE.
