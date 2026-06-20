@@ -7,6 +7,17 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-19
+
+### Added
+
+- `betterado_release_definition` migrated to terraform-plugin-framework; `stages` attribute
+  replaces `environment` (breaking change); `variables` now use map syntax; full CRUD + import
+  + idempotency proven by live TF_ACC acceptance test (`TestAccReleaseDefinition_basic`).
+- Framework provider `Configure()` now wires an `*client.AggregatedClient` (PAT auth via
+  AZDO_ORG_SERVICE_URL / AZDO_PERSONAL_ACCESS_TOKEN) so framework resources can call ADO REST APIs.
+- Framework provider `Schema()` mirrors all SDKv2 provider attributes for mux compatibility.
+
 ## [0.4.0] - 2026-06-19
 
 ENHANCEMENTS:

@@ -55,7 +55,6 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_project_pipeline_settings",
 		"betterado_project_tags",
 		"betterado_release_definition_permissions",
-		"betterado_release_definition",
 		"betterado_release_folder",
 		"betterado_repository_policy_author_email_pattern",
 		"betterado_repository_policy_case_enforcement",

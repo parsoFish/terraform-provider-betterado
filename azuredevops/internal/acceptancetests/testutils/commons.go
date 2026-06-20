@@ -1,11 +1,17 @@
 package testutils
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
+	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -35,6 +41,34 @@ func GetProviderFactories() map[string]func() (*schema.Provider, error) {
 func GetProviders() map[string]*schema.Provider {
 	return map[string]*schema.Provider{
 		"betterado": GetProvider(),
+	}
+}
+
+// GetMuxProviderFactories returns a ProtoV6ProviderFactories map that serves the
+// full betterado mux provider (SDKv2 resources + framework resources combined).
+// Use this instead of GetProviders() / Providers in acceptance tests that exercise
+// terraform-plugin-framework resources such as betterado_release_definition.
+func GetMuxProviderFactories() map[string]func() (tfprotov6.ProviderServer, error) {
+	return map[string]func() (tfprotov6.ProviderServer, error){
+		"betterado": func() (tfprotov6.ProviderServer, error) {
+			ctx := context.Background()
+			// Wrap the SDKv2 provider at protocol 6 (same as main.go).
+			upgradedSdkv2, err := tf5to6server.UpgradeServer(ctx, func() tfprotov5.ProviderServer {
+				p := azuredevops.Provider()
+				return schema.NewGRPCProviderServer(p)
+			})
+			if err != nil {
+				return nil, err
+			}
+			mux, err := tf6muxserver.NewMuxServer(ctx,
+				func() tfprotov6.ProviderServer { return upgradedSdkv2 },
+				providerserver.NewProtocol6(azuredevops.NewFrameworkProvider()),
+			)
+			if err != nil {
+				return nil, err
+			}
+			return mux.ProviderServer(), nil
+		},
 	}
 }
 
