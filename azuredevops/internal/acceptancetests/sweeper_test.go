@@ -35,6 +35,10 @@ var keepProjects = map[string]bool{
 	"Ohana":                   true,
 	"PublicProjects":          true,
 	"betterado-standing-demo": true,
+	// The persistent shared release-fixture project is reused across runs and must
+	// NEVER be reaped — reaping it would soft-delete it (28-day retention, counts
+	// toward the 1000-project cap) and force a recreate, reintroducing the leak.
+	SharedFixtureProjectName: true,
 }
 
 // isFixtureProject reports whether a project name is an acceptance-test leftover

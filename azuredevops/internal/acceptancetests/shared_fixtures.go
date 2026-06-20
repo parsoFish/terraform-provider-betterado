@@ -96,20 +96,16 @@ func SharedReleaseFixture(t *testing.T) SharedFixtureResult {
 
 	name := testutils.GenerateResourceName()
 
-	// ── 1. Create project ────────────────────────────────────────────────────
-	project := createFixtureProject(t, clients, name)
+	// ── 1. Resolve (or create once) the PERSISTENT shared project ────────────
+	// The project is reused across runs and never deleted — see
+	// SharedFixtureProjectName. Only the per-run sub-resources below are torn down.
+	project := resolveOrCreateFixtureProject(t, clients)
 	projectID := project.Id.String()
-
-	t.Cleanup(func() {
-		if err := deleteFixtureProject(clients, projectID); err != nil {
-			t.Logf("SharedReleaseFixture cleanup: failed to delete project %s: %v", projectID, err)
-		}
-	})
 
 	// ── 2. Create Git repository ─────────────────────────────────────────────
 	repo := createFixtureRepo(t, clients, projectID, name)
 	repoID := repo.Id.String()
-	// The repo is deleted as part of project deletion; register anyway for safety.
+	// The project persists, so the per-run repo MUST be torn down explicitly.
 	t.Cleanup(func() {
 		repoUUID, err := uuid.Parse(repoID)
 		if err != nil {
@@ -301,8 +297,32 @@ func gatesStep(queryID string) *releaseapi.ReleaseDefinitionGatesStep {
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-func createFixtureProject(t *testing.T, clients *client.AggregatedClient, name string) *core.TeamProject {
+// SharedFixtureProjectName is the single, PERSISTENT ADO project all release
+// acceptance fixtures share. It is created once (if absent) and REUSED across
+// runs, and NEVER deleted — ADO soft-deletes projects (28-day retention) and
+// soft-deleted projects count toward the org's 1000-project cap, so creating +
+// deleting a fresh project per run fills the recycle bin and eventually blocks
+// all project creation org-wide (see brain theme
+// 2026-06-20-ado-org-project-limit-blocks-test-creates). Per-run sub-resources
+// (repo, build def, variable groups, release def, work-item query) are still
+// created with unique names and torn down in t.Cleanup; only the project
+// persists. Allowlisted in the sweeper (keepProjects) so it is never reaped; the
+// name is intentionally NOT the test-acc-* pattern.
+const SharedFixtureProjectName = "betterado-acc-shared-fixture"
+
+// resolveOrCreateFixtureProject returns the shared persistent fixture project,
+// creating it once if it does not yet exist. It NEVER deletes the project — that
+// is the whole point (see SharedFixtureProjectName). Creating it needs one free
+// project slot in the org; once it exists every later run reuses it.
+func resolveOrCreateFixtureProject(t *testing.T, clients *client.AggregatedClient) *core.TeamProject {
 	t.Helper()
+
+	// Reuse the persistent project if it already exists.
+	if existing, err := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
+		ProjectId: converter.String(SharedFixtureProjectName),
+	}); err == nil && existing != nil && existing.Id != nil {
+		return existing
+	}
 
 	// Look up the "Agile" process template ID.
 	processes, err := clients.CoreClient.GetProcesses(clients.Ctx, core.GetProcessesArgs{})
@@ -323,8 +343,8 @@ func createFixtureProject(t *testing.T, clients *client.AggregatedClient, name s
 	visibility := core.ProjectVisibilityValues.Private
 	vcType := "Git"
 	project := &core.TeamProject{
-		Name:        converter.String(name),
-		Description: converter.String(name + "-shared-fixture"),
+		Name:        converter.String(SharedFixtureProjectName),
+		Description: converter.String("Persistent shared fixture project for betterado release acceptance tests — do not delete."),
 		Visibility:  &visibility,
 		Capabilities: &map[string]map[string]string{
 			"versioncontrol": {
@@ -375,7 +395,7 @@ func createFixtureProject(t *testing.T, clients *client.AggregatedClient, name s
 
 	// Fetch the created project by name to obtain its UUID.
 	created, err := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
-		ProjectId: &name,
+		ProjectId: converter.String(SharedFixtureProjectName),
 	})
 	if err != nil {
 		t.Fatalf("SharedReleaseFixture: GetProject after create: %v", err)
