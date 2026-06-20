@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
@@ -27,8 +28,98 @@ func (p *BetteradoFrameworkProvider) Metadata(_ context.Context, _ provider.Meta
 	resp.TypeName = "azuredevops"
 }
 
+// Schema mirrors every attribute from the SDKv2 provider schema exactly.
+// The tf6muxserver mux requires both providers to expose an identical schema;
+// any mismatch causes "Invalid Provider Server Combination" at plan time.
+// This schema is intentionally read-only here — Configure() reads credentials
+// from env vars directly; the SDKv2 provider handles the actual HCL block.
 func (p *BetteradoFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
-	resp.Schema = schema.Schema{}
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"org_service_url": schema.StringAttribute{
+				Optional:    true,
+				Description: "The url of the Azure DevOps instance which should be used.",
+			},
+			"personal_access_token": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "The personal access token which should be used.",
+			},
+			"client_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "The service principal client id which should be used for AAD auth.",
+			},
+			"client_id_file_path": schema.StringAttribute{
+				Optional:    true,
+				Description: "The path to a file containing the Client ID which should be used.",
+			},
+			"tenant_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "The service principal tenant id which should be used for AAD auth.",
+			},
+			"auxiliary_tenant_ids": schema.ListAttribute{
+				Optional:    true,
+				ElementType: types.StringType,
+				Description: "List of auxiliary Tenant IDs required for multi-tenancy and cross-tenant scenarios.",
+			},
+			"client_certificate_path": schema.StringAttribute{
+				Optional:    true,
+				Description: "Path to a certificate to use to authenticate to the service principal.",
+			},
+			"client_certificate": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Base64 encoded certificate to use to authenticate to the service principal.",
+			},
+			"client_certificate_password": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Password for a client certificate password.",
+			},
+			"client_secret": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "Client secret for authenticating to  a service principal.",
+			},
+			"client_secret_path": schema.StringAttribute{
+				Optional:    true,
+				Description: "Path to a file containing a client secret for authenticating to  a service principal.",
+			},
+			"oidc_request_token": schema.StringAttribute{
+				Optional:    true,
+				Description: "The bearer token for the request to the OIDC provider. For use when authenticating as a Service Principal using OpenID Connect.",
+			},
+			"oidc_request_url": schema.StringAttribute{
+				Optional:    true,
+				Description: "The URL for the OIDC provider from which to request an ID token. For use when authenticating as a Service Principal using OpenID Connect.",
+			},
+			"oidc_token": schema.StringAttribute{
+				Optional:    true,
+				Sensitive:   true,
+				Description: "OIDC token to authenticate as a service principal.",
+			},
+			"oidc_token_file_path": schema.StringAttribute{
+				Optional:    true,
+				Description: "OIDC token from file to authenticate as a service principal.",
+			},
+			"oidc_azure_service_connection_id": schema.StringAttribute{
+				Optional:    true,
+				Description: "The Azure Pipelines Service Connection ID to use for authentication.",
+			},
+			"use_oidc": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Use an OIDC token to authenticate to a service principal. Defaults to `false`.",
+			},
+			"use_cli": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Use Azure CLI to authenticate. Defaults to `true`.",
+			},
+			"use_msi": schema.BoolAttribute{
+				Optional:    true,
+				Description: "Use an Azure Managed Service Identity. Defaults to `false`.",
+			},
+		},
+	}
 }
 
 // Configure creates the AggregatedClient from environment variables and stores
