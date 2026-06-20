@@ -15,6 +15,7 @@
 - [x] CHANGELOG.md — add DRAFT entry under ## Unreleased
 - [x] golangci-lint (gofumpt) — fix trailing newline issue in resource_task_group_framework.go
 - [x] terrafmt check — test file Terraform blocks are correctly formatted
-- [ ] AC1: Live gate — TF_ACC=1 go test -tags all -run TestAccTaskGroup_basic passes + evidence captured
-- [ ] AC2: Idempotency — no perpetual diff on second plan (omitted optional fields)
-- [ ] AC3: TF_ACC=1 go test -tags all -run TestAccTaskGroup_withGapFields passes + idempotency
+- [x] Framework provider Schema() — mirror SDKv2 provider schema in framework provider (mux parity)
+- [x] AC1: Live gate — TF_ACC=1 go test -tags all -run TestAccTaskGroup_basic PASSED (23.67s) + evidence captured to .forge/live-evidence/acceptance-resource.json
+- [x] AC2: Idempotency — no perpetual diff on second plan — PASSED (Step 2/2 PlanOnly:true ExpectNonEmptyPlan:false)
+- [x] AC3: TF_ACC=1 go test -tags all -run TestAccTaskGroup_withGapFields PASSED (23.40s) + idempotency

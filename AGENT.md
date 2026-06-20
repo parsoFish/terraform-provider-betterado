@@ -73,8 +73,57 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - Will the live acceptance test expose any idempotency diffs? The framework resource has defaults on all optional task/input fields — if ADO returns different values than the defaults, the second plan will show a diff. The schema uses `Default:` values for omitted fields so this should be fine.
 - The framework provider's `Configure()` only handles PAT auth. If ADO auth is via AAD tokens, the framework provider won't be able to build a client. This is acceptable for the current scope (PAT is the standard for acceptance tests) but worth noting for future AAD support.
 
+### Iteration 3
+
+**Goal:** Fix the live acceptance gate (TF_ACC=1) — was failing with "Invalid Provider Server Combination".
+
+**Root cause:** `tf6muxserver.NewMuxServer` requires **both** muxed providers to expose **identical** schemas at the protocol level. The SDKv2 provider (upgraded to proto-v6 via `tf5to6server`) had 18 provider attributes (`org_service_url`, `personal_access_token`, `client_id`, etc.); the framework provider had `schema.Schema{}` (empty). The mux rejected this at plan load time.
+
+**Fix:** Added all 18 SDKv2 provider attributes to the framework provider's `Schema()` method as matching framework attribute types:
+- `schema.TypeString` → `schema.StringAttribute{}`
+- `schema.TypeBool` → `schema.BoolAttribute{}`
+- `schema.TypeList` with `Elem: schema.TypeString` → `schema.ListAttribute{ElementType: types.StringType}`
+
+The `Sensitive: true` flag was preserved for the same fields as SDKv2 (`personal_access_token`, `client_certificate`, `client_certificate_password`, `client_secret`, `oidc_token`).
+
+**Results:**
+- `TestAccTaskGroup_basic`: PASS (23.67s) — create, read-back assertions, idempotency (no diff on plan-only step), destroy.
+- `TestAccTaskGroup_withGapFields`: PASS (23.40s) — same cycle including gap fields.
+- Live evidence captured to `.forge/live-evidence/acceptance-resource.json` (label `acceptance-resource` per project contract).
+
+**Quality gates:**
+- `go build -tags all ./...` — PASS
+- `go test -tags all -count=1 ./azuredevops/internal/service/taskagent/ ./azuredevops/internal/provider/` — PASS
+- `golangci-lint run ./azuredevops/internal/provider/...` — 0 issues
+- `terrafmt diff -c -q -f resource_task_group_test.go` — PASS
+- `TF_ACC=1 go test -tags all -run TestAccTaskGroup_basic` — PASS
+- `TF_ACC=1 go test -tags all -run TestAccTaskGroup_withGapFields` — PASS
+
+**All WI-3 ACs are complete.**
+
+## What worked
+
+- `azuredevops.NewAuthProviderPAT(pat)` is the correct PAT auth provider constructor (used elsewhere in the codebase: sweeper_test.go, shared_fixtures.go, provider.go)
+- `tf5to6server.UpgradeServer(ctx, func() tfprotov5.ProviderServer { return schema.NewGRPCProviderServer(sdkv2Provider) })` is the correct signature (matches main.go usage)
+- Framework `ListNestedAttribute` requires array HCL syntax `attr = [{ field = value }]`, NOT block syntax `attr { field = value }`
+- `resp.ResourceData = agg` in framework provider `Configure()` flows to `req.ProviderData` in resource `Configure()` calls
+- `getDirectClient()` from env vars works regardless of whether the SDKv2 singleton is wired
+- `gofumpt -w <file>` fixes gofumpt issues in-place (separate tool from gofmt; golangci-lint uses gofumpt)
+- **Mux schema parity**: `tf6muxserver` compares provider schemas at the tftypes level — framework and SDKv2 must have the same attribute names, types, and sensitivity flags. The framework schema `Schema()` must mirror the SDKv2 `Schema:` map exactly.
+
+## What didn't work
+
+- `make test` runs `go test -v ./...` which includes all 600+ packages and takes too long without TF_ACC — use targeted package tests instead
+- Empty `schema.Schema{}` in framework provider breaks the mux — must mirror the SDKv2 schema.
+
+## Open questions
+
+- ~~Will the live acceptance test expose any idempotency diffs?~~ Resolved: No diffs. All optional fields with defaults are handled correctly.
+- The framework provider's `Configure()` only handles PAT auth. If ADO auth is via AAD tokens, the framework provider won't be able to build a client. Acceptable for current scope.
+
 ## Notes for reflection
 
 - The mux provider factory pattern (`GetMuxedProviderFactories`) should probably live in testutils as a general utility, not per-test. Done: it's in `testutils/mux_provider.go`.
 - The framework provider needs a real `Configure()` implementation — the no-op stub was always going to be a problem for live tests. Fixed.
-- All standing acceptance criteria from the WI spec are now satisfied at the code level: array HCL syntax, framework resource, docs current, examples updated, CHANGELOG entry, lint clean, terrafmt clean. The live ADO gate is the only remaining item and that's for the orchestrator to validate.
+- **Key lesson:** When muxing SDKv2 + framework providers, the framework provider's `Schema()` must return an identical schema to the SDKv2 provider's schema. This is a non-obvious requirement of `tf6muxserver` — it validates schema identity at mux creation time during the test's pre-plan phase.
+- All WI-3 ACs are now satisfied: array HCL syntax ✓, framework resource ✓, docs current ✓, examples updated ✓, CHANGELOG entry ✓, lint clean ✓, terrafmt clean ✓, live ADO gate passing ✓, idempotency ✓, evidence captured ✓.
