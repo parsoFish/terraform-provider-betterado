@@ -67,15 +67,12 @@ func TestAccTaskGroup_basic(t *testing.T) {
 
 func hclTaskGroupBasic(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_task_group" "test" {
-  project_id    = betterado_project.test.id
+  project_id    = data.betterado_project.test.id
   name          = "%[1]s"
   friendly_name = "%[1]s"
   description   = "Acceptance test task group"
@@ -99,7 +96,7 @@ resource "betterado_task_group" "test" {
     task_version = "2.*"
   }]
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 func TestAccTaskGroup_withGapFields(t *testing.T) {
@@ -138,15 +135,12 @@ func TestAccTaskGroup_withGapFields(t *testing.T) {
 
 func hclTaskGroupWithGapFields(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_task_group" "test" {
-  project_id    = betterado_project.test.id
+  project_id    = data.betterado_project.test.id
   name          = "%[1]s"
   friendly_name = "%[1]s"
   description   = "Gap-fields acceptance test"
@@ -174,7 +168,7 @@ resource "betterado_task_group" "test" {
     task_version = "2.*"
   }]
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 func checkTaskGroupDestroyed(s *terraform.State) error {

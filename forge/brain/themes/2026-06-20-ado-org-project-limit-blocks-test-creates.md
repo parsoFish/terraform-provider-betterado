@@ -55,6 +55,20 @@ Rewrote `smokeResolveProject()` to call `CoreClient.GetProjects(ctx, core.GetPro
 
 Any live acceptance test in this project that needs a project context MUST use `data "betterado_project"` (existing project) or resolve via `GetProjects`. NEVER create a project in TF_ACC tests against this org.
 
+## The shared project (2026-06-20)
+
+`betterado-standing-demo` is now the single shared project for BOTH the standing
+demo and live acceptance tests. `SharedReleaseFixture` resolves it (const
+`SharedFixtureProjectName`); the task_group tests reference it via
+`data "betterado_project" { name = SharedFixtureProjectName }`. It is reused, never
+deleted, and allowlisted in the sweeper's `keepProjects`. This lets live acceptance
+run **immediately** despite the org sitting at the cap (no project creation needed)
+and stops the recycle-bin leak going forward. Per-run sub-resources (repo, build
+def, var groups, release def, task group, WIQ) use unique `test-acc-*` names + are
+torn down; they never touch the standing-demo's own resources. `TestAccTaskGroup_basic`
++ `_withGapFields` pass green live against it; `TestAccReleaseDefinition_basic`
+reaches live but is RED on [[2026-06-20-release-definition-revision-idempotency]].
+
 ## Sources
 
 - `_logs/2026-06-20T04-10-33_INIT-2026-06-19-framework-state-upgraders/events.jsonl` (EV_mqlvggs7_v5gozlly gate.fail, EV_mqlvrcxv_37u4bcjs gate.pass)
