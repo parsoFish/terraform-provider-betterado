@@ -662,18 +662,6 @@ func getReleaseDefinitionFromResource(res *terraform.ResourceState) (*release.Re
 
 // --- HCL templates ---
 
-func hclReleaseDefinitionProjectBase(name string) string {
-	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "%[1]s-description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-`, name)
-}
-
 // hclReleaseDefinitionBasicFixture creates a minimal release definition with one stage,
 // referencing a fixture-supplied project ID directly (no inline betterado_project block).
 // The fixture (from SharedReleaseFixture / WI-1) owns and cleans up the project, repo,
