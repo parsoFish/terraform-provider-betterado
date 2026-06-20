@@ -154,7 +154,7 @@
     <span>project <strong>terraform-provider-betterado</strong></span>
     <span>before <code>main</code> → after <code>INIT-2026-06-19-framework-task-group</code></span>
     <span>branch <code>INIT-2026-06-19-framework-task-group</code></span>
-    <span>generated 2026-06-20T01:48:51.483Z</span>
+    <span>generated 2026-06-20T01:52:13.113Z</span>
   </div>
   <p class="essence">betterado_task_group is now implemented via terraform-plugin-framework instead of Plugin SDK v2. The task, input, and version blocks are now list-of-object attributes using array-of-objects HCL syntax (task = [{ ... }]). Typed defaults on optional fields eliminate perpetual-diff noise when fields like enabled, timeout_in_minutes, always_run, or inputs are omitted. Proven by live TF_ACC acceptance tests against a real Azure DevOps organisation with REST read-back evidence.</p>
 </header>
@@ -561,49 +561,49 @@
           <span class="diff-stat-count muted">+1 -1</span>
         </div>
       <div class="diff-stat-row">
-          <code class="diff-stat-path">azuredevops/internal/acceptancetests/data_task_group_test.go</code>
+          <code class="diff-stat-path">.../acceptancetests/data_task_group_test.go</code>
           <div class="diff-stat-bars">
             <span class="diff-bar-ins" style="width:5.0%"></span><span class="diff-bar-del" style="width:5.0%"></span>
           </div>
           <span class="diff-stat-count muted">+1 -1</span>
         </div>
       <div class="diff-stat-row">
-          <code class="diff-stat-path">azuredevops/internal/acceptancetests/resource_task_group_test.go</code>
+          <code class="diff-stat-path">.../acceptancetests/resource_task_group_test.go</code>
           <div class="diff-stat-bars">
             <span class="diff-bar-ins" style="width:5.0%"></span><span class="diff-bar-del" style="width:5.0%"></span>
           </div>
           <span class="diff-stat-count muted">+1 -1</span>
         </div>
       <div class="diff-stat-row">
-          <code class="diff-stat-path">azuredevops/internal/acceptancetests/testutils/mux_provider.go</code>
+          <code class="diff-stat-path">.../acceptancetests/testutils/mux_provider.go</code>
           <div class="diff-stat-bars">
             <span class="diff-bar-ins" style="width:5.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
           </div>
           <span class="diff-stat-count muted">+1</span>
         </div>
       <div class="diff-stat-row">
-          <code class="diff-stat-path">azuredevops/internal/provider/framework_provider.go</code>
+          <code class="diff-stat-path">.../internal/provider/framework_provider.go</code>
           <div class="diff-stat-bars">
             <span class="diff-bar-ins" style="width:10.0%"></span><span class="diff-bar-del" style="width:5.0%"></span>
           </div>
           <span class="diff-stat-count muted">+2 -1</span>
         </div>
       <div class="diff-stat-row">
-          <code class="diff-stat-path">azuredevops/internal/provider/framework_provider_test.go</code>
+          <code class="diff-stat-path">.../internal/provider/framework_provider_test.go</code>
           <div class="diff-stat-bars">
             <span class="diff-bar-ins" style="width:5.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
           </div>
           <span class="diff-stat-count muted">+1</span>
         </div>
       <div class="diff-stat-row">
-          <code class="diff-stat-path">azuredevops/internal/service/taskagent/resource_task_group_framework.go</code>
+          <code class="diff-stat-path">.../taskagent/resource_task_group_framework.go</code>
           <div class="diff-stat-bars">
             <span class="diff-bar-ins" style="width:100.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
           </div>
           <span class="diff-stat-count muted">+20</span>
         </div>
       <div class="diff-stat-row">
-          <code class="diff-stat-path">azuredevops/internal/service/taskagent/resource_task_group_framework_test.go</code>
+          <code class="diff-stat-path">.../resource_task_group_framework_test.go</code>
           <div class="diff-stat-bars">
             <span class="diff-bar-ins" style="width:10.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
           </div>
@@ -645,53 +645,53 @@
           <span class="diff-stat-count muted">+1 -1</span>
         </div>
       <div class="diff-stat-row">
-          <code class="diff-stat-path">examples/resources/betterado_task_group/resource.tf</code>
+          <code class="diff-stat-path">.../resources/betterado_task_group/resource.tf</code>
           <div class="diff-stat-bars">
             <span class="diff-bar-ins" style="width:5.0%"></span><span class="diff-bar-del" style="width:5.0%"></span>
           </div>
           <span class="diff-stat-count muted">+1 -1</span>
         </div>
       <div class="diff-stat-row">
-          <code class="diff-stat-path">forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.html</code>
+          <code class="diff-stat-path">.../demo/DEMO.html</code>
           <div class="diff-stat-bars">
-            <span class="diff-bar-ins" style="width:55.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
+            <span class="diff-bar-ins" style="width:75.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
           </div>
-          <span class="diff-stat-count muted">+11</span>
+          <span class="diff-stat-count muted">+15</span>
         </div>
       <div class="diff-stat-row">
-          <code class="diff-stat-path">forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.md</code>
+          <code class="diff-stat-path">.../demo/DEMO.md</code>
           <div class="diff-stat-bars">
-            <span class="diff-bar-ins" style="width:15.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
+            <span class="diff-bar-ins" style="width:30.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
           </div>
-          <span class="diff-stat-count muted">+3</span>
+          <span class="diff-stat-count muted">+6</span>
         </div>
       <div class="diff-stat-row">
-          <code class="diff-stat-path">forge/history/INIT-2026-06-19-framework-task-group/demo/demo.json</code>
+          <code class="diff-stat-path">.../demo/demo.json</code>
           <div class="diff-stat-bars">
-            <span class="diff-bar-ins" style="width:20.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
+            <span class="diff-bar-ins" style="width:25.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
           </div>
-          <span class="diff-stat-count muted">+4</span>
+          <span class="diff-stat-count muted">+5</span>
         </div>
     </div>
-  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>INIT-2026-06-19-framework-task-group</code></summary><pre class="diff-stat">CHANGELOG.md                                                                     |    8 +
- PROVIDER_VERSION.txt                                                             |    2 +-
- azuredevops/internal/acceptancetests/data_task_group_test.go                    |   57 +-
- azuredevops/internal/acceptancetests/resource_task_group_test.go                |   57 +-
- azuredevops/internal/acceptancetests/testutils/mux_provider.go                  |   46 +
- azuredevops/internal/provider/framework_provider.go                             |  137 ++-
- azuredevops/internal/provider/framework_provider_test.go                        |   35 +
- azuredevops/internal/service/taskagent/resource_task_group_framework.go         | 1015 ++++++++++++++++++++
- azuredevops/internal/service/taskagent/resource_task_group_framework_test.go    |   56 ++
- azuredevops/provider.go                                                          |    1 -
- azuredevops/provider_test.go                                                     |    1 -
- docs/resources/serviceendpoint_externaltfs.md                                   |    2 +-
- docs/resources/serviceendpoint_runpipeline.md                                   |    2 +-
- docs/resources/task_group.md                                                     |   52 +-
- examples/resources/betterado_task_group/resource.tf                             |   12 +-
- forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.html               |  559 +++++++++++
- forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.md                 |  156 +++
- forge/history/INIT-2026-06-19-framework-task-group/demo/demo.json               |  169 ++++
- 18 files changed, 2292 insertions(+), 75 deletions(-)</pre></details>
+  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>INIT-2026-06-19-framework-task-group</code></summary><pre class="diff-stat">CHANGELOG.md                                       |    8 +
+ PROVIDER_VERSION.txt                               |    2 +-
+ .../acceptancetests/data_task_group_test.go        |   57 +-
+ .../acceptancetests/resource_task_group_test.go    |   57 +-
+ .../acceptancetests/testutils/mux_provider.go      |   46 +
+ .../internal/provider/framework_provider.go        |  137 ++-
+ .../internal/provider/framework_provider_test.go   |   35 +
+ .../taskagent/resource_task_group_framework.go     | 1015 ++++++++++++++++++++
+ .../resource_task_group_framework_test.go          |   56 ++
+ azuredevops/provider.go                            |    1 -
+ azuredevops/provider_test.go                       |    1 -
+ docs/resources/serviceendpoint_externaltfs.md      |    2 +-
+ docs/resources/serviceendpoint_runpipeline.md      |    2 +-
+ docs/resources/task_group.md                       |   52 +-
+ .../resources/betterado_task_group/resource.tf     |   12 +-
+ .../demo/DEMO.html                                 |  751 +++++++++++++++
+ .../demo/DEMO.md                                   |  314 ++++++
+ .../demo/demo.json                                 |  219 +++++
+ 18 files changed, 2692 insertions(+), 75 deletions(-)</pre></details>
 </section>
 
 

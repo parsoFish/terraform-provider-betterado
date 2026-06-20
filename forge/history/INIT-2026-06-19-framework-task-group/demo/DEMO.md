@@ -246,25 +246,25 @@
 - `PROVIDER_VERSION.txt` — Bumped to 0.4.0 (minor version bump for user-visible migration)
 
 ```
-CHANGELOG.md                                                                     |    8 +
- PROVIDER_VERSION.txt                                                             |    2 +-
- azuredevops/internal/acceptancetests/data_task_group_test.go                    |   57 +-
- azuredevops/internal/acceptancetests/resource_task_group_test.go                |   57 +-
- azuredevops/internal/acceptancetests/testutils/mux_provider.go                  |   46 +
- azuredevops/internal/provider/framework_provider.go                             |  137 ++-
- azuredevops/internal/provider/framework_provider_test.go                        |   35 +
- azuredevops/internal/service/taskagent/resource_task_group_framework.go         | 1015 ++++++++++++++++++++
- azuredevops/internal/service/taskagent/resource_task_group_framework_test.go    |   56 ++
- azuredevops/provider.go                                                          |    1 -
- azuredevops/provider_test.go                                                     |    1 -
- docs/resources/serviceendpoint_externaltfs.md                                   |    2 +-
- docs/resources/serviceendpoint_runpipeline.md                                   |    2 +-
- docs/resources/task_group.md                                                     |   52 +-
- examples/resources/betterado_task_group/resource.tf                             |   12 +-
- forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.html               |  559 +++++++++++
- forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.md                 |  156 +++
- forge/history/INIT-2026-06-19-framework-task-group/demo/demo.json               |  169 ++++
- 18 files changed, 2292 insertions(+), 75 deletions(-)
+CHANGELOG.md                                       |    8 +
+ PROVIDER_VERSION.txt                               |    2 +-
+ .../acceptancetests/data_task_group_test.go        |   57 +-
+ .../acceptancetests/resource_task_group_test.go    |   57 +-
+ .../acceptancetests/testutils/mux_provider.go      |   46 +
+ .../internal/provider/framework_provider.go        |  137 ++-
+ .../internal/provider/framework_provider_test.go   |   35 +
+ .../taskagent/resource_task_group_framework.go     | 1015 ++++++++++++++++++++
+ .../resource_task_group_framework_test.go          |   56 ++
+ azuredevops/provider.go                            |    1 -
+ azuredevops/provider_test.go                       |    1 -
+ docs/resources/serviceendpoint_externaltfs.md      |    2 +-
+ docs/resources/serviceendpoint_runpipeline.md      |    2 +-
+ docs/resources/task_group.md                       |   52 +-
+ .../resources/betterado_task_group/resource.tf     |   12 +-
+ .../demo/DEMO.html                                 |  751 +++++++++++++++
+ .../demo/DEMO.md                                   |  314 ++++++
+ .../demo/demo.json                                 |  219 +++++
+ 18 files changed, 2692 insertions(+), 75 deletions(-)
 ```
 
 ## Usage
