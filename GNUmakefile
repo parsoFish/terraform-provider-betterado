@@ -123,5 +123,7 @@ docs:
 	@echo "==> Generating registry docs with tfplugindocs $(TFPLUGINDOCS_VERSION)..."
 	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs@$(TFPLUGINDOCS_VERSION)
 	tfplugindocs generate --provider-name betterado
+	@echo "==> Restoring hand-written docs/guides/ (tfplugindocs deletes it)..."
+	git checkout -- docs/guides/
 
 .PHONY: build test testacc vet fmt fmtcheck lint tools test-compile clean clean-cache docs
