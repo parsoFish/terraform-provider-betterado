@@ -154,7 +154,7 @@
     <span>project <strong>terraform-provider-betterado</strong></span>
     <span>before <code>main</code> → after <code>INIT-2026-06-19-framework-task-group</code></span>
     <span>branch <code>INIT-2026-06-19-framework-task-group</code></span>
-    <span>generated 2026-06-20T01:41:03.556Z</span>
+    <span>generated 2026-06-20T01:48:51.483Z</span>
   </div>
   <p class="essence">betterado_task_group is now implemented via terraform-plugin-framework instead of Plugin SDK v2. The task, input, and version blocks are now list-of-object attributes using array-of-objects HCL syntax (task = [{ ... }]). Typed defaults on optional fields eliminate perpetual-diff noise when fields like enabled, timeout_in_minutes, always_run, or inputs are omitted. Proven by live TF_ACC acceptance tests against a real Azure DevOps organisation with REST read-back evidence.</p>
 </header>
@@ -284,7 +284,80 @@
     
         <details class="live-evidence-body">
           <summary>Response body</summary>
-          <pre class="code-block json">{&quot;id&quot;:&quot;3b399cdc-04fe-4ca4-8652-91f93c7a33e4&quot;,&quot;name&quot;:&quot;test-acc-2uifszj3wd&quot;,&quot;friendlyName&quot;:&quot;test-acc-2uifszj3wd&quot;,&quot;category&quot;:&quot;Build&quot;,&quot;description&quot;:&quot;Acceptance test task group&quot;,&quot;definitionType&quot;:&quot;metaTask&quot;,&quot;revision&quot;:1,&quot;version&quot;:{&quot;major&quot;:1,&quot;minor&quot;:0,&quot;patch&quot;:0,&quot;isTest&quot;:false},&quot;inputs&quot;:[{&quot;name&quot;:&quot;myParam&quot;,&quot;label&quot;:&quot;My Parameter&quot;,&quot;type&quot;:&quot;string&quot;}],&quot;tasks&quot;:[{&quot;displayName&quot;:&quot;Echo Step&quot;,&quot;task&quot;:{&quot;id&quot;:&quot;d9bafed4-0b18-4f58-968d-86655b4d2ce9&quot;,&quot;versionSpec&quot;:&quot;2.*&quot;,&quot;definitionType&quot;:&quot;task&quot;},&quot;enabled&quot;:true,&quot;alwaysRun&quot;:false,&quot;continueOnError&quot;:false,&quot;condition&quot;:&quot;succeeded()&quot;,&quot;timeoutInMinutes&quot;:0,&quot;retryCountOnTaskFailure&quot;:0}]}</pre>
+          <pre class="code-block json">{
+  &quot;author&quot;: &quot;&quot;,
+  &quot;category&quot;: &quot;Build&quot;,
+  &quot;dataSourceBindings&quot;: [],
+  &quot;definitionType&quot;: &quot;metaTask&quot;,
+  &quot;demands&quot;: [],
+  &quot;description&quot;: &quot;Acceptance test task group&quot;,
+  &quot;execution&quot;: {},
+  &quot;friendlyName&quot;: &quot;test-acc-2uifszj3wd&quot;,
+  &quot;groups&quot;: [],
+  &quot;iconUrl&quot;: &quot;&quot;,
+  &quot;id&quot;: &quot;3b399cdc-04fe-4ca4-8652-91f93c7a33e4&quot;,
+  &quot;inputs&quot;: [
+    {
+      &quot;aliases&quot;: [],
+      &quot;defaultValue&quot;: &quot;&quot;,
+      &quot;groupName&quot;: &quot;&quot;,
+      &quot;helpMarkDown&quot;: &quot;&quot;,
+      &quot;label&quot;: &quot;My Parameter&quot;,
+      &quot;name&quot;: &quot;myParam&quot;,
+      &quot;options&quot;: {},
+      &quot;properties&quot;: {},
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;visibleRule&quot;: &quot;&quot;
+    }
+  ],
+  &quot;instanceNameFormat&quot;: &quot;&quot;,
+  &quot;name&quot;: &quot;test-acc-2uifszj3wd&quot;,
+  &quot;postJobExecution&quot;: {},
+  &quot;preJobExecution&quot;: {},
+  &quot;runsOn&quot;: [
+    &quot;Agent&quot;,
+    &quot;DeploymentGroup&quot;
+  ],
+  &quot;satisfies&quot;: [],
+  &quot;sourceDefinitions&quot;: [],
+  &quot;version&quot;: {
+    &quot;isTest&quot;: false,
+    &quot;major&quot;: 1,
+    &quot;minor&quot;: 0,
+    &quot;patch&quot;: 0
+  },
+  &quot;createdBy&quot;: {
+    &quot;displayName&quot;: &quot;david.g.parsonson&quot;,
+    &quot;id&quot;: &quot;49e26c2f-ec33-6e72-b494-dedb0aee09e1&quot;,
+    &quot;uniqueName&quot;: &quot;david.g.parsonson@gmail.com&quot;
+  },
+  &quot;createdOn&quot;: &quot;2026-06-20T01:10:28.94Z&quot;,
+  &quot;modifiedBy&quot;: {
+    &quot;displayName&quot;: &quot;david.g.parsonson&quot;,
+    &quot;id&quot;: &quot;49e26c2f-ec33-6e72-b494-dedb0aee09e1&quot;,
+    &quot;uniqueName&quot;: &quot;david.g.parsonson@gmail.com&quot;
+  },
+  &quot;modifiedOn&quot;: &quot;2026-06-20T01:10:28.94Z&quot;,
+  &quot;revision&quot;: 1,
+  &quot;tasks&quot;: [
+    {
+      &quot;alwaysRun&quot;: false,
+      &quot;condition&quot;: &quot;succeeded()&quot;,
+      &quot;continueOnError&quot;: false,
+      &quot;displayName&quot;: &quot;Echo Step&quot;,
+      &quot;enabled&quot;: true,
+      &quot;environment&quot;: {},
+      &quot;inputs&quot;: {},
+      &quot;retryCountOnTaskFailure&quot;: 0,
+      &quot;task&quot;: {
+        &quot;definitionType&quot;: &quot;task&quot;,
+        &quot;id&quot;: &quot;d9bafed4-0b18-4f58-968d-86655b4d2ce9&quot;,
+        &quot;versionSpec&quot;: &quot;2.*&quot;
+      },
+      &quot;timeoutInMinutes&quot;: 0
+    }
+  ]
+}</pre>
         </details>
   </div>
     <table class="harness">
@@ -316,6 +389,101 @@
     <p class="verdict v-incomplete">Verdict: <strong>NO METRICS</strong></p>
     <p class="legend"><strong>match</strong>/<strong>within</strong> = unchanged from baseline · <strong>new</strong> = newly added, no prior baseline (see the <em>after</em> column for the result — a PASS means the new test is green) · <strong>diverged</strong> = regressed vs baseline (the only state that signals a problem)</p>
     <p class="note">Data source HCL still referenced betterado_task_group resource using SDKv2 block syntax; test would fail after provider migration.</p><p class="note">hclTaskGroupDataSourceBasic updated to array syntax; TestCheckResourceAttrPair assertions for name, description, category all pass; idempotency step shows no diff; live evidence captured.</p>
+  </div>
+
+  <div class="checkpoint">
+    <h3><span class="step">5</span> Live evidence — task-group-datasource-acceptance <span class="kind">harness</span></h3>
+    
+  <div class="live-evidence-card">
+    <div class="live-evidence-header">&#10003; Live evidence — real REST GET</div>
+    <code class="live-evidence-url">https://dev.azure.com/davidgparsonson/f6bf5378-a950-4970-a4d8-7467fddab70d/_apis/distributedtask/taskgroups/7c1199e7-16f8-4af9-bd56-e31a15b66d55?api-version=7.1</code>
+    <div class="live-evidence-meta">Captured 2026-06-20T01:23:08Z</div>
+    
+        <details class="live-evidence-body">
+          <summary>Response body</summary>
+          <pre class="code-block json">{
+  &quot;author&quot;: &quot;&quot;,
+  &quot;category&quot;: &quot;Build&quot;,
+  &quot;dataSourceBindings&quot;: [],
+  &quot;definitionType&quot;: &quot;metaTask&quot;,
+  &quot;demands&quot;: [],
+  &quot;description&quot;: &quot;Acceptance test task group&quot;,
+  &quot;execution&quot;: {},
+  &quot;friendlyName&quot;: &quot;test-acc-w81awp8slb&quot;,
+  &quot;groups&quot;: [],
+  &quot;iconUrl&quot;: &quot;&quot;,
+  &quot;id&quot;: &quot;7c1199e7-16f8-4af9-bd56-e31a15b66d55&quot;,
+  &quot;inputs&quot;: [
+    {
+      &quot;aliases&quot;: [],
+      &quot;defaultValue&quot;: &quot;&quot;,
+      &quot;groupName&quot;: &quot;&quot;,
+      &quot;helpMarkDown&quot;: &quot;&quot;,
+      &quot;label&quot;: &quot;My Parameter&quot;,
+      &quot;name&quot;: &quot;myParam&quot;,
+      &quot;options&quot;: {},
+      &quot;properties&quot;: {},
+      &quot;type&quot;: &quot;string&quot;,
+      &quot;visibleRule&quot;: &quot;&quot;
+    }
+  ],
+  &quot;instanceNameFormat&quot;: &quot;&quot;,
+  &quot;name&quot;: &quot;test-acc-w81awp8slb&quot;,
+  &quot;postJobExecution&quot;: {},
+  &quot;preJobExecution&quot;: {},
+  &quot;runsOn&quot;: [
+    &quot;Agent&quot;,
+    &quot;DeploymentGroup&quot;
+  ],
+  &quot;satisfies&quot;: [],
+  &quot;sourceDefinitions&quot;: [],
+  &quot;version&quot;: {
+    &quot;isTest&quot;: false,
+    &quot;major&quot;: 1,
+    &quot;minor&quot;: 0,
+    &quot;patch&quot;: 0
+  },
+  &quot;createdBy&quot;: {
+    &quot;displayName&quot;: &quot;david.g.parsonson&quot;,
+    &quot;id&quot;: &quot;49e26c2f-ec33-6e72-b494-dedb0aee09e1&quot;,
+    &quot;uniqueName&quot;: &quot;david.g.parsonson@gmail.com&quot;
+  },
+  &quot;createdOn&quot;: &quot;2026-06-20T01:23:06.38Z&quot;,
+  &quot;modifiedBy&quot;: {
+    &quot;displayName&quot;: &quot;david.g.parsonson&quot;,
+    &quot;id&quot;: &quot;49e26c2f-ec33-6e72-b494-dedb0aee09e1&quot;,
+    &quot;uniqueName&quot;: &quot;david.g.parsonson@gmail.com&quot;
+  },
+  &quot;modifiedOn&quot;: &quot;2026-06-20T01:23:06.38Z&quot;,
+  &quot;revision&quot;: 1,
+  &quot;tasks&quot;: [
+    {
+      &quot;alwaysRun&quot;: false,
+      &quot;condition&quot;: &quot;succeeded()&quot;,
+      &quot;continueOnError&quot;: false,
+      &quot;displayName&quot;: &quot;Echo Step&quot;,
+      &quot;enabled&quot;: true,
+      &quot;environment&quot;: {},
+      &quot;inputs&quot;: {},
+      &quot;retryCountOnTaskFailure&quot;: 0,
+      &quot;task&quot;: {
+        &quot;definitionType&quot;: &quot;task&quot;,
+        &quot;id&quot;: &quot;d9bafed4-0b18-4f58-968d-86655b4d2ce9&quot;,
+        &quot;versionSpec&quot;: &quot;2.*&quot;
+      },
+      &quot;timeoutInMinutes&quot;: 0
+    }
+  ]
+}</pre>
+        </details>
+  </div>
+    <table class="harness">
+      <thead><tr><th>metric</th><th>before</th><th>after</th><th>Δ</th><th>parity</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="verdict v-incomplete">Verdict: <strong>NO METRICS</strong></p>
+    <p class="legend"><strong>match</strong>/<strong>within</strong> = unchanged from baseline · <strong>new</strong> = newly added, no prior baseline (see the <em>after</em> column for the result — a PASS means the new test is green) · <strong>diverged</strong> = regressed vs baseline (the only state that signals a problem)</p>
+    <p class="note">Real API GET against the live system: https://dev.azure.com/davidgparsonson/f6bf5378-a950-4970-a4d8-7467fddab70d/_apis/distributedtask/taskgroups/7c1199e7-16f8-4af9-bd56-e31a15b66d55?api-version=7.1</p>
   </div>
 </section>
 
@@ -483,23 +651,47 @@
           </div>
           <span class="diff-stat-count muted">+1 -1</span>
         </div>
+      <div class="diff-stat-row">
+          <code class="diff-stat-path">forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.html</code>
+          <div class="diff-stat-bars">
+            <span class="diff-bar-ins" style="width:55.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
+          </div>
+          <span class="diff-stat-count muted">+11</span>
+        </div>
+      <div class="diff-stat-row">
+          <code class="diff-stat-path">forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.md</code>
+          <div class="diff-stat-bars">
+            <span class="diff-bar-ins" style="width:15.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
+          </div>
+          <span class="diff-stat-count muted">+3</span>
+        </div>
+      <div class="diff-stat-row">
+          <code class="diff-stat-path">forge/history/INIT-2026-06-19-framework-task-group/demo/demo.json</code>
+          <div class="diff-stat-bars">
+            <span class="diff-bar-ins" style="width:20.0%"></span><span class="diff-bar-del" style="width:0.0%"></span>
+          </div>
+          <span class="diff-stat-count muted">+4</span>
+        </div>
     </div>
-  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>INIT-2026-06-19-framework-task-group</code></summary><pre class="diff-stat">CHANGELOG.md                                       |    8 +
- PROVIDER_VERSION.txt                               |    2 +-
- azuredevops/internal/acceptancetests/data_task_group_test.go        |   57 +-
- azuredevops/internal/acceptancetests/resource_task_group_test.go    |   57 +-
- azuredevops/internal/acceptancetests/testutils/mux_provider.go      |   46 +
- azuredevops/internal/provider/framework_provider.go        |  137 ++-
- azuredevops/internal/provider/framework_provider_test.go   |   35 +
- azuredevops/internal/service/taskagent/resource_task_group_framework.go     | 1015 ++++++++++++++++++++
- azuredevops/internal/service/taskagent/resource_task_group_framework_test.go          |   56 ++
- azuredevops/provider.go                            |    1 -
- azuredevops/provider_test.go                       |    1 -
- docs/resources/serviceendpoint_externaltfs.md      |    2 +-
- docs/resources/serviceendpoint_runpipeline.md      |    2 +-
- docs/resources/task_group.md                       |   52 +-
- examples/resources/betterado_task_group/resource.tf     |   12 +-
- 15 files changed, 1408 insertions(+), 75 deletions(-)</pre></details>
+  <details class="diff-stat-toggle"><summary>git diff --stat <code>main</code>..<code>INIT-2026-06-19-framework-task-group</code></summary><pre class="diff-stat">CHANGELOG.md                                                                     |    8 +
+ PROVIDER_VERSION.txt                                                             |    2 +-
+ azuredevops/internal/acceptancetests/data_task_group_test.go                    |   57 +-
+ azuredevops/internal/acceptancetests/resource_task_group_test.go                |   57 +-
+ azuredevops/internal/acceptancetests/testutils/mux_provider.go                  |   46 +
+ azuredevops/internal/provider/framework_provider.go                             |  137 ++-
+ azuredevops/internal/provider/framework_provider_test.go                        |   35 +
+ azuredevops/internal/service/taskagent/resource_task_group_framework.go         | 1015 ++++++++++++++++++++
+ azuredevops/internal/service/taskagent/resource_task_group_framework_test.go    |   56 ++
+ azuredevops/provider.go                                                          |    1 -
+ azuredevops/provider_test.go                                                     |    1 -
+ docs/resources/serviceendpoint_externaltfs.md                                   |    2 +-
+ docs/resources/serviceendpoint_runpipeline.md                                   |    2 +-
+ docs/resources/task_group.md                                                     |   52 +-
+ examples/resources/betterado_task_group/resource.tf                             |   12 +-
+ forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.html               |  559 +++++++++++
+ forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.md                 |  156 +++
+ forge/history/INIT-2026-06-19-framework-task-group/demo/demo.json               |  169 ++++
+ 18 files changed, 2292 insertions(+), 75 deletions(-)</pre></details>
 </section>
 
 

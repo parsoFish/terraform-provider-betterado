@@ -47,7 +47,80 @@
 - **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/6c787191-708c-4f90-a2ab-afe8da237db3/_apis/distributedtask/taskgroups/3b399cdc-04fe-4ca4-8652-91f93c7a33e4?api-version=7.1` _(captured 2026-06-20T01:10:32Z)_
 
 ```json
-{"id":"3b399cdc-04fe-4ca4-8652-91f93c7a33e4","name":"test-acc-2uifszj3wd","friendlyName":"test-acc-2uifszj3wd","category":"Build","description":"Acceptance test task group","definitionType":"metaTask","revision":1,"version":{"major":1,"minor":0,"patch":0,"isTest":false},"inputs":[{"name":"myParam","label":"My Parameter","type":"string"}],"tasks":[{"displayName":"Echo Step","task":{"id":"d9bafed4-0b18-4f58-968d-86655b4d2ce9","versionSpec":"2.*","definitionType":"task"},"enabled":true,"alwaysRun":false,"continueOnError":false,"condition":"succeeded()","timeoutInMinutes":0,"retryCountOnTaskFailure":0}]}
+{
+  "author": "",
+  "category": "Build",
+  "dataSourceBindings": [],
+  "definitionType": "metaTask",
+  "demands": [],
+  "description": "Acceptance test task group",
+  "execution": {},
+  "friendlyName": "test-acc-2uifszj3wd",
+  "groups": [],
+  "iconUrl": "",
+  "id": "3b399cdc-04fe-4ca4-8652-91f93c7a33e4",
+  "inputs": [
+    {
+      "aliases": [],
+      "defaultValue": "",
+      "groupName": "",
+      "helpMarkDown": "",
+      "label": "My Parameter",
+      "name": "myParam",
+      "options": {},
+      "properties": {},
+      "type": "string",
+      "visibleRule": ""
+    }
+  ],
+  "instanceNameFormat": "",
+  "name": "test-acc-2uifszj3wd",
+  "postJobExecution": {},
+  "preJobExecution": {},
+  "runsOn": [
+    "Agent",
+    "DeploymentGroup"
+  ],
+  "satisfies": [],
+  "sourceDefinitions": [],
+  "version": {
+    "isTest": false,
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+  "createdBy": {
+    "displayName": "david.g.parsonson",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "createdOn": "2026-06-20T01:10:28.94Z",
+  "modifiedBy": {
+    "displayName": "david.g.parsonson",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "modifiedOn": "2026-06-20T01:10:28.94Z",
+  "revision": 1,
+  "tasks": [
+    {
+      "alwaysRun": false,
+      "condition": "succeeded()",
+      "continueOnError": false,
+      "displayName": "Echo Step",
+      "enabled": true,
+      "environment": {},
+      "inputs": {},
+      "retryCountOnTaskFailure": 0,
+      "task": {
+        "definitionType": "task",
+        "id": "d9bafed4-0b18-4f58-968d-86655b4d2ce9",
+        "versionSpec": "2.*"
+      },
+      "timeoutInMinutes": 0
+    }
+  ]
+}
 ```
 
 ### Live acceptance test — TestAccTaskGroupDataSource_basic: data source reads back resource attributes
@@ -58,6 +131,88 @@
 
 ```json
 {"id":"7c1199e7-16f8-4af9-bd56-e31a15b66d55","name":"test-acc-w81awp8slb","friendlyName":"test-acc-w81awp8slb","category":"Build","description":"Acceptance test task group","definitionType":"metaTask","revision":1,"version":{"major":1,"minor":0,"patch":0,"isTest":false}}
+```
+
+### Live evidence — task-group-datasource-acceptance
+
+- **After:** Real API GET against the live system: https://dev.azure.com/davidgparsonson/f6bf5378-a950-4970-a4d8-7467fddab70d/_apis/distributedtask/taskgroups/7c1199e7-16f8-4af9-bd56-e31a15b66d55?api-version=7.1
+- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/f6bf5378-a950-4970-a4d8-7467fddab70d/_apis/distributedtask/taskgroups/7c1199e7-16f8-4af9-bd56-e31a15b66d55?api-version=7.1` _(captured 2026-06-20T01:23:08Z)_
+
+```json
+{
+  "author": "",
+  "category": "Build",
+  "dataSourceBindings": [],
+  "definitionType": "metaTask",
+  "demands": [],
+  "description": "Acceptance test task group",
+  "execution": {},
+  "friendlyName": "test-acc-w81awp8slb",
+  "groups": [],
+  "iconUrl": "",
+  "id": "7c1199e7-16f8-4af9-bd56-e31a15b66d55",
+  "inputs": [
+    {
+      "aliases": [],
+      "defaultValue": "",
+      "groupName": "",
+      "helpMarkDown": "",
+      "label": "My Parameter",
+      "name": "myParam",
+      "options": {},
+      "properties": {},
+      "type": "string",
+      "visibleRule": ""
+    }
+  ],
+  "instanceNameFormat": "",
+  "name": "test-acc-w81awp8slb",
+  "postJobExecution": {},
+  "preJobExecution": {},
+  "runsOn": [
+    "Agent",
+    "DeploymentGroup"
+  ],
+  "satisfies": [],
+  "sourceDefinitions": [],
+  "version": {
+    "isTest": false,
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+  "createdBy": {
+    "displayName": "david.g.parsonson",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "createdOn": "2026-06-20T01:23:06.38Z",
+  "modifiedBy": {
+    "displayName": "david.g.parsonson",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "modifiedOn": "2026-06-20T01:23:06.38Z",
+  "revision": 1,
+  "tasks": [
+    {
+      "alwaysRun": false,
+      "condition": "succeeded()",
+      "continueOnError": false,
+      "displayName": "Echo Step",
+      "enabled": true,
+      "environment": {},
+      "inputs": {},
+      "retryCountOnTaskFailure": 0,
+      "task": {
+        "definitionType": "task",
+        "id": "d9bafed4-0b18-4f58-968d-86655b4d2ce9",
+        "versionSpec": "2.*"
+      },
+      "timeoutInMinutes": 0
+    }
+  ]
+}
 ```
 
 ## Test Evidence
@@ -91,22 +246,25 @@
 - `PROVIDER_VERSION.txt` — Bumped to 0.4.0 (minor version bump for user-visible migration)
 
 ```
-CHANGELOG.md                                       |    8 +
- PROVIDER_VERSION.txt                               |    2 +-
- azuredevops/internal/acceptancetests/data_task_group_test.go        |   57 +-
- azuredevops/internal/acceptancetests/resource_task_group_test.go    |   57 +-
- azuredevops/internal/acceptancetests/testutils/mux_provider.go      |   46 +
- azuredevops/internal/provider/framework_provider.go        |  137 ++-
- azuredevops/internal/provider/framework_provider_test.go   |   35 +
- azuredevops/internal/service/taskagent/resource_task_group_framework.go     | 1015 ++++++++++++++++++++
- azuredevops/internal/service/taskagent/resource_task_group_framework_test.go          |   56 ++
- azuredevops/provider.go                            |    1 -
- azuredevops/provider_test.go                       |    1 -
- docs/resources/serviceendpoint_externaltfs.md      |    2 +-
- docs/resources/serviceendpoint_runpipeline.md      |    2 +-
- docs/resources/task_group.md                       |   52 +-
- examples/resources/betterado_task_group/resource.tf     |   12 +-
- 15 files changed, 1408 insertions(+), 75 deletions(-)
+CHANGELOG.md                                                                     |    8 +
+ PROVIDER_VERSION.txt                                                             |    2 +-
+ azuredevops/internal/acceptancetests/data_task_group_test.go                    |   57 +-
+ azuredevops/internal/acceptancetests/resource_task_group_test.go                |   57 +-
+ azuredevops/internal/acceptancetests/testutils/mux_provider.go                  |   46 +
+ azuredevops/internal/provider/framework_provider.go                             |  137 ++-
+ azuredevops/internal/provider/framework_provider_test.go                        |   35 +
+ azuredevops/internal/service/taskagent/resource_task_group_framework.go         | 1015 ++++++++++++++++++++
+ azuredevops/internal/service/taskagent/resource_task_group_framework_test.go    |   56 ++
+ azuredevops/provider.go                                                          |    1 -
+ azuredevops/provider_test.go                                                     |    1 -
+ docs/resources/serviceendpoint_externaltfs.md                                   |    2 +-
+ docs/resources/serviceendpoint_runpipeline.md                                   |    2 +-
+ docs/resources/task_group.md                                                     |   52 +-
+ examples/resources/betterado_task_group/resource.tf                             |   12 +-
+ forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.html               |  559 +++++++++++
+ forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.md                 |  156 +++
+ forge/history/INIT-2026-06-19-framework-task-group/demo/demo.json               |  169 ++++
+ 18 files changed, 2292 insertions(+), 75 deletions(-)
 ```
 
 ## Usage

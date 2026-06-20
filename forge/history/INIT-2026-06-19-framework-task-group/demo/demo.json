@@ -5,7 +5,7 @@
   "initiativeId": "INIT-2026-06-19-framework-task-group",
   "baseRef": "main",
   "changedRef": "INIT-2026-06-19-framework-task-group",
-  "diffStat": " CHANGELOG.md                                       |    8 +\n PROVIDER_VERSION.txt                               |    2 +-\n azuredevops/internal/acceptancetests/data_task_group_test.go        |   57 +-\n azuredevops/internal/acceptancetests/resource_task_group_test.go    |   57 +-\n azuredevops/internal/acceptancetests/testutils/mux_provider.go      |   46 +\n azuredevops/internal/provider/framework_provider.go        |  137 ++-\n azuredevops/internal/provider/framework_provider_test.go   |   35 +\n azuredevops/internal/service/taskagent/resource_task_group_framework.go     | 1015 ++++++++++++++++++++\n azuredevops/internal/service/taskagent/resource_task_group_framework_test.go          |   56 ++\n azuredevops/provider.go                            |    1 -\n azuredevops/provider_test.go                       |    1 -\n docs/resources/serviceendpoint_externaltfs.md      |    2 +-\n docs/resources/serviceendpoint_runpipeline.md      |    2 +-\n docs/resources/task_group.md                       |   52 +-\n examples/resources/betterado_task_group/resource.tf     |   12 +-\n 15 files changed, 1408 insertions(+), 75 deletions(-)",
+  "diffStat": " CHANGELOG.md                                                                     |    8 +\n PROVIDER_VERSION.txt                                                             |    2 +-\n azuredevops/internal/acceptancetests/data_task_group_test.go                    |   57 +-\n azuredevops/internal/acceptancetests/resource_task_group_test.go                |   57 +-\n azuredevops/internal/acceptancetests/testutils/mux_provider.go                  |   46 +\n azuredevops/internal/provider/framework_provider.go                             |  137 ++-\n azuredevops/internal/provider/framework_provider_test.go                        |   35 +\n azuredevops/internal/service/taskagent/resource_task_group_framework.go         | 1015 ++++++++++++++++++++\n azuredevops/internal/service/taskagent/resource_task_group_framework_test.go    |   56 ++\n azuredevops/provider.go                                                          |    1 -\n azuredevops/provider_test.go                                                     |    1 -\n docs/resources/serviceendpoint_externaltfs.md                                   |    2 +-\n docs/resources/serviceendpoint_runpipeline.md                                   |    2 +-\n docs/resources/task_group.md                                                     |   52 +-\n examples/resources/betterado_task_group/resource.tf                             |   12 +-\n forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.html               |  559 +++++++++++\n forge/history/INIT-2026-06-19-framework-task-group/demo/DEMO.md                 |  156 +++\n forge/history/INIT-2026-06-19-framework-task-group/demo/demo.json               |  169 ++++\n 18 files changed, 2292 insertions(+), 75 deletions(-)",
   "checkpoints": [
     {
       "label": "schema-unit-test",
@@ -28,7 +28,7 @@
       "liveEvidence": {
         "url": "https://dev.azure.com/davidgparsonson/6c787191-708c-4f90-a2ab-afe8da237db3/_apis/distributedtask/taskgroups/3b399cdc-04fe-4ca4-8652-91f93c7a33e4?api-version=7.1",
         "capturedAt": "2026-06-20T01:10:32Z",
-        "response": "{\"id\":\"3b399cdc-04fe-4ca4-8652-91f93c7a33e4\",\"name\":\"test-acc-2uifszj3wd\",\"friendlyName\":\"test-acc-2uifszj3wd\",\"category\":\"Build\",\"description\":\"Acceptance test task group\",\"definitionType\":\"metaTask\",\"revision\":1,\"version\":{\"major\":1,\"minor\":0,\"patch\":0,\"isTest\":false},\"inputs\":[{\"name\":\"myParam\",\"label\":\"My Parameter\",\"type\":\"string\"}],\"tasks\":[{\"displayName\":\"Echo Step\",\"task\":{\"id\":\"d9bafed4-0b18-4f58-968d-86655b4d2ce9\",\"versionSpec\":\"2.*\",\"definitionType\":\"task\"},\"enabled\":true,\"alwaysRun\":false,\"continueOnError\":false,\"condition\":\"succeeded()\",\"timeoutInMinutes\":0,\"retryCountOnTaskFailure\":0}]}"
+        "response": "{\n  \"author\": \"\",\n  \"category\": \"Build\",\n  \"dataSourceBindings\": [],\n  \"definitionType\": \"metaTask\",\n  \"demands\": [],\n  \"description\": \"Acceptance test task group\",\n  \"execution\": {},\n  \"friendlyName\": \"test-acc-2uifszj3wd\",\n  \"groups\": [],\n  \"iconUrl\": \"\",\n  \"id\": \"3b399cdc-04fe-4ca4-8652-91f93c7a33e4\",\n  \"inputs\": [\n    {\n      \"aliases\": [],\n      \"defaultValue\": \"\",\n      \"groupName\": \"\",\n      \"helpMarkDown\": \"\",\n      \"label\": \"My Parameter\",\n      \"name\": \"myParam\",\n      \"options\": {},\n      \"properties\": {},\n      \"type\": \"string\",\n      \"visibleRule\": \"\"\n    }\n  ],\n  \"instanceNameFormat\": \"\",\n  \"name\": \"test-acc-2uifszj3wd\",\n  \"postJobExecution\": {},\n  \"preJobExecution\": {},\n  \"runsOn\": [\n    \"Agent\",\n    \"DeploymentGroup\"\n  ],\n  \"satisfies\": [],\n  \"sourceDefinitions\": [],\n  \"version\": {\n    \"isTest\": false,\n    \"major\": 1,\n    \"minor\": 0,\n    \"patch\": 0\n  },\n  \"createdBy\": {\n    \"displayName\": \"david.g.parsonson\",\n    \"id\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"uniqueName\": \"david.g.parsonson@gmail.com\"\n  },\n  \"createdOn\": \"2026-06-20T01:10:28.94Z\",\n  \"modifiedBy\": {\n    \"displayName\": \"david.g.parsonson\",\n    \"id\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"uniqueName\": \"david.g.parsonson@gmail.com\"\n  },\n  \"modifiedOn\": \"2026-06-20T01:10:28.94Z\",\n  \"revision\": 1,\n  \"tasks\": [\n    {\n      \"alwaysRun\": false,\n      \"condition\": \"succeeded()\",\n      \"continueOnError\": false,\n      \"displayName\": \"Echo Step\",\n      \"enabled\": true,\n      \"environment\": {},\n      \"inputs\": {},\n      \"retryCountOnTaskFailure\": 0,\n      \"task\": {\n        \"definitionType\": \"task\",\n        \"id\": \"d9bafed4-0b18-4f58-968d-86655b4d2ce9\",\n        \"versionSpec\": \"2.*\"\n      },\n      \"timeoutInMinutes\": 0\n    }\n  ]\n}"
       }
     },
     {
@@ -41,6 +41,17 @@
         "url": "https://dev.azure.com/davidgparsonson/f6bf5378-a950-4970-a4d8-7467fddab70d/_apis/distributedtask/taskgroups/7c1199e7-16f8-4af9-bd56-e31a15b66d55?api-version=7.1",
         "capturedAt": "2026-06-20T01:23:08Z",
         "response": "{\"id\":\"7c1199e7-16f8-4af9-bd56-e31a15b66d55\",\"name\":\"test-acc-w81awp8slb\",\"friendlyName\":\"test-acc-w81awp8slb\",\"category\":\"Build\",\"description\":\"Acceptance test task group\",\"definitionType\":\"metaTask\",\"revision\":1,\"version\":{\"major\":1,\"minor\":0,\"patch\":0,\"isTest\":false}}"
+      }
+    },
+    {
+      "label": "task-group-datasource-acceptance",
+      "kind": "harness",
+      "caption": "Live evidence — task-group-datasource-acceptance",
+      "afterNote": "Real API GET against the live system: https://dev.azure.com/davidgparsonson/f6bf5378-a950-4970-a4d8-7467fddab70d/_apis/distributedtask/taskgroups/7c1199e7-16f8-4af9-bd56-e31a15b66d55?api-version=7.1",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/f6bf5378-a950-4970-a4d8-7467fddab70d/_apis/distributedtask/taskgroups/7c1199e7-16f8-4af9-bd56-e31a15b66d55?api-version=7.1",
+        "capturedAt": "2026-06-20T01:23:08Z",
+        "response": "{\n  \"author\": \"\",\n  \"category\": \"Build\",\n  \"dataSourceBindings\": [],\n  \"definitionType\": \"metaTask\",\n  \"demands\": [],\n  \"description\": \"Acceptance test task group\",\n  \"execution\": {},\n  \"friendlyName\": \"test-acc-w81awp8slb\",\n  \"groups\": [],\n  \"iconUrl\": \"\",\n  \"id\": \"7c1199e7-16f8-4af9-bd56-e31a15b66d55\",\n  \"inputs\": [\n    {\n      \"aliases\": [],\n      \"defaultValue\": \"\",\n      \"groupName\": \"\",\n      \"helpMarkDown\": \"\",\n      \"label\": \"My Parameter\",\n      \"name\": \"myParam\",\n      \"options\": {},\n      \"properties\": {},\n      \"type\": \"string\",\n      \"visibleRule\": \"\"\n    }\n  ],\n  \"instanceNameFormat\": \"\",\n  \"name\": \"test-acc-w81awp8slb\",\n  \"postJobExecution\": {},\n  \"preJobExecution\": {},\n  \"runsOn\": [\n    \"Agent\",\n    \"DeploymentGroup\"\n  ],\n  \"satisfies\": [],\n  \"sourceDefinitions\": [],\n  \"version\": {\n    \"isTest\": false,\n    \"major\": 1,\n    \"minor\": 0,\n    \"patch\": 0\n  },\n  \"createdBy\": {\n    \"displayName\": \"david.g.parsonson\",\n    \"id\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"uniqueName\": \"david.g.parsonson@gmail.com\"\n  },\n  \"createdOn\": \"2026-06-20T01:23:06.38Z\",\n  \"modifiedBy\": {\n    \"displayName\": \"david.g.parsonson\",\n    \"id\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"uniqueName\": \"david.g.parsonson@gmail.com\"\n  },\n  \"modifiedOn\": \"2026-06-20T01:23:06.38Z\",\n  \"revision\": 1,\n  \"tasks\": [\n    {\n      \"alwaysRun\": false,\n      \"condition\": \"succeeded()\",\n      \"continueOnError\": false,\n      \"displayName\": \"Echo Step\",\n      \"enabled\": true,\n      \"environment\": {},\n      \"inputs\": {},\n      \"retryCountOnTaskFailure\": 0,\n      \"task\": {\n        \"definitionType\": \"task\",\n        \"id\": \"d9bafed4-0b18-4f58-968d-86655b4d2ce9\",\n        \"versionSpec\": \"2.*\"\n      },\n      \"timeoutInMinutes\": 0\n    }\n  ]\n}"
       }
     }
   ],
@@ -142,19 +153,58 @@
     "Live acceptance tests confirm Create → Read → idempotency re-plan → Destroy cycle against a real ADO organisation."
   ],
   "filesChanged": [
-    { "path": "azuredevops/internal/service/taskagent/resource_task_group_framework.go", "note": "New: terraform-plugin-framework implementation of betterado_task_group (NewTaskGroupResource, schema, CRUD, expand/flatten helpers)" },
-    { "path": "azuredevops/internal/service/taskagent/resource_task_group_framework_test.go", "note": "New: TestTaskGroupFramework_Schema unit test" },
-    { "path": "azuredevops/internal/provider/framework_provider.go", "note": "Added taskagent.NewTaskGroupResource to Resources() slice; mirrored SDKv2 provider schema for mux parity" },
-    { "path": "azuredevops/internal/provider/framework_provider_test.go", "note": "New: TestFrameworkProvider_HasTaskGroupResource" },
-    { "path": "azuredevops/provider.go", "note": "Removed betterado_task_group from SDKv2 ResourcesMap" },
-    { "path": "azuredevops/provider_test.go", "note": "Removed betterado_task_group from expectedResources list" },
-    { "path": "azuredevops/internal/acceptancetests/resource_task_group_test.go", "note": "Updated hclTaskGroupBasic and hclTaskGroupWithGapFields to array HCL syntax" },
-    { "path": "azuredevops/internal/acceptancetests/data_task_group_test.go", "note": "Updated hclTaskGroupDataSourceBasic resource block to array HCL syntax" },
-    { "path": "azuredevops/internal/acceptancetests/testutils/mux_provider.go", "note": "New: mux provider factory helper for acceptance tests" },
-    { "path": "examples/resources/betterado_task_group/resource.tf", "note": "Updated to array-of-objects HCL syntax" },
-    { "path": "docs/resources/task_group.md", "note": "Regenerated via make docs — reflects framework ListNestedAttribute schema" },
-    { "path": "CHANGELOG.md", "note": "DRAFT Unreleased entry: ENHANCEMENTS + FEATURES for framework migration" },
-    { "path": "PROVIDER_VERSION.txt", "note": "Bumped to 0.4.0 (minor version bump for user-visible migration)" }
+    {
+      "path": "azuredevops/internal/service/taskagent/resource_task_group_framework.go",
+      "note": "New: terraform-plugin-framework implementation of betterado_task_group (NewTaskGroupResource, schema, CRUD, expand/flatten helpers)"
+    },
+    {
+      "path": "azuredevops/internal/service/taskagent/resource_task_group_framework_test.go",
+      "note": "New: TestTaskGroupFramework_Schema unit test"
+    },
+    {
+      "path": "azuredevops/internal/provider/framework_provider.go",
+      "note": "Added taskagent.NewTaskGroupResource to Resources() slice; mirrored SDKv2 provider schema for mux parity"
+    },
+    {
+      "path": "azuredevops/internal/provider/framework_provider_test.go",
+      "note": "New: TestFrameworkProvider_HasTaskGroupResource"
+    },
+    {
+      "path": "azuredevops/provider.go",
+      "note": "Removed betterado_task_group from SDKv2 ResourcesMap"
+    },
+    {
+      "path": "azuredevops/provider_test.go",
+      "note": "Removed betterado_task_group from expectedResources list"
+    },
+    {
+      "path": "azuredevops/internal/acceptancetests/resource_task_group_test.go",
+      "note": "Updated hclTaskGroupBasic and hclTaskGroupWithGapFields to array HCL syntax"
+    },
+    {
+      "path": "azuredevops/internal/acceptancetests/data_task_group_test.go",
+      "note": "Updated hclTaskGroupDataSourceBasic resource block to array HCL syntax"
+    },
+    {
+      "path": "azuredevops/internal/acceptancetests/testutils/mux_provider.go",
+      "note": "New: mux provider factory helper for acceptance tests"
+    },
+    {
+      "path": "examples/resources/betterado_task_group/resource.tf",
+      "note": "Updated to array-of-objects HCL syntax"
+    },
+    {
+      "path": "docs/resources/task_group.md",
+      "note": "Regenerated via make docs — reflects framework ListNestedAttribute schema"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "note": "DRAFT Unreleased entry: ENHANCEMENTS + FEATURES for framework migration"
+    },
+    {
+      "path": "PROVIDER_VERSION.txt",
+      "note": "Bumped to 0.4.0 (minor version bump for user-visible migration)"
+    }
   ],
   "summary": {
     "bullets": [
