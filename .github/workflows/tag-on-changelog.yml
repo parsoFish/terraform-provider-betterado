@@ -26,6 +26,7 @@ on:
 
 permissions:
   contents: write # create + push tags
+  actions: write # dispatch release.yml (workflow_dispatch)
 
 jobs:
   tag:
@@ -56,11 +57,16 @@ jobs:
             echo "release=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Create and push the tag
+      - name: Create the tag and start the release
         if: steps.version.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           git tag "v$VERSION"
           git push origin "v$VERSION"
-          # The push above triggers .github/workflows/release.yml (GoReleaser),
-          # which builds + signs the release artifacts for the new tag.
+          # A tag pushed with the Actions GITHUB_TOKEN does NOT trigger
+          # release.yml's `push: tags` event (GitHub's anti-recursion rule), so
+          # explicitly dispatch release.yml for this tag. workflow_dispatch is a
+          # documented exception that GITHUB_TOKEN is permitted to trigger.
+          gh workflow run release.yml --ref main -f tag="v$VERSION"

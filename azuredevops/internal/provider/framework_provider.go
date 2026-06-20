@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -123,25 +124,42 @@ func (p *BetteradoFrameworkProvider) Schema(_ context.Context, _ provider.Schema
 	}
 }
 
-// Configure creates the AggregatedClient from environment variables and stores
-// it as resp.ResourceData so that framework resources (e.g. TaskGroupResource)
-// can retrieve it via resource.ConfigureRequest.ProviderData.
+// Configure builds the AggregatedClient and stores it as resp.ResourceData /
+// resp.DataSourceData so framework resources (e.g. TaskGroupResource,
+// ReleaseDefinitionResource) can retrieve it via ConfigureRequest.ProviderData.
 //
-// The mux multiplexes the provider configuration call across both the SDKv2
-// provider and this framework stub. The SDKv2 provider parses the HCL provider
-// block; this stub reads the same values from the canonical env vars so that
-// it can build its own client independently (the two providers share no runtime
-// state).
-func (p *BetteradoFrameworkProvider) Configure(ctx context.Context, _ provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
-	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+// The mux multiplexes the provider Configure call across both the SDKv2 provider
+// and this framework provider, passing the SAME parsed HCL provider config to
+// each. Credentials are read from the HCL provider block (org_service_url +
+// personal_access_token) first, falling back to the canonical AZDO_* environment
+// variables when an attribute is null/unset — matching the SDKv2 provider's
+// EnvDefaultFunc behaviour. The two providers share no runtime state, so this one
+// builds its own client.
+func (p *BetteradoFrameworkProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	// Read credentials from the HCL provider config. GetAttribute leaves the
+	// value null when the attribute is unset/unknown, in which case ValueString
+	// returns "" and we fall back to the environment variable.
+	var orgURLCfg, patCfg types.String
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("org_service_url"), &orgURLCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("personal_access_token"), &patCfg)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-	// If neither credential source is available we leave resp.ResourceData nil
-	// and let individual resource Configure calls report the error when they
-	// actually need the client. This avoids breaking the provider configure
-	// step when running plan/apply with non-PAT auth (e.g. AAD) — the SDKv2
-	// provider handles those cases; the framework stub only needs the client
-	// when its own resources are used.
+	orgURL := orgURLCfg.ValueString()
+	if orgURL == "" {
+		orgURL = os.Getenv("AZDO_ORG_SERVICE_URL")
+	}
+	pat := patCfg.ValueString()
+	if pat == "" {
+		pat = os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	}
+
+	// If PAT credentials are unavailable (e.g. an unknown value during plan, or
+	// AAD/OIDC auth handled by the SDKv2 provider) leave resp.ResourceData nil
+	// and let an individual resource's Configure report the error only when it
+	// actually needs the client. This keeps the provider Configure step from
+	// failing for non-PAT auth flows.
 	if orgURL == "" || pat == "" {
 		return
 	}

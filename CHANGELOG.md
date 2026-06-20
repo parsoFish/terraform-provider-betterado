@@ -7,6 +7,29 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-06-21
+
+### BUG FIXES
+
+- **Framework provider client wiring (completes WI-5).** `betterado_release_definition`
+  and `betterado_task_group` (migrated to the Plugin Framework in v1.0.0) failed
+  on apply with `Client not configured` when the provider was configured via an
+  HCL `provider "betterado" { ... }` block (for example a `personal_access_token`
+  sourced from a data source) instead of environment variables. The framework
+  provider's `Configure` now reads `org_service_url` and `personal_access_token`
+  from the provider configuration, falling back to the `AZDO_ORG_SERVICE_URL` /
+  `AZDO_PERSONAL_ACCESS_TOKEN` environment variables — matching the SDK v2
+  provider's behaviour. Proven by a live acceptance test that clears the PAT env
+  var and supplies the credential only via the HCL block.
+
+### CI
+
+- `tag-on-changelog` now dispatches `release.yml` (via `workflow_dispatch`) after
+  pushing the version tag. A tag pushed by the Actions `GITHUB_TOKEN` does not
+  trigger the `push` event (GitHub's anti-recursion rule), so auto-publish never
+  fired for v0.3.0–v1.1.0; `workflow_dispatch` is the documented exception that
+  `GITHUB_TOKEN` may trigger, so releases now publish automatically on merge.
+
 ## [1.0.0] - 2026-06-20
 
 First major release. Migrates the two betterado resources to the
