@@ -11,6 +11,17 @@ on:
   push:
     tags:
       - 'v*'
+  # workflow_dispatch lets tag-on-changelog start a release for the tag it just
+  # created. A tag pushed by the Actions GITHUB_TOKEN does NOT trigger the `push`
+  # event above (GitHub's anti-recursion rule), but workflow_dispatch IS one of
+  # the documented exceptions that GITHUB_TOKEN may trigger — so this is the seam
+  # that makes auto-publish actually fire.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v1.0.1)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -22,6 +33,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          # On a tag push github.ref is the tag; on workflow_dispatch use the
+          # supplied tag input so GoReleaser builds the correct version.
+          ref: ${{ github.event.inputs.tag || github.ref }}
           fetch-depth: 0
 
       - name: Set up Go

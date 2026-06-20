@@ -660,6 +660,74 @@ func getReleaseDefinitionFromResource(res *terraform.ResourceState) (*release.Re
 	})
 }
 
+// TestAccReleaseDefinition_providerHCLConfig proves WI-5: the framework provider
+// builds its Azure DevOps client from the HCL provider block
+// (org_service_url + personal_access_token), not only from environment variables.
+// Before v1.0.1 the framework provider read credentials exclusively from env vars
+// and ignored req.Config, so configuring the provider purely via HCL (e.g. a PAT
+// sourced from a data source) left the client nil and every framework-resource
+// apply failed with "Client not configured".
+//
+// To prove the credential flows from config and not the environment, the PAT env
+// var is cleared for this test; the resource can therefore only succeed if the
+// provider reads personal_access_token from the HCL block. Uses resource.Test
+// (not ParallelTest) because t.Setenv is incompatible with t.Parallel.
+func TestAccReleaseDefinition_providerHCLConfig(t *testing.T) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	if orgURL == "" || pat == "" {
+		t.Skip("AZDO_ORG_SERVICE_URL and AZDO_PERSONAL_ACCESS_TOKEN must be set for this acceptance test")
+	}
+
+	// Build the shared fixture while the env credentials are still present.
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	// Clear the PAT env var so the provider can ONLY succeed by reading the
+	// credential from the HCL provider block below (the WI-5 fix).
+	t.Setenv("AZDO_PERSONAL_ACCESS_TOKEN", "")
+
+	providerBlock := fmt.Sprintf(`
+provider "betterado" {
+  org_service_url       = %[1]q
+  personal_access_token = %[2]q
+}
+`, orgURL, pat)
+
+	resource.Test(t, resource.TestCase{
+		// Custom pre-check: the PAT is supplied via HCL, not the environment, so
+		// don't require the PAT env var (testutils.PreCheck would).
+		PreCheck: func() {
+			if os.Getenv("TF_ACC") == "" {
+				t.Skip("TF_ACC must be set for acceptance tests")
+			}
+		},
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		// No CheckDestroy / out-of-band existence check here: those shared helpers
+		// build their verification client from the PAT env var, which this test
+		// deliberately clears. The proof is that apply + an idempotent re-plan
+		// succeed at all — they only can if the provider built its client from the
+		// HCL block. terraform still destroys the resource via that same provider
+		// at the end of the test.
+		Steps: []resource.TestStep{
+			{
+				Config: providerBlock + hclReleaseDefinitionBasicArraySyntax(name, fixture),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(tfNode, "id"),
+					resource.TestCheckResourceAttrSet(tfNode, "revision"),
+				),
+			},
+			// Idempotency — re-plan with the HCL-configured provider must be empty.
+			{
+				Config:             providerBlock + hclReleaseDefinitionBasicArraySyntax(name, fixture),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
 // --- HCL templates ---
 
 // hclReleaseDefinitionBasicFixture creates a minimal release definition with one stage,
