@@ -10,10 +10,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	releaseapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/release"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
 
@@ -26,6 +28,7 @@ var (
 	_ resource.Resource                 = &releaseDefinitionFrameworkResource{}
 	_ resource.ResourceWithImportState  = &releaseDefinitionFrameworkResource{}
 	_ resource.ResourceWithUpgradeState = &releaseDefinitionFrameworkResource{}
+	_ resource.ResourceWithModifyPlan   = &releaseDefinitionFrameworkResource{}
 )
 
 // releaseDefinitionFrameworkResource is the terraform-plugin-framework implementation of
@@ -376,6 +379,74 @@ var stageAttrTypes = map[string]attr.Type{
 
 func (r *releaseDefinitionFrameworkResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_release_definition"
+}
+
+// ModifyPlan pins the computed `revision` to its prior-state value on a no-op
+// plan, while leaving it unknown ("known after apply") on a genuine change.
+//
+// Why this is needed: `revision` is Computed with no plan modifier. The
+// framework's plan gate (MarkComputedNilsAsUnknown) flips every config-null
+// Computed attribute to unknown whenever the proposed new state differs from
+// prior state — which happens on EVERY plan, because Terraform core nulls the
+// config-omitted Optional+Computed nested blocks under the Required `stages`
+// list. Those nested blocks are restored by their useStateForUnknown* plan
+// modifiers, but `revision` had none, so it surfaced as a perpetual
+// `~ revision = N -> (known after apply)` diff (the idempotency failure).
+//
+// A plain UseStateForUnknown is wrong for `revision`: ADO increments the
+// revision on every update, so pinning it to prior on a real update produces a
+// "Provider produced inconsistent result after apply". Instead this runs at
+// resource scope — after all attribute plan modifiers have restored the nested
+// blocks — and pins `revision` only when the rest of the planned state is
+// byte-identical to prior state (a true no-op, where ADO will NOT bump the
+// revision). On any real change it leaves `revision` unknown so the
+// server-incremented value is accepted at apply.
+func (r *releaseDefinitionFrameworkResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Create (no prior state) or destroy (null plan): nothing to pin.
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var stateRevision types.Int64
+	resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("revision"), &stateRevision)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// Mask `revision` in the planned object to the prior-state value, then
+	// compare against prior state. If the rest of the plan is byte-identical,
+	// this is a no-op (ADO will NOT bump the revision) and we pin revision to
+	// prior so it stops rendering as `~ revision = N -> (known after apply)`.
+	// Otherwise it is a real change: force revision to unknown so ADO's
+	// server-incremented value is accepted at apply (the framework otherwise
+	// leaves the prior value in the plan, which yields "inconsistent result
+	// after apply" when ADO bumps it).
+	planMasked, err := setObjectAttr(ctx, req.Plan.Raw, "revision", stateRevision)
+	if err != nil {
+		resp.Diagnostics.AddError("revision plan comparison failed", err.Error())
+		return
+	}
+	if planMasked.Equal(req.State.Raw) {
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("revision"), stateRevision)...)
+	} else {
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("revision"), types.Int64Unknown())...)
+	}
+}
+
+// setObjectAttr returns a copy of obj (an object tftypes.Value) with the named
+// top-level attribute replaced by v's Terraform value. Used to mask an
+// attribute before comparing two object values for equality.
+func setObjectAttr(ctx context.Context, obj tftypes.Value, name string, v attr.Value) (tftypes.Value, error) {
+	var attrs map[string]tftypes.Value
+	if err := obj.As(&attrs); err != nil {
+		return obj, err
+	}
+	tfVal, err := v.ToTerraformValue(ctx)
+	if err != nil {
+		return obj, err
+	}
+	attrs[name] = tfVal
+	return tftypes.NewValue(obj.Type(), attrs), nil
 }
 
 func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
