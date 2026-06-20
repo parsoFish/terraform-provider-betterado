@@ -11,20 +11,31 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 )
 
+// getDirectClient builds an AggregatedClient directly from AZDO env vars.
+// Used by CheckDestroy and evidence helpers because ProtoV6ProviderFactories
+// does not wire the SDKv2 provider singleton's Meta, so testutils.GetProvider().Meta()
+// would be nil when the test uses the mux provider factory.
+func getDirectClient() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+}
+
 func TestAccTaskGroup_basic(t *testing.T) {
 	name := testutils.GenerateResourceName()
 	tfNode := "betterado_task_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkTaskGroupDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkTaskGroupDestroyed,
 		Steps: []resource.TestStep{
 			// Step 1: create + assert read-back
 			{
@@ -70,23 +81,23 @@ resource "betterado_task_group" "test" {
   description   = "Acceptance test task group"
   category      = "Build"
 
-  version {
+  version = [{
     major = 1
     minor = 0
     patch = 0
-  }
+  }]
 
-  input {
+  input = [{
     name  = "myParam"
     label = "My Parameter"
     type  = "string"
-  }
+  }]
 
-  task {
+  task = [{
     display_name = "Echo Step"
     task_id      = "d9bafed4-0b18-4f58-968d-86655b4d2ce9"
     task_version = "2.*"
-  }
+  }]
 }
 `, name)
 }
@@ -96,9 +107,9 @@ func TestAccTaskGroup_withGapFields(t *testing.T) {
 	tfNode := "betterado_task_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkTaskGroupDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkTaskGroupDestroyed,
 		Steps: []resource.TestStep{
 			// Step 1: create with gap fields and assert exact non-default read-back
 			{
@@ -142,32 +153,35 @@ resource "betterado_task_group" "test" {
   category      = "Deploy"
   icon_url      = "https://cdn.vsassets.io/v/someicon.png"
 
-  version {
+  version = [{
     major = 1
     minor = 0
     patch = 0
-  }
+  }]
 
-  input {
+  input = [{
     name         = "targetEnv"
     label        = "Target Environment"
     type         = "string"
     visible_rule = "targetType = filePath"
     properties   = { "EndpointId" = "" }
     aliases      = ["targetEnvAlias"]
-  }
+  }]
 
-  task {
+  task = [{
     display_name = "Deploy Step"
     task_id      = "d9bafed4-0b18-4f58-968d-86655b4d2ce9"
     task_version = "2.*"
-  }
+  }]
 }
 `, name)
 }
 
 func checkTaskGroupDestroyed(s *terraform.State) error {
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+	clients, err := getDirectClient()
+	if err != nil {
+		return fmt.Errorf("checkTaskGroupDestroyed: failed to build ADO client: %v", err)
+	}
 
 	for _, res := range s.RootModule().Resources {
 		if res.Type != "betterado_task_group" {
@@ -214,7 +228,10 @@ func captureTaskGroupEvidence(tfNode string) resource.TestCheckFunc {
 			return nil
 		}
 		projectID := res.Primary.Attributes["project_id"]
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		clients, err := getDirectClient()
+		if err != nil {
+			return nil // best-effort: client build failure does not fail the test
+		}
 		taskGroups, err := clients.TaskAgentClient.GetTaskGroups(clients.Ctx, taskagent.GetTaskGroupsArgs{
 			Project:     &projectID,
 			TaskGroupId: &tgID,
