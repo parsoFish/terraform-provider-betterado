@@ -7,72 +7,88 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
-## [1.1.0] - 2026-06-20
+## [1.0.0] - 2026-06-20
 
-### ENHANCEMENTS
+First major release. Migrates the two betterado resources to the
+terraform-plugin-framework and restores the full classic-release surface on the
+framework resource, with live-proven idempotency. (Consolidates the internal
+0.3.0–0.5.0 development tags, which were never published to the Terraform
+Registry — 0.2.0 was the last public release.)
 
-- `betterado_release_definition`: Terraform registry docs (`docs/resources/release_definition.md`) now
-  show HCL examples using array-of-objects syntax (`stages = [{…}]`, `artifact = [{…}]`,
-  `deploy_phase = [{…}]`) regenerated from the framework schema via `make docs`.
-- `betterado_task_group`: Terraform registry docs (`docs/resources/task_group.md`) now show
-  HCL examples using array-of-objects syntax (`task = [{…}]`, `input = [{…}]`, `version = [{…}]`)
-  regenerated from the framework schema via `make docs`.
+### BREAKING CHANGES
+
+- **HCL syntax (framework migration).** `betterado_release_definition` and
+  `betterado_task_group` are now terraform-plugin-framework resources and use
+  attribute (array-of-objects) HCL syntax instead of SDK v2 blocks. Update
+  configurations: `stages = [{ … }]`, `deploy_phase = [{ … }]`,
+  `cd_artifact_trigger = [{ … }]`, `variables = { NAME = { … } }`,
+  `task = [{ … }]`, `input = [{ … }]`, `version = [{ … }]`, etc.
+- `betterado_release_definition`: the `environment` block was renamed to `stages`
+  (no alias). Existing v0.x Terraform state is automatically upgraded from schema
+  version 0 to 1 on `terraform init` (state upgraders for both resources).
+
+### FEATURES
+
+- **Plugin Framework migration.** `main.go` serves the provider via
+  `tf6muxserver`, multiplexing the SDK v2 provider (upgraded to protocol 6 via
+  `tf5to6server`) with a new terraform-plugin-framework provider.
+  `betterado_task_group` and `betterado_release_definition` are now framework
+  resources; all other resources/data sources are unaffected.
+- **New: `pull_request_trigger`** on `betterado_release_definition` triggers —
+  declare pull-request CD triggers (`artifact_alias`, `target_branches`, `tags`,
+  `use_artifact_reference`). This was the last writable gap versus the deployed
+  ADO trigger surface.
+
+### ENHANCEMENTS — full SDK-v2 parity restored on the framework resource
+
+The framework migration had dropped a large part of the `release_definition`
+surface; this release restores all of it (mirroring the ADO Release API):
+
+- **Triggers:** restored `source_repo_trigger`, `container_image_trigger`, and
+  the `cd_artifact_trigger` filters `tag_filter`, `use_build_definition_branch`,
+  and `create_release_on_build_tagging`.
+- **Stages:** restored `execution_policy` (`concurrency_count` — `0` means
+  unlimited — and `queue_depth_count`), `environment_trigger`, stage-level
+  `schedule`, `process_parameters`, `properties`, `owner`, and the computed
+  stage `id`.
+- **Deploy phases:** restored `deployment_input.override_inputs` and
+  `deployment_input.job_cancel_timeout_in_minutes`.
+- **Environment options:** restored `pull_request_deployment_enabled` plus the
+  (API-deprecated) `email_recipients`, `skip_artifacts_download`,
+  `timeout_in_minutes`, and `enable_access_token`.
+- **Workflow tasks / gates:** restored `workflow_task.definition_type`; gave
+  `pre_deployment_gates` / `post_deployment_gates` full gate-task fidelity
+  (display name, task id, version, condition, inputs, …) in place of the prior
+  name/task-id stub.
+- **Definition-level `tags`** restored.
+- Terraform Registry docs (`docs/resources/`, `docs/data-sources/`, `examples/`)
+  regenerated from the framework schema (attribute syntax).
+
+### BUG FIXES
+
+- **`revision` idempotency.** `betterado_release_definition` no longer shows a
+  perpetual `~ revision = N -> (known after apply)` diff. A resource-level
+  `ModifyPlan` detects a true no-op (the plan differs from prior state only in
+  framework-injected unknowns) and snaps the plan back to prior state, while
+  server-(re)assigned computed values (revision, stage ids, ADO-assigned
+  environment ids) correctly go "known after apply" on real changes — avoiding
+  "inconsistent result after apply" when ADO bumps them.
+- **Secret variables.** `is_secret` variable values round-trip without drift —
+  ADO never returns secret values on read, so the planned/prior value is
+  preserved and the `value` attribute is marked sensitive.
 
 ### NOTES
 
-- `GNUmakefile`: `make docs` target now runs `git checkout -- docs/guides/` after `tfplugindocs`
-  to restore hand-written authentication guides that tfplugindocs deletes during regeneration.
-- `roadmap.md`: "Future: holistic terraform-plugin-framework migration" section updated with
-  explicit phase-2 candidate list (`betterado_release_folder`, `betterado_release_definition_permissions`,
-  upstream-inherited resources) and identification of the `terraform-plugin-mux` scaffold
-  (`INIT-2026-06-19-framework-state-upgraders`) as the extension point for further migrations.
-
-## [1.0.0] - 2026-06-20
-
-### Breaking Changes
-
-- `betterado_release_definition`: `environment` attribute renamed to `stages` (HCL configs must
-  update `environment { ... }` blocks to `stages = [{ ... }]` array syntax).
-- `betterado_task_group`: `task`, `input`, and `version` nested blocks now use HCL array-of-objects
-  syntax (`task = [{ ... }]`, `input = [{ ... }]`, `version = [{ ... }]`).
-
-### Added
-
-- State upgrade path from schema version 0 (0.x provider) to version 1 for both
-  `betterado_release_definition` and `betterado_task_group`. Existing Terraform state written
-  by the 0.x SDKv2 provider is automatically upgraded by `terraform init`.
-
-## [0.5.0] - 2026-06-19
-
-### Added
-
-- `betterado_release_definition` migrated to terraform-plugin-framework; `stages` attribute
-  replaces `environment` (breaking change); `variables` now use map syntax; full CRUD + import
-  + idempotency proven by live TF_ACC acceptance test (`TestAccReleaseDefinition_basic`).
-- Framework provider `Configure()` now wires an `*client.AggregatedClient` (PAT auth via
-  AZDO_ORG_SERVICE_URL / AZDO_PERSONAL_ACCESS_TOKEN) so framework resources can call ADO REST APIs.
-- Framework provider `Schema()` mirrors all SDKv2 provider attributes for mux compatibility.
-
-## [0.4.0] - 2026-06-19
-
-ENHANCEMENTS:
-
-- `betterado_task_group`: migrated from Terraform Plugin SDK v2 to Terraform Plugin Framework; `task`, `input`, and `version` are now list-of-object attributes (HCL array-of-objects syntax) with typed defaults eliminating null-fill boilerplate.
-
-FEATURES:
-
-- **New Resource (framework):** `betterado_task_group` is now implemented via `terraform-plugin-framework` (`ListNestedAttribute` for `task`, `input`, and `version`). Configurations must use array-of-objects HCL syntax (`task = [{ ... }]`, `input = [{ ... }]`, `version = [{ ... }]`). Optional task-step fields (`enabled`, `timeout_in_minutes`, `retry_count_on_task_failure`, `always_run`, `inputs`) default to typed zero-values and do not produce a perpetual diff when omitted.
-
-## [0.3.0] - 2026-06-20
-
-FEATURES:
-
-- **Mux entrypoint:** `main.go` now serves the provider via `tf6muxserver`, multiplexing the existing SDKv2 provider (upgraded to protocol 6 via `tf5to6server`) with a new `terraform-plugin-framework` provider stub (`azuredevops/internal/provider/framework_provider.go`). All existing SDKv2 resources are unaffected; new framework resources are registered by adding to `Resources()` / `DataSources()` in `framework_provider.go` without touching `main.go`.
-
-NOTES:
-
-- Added direct dependencies: `github.com/hashicorp/terraform-plugin-framework`, `github.com/hashicorp/terraform-plugin-mux`, `github.com/hashicorp/terraform-plugin-go`. Vendored via `go mod vendor`.
-- SDKv2 passthrough proven by `TestAccMuxSdkv2Passthrough` (live `TF_ACC` test against real ADO org); live REST evidence at `https://vsrm.dev.azure.com/davidgparsonson/…/_apis/release/folders`.
+- Removed the orphaned SDK v2 `release_definition` / `task_group` resource
+  implementations left dangling by the migration, and added a
+  `framework-migration-guard` skill (`forge/skills/framework-migration-guard/`)
+  whose `check.sh` fails when any resource constructor is registered in neither
+  provider — guarding future migration steps against dead code.
+- The restored deprecated `environment_options` fields are superseded by their
+  `deployment_input` equivalents; prefer the latter.
+- Every `betterado_release_definition` change in this release is proven by a live
+  `TF_ACC` acceptance test against a real Azure DevOps org (apply → API
+  read-back → idempotency re-plan → destroy).
 
 ## 0.2.0
 

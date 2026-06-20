@@ -118,7 +118,8 @@ variable "build_definition_id" {
 - `description` (String) Optional description for this release definition.
 - `path` (String) Folder path within the release definitions hierarchy.
 - `release_name_format` (String) Format string for auto-generated release names.
-- `triggers` (Attributes List) Release triggers (CD artifact and schedule). (see [below for nested schema](#nestedatt--triggers))
+- `tags` (Set of String) Definition-level tags applied to the release definition.
+- `triggers` (Attributes List) Release triggers (CD artifact, schedule, source repo, container image, pull request). (see [below for nested schema](#nestedatt--triggers))
 - `variable_groups` (List of Number) IDs of variable groups linked to this release definition.
 - `variables` (Attributes Map) Definition-level variables keyed by variable name. (see [below for nested schema](#nestedatt--variables))
 
@@ -139,14 +140,24 @@ Optional:
 - `condition` (Attributes List) Conditions that must be met before the stage runs. (see [below for nested schema](#nestedatt--stages--condition))
 - `deploy_phase` (Attributes List) Deploy phases for this stage. (see [below for nested schema](#nestedatt--stages--deploy_phase))
 - `environment_options` (Attributes List) Stage-level execution options (max 1 block). (see [below for nested schema](#nestedatt--stages--environment_options))
+- `environment_trigger` (Attributes List) Environment-level triggers (e.g. rollback/redeploy). (see [below for nested schema](#nestedatt--stages--environment_trigger))
+- `execution_policy` (Attributes List) Execution policy for concurrent deployments (max 1 block). (see [below for nested schema](#nestedatt--stages--execution_policy))
+- `owner` (String) Identity UUID of the stage owner (ADO-assigned when not set).
 - `post_deploy_approval` (Attributes List) Post-deployment approval configuration (max 1 block). (see [below for nested schema](#nestedatt--stages--post_deploy_approval))
 - `post_deployment_gates` (Attributes List) Post-deployment gates configuration (max 1 block). (see [below for nested schema](#nestedatt--stages--post_deployment_gates))
 - `pre_deploy_approval` (Attributes List) Pre-deployment approval configuration (max 1 block). (see [below for nested schema](#nestedatt--stages--pre_deploy_approval))
 - `pre_deployment_gates` (Attributes List) Pre-deployment gates configuration (max 1 block). (see [below for nested schema](#nestedatt--stages--pre_deployment_gates))
+- `process_parameters` (Attributes List) Process parameters (max 1 block). (see [below for nested schema](#nestedatt--stages--process_parameters))
+- `properties` (Map of String) Stage-level properties (key/value string pairs). ADO wraps values in {"$type":"System.String","$value":"..."} on the wire; this is handled automatically.
 - `rank` (Number) Execution order rank of the stage (1-based).
 - `retention_policy` (Attributes List) Retention policy for this stage's releases (max 1 block). (see [below for nested schema](#nestedatt--stages--retention_policy))
+- `schedule` (Attributes List) Stage-level scheduled deployment triggers. (see [below for nested schema](#nestedatt--stages--schedule))
 - `variable_groups` (List of Number) IDs of variable groups linked to this stage.
 - `variables` (Attributes Map) Stage-level variables keyed by variable name. (see [below for nested schema](#nestedatt--stages--variables))
+
+Read-Only:
+
+- `id` (Number) ADO-assigned ID of this stage.
 
 <a id="nestedatt--stages--condition"></a>
 ### Nested Schema for `stages.condition`
@@ -181,6 +192,8 @@ Optional:
 - `condition` (String) Condition that must be satisfied before the phase runs.
 - `demands` (List of String) List of demands for agent selection.
 - `enable_access_token` (Boolean) Whether to enable OAuth access token for scripts in this phase.
+- `job_cancel_timeout_in_minutes` (Number) Timeout in minutes for job cancellation (default 1).
+- `override_inputs` (Map of String) Phase-level task input overrides (e.g. for parameterised task groups).
 - `parallel_execution` (Attributes List) Parallel execution configuration (max 1 block). (see [below for nested schema](#nestedatt--stages--deploy_phase--deployment_input--parallel_execution))
 - `queue_id` (Number) ID of the agent queue to use for this phase.
 - `skip_artifacts_download` (Boolean) Whether to skip downloading artifacts for this phase.
@@ -208,6 +221,7 @@ Optional:
 
 - `always_run` (Boolean) Whether the task runs even if a previous step failed.
 - `condition` (String) Run condition expression for the task.
+- `definition_type` (String) Task definition type (e.g. 'task', 'metaTask'). Defaults to 'task'.
 - `display_name` (String) Display name for the task step.
 - `enabled` (Boolean) Whether the task is enabled.
 - `inputs` (Map of String) Task-specific input values as key/value pairs.
@@ -225,8 +239,32 @@ Optional:
 - `auto_link_workitems` (Boolean) Whether to auto-link work items to the deployment.
 - `badge_enabled` (Boolean) Whether to show a badge for this stage.
 - `email_notification_type` (String) When to send email notifications: OnlyOnFailure, Always, Never.
+- `email_recipients` (String) (deprecated) Email recipients for deployment notifications. ADO defaults to 'release.environment.owner;release.creator'.
+- `enable_access_token` (Boolean) (deprecated) Whether to enable OAuth access token. Prefer deployment_input.enable_access_token.
 - `publish_deployment_status` (Boolean) Whether to publish deployment status to the ADO build.
 - `publish_deployment_status_to_devops_project_settings` (Boolean) Whether to publish deployment status to the project settings page.
+- `pull_request_deployment_enabled` (Boolean) Whether pull request deployments are enabled for this stage.
+- `skip_artifacts_download` (Boolean) (deprecated) Whether to skip artifact download for this stage. Prefer deployment_input.skip_artifacts_download.
+- `timeout_in_minutes` (Number) (deprecated) Timeout in minutes for this stage. Prefer deployment_input.timeout_in_minutes.
+
+
+<a id="nestedatt--stages--environment_trigger"></a>
+### Nested Schema for `stages.environment_trigger`
+
+Optional:
+
+- `definition_environment_id` (Number) ID of the source environment for this trigger (ADO-assigned when not set).
+- `trigger_content` (String) Serialised trigger content (ADO internal).
+- `trigger_type` (String) Trigger type: rollbackRedeploy, deploymentGroupRedeploy, undefined.
+
+
+<a id="nestedatt--stages--execution_policy"></a>
+### Nested Schema for `stages.execution_policy`
+
+Optional:
+
+- `concurrency_count` (Number) Max concurrent deployments (0 = unlimited).
+- `queue_depth_count` (Number) Max queue depth (0 = unlimited).
 
 
 <a id="nestedatt--stages--post_deploy_approval"></a>
@@ -269,7 +307,7 @@ Optional:
 
 Optional:
 
-- `gate` (Attributes List) Individual gate definitions (tasks are implemented in WI-2). (see [below for nested schema](#nestedatt--stages--post_deployment_gates--gate))
+- `gate` (Attributes List) Individual gate definitions. (see [below for nested schema](#nestedatt--stages--post_deployment_gates--gate))
 - `gates_options` (Attributes List) Gate evaluation options (max 1 block). (see [below for nested schema](#nestedatt--stages--post_deployment_gates--gates_options))
 
 <a id="nestedatt--stages--post_deployment_gates--gate"></a>
@@ -277,15 +315,26 @@ Optional:
 
 Optional:
 
-- `task` (Attributes List) Workflow tasks within this gate (stub — full implementation in WI-2). (see [below for nested schema](#nestedatt--stages--post_deployment_gates--gate--task))
+- `task` (Attributes List) Workflow tasks within this gate. (see [below for nested schema](#nestedatt--stages--post_deployment_gates--gate--task))
 
 <a id="nestedatt--stages--post_deployment_gates--gate--task"></a>
 ### Nested Schema for `stages.post_deployment_gates.gate.task`
 
 Required:
 
-- `name` (String) Task name.
-- `task_id` (String) Task definition UUID.
+- `task_id` (String) UUID of the gate task definition.
+
+Optional:
+
+- `always_run` (Boolean) Whether the gate task always runs.
+- `condition` (String) Run condition expression for the gate task.
+- `definition_type` (String) Gate task definition type (e.g. 'task', 'metaTask'). Defaults to 'task'.
+- `display_name` (String) Display name for the gate task step.
+- `enabled` (Boolean) Whether the gate task is enabled.
+- `inputs` (Map of String) Gate task-specific input values as key/value pairs.
+- `retry_count_on_task_failure` (Number) Number of retries on gate task failure.
+- `timeout_in_minutes` (Number) Timeout in minutes for the gate task (0 = no timeout).
+- `version_spec` (String) Version spec for the gate task (e.g. '0.*', '1.*').
 
 
 
@@ -342,7 +391,7 @@ Optional:
 
 Optional:
 
-- `gate` (Attributes List) Individual gate definitions (tasks are implemented in WI-2). (see [below for nested schema](#nestedatt--stages--pre_deployment_gates--gate))
+- `gate` (Attributes List) Individual gate definitions. (see [below for nested schema](#nestedatt--stages--pre_deployment_gates--gate))
 - `gates_options` (Attributes List) Gate evaluation options (max 1 block). (see [below for nested schema](#nestedatt--stages--pre_deployment_gates--gates_options))
 
 <a id="nestedatt--stages--pre_deployment_gates--gate"></a>
@@ -350,15 +399,26 @@ Optional:
 
 Optional:
 
-- `task` (Attributes List) Workflow tasks within this gate (stub — full implementation in WI-2). (see [below for nested schema](#nestedatt--stages--pre_deployment_gates--gate--task))
+- `task` (Attributes List) Workflow tasks within this gate. (see [below for nested schema](#nestedatt--stages--pre_deployment_gates--gate--task))
 
 <a id="nestedatt--stages--pre_deployment_gates--gate--task"></a>
 ### Nested Schema for `stages.pre_deployment_gates.gate.task`
 
 Required:
 
-- `name` (String) Task name.
-- `task_id` (String) Task definition UUID.
+- `task_id` (String) UUID of the gate task definition.
+
+Optional:
+
+- `always_run` (Boolean) Whether the gate task always runs.
+- `condition` (String) Run condition expression for the gate task.
+- `definition_type` (String) Gate task definition type (e.g. 'task', 'metaTask'). Defaults to 'task'.
+- `display_name` (String) Display name for the gate task step.
+- `enabled` (Boolean) Whether the gate task is enabled.
+- `inputs` (Map of String) Gate task-specific input values as key/value pairs.
+- `retry_count_on_task_failure` (Number) Number of retries on gate task failure.
+- `timeout_in_minutes` (Number) Timeout in minutes for the gate task (0 = no timeout).
+- `version_spec` (String) Version spec for the gate task (e.g. '0.*', '1.*').
 
 
 
@@ -375,6 +435,24 @@ Optional:
 
 
 
+<a id="nestedatt--stages--process_parameters"></a>
+### Nested Schema for `stages.process_parameters`
+
+Optional:
+
+- `input` (Attributes List) Input parameter definitions. (see [below for nested schema](#nestedatt--stages--process_parameters--input))
+
+<a id="nestedatt--stages--process_parameters--input"></a>
+### Nested Schema for `stages.process_parameters.input`
+
+Optional:
+
+- `default_value` (String) Default value.
+- `name` (String) Parameter name.
+- `parameter_type` (String) Parameter type string.
+
+
+
 <a id="nestedatt--stages--retention_policy"></a>
 ### Nested Schema for `stages.retention_policy`
 
@@ -385,6 +463,21 @@ Optional:
 - `retain_build` (Boolean) Whether to retain the triggering build.
 
 
+<a id="nestedatt--stages--schedule"></a>
+### Nested Schema for `stages.schedule`
+
+Optional:
+
+- `days_to_release` (Number) Bitmask of days to release (127 = all days).
+- `start_hours` (Number) Hour of day to start (0-23).
+- `start_minutes` (Number) Minute of hour to start (0-59).
+- `time_zone_id` (String) Time zone identifier (e.g. 'UTC', 'Eastern Standard Time').
+
+Read-Only:
+
+- `job_id` (String) ADO-assigned job UUID for the schedule.
+
+
 <a id="nestedatt--stages--variables"></a>
 ### Nested Schema for `stages.variables`
 
@@ -392,7 +485,7 @@ Optional:
 
 - `allow_override` (Boolean) Whether the variable can be overridden at release time.
 - `is_secret` (Boolean) Whether the variable is a secret.
-- `value` (String) Variable value.
+- `value` (String, Sensitive) Variable value. Marked sensitive because secret variables are write-only (ADO never returns secret values on read).
 
 
 
@@ -416,7 +509,10 @@ Optional:
 Optional:
 
 - `cd_artifact_trigger` (Attributes List) CD artifact trigger (max 1 per triggers block). (see [below for nested schema](#nestedatt--triggers--cd_artifact_trigger))
+- `container_image_trigger` (Attributes List) Container image trigger (triggerType=containerImage). (see [below for nested schema](#nestedatt--triggers--container_image_trigger))
+- `pull_request_trigger` (Attributes List) Pull request trigger (triggerType=pullRequest). (see [below for nested schema](#nestedatt--triggers--pull_request_trigger))
 - `schedule_trigger` (Attributes List) Schedule trigger (max 1 per triggers block). (see [below for nested schema](#nestedatt--triggers--schedule_trigger))
+- `source_repo_trigger` (Attributes List) Source repository trigger (triggerType=sourceRepo). (see [below for nested schema](#nestedatt--triggers--source_repo_trigger))
 
 <a id="nestedatt--triggers--cd_artifact_trigger"></a>
 ### Nested Schema for `triggers.cd_artifact_trigger`
@@ -425,6 +521,37 @@ Optional:
 
 - `artifact_alias` (String) Alias of the artifact that triggers this release.
 - `branch_filters` (List of String) Branch filter expressions for this CD trigger.
+- `create_release_on_build_tagging` (Boolean) Create a release when the build is tagged.
+- `tag_filter` (Attributes List) Build-tag filter (ADO 7.1 does not persist tagFilter.pattern — only the tags list round-trips). (see [below for nested schema](#nestedatt--triggers--cd_artifact_trigger--tag_filter))
+- `use_build_definition_branch` (Boolean) Use the build definition's default branch as the trigger source branch.
+
+<a id="nestedatt--triggers--cd_artifact_trigger--tag_filter"></a>
+### Nested Schema for `triggers.cd_artifact_trigger.tag_filter`
+
+Optional:
+
+- `tags` (List of String) Build tags that must be present to trigger.
+
+
+
+<a id="nestedatt--triggers--container_image_trigger"></a>
+### Nested Schema for `triggers.container_image_trigger`
+
+Optional:
+
+- `artifact_alias` (String) Alias of the container-image artifact this trigger monitors.
+- `label` (String) Image tag/label to filter on (empty = any tag).
+
+
+<a id="nestedatt--triggers--pull_request_trigger"></a>
+### Nested Schema for `triggers.pull_request_trigger`
+
+Optional:
+
+- `artifact_alias` (String) Alias of the artifact associated with the pull request trigger.
+- `tags` (List of String) Pull request tags that must be present to trigger.
+- `target_branches` (List of String) Target branches that trigger on pull request (e.g. refs/heads/main).
+- `use_artifact_reference` (Boolean) When true (default), ADO derives the pull request code repository reference from the linked source-based artifact. Required by ADO for artifact-linked pull request triggers.
 
 
 <a id="nestedatt--triggers--schedule_trigger"></a>
@@ -439,6 +566,15 @@ Optional:
 - `time_zone_id` (String) Time zone identifier (e.g. 'UTC', 'Eastern Standard Time').
 
 
+<a id="nestedatt--triggers--source_repo_trigger"></a>
+### Nested Schema for `triggers.source_repo_trigger`
+
+Optional:
+
+- `alias` (String) Alias of the source repository artifact.
+- `branch_filters` (List of String) Branch filter expressions for this source-repo trigger.
+
+
 
 <a id="nestedatt--variables"></a>
 ### Nested Schema for `variables`
@@ -447,7 +583,7 @@ Optional:
 
 - `allow_override` (Boolean) Whether the variable can be overridden at release time.
 - `is_secret` (Boolean) Whether the variable is a secret.
-- `value` (String) Variable value.
+- `value` (String, Sensitive) Variable value. Marked sensitive because secret variables are write-only (ADO never returns secret values on read).
 
 ## Import
 
