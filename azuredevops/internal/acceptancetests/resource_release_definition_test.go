@@ -1121,27 +1121,27 @@ resource "betterado_release_definition" "test" {
           continue_on_error    = false
         }]
       }]
-    },
-    {
-      name       = "Agentless phase"
-      rank       = 2
-      phase_type = "runOnServer"
+      },
+      {
+        name       = "Agentless phase"
+        rank       = 2
+        phase_type = "runOnServer"
 
-      deployment_input = [{
-        timeout_in_minutes            = 0
-        job_cancel_timeout_in_minutes = 1
-        condition                     = "succeeded()"
-      }]
+        deployment_input = [{
+          timeout_in_minutes            = 0
+          job_cancel_timeout_in_minutes = 1
+          condition                     = "succeeded()"
+        }]
 
-      workflow_task = [{
-        display_name = "Delay"
-        task_id      = "28782b92-5e8e-4458-9751-a71cd1492bae"
-        version_spec = "1.*"
-        enabled      = true
-        inputs = {
-          delayForMinutes = "1"
-        }
-      }]
+        workflow_task = [{
+          display_name = "Delay"
+          task_id      = "28782b92-5e8e-4458-9751-a71cd1492bae"
+          version_spec = "1.*"
+          enabled      = true
+          inputs = {
+            delayForMinutes = "1"
+          }
+        }]
     }]
 
     # environment options (non-default)
@@ -1236,44 +1236,44 @@ resource "betterado_release_definition" "test" {
         }]
       }]
     }]
-  },
-  {
-    name = "Production"
-    rank = 2
+    },
+    {
+      name = "Production"
+      rank = 2
 
-    condition = [{
-      name           = "Staging"
-      condition_type = "environmentState"
-      value          = "4"
-    }]
-
-    deploy_phase = [{
-      name       = "Agent job"
-      rank       = 1
-      phase_type = "agentBasedDeployment"
-    }]
-
-    retention_policy = [{
-      days_to_keep     = 30
-      releases_to_keep = 3
-      retain_build     = true
-    }]
-
-    pre_deploy_approval = [{
-      approver = [{
-        id           = "00000000-0000-0000-0000-000000000000"
-        is_automated = true
-        rank         = 1
+      condition = [{
+        name           = "Staging"
+        condition_type = "environmentState"
+        value          = "4"
       }]
-    }]
 
-    post_deploy_approval = [{
-      approver = [{
-        id           = "00000000-0000-0000-0000-000000000000"
-        is_automated = true
-        rank         = 1
+      deploy_phase = [{
+        name       = "Agent job"
+        rank       = 1
+        phase_type = "agentBasedDeployment"
       }]
-    }]
+
+      retention_policy = [{
+        days_to_keep     = 30
+        releases_to_keep = 3
+        retain_build     = true
+      }]
+
+      pre_deploy_approval = [{
+        approver = [{
+          id           = "00000000-0000-0000-0000-000000000000"
+          is_automated = true
+          rank         = 1
+        }]
+      }]
+
+      post_deploy_approval = [{
+        approver = [{
+          id           = "00000000-0000-0000-0000-000000000000"
+          is_automated = true
+          rank         = 1
+        }]
+      }]
   }]
 }
 `, name, fixture.ProjectID, fmt.Sprintf("%d", fixture.BuildDefinitionID), fixture.WorkItemQueryID)
@@ -1818,7 +1818,7 @@ resource "betterado_release_definition" "test" {
         rank         = 1
       }]
     }]
-  }, {
+    }, {
     name = "Production"
     rank = 2
 
