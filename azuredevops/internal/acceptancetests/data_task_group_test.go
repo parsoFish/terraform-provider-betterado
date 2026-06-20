@@ -4,9 +4,14 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
@@ -16,9 +21,9 @@ func TestAccTaskGroupDataSource_basic(t *testing.T) {
 	tfDataNode := "data.betterado_task_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkTaskGroupDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkTaskGroupDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclTaskGroupDataSourceBasic(name),
@@ -27,6 +32,7 @@ func TestAccTaskGroupDataSource_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(tfDataNode, "description", tfResNode, "description"),
 					resource.TestCheckResourceAttrPair(tfDataNode, "category", tfResNode, "category"),
 					resource.TestCheckResourceAttrSet(tfDataNode, "id"),
+					captureTaskGroupDataSourceEvidence(tfResNode),
 				),
 			},
 			// Idempotency — no perpetual diff
@@ -55,23 +61,23 @@ resource "betterado_task_group" "test" {
   description   = "Acceptance test task group"
   category      = "Build"
 
-  version {
+  version = [{
     major = 1
     minor = 0
     patch = 0
-  }
+  }]
 
-  input {
+  input = [{
     name  = "myParam"
     label = "My Parameter"
     type  = "string"
-  }
+  }]
 
-  task {
+  task = [{
     display_name = "Echo Step"
     task_id      = "d9bafed4-0b18-4f58-968d-86655b4d2ce9"
     task_version = "2.*"
-  }
+  }]
 }
 
 data "betterado_task_group" "test" {
@@ -79,4 +85,37 @@ data "betterado_task_group" "test" {
   id         = betterado_task_group.test.id
 }
 `, name)
+}
+
+// captureTaskGroupDataSourceEvidence performs a real live API GET of the task group
+// resource (before destroy) and writes forge demo evidence to
+// .forge/live-evidence/task-group-datasource-acceptance.json, satisfying the
+// AC1 evidence requirement. Best-effort: never fails the test.
+func captureTaskGroupDataSourceEvidence(tfResNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfResNode]
+		if !ok {
+			return nil
+		}
+		tgID, err := uuid.Parse(res.Primary.ID)
+		if err != nil {
+			return nil
+		}
+		projectID := res.Primary.Attributes["project_id"]
+		clients, err := getDirectClient()
+		if err != nil {
+			return nil
+		}
+		taskGroups, err := clients.TaskAgentClient.GetTaskGroups(clients.Ctx, taskagent.GetTaskGroupsArgs{
+			Project:     &projectID,
+			TaskGroupId: &tgID,
+		})
+		if err != nil || taskGroups == nil || len(*taskGroups) == 0 {
+			return nil
+		}
+		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+		url := fmt.Sprintf("%s/%s/_apis/distributedtask/taskgroups/%s?api-version=7.1", orgURL, projectID, tgID)
+		_ = testutils.CaptureLiveEvidence("task-group-datasource-acceptance", url, (*taskGroups)[0])
+		return nil
+	}
 }
