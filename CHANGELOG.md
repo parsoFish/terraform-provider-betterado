@@ -7,15 +7,7 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
-## [0.4.0] - 2026-06-19
-
-ENHANCEMENTS:
-
-- `betterado_task_group`: migrated from Terraform Plugin SDK v2 to Terraform Plugin Framework; `task`, `input`, and `version` are now list-of-object attributes (HCL array-of-objects syntax) with typed defaults eliminating null-fill boilerplate.
-
-FEATURES:
-
-- **New Resource (framework):** `betterado_task_group` is now implemented via `terraform-plugin-framework` (`ListNestedAttribute` for `task`, `input`, and `version`). Configurations must use array-of-objects HCL syntax (`task = [{ ... }]`, `input = [{ ... }]`, `version = [{ ... }]`). Optional task-step fields (`enabled`, `timeout_in_minutes`, `retry_count_on_task_failure`, `always_run`, `inputs`) default to typed zero-values and do not produce a perpetual diff when omitted.
+## [0.5.0] - 2026-06-19
 
 ### Added
 
@@ -25,6 +17,16 @@ FEATURES:
 - Framework provider `Configure()` now wires an `*client.AggregatedClient` (PAT auth via
   AZDO_ORG_SERVICE_URL / AZDO_PERSONAL_ACCESS_TOKEN) so framework resources can call ADO REST APIs.
 - Framework provider `Schema()` mirrors all SDKv2 provider attributes for mux compatibility.
+
+## [0.4.0] - 2026-06-19
+
+ENHANCEMENTS:
+
+- `betterado_task_group`: migrated from Terraform Plugin SDK v2 to Terraform Plugin Framework; `task`, `input`, and `version` are now list-of-object attributes (HCL array-of-objects syntax) with typed defaults eliminating null-fill boilerplate.
+
+FEATURES:
+
+- **New Resource (framework):** `betterado_task_group` is now implemented via `terraform-plugin-framework` (`ListNestedAttribute` for `task`, `input`, and `version`). Configurations must use array-of-objects HCL syntax (`task = [{ ... }]`, `input = [{ ... }]`, `version = [{ ... }]`). Optional task-step fields (`enabled`, `timeout_in_minutes`, `retry_count_on_task_failure`, `always_run`, `inputs`) default to typed zero-values and do not produce a perpetual diff when omitted.
 
 ## [0.3.0] - 2026-06-20
 
