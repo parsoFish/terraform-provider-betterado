@@ -918,6 +918,7 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 			},
 			"revision": schema.Int64Attribute{
 				Computed:            true,
+				PlanModifiers:       []planmodifier.Int64{useStateForUnknownInt64Modifier()},
 				MarkdownDescription: "Current revision number (managed by ADO; used for optimistic concurrency).",
 			},
 			"stages": schema.ListNestedAttribute{
@@ -1256,6 +1257,7 @@ func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resourc
 						},
 						"id": schema.Int64Attribute{
 							Computed:            true,
+							PlanModifiers:       []planmodifier.Int64{useStateForUnknownInt64Modifier()},
 							MarkdownDescription: "ADO-assigned ID of this stage.",
 						},
 					},
