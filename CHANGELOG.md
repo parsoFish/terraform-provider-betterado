@@ -7,6 +7,31 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-06-21
+
+### BUG FIXES
+
+- **Variable values on create/update (sensitive write-only consistency).**
+  `betterado_release_definition` failed on apply with `Provider produced
+  inconsistent result after apply: .stages: inconsistent values for sensitive
+  attribute` for any release that declared definition-level or stage-level
+  `variables`. The variable `value` attribute is unconditionally `Sensitive`
+  (write-only), and the framework requires a sensitive attribute's post-apply
+  value to match the plan exactly — but Create/Update overwrote the planned value
+  with the ADO API response, which does not faithfully echo variable values
+  (empty for secrets, normalised for others). Create/Update/Read now preserve the
+  configured/planned value for every variable (definition-level and per-stage),
+  keyed by name and stage, falling back to the API value only when there is no
+  prior value (e.g. import).
+
+### TESTS
+
+- `betterado_release_definition_permissions` acceptance tests
+  (`Set`/`Update`/`AllWritable`) were red since the v1.0.0 Plugin Framework
+  migration (SDK v2-only provider factory + block-syntax HCL + self-created
+  project). Moved them onto the mux provider factories, attribute-syntax HCL, and
+  the shared fixture project.
+
 ## [1.0.1] - 2026-06-21
 
 ### BUG FIXES
