@@ -7,6 +7,27 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-06-21
+
+### BUG FIXES
+
+- **Stage order plan fidelity (framework apply consistency).**
+  `betterado_release_definition` failed on apply with `Provider produced
+  inconsistent result after apply: .stages: inconsistent values for sensitive
+  attribute` for releases with multiple stages — most reliably when the
+  configured `stages` list order differed from rank order, but also on real
+  multi-stage (e.g. 6-stage) releases, because ADO's create/update response can
+  return environments in a different order than the configured list. The variable
+  `value` attribute is `Sensitive`, and the framework compares list elements
+  positionally, so any stage-order mismatch makes the per-index sensitive
+  comparison fail. v1.0.2 preserved variable *values* by name but not stage
+  *order*. Create/Update/Read now reorder the resulting `stages` list to match the
+  plan/prior order (by stage name), keeping every per-stage configured attribute —
+  including sensitive values — index-aligned with the plan. Stages not present in
+  the plan order are preserved (never dropped). Combined with the existing
+  value-preservation, the apply result is plan-faithful for every configured
+  attribute.
+
 ## [1.0.2] - 2026-06-21
 
 ### BUG FIXES

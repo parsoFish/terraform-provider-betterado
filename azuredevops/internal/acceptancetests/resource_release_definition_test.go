@@ -781,7 +781,212 @@ func TestAccReleaseDefinition_sensitiveVariables(t *testing.T) {
 	})
 }
 
+// TestAccReleaseDefinition_stageOrderOutOfOrder is the deterministic repro for
+// the v1.0.3 fix: the configured `stages` list order differs from rank order
+// (PRD rank=2 listed first, DEV rank=1 second), and each stage carries a stage
+// variable (Sensitive `value`). ADO stores/returns environments rank-sorted, so
+// the create/update response order differs from the plan order; before the fix
+// the framework's positional compare of the Sensitive value failed with
+// "inconsistent values for sensitive attribute". Asserts apply succeeds and an
+// immediate re-plan is empty, for create + update.
+func TestAccReleaseDefinition_stageOrderOutOfOrder(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclReleaseDefinitionOutOfOrderStages(name, fixture, "prd-1"),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					// The list stays in CONFIG order: PRD first (rank 2), DEV second (rank 1).
+					resource.TestCheckResourceAttr(tfNode, "stages.0.name", "PRD"),
+					resource.TestCheckResourceAttr(tfNode, "stages.0.rank", "2"),
+					resource.TestCheckResourceAttr(tfNode, "stages.1.name", "DEV"),
+					resource.TestCheckResourceAttr(tfNode, "stages.1.rank", "1"),
+					resource.TestCheckResourceAttr(tfNode, "stages.0.variables.envShort.value", "prd-1"),
+					resource.TestCheckResourceAttr(tfNode, "stages.1.variables.envShort.value", "dev"),
+				),
+			},
+			{
+				Config:             hclReleaseDefinitionOutOfOrderStages(name, fixture, "prd-1"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+			// Update a per-stage Sensitive value — order must stay plan-faithful.
+			{
+				Config: hclReleaseDefinitionOutOfOrderStages(name, fixture, "prd-2"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(tfNode, "stages.0.name", "PRD"),
+					resource.TestCheckResourceAttr(tfNode, "stages.0.variables.envShort.value", "prd-2"),
+				),
+			},
+			{
+				Config:             hclReleaseDefinitionOutOfOrderStages(name, fixture, "prd-2"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+// TestAccReleaseDefinition_sixStages exercises a realistic multi-stage release
+// (6 stages, including an agentless runOnServer "WAIT" stage with a Delay
+// workflow task), each with a per-stage Sensitive variable, plus definition-level
+// variables. Proves the create/update result is plan-faithful across many stages
+// (no "inconsistent result" error) and that an immediate re-plan is empty.
+func TestAccReleaseDefinition_sixStages(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclReleaseDefinitionSixStages(name, fixture, "v1"),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "stages.#", "6"),
+					resource.TestCheckResourceAttr(tfNode, "stages.0.name", "FEATURE"),
+					resource.TestCheckResourceAttr(tfNode, "stages.4.name", "WAIT"),
+					resource.TestCheckResourceAttr(tfNode, "stages.4.deploy_phase.0.phase_type", "runOnServer"),
+					resource.TestCheckResourceAttr(tfNode, "stages.5.name", "DEST-FEATURE"),
+					resource.TestCheckResourceAttr(tfNode, "variables.GLOBAL.value", "v1"),
+				),
+			},
+			{
+				Config:             hclReleaseDefinitionSixStages(name, fixture, "v1"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+			// Update definition-level variable value — multi-stage result stays consistent.
+			{
+				Config: hclReleaseDefinitionSixStages(name, fixture, "v2"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(tfNode, "variables.GLOBAL.value", "v2"),
+				),
+			},
+			{
+				Config:             hclReleaseDefinitionSixStages(name, fixture, "v2"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
 // --- HCL templates ---
+
+// releaseStageHCL renders one stage in attribute syntax with a per-stage variable
+// and the mandatory non-empty pre/post-deploy approvals (VS402877). phaseType is
+// "agentBasedDeployment" or "runOnServer".
+func releaseStageHCL(stageName string, rank int, envShort, phaseType, extraPhaseBody string) string {
+	return fmt.Sprintf(`{
+    name = %[1]q
+    rank = %[2]d
+
+    variables = {
+      envShort = { value = %[3]q }
+    }
+
+    deploy_phase = [{
+      name       = "Phase"
+      rank       = 1
+      phase_type = %[4]q
+%[5]s
+    }]
+
+    retention_policy = [{
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }]
+
+    pre_deploy_approval = [{
+      approver = [{ id = "00000000-0000-0000-0000-000000000000", is_automated = true, rank = 1 }]
+    }]
+    post_deploy_approval = [{
+      approver = [{ id = "00000000-0000-0000-0000-000000000000", is_automated = true, rank = 1 }]
+    }]
+  }`, stageName, rank, envShort, phaseType, extraPhaseBody)
+}
+
+// hclReleaseDefinitionOutOfOrderStages renders a 2-stage release whose config
+// list order (PRD then DEV) is the reverse of rank order (DEV rank 1, PRD rank 2).
+// prdEnvShort varies the PRD stage's Sensitive variable value across steps.
+func hclReleaseDefinitionOutOfOrderStages(name string, fixture SharedFixtureResult, prdEnvShort string) string {
+	prd := releaseStageHCL("PRD", 2, prdEnvShort, "agentBasedDeployment", "")
+	dev := releaseStageHCL("DEV", 1, "dev", "agentBasedDeployment", "")
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  stages = [%[3]s, %[4]s]
+}
+`, name, fixture.ProjectID, prd, dev)
+}
+
+// hclReleaseDefinitionSixStages renders a 6-stage release (one agentless
+// runOnServer "WAIT" stage with a Delay workflow task) plus definition-level
+// variables. globalVal varies the definition-level variable across steps.
+func hclReleaseDefinitionSixStages(name string, fixture SharedFixtureResult, globalVal string) string {
+	waitPhaseBody := `
+      workflow_task = [{
+        display_name = "Delay"
+        task_id      = "28782b92-5e8e-4458-9751-a71cd1492bae"
+        version_spec = "1.*"
+        enabled      = true
+        inputs = {
+          delayForMinutes = "1"
+        }
+      }]`
+
+	type stageSpec struct {
+		name      string
+		rank      int
+		envShort  string
+		phaseType string
+		extra     string
+	}
+	specs := []stageSpec{
+		{"FEATURE", 1, "feat", "agentBasedDeployment", ""},
+		{"DEV", 2, "dev", "agentBasedDeployment", ""},
+		{"STG", 3, "stg", "agentBasedDeployment", ""},
+		{"PRD", 4, "prd", "agentBasedDeployment", ""},
+		{"WAIT", 5, "wait", "runOnServer", waitPhaseBody},
+		{"DEST-FEATURE", 6, "dest", "agentBasedDeployment", ""},
+	}
+	stages := make([]string, 0, len(specs))
+	for _, s := range specs {
+		stages = append(stages, releaseStageHCL(s.name, s.rank, s.envShort, s.phaseType, s.extra))
+	}
+
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  variables = {
+    GLOBAL = {
+      value = %[3]q
+    }
+    REGION = {
+      value = "eastus"
+    }
+  }
+
+  stages = [%[4]s]
+}
+`, name, fixture.ProjectID, globalVal, strings.Join(stages, ", "))
+}
 
 // hclReleaseDefinitionSensitiveVariables renders a release with definition-level
 // and stage-level variables: a mutable plain value (defPlainValue, varied across
