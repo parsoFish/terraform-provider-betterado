@@ -7,6 +7,32 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-06-21
+
+### BUG FIXES
+
+- **Plan-faithful create/update — the definitive fix for `inconsistent values for
+  sensitive attribute`.** Create and Update previously rebuilt the entire resource
+  state from ADO's create/update response (`flattenReleaseDefinitionFramework`).
+  Because ADO normalises some sent fields and the variable `value` attribute is
+  `Sensitive`, any field ADO returned differently from the plan produced a hard
+  `Provider produced inconsistent result after apply` error — a whack-a-mole that
+  earlier point fixes (value preservation in 1.0.2, stage ordering in 1.0.3) could
+  not fully close while the result was re-derived from the API. Create/Update now
+  build the result from the **plan**: every configured (plan-known) attribute —
+  stage order, conditions, variables and their sensitive values, variable_groups,
+  tasks, gates, options — is kept exactly as planned, and only server-assigned
+  **computed** values that the plan left unknown (resource id, revision, stage
+  ids, schedule job_ids, owner, …) are overlaid from the API response, matched by
+  stage name. This makes the apply result consistent with the plan for every
+  configured attribute *by construction*. Read still reconciles from the API (with
+  secret-value preservation), so genuine out-of-band drift continues to surface on
+  the next plan — but create/update can no longer fail with an inconsistent-result
+  error for a configured value. Verified by a from-scratch 6-stage acceptance test
+  (chained environmentState conditions, per-stage variable_groups, gates,
+  environment_options, execution_policy, an agentless WAIT stage, per-stage secret
+  variables) plus the full release acceptance suite.
+
 ## [1.0.3] - 2026-06-21
 
 ### BUG FIXES
