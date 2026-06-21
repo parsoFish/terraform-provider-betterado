@@ -209,6 +209,38 @@ func (useStateForUnknownSet) PlanModifySet(_ context.Context, req planmodifier.S
 	resp.PlanValue = req.StateValue
 }
 
+// ── Int64 plan modifiers ──────────────────────────────────────────────────────
+
+// useStateForUnknownInt64 is equivalent to int64planmodifier.UseStateForUnknown().
+// It pins an ADO-assigned computed Int64 (revision, stage id) to its prior-state
+// value when the plan value is unknown, so these fields stop rendering as
+// "(known after apply)" churn on every plan. Safe alongside the plan-faithful
+// create/update merge (mergePlanComputed keeps plan-known values, so the pinned
+// value stays consistent at apply); if ADO actually changed the value, the next
+// refresh reconciles it from the API.
+type useStateForUnknownInt64 struct{}
+
+func useStateForUnknownInt64Modifier() planmodifier.Int64 { return useStateForUnknownInt64{} }
+
+func (useStateForUnknownInt64) Description(_ context.Context) string {
+	return "use prior state value when plan is unknown"
+}
+
+func (useStateForUnknownInt64) MarkdownDescription(_ context.Context) string {
+	return "use prior state value when plan is unknown"
+}
+
+func (useStateForUnknownInt64) PlanModifyInt64(_ context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
+	if !req.PlanValue.IsUnknown() {
+		return
+	}
+	// No prior state (create) — leave Unknown so Terraform shows "(known after apply)".
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+		return
+	}
+	resp.PlanValue = req.StateValue
+}
+
 // requiresReplaceString is equivalent to stringplanmodifier.RequiresReplace().
 type requiresReplaceString struct{}
 

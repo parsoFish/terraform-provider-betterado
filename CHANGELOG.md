@@ -7,6 +7,20 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-06-21
+
+### ENHANCEMENTS
+
+- **Quieter plans for ADO-assigned computed fields.** `revision` and each stage's
+  `id` now use a `UseStateForUnknown` plan modifier, so they no longer render as
+  `(known after apply)` churn on plans that change unrelated attributes. They are
+  pinned to their prior-state value when the plan leaves them unknown; if ADO
+  actually changed them (e.g. a revision bump or a stage-id reassignment on a
+  structural change) the value reconciles on the next refresh. Safe alongside the
+  v1.0.4 plan-faithful create/update path (`mergePlanComputed` keeps plan-known
+  values consistent at apply). Verified live across idempotency, update, and
+  structural add/remove-stage scenarios.
+
 ## [1.0.4] - 2026-06-21
 
 ### BUG FIXES
