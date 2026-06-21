@@ -2862,10 +2862,82 @@ func flattenStagesFramework(ctx context.Context, envs []releaseapi.ReleaseDefini
 		stageObjects = append(stageObjects, stageObj)
 	}
 
+	// Reorder the flattened stages to match the plan/prior stage order (by name).
+	// ADO's create/update response — and read — can return environments in a
+	// different order than the configured `stages` list (it stores by rank, and the
+	// response order is not guaranteed to equal the config order). The framework
+	// compares list elements positionally, and the variable `value` attribute is
+	// Sensitive, so an order mismatch surfaces as
+	// "Provider produced inconsistent result after apply: .stages: inconsistent
+	// values for sensitive attribute". Aligning to the plan order keeps every
+	// per-stage configured attribute (including sensitive values) index-matched.
+	stageObjects = reorderStagesByName(stageObjects, existingStages)
+
 	stageElemType := types.ObjectType{AttrTypes: stageAttrTypes}
 	list, d := types.ListValue(stageElemType, stageObjects)
 	diags.Append(d...)
 	return list, diags
+}
+
+// reorderStagesByName returns the flattened stage objects reordered to match the
+// order of stages in existingStages (the plan on create/update, the prior state
+// on read), matched by the stage `name` attribute. A per-name queue of original
+// indices preserves stable ordering across duplicate names. Stages whose names
+// are not present in existingStages — and the whole list when existingStages is
+// absent (e.g. import) — are kept in their original flatten order, so a stage is
+// never dropped or duplicated.
+func reorderStagesByName(stageObjects []attr.Value, existingStages types.List) []attr.Value {
+	if existingStages.IsNull() || existingStages.IsUnknown() || len(stageObjects) <= 1 {
+		return stageObjects
+	}
+
+	nameOf := func(v attr.Value) (string, bool) {
+		obj, ok := v.(types.Object)
+		if !ok {
+			return "", false
+		}
+		nameAttr, ok := obj.Attributes()["name"].(types.String)
+		if !ok || nameAttr.IsNull() || nameAttr.IsUnknown() {
+			return "", false
+		}
+		return nameAttr.ValueString(), true
+	}
+
+	idxByName := map[string][]int{}
+	for i, v := range stageObjects {
+		if n, ok := nameOf(v); ok {
+			idxByName[n] = append(idxByName[n], i)
+		}
+	}
+
+	consumed := make([]bool, len(stageObjects))
+	ordered := make([]attr.Value, 0, len(stageObjects))
+	for _, stageVal := range existingStages.Elements() {
+		obj, ok := stageVal.(types.Object)
+		if !ok {
+			continue
+		}
+		nameAttr, ok := obj.Attributes()["name"].(types.String)
+		if !ok || nameAttr.IsNull() || nameAttr.IsUnknown() {
+			continue
+		}
+		q := idxByName[nameAttr.ValueString()]
+		if len(q) == 0 {
+			continue
+		}
+		i := q[0]
+		idxByName[nameAttr.ValueString()] = q[1:]
+		ordered = append(ordered, stageObjects[i])
+		consumed[i] = true
+	}
+
+	// Append any stages the plan order did not match, in their original order.
+	for i, v := range stageObjects {
+		if !consumed[i] {
+			ordered = append(ordered, v)
+		}
+	}
+	return ordered
 }
 
 func flattenConditionsFramework(conditions *[]releaseapi.Condition) (types.List, diag.Diagnostics) {
