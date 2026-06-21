@@ -728,7 +728,136 @@ provider "betterado" {
 	})
 }
 
+// TestAccReleaseDefinition_sensitiveVariables proves the v1.0.2 fix: a release
+// with definition-level AND stage-level variables (a mix of is_secret true/false,
+// a $(...) macro value, and an empty value) applies without
+// "Provider produced inconsistent result after apply: ... inconsistent values for
+// sensitive attribute", and an immediate re-plan is empty. The variable `value`
+// attribute is unconditionally Sensitive (write-only); ADO does not faithfully
+// echo variable values, so Create/Update must preserve the configured value
+// rather than overwrite it from the API response. Covers create + update.
+func TestAccReleaseDefinition_sensitiveVariables(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			// Create with the full variable mix.
+			{
+				Config: hclReleaseDefinitionSensitiveVariables(name, fixture, "plain-one"),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "variables.DEF_PLAIN.value", "plain-one"),
+					resource.TestCheckResourceAttr(tfNode, "variables.DEF_MACRO.value", "$(Release.ReleaseName)"),
+					resource.TestCheckResourceAttr(tfNode, "variables.DEF_EMPTY.value", ""),
+					resource.TestCheckResourceAttr(tfNode, "stages.0.variables.STAGE_SECRET.is_secret", "true"),
+					resource.TestCheckResourceAttr(tfNode, "stages.0.variables.STAGE_PLAIN.value", "stage-plain"),
+				),
+			},
+			// Idempotency immediately after create — must be empty.
+			{
+				Config:             hclReleaseDefinitionSensitiveVariables(name, fixture, "plain-one"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+			// Update a non-secret value — apply must stay consistent.
+			{
+				Config: hclReleaseDefinitionSensitiveVariables(name, fixture, "plain-two"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(tfNode, "variables.DEF_PLAIN.value", "plain-two"),
+				),
+			},
+			// Idempotency after update.
+			{
+				Config:             hclReleaseDefinitionSensitiveVariables(name, fixture, "plain-two"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
 // --- HCL templates ---
+
+// hclReleaseDefinitionSensitiveVariables renders a release with definition-level
+// and stage-level variables: a mutable plain value (defPlainValue, varied across
+// steps to exercise update), a $(...) macro value, an empty value, a secret, and
+// a non-secret stage variable.
+func hclReleaseDefinitionSensitiveVariables(name string, fixture SharedFixtureResult, defPlainValue string) string {
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  variables = {
+    DEF_PLAIN = {
+      value = %[3]q
+    }
+    DEF_MACRO = {
+      value = "$(Release.ReleaseName)"
+    }
+    DEF_EMPTY = {
+      value = ""
+    }
+    DEF_SECRET = {
+      value     = "def-super-secret"
+      is_secret = true
+    }
+  }
+
+  stages = [{
+    name = "Production"
+    rank = 1
+
+    variables = {
+      STAGE_PLAIN = {
+        value = "stage-plain"
+      }
+      STAGE_SECRET = {
+        value     = "stage-super-secret"
+        is_secret = true
+      }
+      STAGE_MACRO = {
+        value = "$(Build.BuildNumber)"
+      }
+    }
+
+    deploy_phase = [{
+      name       = "Agent job"
+      rank       = 1
+      phase_type = "agentBasedDeployment"
+    }]
+
+    retention_policy = [{
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }]
+
+    # ADO requires BOTH pre- and post-deploy approvals to be non-empty (VS402877).
+    pre_deploy_approval = [{
+      approver = [{
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }]
+    }]
+
+    post_deploy_approval = [{
+      approver = [{
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }]
+    }]
+  }]
+}
+`, name, fixture.ProjectID, defPlainValue)
+}
 
 // hclReleaseDefinitionBasicFixture creates a minimal release definition with one stage,
 // referencing a fixture-supplied project ID directly (no inline betterado_project block).

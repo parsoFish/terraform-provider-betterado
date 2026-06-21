@@ -13,8 +13,8 @@ import (
 )
 
 func TestAccReleaseDefinitionPermissions_SetPermissions(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
-	config := hclReleaseDefinitionPermissions(projectName, map[string]string{
+	fixture := SharedReleaseFixture(t)
+	config := hclReleaseDefinitionPermissions(fixture, map[string]string{
 		"ViewReleases":           "Allow",
 		"EditReleaseEnvironment": "NotSet",
 		"DeleteReleases":         "Deny",
@@ -23,14 +23,13 @@ func TestAccReleaseDefinitionPermissions_SetPermissions(t *testing.T) {
 	tfNodeRoot := "betterado_release_definition_permissions.permissions"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             checkReleaseDefinitionDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "principal"),
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "release_definition_id"),
@@ -52,14 +51,14 @@ func TestAccReleaseDefinitionPermissions_SetPermissions(t *testing.T) {
 }
 
 func TestAccReleaseDefinitionPermissions_UpdatePermissions(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
-	config1 := hclReleaseDefinitionPermissions(projectName, map[string]string{
+	fixture := SharedReleaseFixture(t)
+	config1 := hclReleaseDefinitionPermissions(fixture, map[string]string{
 		"ViewReleases":           "Deny",
 		"EditReleaseEnvironment": "NotSet",
 		"DeleteReleases":         "Deny",
 		"CreateReleases":         "Deny",
 	})
-	config2 := hclReleaseDefinitionPermissions(projectName, map[string]string{
+	config2 := hclReleaseDefinitionPermissions(fixture, map[string]string{
 		"ViewReleases":           "Allow",
 		"EditReleaseEnvironment": "Allow",
 		"DeleteReleases":         "Deny",
@@ -68,14 +67,13 @@ func TestAccReleaseDefinitionPermissions_UpdatePermissions(t *testing.T) {
 	tfNodeRoot := "betterado_release_definition_permissions.permissions"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             checkReleaseDefinitionDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: config1,
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "principal"),
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "release_definition_id"),
@@ -95,7 +93,6 @@ func TestAccReleaseDefinitionPermissions_UpdatePermissions(t *testing.T) {
 			{
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "principal"),
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "release_definition_id"),
@@ -117,7 +114,7 @@ func TestAccReleaseDefinitionPermissions_UpdatePermissions(t *testing.T) {
 }
 
 func TestAccReleaseDefinitionPermissions_AllWritablePermissions(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	fixture := SharedReleaseFixture(t)
 	tfNodeRoot := "betterado_release_definition_permissions.permissions"
 
 	allPerms := map[string]string{
@@ -134,17 +131,16 @@ func TestAccReleaseDefinitionPermissions_AllWritablePermissions(t *testing.T) {
 		"AdministerReleasePermissions": "Deny",
 		"ManageDeployments":            "Allow",
 	}
-	config := hclReleaseDefinitionPermissions(projectName, allPerms)
+	config := hclReleaseDefinitionPermissions(fixture, allPerms)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             checkReleaseDefinitionDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "principal"),
 					resource.TestCheckResourceAttrSet(tfNodeRoot, "release_definition_id"),
@@ -202,68 +198,61 @@ func captureReleaseDefinitionPermissionsEvidence(tfNode string) resource.TestChe
 }
 
 // hclReleaseDefinitionPermissions builds HCL for testing betterado_release_definition_permissions.
-// It creates a project, a minimal release definition, looks up the Readers group, and
-// applies the given permissions map to that group on the release definition.
-func hclReleaseDefinitionPermissions(projectName string, permissions map[string]string) string {
+// It uses the shared fixture project (no inline betterado_project block), creates a minimal
+// release definition with attribute syntax, looks up the Readers group, and applies the given
+// permissions map to that group on the release definition.
+func hclReleaseDefinitionPermissions(fixture SharedFixtureResult, permissions map[string]string) string {
 	rootPermissions := datahelper.JoinMap(permissions, "=", "\n")
 	releaseName := testutils.GenerateResourceName()
 
 	return fmt.Sprintf(`
-resource "betterado_project" "project" {
-  name               = "%[1]s"
-  description        = "%[1]s-description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
 resource "betterado_release_definition" "release" {
-  project_id = betterado_project.project.id
-  name       = "%[2]s"
+  project_id = %[1]q
+  name       = %[2]q
 
-  stages {
+  stages = [{
     name = "Production"
     rank = 1
 
-    deploy_phase {
+    deploy_phase = [{
       name       = "Agent job"
       rank       = 1
       phase_type = "agentBasedDeployment"
-    }
+    }]
 
-    retention_policy {
+    retention_policy = [{
       days_to_keep     = 30
       releases_to_keep = 3
       retain_build     = true
-    }
-
-    pre_deploy_approval {
-      approver {
-        id           = "00000000-0000-0000-0000-000000000000"
-        is_automated = true
-        rank         = 1
-      }
-    }
+    }]
 
     # ADO requires BOTH pre- and post-deploy approvals to be non-empty on a
     # stage (VS402877) — see resource_release_definition_test.go.
-    post_deploy_approval {
-      approver {
+    pre_deploy_approval = [{
+      approver = [{
         id           = "00000000-0000-0000-0000-000000000000"
         is_automated = true
         rank         = 1
-      }
-    }
-  }
+      }]
+    }]
+
+    post_deploy_approval = [{
+      approver = [{
+        id           = "00000000-0000-0000-0000-000000000000"
+        is_automated = true
+        rank         = 1
+      }]
+    }]
+  }]
 }
 
 data "betterado_group" "tf-project-readers" {
-  project_id = betterado_project.project.id
+  project_id = %[1]q
   name       = "Readers"
 }
 
 resource "betterado_release_definition_permissions" "permissions" {
-  project_id            = betterado_project.project.id
+  project_id            = %[1]q
   principal             = data.betterado_group.tf-project-readers.id
   release_definition_id = betterado_release_definition.release.id
 
@@ -271,5 +260,5 @@ resource "betterado_release_definition_permissions" "permissions" {
     %[3]s
   }
 }
-`, projectName, releaseName, rootPermissions)
+`, fixture.ProjectID, releaseName, rootPermissions)
 }

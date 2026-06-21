@@ -3777,13 +3777,16 @@ func flattenVariablesFramework(ctx context.Context, vars *map[string]releaseapi.
 		if v.AllowOverride != nil {
 			allowOverride = *v.AllowOverride
 		}
-		// Secret variables: ADO returns an empty value on read. Preserve the
-		// prior/plan value so the provider does not produce an inconsistent result.
+		// The variable `value` attribute is unconditionally Sensitive (write-only):
+		// the configured/planned value is the source of truth and the framework
+		// requires the post-apply value to match the plan EXACTLY. ADO does not
+		// faithfully echo variable values (it returns an empty value for secrets,
+		// and may normalise non-secret values), so always preserve the prior/plan
+		// value when this variable was present in config/state. Fall back to the
+		// API value only when there is no prior value (e.g. import).
 		val := apiVal
-		if isSecret && apiVal == "" {
-			if existingVal, ok := existingValsByName[name]; ok {
-				val = existingVal
-			}
+		if existingVal, ok := existingValsByName[name]; ok {
+			val = existingVal
 		}
 		obj, d := types.ObjectValue(variableValueAttrTypes, map[string]attr.Value{
 			"value":          types.StringValue(val),
