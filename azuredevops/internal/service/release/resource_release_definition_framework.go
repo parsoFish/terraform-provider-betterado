@@ -807,6 +807,48 @@ func mergeStages(plan, api tftypes.Value) tftypes.Value {
 	return tftypes.NewValue(plan.Type(), out)
 }
 
+// stripUnknowns recursively replaces any remaining unknown value with a typed
+// null. After mergePlanComputed every plan-unknown that had an API counterpart is
+// already filled with a concrete value; the only unknowns that can survive are in
+// the "no API counterpart" fallbacks (a plan list element or stage with no matching
+// API element, where the plan element still carries unknown computed children).
+// Terraform core rejects an apply result that contains any unknown value, but a
+// typed null is consistency-legal for a Computed attribute — so this final pass
+// guarantees the create/update result is fully known.
+func stripUnknowns(v tftypes.Value) tftypes.Value {
+	if !v.IsKnown() {
+		return tftypes.NewValue(v.Type(), nil) // typed null
+	}
+	if v.IsNull() {
+		return v
+	}
+	ty := v.Type()
+	switch {
+	case ty.Is(tftypes.Object{}), ty.Is(tftypes.Map{}):
+		var m map[string]tftypes.Value
+		if err := v.As(&m); err != nil {
+			return v
+		}
+		out := make(map[string]tftypes.Value, len(m))
+		for k, e := range m {
+			out[k] = stripUnknowns(e)
+		}
+		return tftypes.NewValue(v.Type(), out)
+	case ty.Is(tftypes.List{}), ty.Is(tftypes.Set{}), ty.Is(tftypes.Tuple{}):
+		var l []tftypes.Value
+		if err := v.As(&l); err != nil {
+			return v
+		}
+		out := make([]tftypes.Value, len(l))
+		for i, e := range l {
+			out[i] = stripUnknowns(e)
+		}
+		return tftypes.NewValue(v.Type(), out)
+	default:
+		return v
+	}
+}
+
 // stageNameFromRaw extracts a stage object's `name` attribute as a string.
 func stageNameFromRaw(v tftypes.Value) (string, bool) {
 	if !v.IsKnown() || v.IsNull() {
@@ -1939,7 +1981,7 @@ func (r *releaseDefinitionFrameworkResource) Create(ctx context.Context, req res
 	// Plan-faithful result: every configured (plan-known) attribute is kept exactly
 	// as planned; only server-assigned computed values (unknown in the plan) come
 	// from the flattened API response. See mergePlanComputed.
-	resp.State.Raw = mergePlanComputed(req.Plan.Raw, resp.State.Raw)
+	resp.State.Raw = stripUnknowns(mergePlanComputed(req.Plan.Raw, resp.State.Raw))
 }
 
 func (r *releaseDefinitionFrameworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -2027,7 +2069,7 @@ func (r *releaseDefinitionFrameworkResource) Update(ctx context.Context, req res
 	// Plan-faithful result: keep every configured (plan-known) attribute as planned;
 	// fill only server-assigned computed values from the API response. See
 	// mergePlanComputed.
-	resp.State.Raw = mergePlanComputed(req.Plan.Raw, resp.State.Raw)
+	resp.State.Raw = stripUnknowns(mergePlanComputed(req.Plan.Raw, resp.State.Raw))
 }
 
 func (r *releaseDefinitionFrameworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
