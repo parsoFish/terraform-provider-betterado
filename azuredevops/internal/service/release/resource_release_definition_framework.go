@@ -664,6 +664,211 @@ func planIsNoOp(plan, state tftypes.Value) bool {
 	}
 }
 
+// mergePlanComputed returns a value that equals `plan` for every KNOWN attribute
+// and takes `api` only where the plan value is UNKNOWN. It is the core of the
+// plan-faithful write path: Create/Update build the result from the plan (so every
+// configured attribute — including the Sensitive variable `value`s — is exactly
+// what the practitioner wrote) and fill only the server-assigned computed values
+// (resource id, revision, stage ids, schedule job_ids, owner, …) that the plan
+// left unknown from the concrete API-derived value. This makes the apply result
+// consistent with the plan for every configured attribute BY CONSTRUCTION: ADO
+// normalising a value it was sent can no longer produce "inconsistent values for
+// sensitive attribute" — a genuinely divergent stored value instead surfaces as
+// ordinary drift on the next read/plan.
+//
+// The top-level `stages` list is matched by stage `name` (ADO returns
+// environments in a rank-sorted order that need not match the configured order);
+// all other lists are matched positionally, which only affects how computed
+// (unknown) fills are aligned — never a configured value, since those always come
+// from the plan.
+func mergePlanComputed(plan, api tftypes.Value) tftypes.Value {
+	// Unknown in the plan → take the concrete server value.
+	if !plan.IsKnown() {
+		return api
+	}
+	// Explicit null (or any value once we cannot recurse) → the plan wins.
+	if plan.IsNull() {
+		return plan
+	}
+
+	ty := plan.Type()
+	switch {
+	case ty.Is(tftypes.Object{}):
+		var pm map[string]tftypes.Value
+		if err := plan.As(&pm); err != nil {
+			return plan
+		}
+		am := map[string]tftypes.Value{}
+		if api.IsKnown() && !api.IsNull() {
+			if err := api.As(&am); err != nil {
+				return api
+			}
+		}
+		out := make(map[string]tftypes.Value, len(pm))
+		for k, pv := range pm {
+			av, ok := am[k]
+			if !ok {
+				out[k] = pv
+				continue
+			}
+			if k == "stages" {
+				out[k] = mergeStages(pv, av)
+			} else {
+				out[k] = mergePlanComputed(pv, av)
+			}
+		}
+		return tftypes.NewValue(plan.Type(), out)
+	case ty.Is(tftypes.Map{}):
+		var pm map[string]tftypes.Value
+		if err := plan.As(&pm); err != nil {
+			return plan
+		}
+		am := map[string]tftypes.Value{}
+		if api.IsKnown() && !api.IsNull() {
+			if err := api.As(&am); err != nil {
+				return api
+			}
+		}
+		out := make(map[string]tftypes.Value, len(pm))
+		for k, pv := range pm {
+			if av, ok := am[k]; ok {
+				out[k] = mergePlanComputed(pv, av)
+			} else {
+				out[k] = pv
+			}
+		}
+		return tftypes.NewValue(plan.Type(), out)
+	case ty.Is(tftypes.List{}), ty.Is(tftypes.Set{}), ty.Is(tftypes.Tuple{}):
+		var pl []tftypes.Value
+		if err := plan.As(&pl); err != nil {
+			return plan
+		}
+		var al []tftypes.Value
+		if api.IsKnown() && !api.IsNull() {
+			if err := api.As(&al); err != nil {
+				return api
+			}
+		}
+		out := make([]tftypes.Value, len(pl))
+		for i, pv := range pl {
+			if i < len(al) {
+				out[i] = mergePlanComputed(pv, al[i])
+			} else {
+				out[i] = pv
+			}
+		}
+		return tftypes.NewValue(plan.Type(), out)
+	default:
+		return plan
+	}
+}
+
+// mergeStages merges the plan and API stage lists element-by-element, matched by
+// the stage `name` attribute and emitted in the PLAN's order. A per-name queue
+// keeps duplicate names stable. A plan stage with no API counterpart keeps its
+// plan value (should not occur after a successful create/update, since ADO
+// returns every stage that was sent).
+func mergeStages(plan, api tftypes.Value) tftypes.Value {
+	if !plan.IsKnown() {
+		return api
+	}
+	if plan.IsNull() {
+		return plan
+	}
+	var pl []tftypes.Value
+	if err := plan.As(&pl); err != nil {
+		return plan
+	}
+
+	queues := map[string][]tftypes.Value{}
+	if api.IsKnown() && !api.IsNull() {
+		var al []tftypes.Value
+		if err := api.As(&al); err != nil {
+			return api
+		}
+		for _, av := range al {
+			if n, ok := stageNameFromRaw(av); ok {
+				queues[n] = append(queues[n], av)
+			}
+		}
+	}
+
+	out := make([]tftypes.Value, len(pl))
+	for i, pv := range pl {
+		if n, ok := stageNameFromRaw(pv); ok {
+			if q := queues[n]; len(q) > 0 {
+				out[i] = mergePlanComputed(pv, q[0])
+				queues[n] = q[1:]
+				continue
+			}
+		}
+		out[i] = pv
+	}
+	return tftypes.NewValue(plan.Type(), out)
+}
+
+// stripUnknowns recursively replaces any remaining unknown value with a typed
+// null. After mergePlanComputed every plan-unknown that had an API counterpart is
+// already filled with a concrete value; the only unknowns that can survive are in
+// the "no API counterpart" fallbacks (a plan list element or stage with no matching
+// API element, where the plan element still carries unknown computed children).
+// Terraform core rejects an apply result that contains any unknown value, but a
+// typed null is consistency-legal for a Computed attribute — so this final pass
+// guarantees the create/update result is fully known.
+func stripUnknowns(v tftypes.Value) tftypes.Value {
+	if !v.IsKnown() {
+		return tftypes.NewValue(v.Type(), nil) // typed null
+	}
+	if v.IsNull() {
+		return v
+	}
+	ty := v.Type()
+	switch {
+	case ty.Is(tftypes.Object{}), ty.Is(tftypes.Map{}):
+		var m map[string]tftypes.Value
+		if err := v.As(&m); err != nil {
+			return v
+		}
+		out := make(map[string]tftypes.Value, len(m))
+		for k, e := range m {
+			out[k] = stripUnknowns(e)
+		}
+		return tftypes.NewValue(v.Type(), out)
+	case ty.Is(tftypes.List{}), ty.Is(tftypes.Set{}), ty.Is(tftypes.Tuple{}):
+		var l []tftypes.Value
+		if err := v.As(&l); err != nil {
+			return v
+		}
+		out := make([]tftypes.Value, len(l))
+		for i, e := range l {
+			out[i] = stripUnknowns(e)
+		}
+		return tftypes.NewValue(v.Type(), out)
+	default:
+		return v
+	}
+}
+
+// stageNameFromRaw extracts a stage object's `name` attribute as a string.
+func stageNameFromRaw(v tftypes.Value) (string, bool) {
+	if !v.IsKnown() || v.IsNull() {
+		return "", false
+	}
+	var m map[string]tftypes.Value
+	if err := v.As(&m); err != nil {
+		return "", false
+	}
+	nv, ok := m["name"]
+	if !ok || !nv.IsKnown() || nv.IsNull() {
+		return "", false
+	}
+	var s string
+	if err := nv.As(&s); err != nil {
+		return "", false
+	}
+	return s, true
+}
+
 func (r *releaseDefinitionFrameworkResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Version:             1,
@@ -1766,7 +1971,17 @@ func (r *releaseDefinitionFrameworkResource) Create(ctx context.Context, req res
 
 	model.ID = types.StringValue(strconv.Itoa(*created.Id))
 	resp.Diagnostics.Append(flattenReleaseDefinitionFramework(ctx, created, projectID, &model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	// Plan-faithful result: every configured (plan-known) attribute is kept exactly
+	// as planned; only server-assigned computed values (unknown in the plan) come
+	// from the flattened API response. See mergePlanComputed.
+	resp.State.Raw = stripUnknowns(mergePlanComputed(req.Plan.Raw, resp.State.Raw))
 }
 
 func (r *releaseDefinitionFrameworkResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -1844,7 +2059,17 @@ func (r *releaseDefinitionFrameworkResource) Update(ctx context.Context, req res
 	}
 
 	resp.Diagnostics.Append(flattenReleaseDefinitionFramework(ctx, updated, projectID, &model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	// Plan-faithful result: keep every configured (plan-known) attribute as planned;
+	// fill only server-assigned computed values from the API response. See
+	// mergePlanComputed.
+	resp.State.Raw = stripUnknowns(mergePlanComputed(req.Plan.Raw, resp.State.Raw))
 }
 
 func (r *releaseDefinitionFrameworkResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

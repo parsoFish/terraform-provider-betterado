@@ -882,7 +882,205 @@ func TestAccReleaseDefinition_sixStages(t *testing.T) {
 	})
 }
 
+// TestAccReleaseDefinition_sixStagesFullFromScratch is the definitive regression
+// for the v1.0.4 plan-faithful write path. It CREATES a 6-stage release from
+// scratch (FEATURE/DEV/STG/PRD/WAIT-agentless/DEST-FEATURE) with the full feature
+// surface that the real failing release used: chained environmentState conditions,
+// a per-stage Sensitive variable, definition-level variables, per-stage
+// variable_groups, environment_options, execution_policy, pre/post deployment
+// gates on one stage, and a workflow_task on the agentless WAIT stage. It asserts
+// the create applies with NO "inconsistent result" / "inconsistent values for
+// sensitive attribute" error and that an immediate re-plan is empty; an update
+// step (changing one stage variable) repeats both assertions.
+func TestAccReleaseDefinition_sixStagesFullFromScratch(t *testing.T) {
+	fixture := SharedReleaseFixture(t)
+	name := testutils.GenerateResourceName()
+	tfNode := "betterado_release_definition.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             checkReleaseDefinitionDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclReleaseDefinitionSixStagesFull(name, fixture, "feat-1"),
+				Check: resource.ComposeTestCheckFunc(
+					checkReleaseDefinitionExists(name),
+					resource.TestCheckResourceAttr(tfNode, "stages.#", "6"),
+					resource.TestCheckResourceAttr(tfNode, "stages.0.name", "FEATURE"),
+					resource.TestCheckResourceAttr(tfNode, "stages.0.variables.envShort.value", "feat-1"),
+					resource.TestCheckResourceAttr(tfNode, "stages.4.name", "WAIT"),
+					resource.TestCheckResourceAttr(tfNode, "stages.4.deploy_phase.0.phase_type", "runOnServer"),
+					resource.TestCheckResourceAttr(tfNode, "stages.5.name", "DEST-FEATURE"),
+					resource.TestCheckResourceAttr(tfNode, "variables.GLOBAL.value", "global"),
+				),
+			},
+			{
+				Config:             hclReleaseDefinitionSixStagesFull(name, fixture, "feat-1"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+			// Update one stage's Sensitive variable — result must stay plan-faithful.
+			{
+				Config: hclReleaseDefinitionSixStagesFull(name, fixture, "feat-2"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(tfNode, "stages.0.variables.envShort.value", "feat-2"),
+				),
+			},
+			{
+				Config:             hclReleaseDefinitionSixStagesFull(name, fixture, "feat-2"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
 // --- HCL templates ---
+
+// hclReleaseDefinitionSixStagesFull builds a full 6-stage release from scratch.
+// featEnvShort varies the FEATURE stage's Sensitive variable across steps. Every
+// printf verb sits on its own attribute line (terrafmt cannot format a verb inside
+// an inline { } object).
+func hclReleaseDefinitionSixStagesFull(name string, fixture SharedFixtureResult, featEnvShort string) string {
+	type stageSpec struct {
+		name      string
+		rank      int
+		envShort  string
+		prevStage string // "" => first stage (event condition); else environmentState on prevStage
+		phaseType string
+		phaseTask string // extra deploy_phase body (e.g. workflow_task)
+		withGate  bool
+	}
+	specs := []stageSpec{
+		{"FEATURE", 1, featEnvShort, "", "agentBasedDeployment", "", false},
+		{"DEV", 2, "dev", "FEATURE", "agentBasedDeployment", "", false},
+		{"STG", 3, "stg", "DEV", "agentBasedDeployment", "", false},
+		{"PRD", 4, "prd", "STG", "agentBasedDeployment", "", true},
+		{"WAIT", 5, "wait", "PRD", "runOnServer", `
+        workflow_task = [{
+          display_name = "Delay"
+          task_id      = "28782b92-5e8e-4458-9751-a71cd1492bae"
+          version_spec = "1.*"
+          enabled      = true
+          inputs = {
+            delayForMinutes = "1"
+          }
+        }]`, false},
+		{"DEST-FEATURE", 6, "dest", "WAIT", "agentBasedDeployment", "", false},
+	}
+
+	stages := make([]string, 0, len(specs))
+	for _, s := range specs {
+		var condition string
+		if s.prevStage == "" {
+			condition = `
+    condition = [{
+      name           = "ReleaseStarted"
+      condition_type = "event"
+      value          = ""
+    }]`
+		} else {
+			condition = fmt.Sprintf(`
+    condition = [{
+      name           = %[1]q
+      condition_type = "environmentState"
+      value          = "4"
+    }]`, s.prevStage)
+		}
+
+		var gate string
+		if s.withGate {
+			gate = fmt.Sprintf(`
+    pre_deployment_gates = [{
+      gates_options = [{
+        is_enabled               = true
+        timeout                  = 600
+        sampling_interval        = 60
+        stabilization_time       = 0
+        minimum_success_duration = 0
+      }]
+      gate = [{
+        task = [{
+          display_name = "Query Work Items"
+          task_id      = "f1e4b0e6-017e-4819-8a48-ef19ae96e289"
+          version_spec = "0.*"
+          enabled      = true
+          inputs = {
+            queryId = %[1]q
+          }
+        }]
+      }]
+    }]`, fixture.WorkItemQueryID)
+		}
+
+		stages = append(stages, fmt.Sprintf(`{
+    name = %[1]q
+    rank = %[2]d
+
+    variables = {
+      envShort = {
+        value     = %[3]q
+        is_secret = true
+      }
+    }
+
+    variable_groups = [%[4]d]
+%[5]s
+
+    environment_options = [{
+      email_notification_type   = "Always"
+      publish_deployment_status = true
+      badge_enabled             = false
+      auto_link_work_items      = false
+    }]
+
+    execution_policy = [{
+      concurrency_count = 1
+      queue_depth_count = 0
+    }]
+
+    deploy_phase = [{
+      name       = "Phase"
+      rank       = 1
+      phase_type = %[6]q
+%[7]s
+    }]
+%[8]s
+
+    retention_policy = [{
+      days_to_keep     = 30
+      releases_to_keep = 3
+      retain_build     = true
+    }]
+
+    pre_deploy_approval = [{
+      approver = [{ id = "00000000-0000-0000-0000-000000000000", is_automated = true, rank = 1 }]
+    }]
+    post_deploy_approval = [{
+      approver = [{ id = "00000000-0000-0000-0000-000000000000", is_automated = true, rank = 1 }]
+    }]
+  }`, s.name, s.rank, s.envShort, fixture.VariableGroupID, condition, s.phaseType, s.phaseTask, gate))
+	}
+
+	return fmt.Sprintf(`
+resource "betterado_release_definition" "test" {
+  name       = %[1]q
+  project_id = %[2]q
+
+  variables = {
+    GLOBAL = {
+      value = "global"
+    }
+    REGION = {
+      value = "eastus"
+    }
+  }
+
+  stages = [%[3]s]
+}
+`, name, fixture.ProjectID, strings.Join(stages, ", "))
+}
 
 // releaseStageHCL renders one stage in attribute syntax with a per-stage variable
 // and the mandatory non-empty pre/post-deploy approvals (VS402877). phaseType is
