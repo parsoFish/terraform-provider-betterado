@@ -85,7 +85,7 @@
     "ado-release-explorer",
     "breaking-change-detector"
   ],
-  "kb": "terraform-provider-betterado-brain",
+  "kb": "terraform-provider-betterado",
   "$artifactRoot_comment": "Committed forge artifacts (Brain 3 + development history) live under forge/ — a single visible home, out of the provider source tree. forge/brain/ is Brain 3; forge/history/<initiative-id>/ holds each cycle's plan + demo. Runtime scratch (_architect/, AGENT.md, worktree demo/) stays gitignored.",
   "artifactRoot": "forge",
   "$releaseProcess_comment": "Translates CLAUDE.md 'Release — publish after a PR merges to main'. In-cycle: regenerate registry docs (make docs) + author the changelog DRAFT. Pre-merge: bump PROVIDER_VERSION.txt (semver). Tag + GoReleaser publish stay in CI (.github/workflows/tag-on-changelog.yml tags on the finalised CHANGELOG push to main; release.yml runs GoReleaser on the tag) — forge NEVER runs tag/publish.",
