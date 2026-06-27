@@ -123,3 +123,11 @@ The flow:
 merge upstream/main` (expect conflicts: `microsoft/`→`parsoFish/` import renames +
 `betterado_` resource prefixes). `upstream` = the Microsoft repo; `origin` =
 `parsoFish/terraform-provider-betterado`.
+
+## God files — third_party constraint (C3)
+
+The `third_party/azure-devops-go-api/` directory contains generated code from upstream
+(Microsoft's ADO Go SDK). Files in this tree exceed 800 LOC and some exceed 1600 LOC
+(e.g., `workitemtracking/client.go`, `workitemtrackingprocess/models.go`). These are
+excluded from structural refactoring and treated as opaque upstream dependencies.
+Do not attempt to split or restructure them; they are managed externally.
