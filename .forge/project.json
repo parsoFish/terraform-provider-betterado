@@ -60,19 +60,18 @@
   "demoProcess": [
     {
       "kind": "verify",
-      "text": "Project tests green in CI after merge"
+      "text": "Project tests green in CI after merge",
+      "element": "test-evidence"
+    },
+    {
+      "kind": "verify",
+      "text": "API GET of created entity",
+      "element": "api-verify"
     },
     {
       "kind": "capture",
-      "text": "API GET of created entity"
-    },
-    {
-      "kind": "capture",
-      "text": "Screenshot of live resource"
-    },
-    {
-      "kind": "present",
-      "text": "Demo evidence attached to PR"
+      "text": "Screenshot of live resource",
+      "element": "screenshot"
     }
   ],
   "skills": [
