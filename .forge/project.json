@@ -37,22 +37,6 @@
     "CI-equivalent (push-green): the checks forge runs locally must pass — `make test` (gofmt + whole-module `go test`, NO TF_ACC) + golangci-lint v2 incremental (`golangci-lint run --new-from-rev=main ./azuredevops/...`, gating only the code this cycle changes) + `make terrafmt-check`. Keep changed code golangci-clean; do NOT try to fix the ~437 pre-existing upstream staticcheck findings v2 surfaces (separate debt, out of scope). GitHub CI golint.yml mirrors this (golangci v2 + only-new-issues:true). The production resource `.go` carries NO build tag; only `_test.go` files carry `//go:build`; `provider_test.go`'s resource-count list includes any new resource.",
     "Registry docs current: a schema change is NOT done until the published Terraform docs describe it. Run `make docs` (tfplugindocs) so `docs/resources/<resource>.md` + `docs/data-sources/*` document EVERY new/changed attribute, then `git checkout -- docs/guides/` (tfplugindocs deletes the hand-written guides — restore them). Add/refresh the `examples/resources/<resource>/resource.tf` example that the docs embed. Do this BEFORE the PR is opened."
   ],
-  "demo": {
-    "$shape_comment": "`live-external`: betterado stands up real resources in a live ADO org (creds in secrets.env) visible via the REST API AND the dev.azure.com portal. The demo is LIVE EVIDENCE — terraform apply -> API GET (liveEvidence.url) + portal screenshots -> destroy — codified in the ado-demo skill, which the forge demo phase composes. The harness unit run is the creds-free FALLBACK when credentials are absent (documented in essence). The demoProcess capture/verify steps drive the executed demo.",
-    "shape": "live-external",
-    "skill": "forge/skills/ado-demo/SKILL.md",
-    "command": [
-      "go",
-      "test",
-      "-tags",
-      "all",
-      "-v",
-      "-count=1",
-      "./azuredevops/internal/service/release/...",
-      "./azuredevops/internal/service/taskagent/..."
-    ],
-    "baseline": "main"
-  },
   "logging": {
     "heartbeat_seconds": 30
   },

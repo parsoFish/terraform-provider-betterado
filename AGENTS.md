@@ -87,7 +87,8 @@ backstop for killed runs.
 ### Commit and history
 - Conventional commits: `feat(scope): …`, `fix(scope): …`, `refactor(scope): …`.
 - Commit your work; leave git history intact — **no resets**.
-- Record each initiative's plan + demo under `forge/history/<initiative-id>/`.
+- Each cycle's demo is committed under `forge/history/<initiative-id>/demo/` (forge writes the
+  in-PR demo there). The plan + verdict are forge-owned and central (ADR 035) — not in this repo.
 
 ### Release process
 In-cycle: `make docs` (regenerate `docs/`; then `git checkout -- docs/guides/`
@@ -129,8 +130,7 @@ azuredevops/                 Provider source
 docs/                        API references + per-resource gap matrices
 examples/                    HCL examples embedded in generated docs
 forge/
-  brain/                     Project brain (profile.md, decision themes/)
-  history/<initiative-id>/   Plan + demo artifacts per cycle
+  history/<initiative-id>/demo/  In-PR demo evidence per cycle (forge-written)
   skills/                    Project-action recipes (resource-scaffolder, ado-api-explorer, …)
 PROVIDER_VERSION.txt         Semver — bump pre-merge for any user-visible change
 CHANGELOG.md                 Draft under ## Unreleased in-cycle; promoted by post-approval finaliser
@@ -140,8 +140,9 @@ CHANGELOG.md                 Draft under ## Unreleased in-cycle; promoted by pos
 
 ## Where domain knowledge lives
 
-- `forge/brain/profile.md` — authoritative project profile (patterns, gotchas, decisions).
-- `forge/brain/themes/` — individual decision records (DEC-N) and hard-won lessons.
+- The project **brain** (profile + decision themes) is forge-owned and central (ADR 035), at
+  `brain/projects/terraform-provider-betterado/` in the forge repo. Planners encode its knowledge
+  into work items — dev-loop/reviewer agents work from the WIs, not from the brain directly.
 - `docs/` — per-resource gap matrices vs the ADO REST schema.
 - `forge/skills/` — reusable project-action recipes (scaffolder, API explorer, demo runner, …).
 - `.forge/project.json` — forge contract: CI gate command, acceptance gate env requirements,
