@@ -91,6 +91,17 @@ _(none yet — both iterations succeeded on first pass)_
 
 **Status:** All ACs satisfied. Implementation is complete and stable. Live acceptance (TF_ACC=1) awaits orchestrator run.
 
+### Iteration 4 (complete — this iteration)
+
+**Goal:** verify all gates still pass in iteration 4.
+
+**CI gates re-confirmed (iteration 4):**
+- `make test` → PASS (all packages, 0 FAIL lines — all cached hits, no regressions)
+- `golangci-lint run --new-from-rev=main ./azuredevops/...` → 0 issues
+- `make terrafmt-check` → PASS
+
+**Status:** All ACs remain satisfied. Implementation is complete and stable. No new code was required. The implementation from iterations 0 and 1 continues to be correct. Live acceptance (TF_ACC=1) awaits orchestrator run.
+
 ## Notes for reflection
 
 _(observations the reflector should capture into the brain; the agent doesn't write them itself, but flags here)_
