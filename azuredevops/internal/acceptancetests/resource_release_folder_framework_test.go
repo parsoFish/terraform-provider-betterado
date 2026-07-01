@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	releaseapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 // TestAccReleaseFolderFramework exercises the terraform-plugin-framework implementation
@@ -70,7 +69,13 @@ resource "betterado_release_folder" "fw_test" {
 }
 
 func checkReleaseFolderFrameworkDestroyed(s *terraform.State) error {
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+	// Use getDirectClient (defined in resource_task_group_test.go) rather than
+	// testutils.GetProvider().Meta() because ProtoV6ProviderFactories does not
+	// wire the SDKv2 provider singleton's Meta — it would be nil here.
+	clients, err := getDirectClient()
+	if err != nil {
+		return fmt.Errorf("checkReleaseFolderFrameworkDestroyed: build client: %w", err)
+	}
 	for _, res := range s.RootModule().Resources {
 		if res.Type != "betterado_release_folder" {
 			continue
@@ -101,7 +106,12 @@ func captureReleaseFolderFrameworkEvidence(tfNode string) resource.TestCheckFunc
 		}
 		path := res.Primary.ID
 		projectID := res.Primary.Attributes["project_id"]
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		// Use getDirectClient rather than testutils.GetProvider().Meta() — the
+		// mux ProtoV6ProviderFactories path does not configure the SDKv2 singleton.
+		clients, err := getDirectClient()
+		if err != nil {
+			return nil // best-effort; do not fail the test on evidence capture
+		}
 		folders, err := clients.ReleaseClient.GetFolders(clients.Ctx,
 			releaseapi.GetFoldersArgs{Project: &projectID, Path: &path})
 		if err != nil || folders == nil || len(*folders) == 0 {
