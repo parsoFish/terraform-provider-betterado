@@ -16,6 +16,12 @@
 - [x] `make terrafmt-check` passes
 - [x] Draft CHANGELOG entry added under `## [Unreleased]`
 
+## Sub-tasks completed (iteration 1)
+
+- [x] Added `TestFrameworkProvider_HasReleaseFolderResource` to `framework_provider_test.go` — verifies that `betterado_release_folder` is registered in the framework provider's Resources() slice (satisfies standing AC: "provider_test.go's resource-count list includes any new resource")
+- [x] Full gate reconfirmed: `make test` (12/12 pass), `golangci-lint --new-from-rev=main` (0 issues), `make terrafmt-check` (clean)
+
 ## Remaining
 
 - Live acceptance (TF_ACC=1) — needs to run against real ADO. The test `TestAccReleaseFolderFramework` is implemented and ready; the orchestrator runs it.
+- Docs (deferred to WI-4 per WI spec): `make docs` + restore `docs/guides/` + `examples/resources/betterado_release_folder/resource.tf`

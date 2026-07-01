@@ -36,15 +36,33 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - **Acceptance test build tag** `//go:build (all || resource_release_folder) && !exclude_resource_release_folder` — shares tag with SDKv2 test, which is correct.
 - **`ProtoV6ProviderFactories: testutils.GetMuxProviderFactories()`** — mux path, as required.
 
+### Iteration 1 (complete)
+
+**Goal:** add provider registration test + re-confirm CI gates.
+
+**Files modified:**
+
+| File | Change |
+|------|--------|
+| `azuredevops/internal/provider/framework_provider_test.go` | Added `TestFrameworkProvider_HasReleaseFolderResource` — checks `betterado_release_folder` is in provider's Resources() slice |
+
+**CI gates re-confirmed:**
+- `make test` → PASS (12 packages, 0 failures)
+- `golangci-lint run --new-from-rev=main ./azuredevops/...` → 0 issues
+- `make terrafmt-check` → PASS
+
+**Key detail:** `framework_provider_test.go` uses build tag `//go:build all || provider_framework` — must run with `-tags "provider_framework"` or `-tags all`; the Makefile's `make test` uses `-tags all` so it's included.
+
 ## What didn't work
 
-_(none yet — iteration 0 succeeded on first pass)_
+_(none yet — both iterations succeeded on first pass)_
 
 ## Open questions
 
 - Live acceptance (TF_ACC=1) pending orchestrator run. No code changes anticipated unless:
   - API normalises path (e.g. strips trailing backslash) → would need description-normalisation pattern applied to path too.
   - `betterado_release_folder` resource type conflict between SDKv2 and framework (both register the same type name). This WOULD be a problem; but the framework resource replaces the SDKv2 one in the mux — verify mux routing handles this correctly.
+- Registry docs deferred to WI-4 (per WI spec explicitly).
 
 ## Notes for reflection
 
