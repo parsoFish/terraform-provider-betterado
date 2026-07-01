@@ -16,24 +16,16 @@ Terraform resources without managing it.
 
 ### Required
 
-- `project_id` (String)
+- `project_id` (String) The ID of the project the release definition belongs to.
 
 ### Optional
 
-- `name` (String)
-- `release_definition_id` (Number)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `name` (String) The name of the release definition. One of release_definition_id or name must be set.
+- `release_definition_id` (Number) The numeric ID of the release definition. One of release_definition_id or name must be set.
 
 ### Read-Only
 
-- `description` (String)
-- `id` (String) The ID of this resource.
-- `path` (String)
-- `release_name_format` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `description` (String) The description of the release definition.
+- `id` (String) The ID of the release definition.
+- `path` (String) The folder path of the release definition.
+- `release_name_format` (String) The release name format of the release definition.

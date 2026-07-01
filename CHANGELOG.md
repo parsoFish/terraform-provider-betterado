@@ -24,14 +24,14 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   live acceptance test `TestAccReleaseDefinitionPermissionsFramework`.
 
 - **`betterado_release_definition` data source migrated to terraform-plugin-framework.**
-  Reads a single release definition by `project_id` + `name`; returns `id`,
-  `description`, `path`, and `json_content` (full serialised definition).
+  Reads a single release definition by `project_id` + `name` (or `release_definition_id`);
+  returns `id`, `description`, `path`, and `release_name_format`.
   Served through the mux provider. Verified by live acceptance test
   `TestAccDataReleaseDefinition_Basic`.
 
 - **`betterado_release_definition_history` data source migrated to terraform-plugin-framework.**
   Reads the revision history for a release definition; exposes a `revisions` list with
-  `revision`, `changed_by`, `change_type`, and `comment` per entry.
+  `revision`, `changed_by`, `changed_date`, `change_type`, and `comment` per entry.
   Served through the mux provider. Verified by live acceptance test
   `TestAccDataReleaseDefinitionHistory_Basic`.
 
