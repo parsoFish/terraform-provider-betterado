@@ -75,6 +75,22 @@ _(none yet — both iterations succeeded on first pass)_
 
 **Status:** All ACs are satisfied. No new code was needed. The implementation from iterations 0 and 1 is complete and stable. Live acceptance (TF_ACC=1) is pending orchestrator run.
 
+### Iteration 3 (complete)
+
+**Goal:** verify all gates still pass, review implementation for quality, update docs.
+
+**CI gates re-confirmed (iteration 3):**
+- `make test` → PASS (12 packages, 0 FAIL lines)
+- `golangci-lint run --new-from-rev=main ./azuredevops/...` → 0 issues
+- `make terrafmt-check` → PASS
+
+**Full code review performed:**
+- `resource_release_folder_framework.go` — complete, correct. Implements Metadata, Schema, Configure, Create, Read, Update, Delete, ImportState. Handles external delete via `RemoveResource`. Normalises `nil` description to `""` on Read to prevent perpetual diff.
+- `resource_release_folder_framework_test.go` — complete. Build tag correct, uses mux factories, applies + asserts attributes, runs idempotency plan step, captures live evidence via `captureReleaseFolderFrameworkEvidence` → `CaptureLiveEvidence("acceptance-resource", apiURL, folder)`.
+- `framework_provider.go` — `release.NewReleaseFolderResource` correctly registered.
+
+**Status:** All ACs satisfied. Implementation is complete and stable. Live acceptance (TF_ACC=1) awaits orchestrator run.
+
 ## Notes for reflection
 
 _(observations the reflector should capture into the brain; the agent doesn't write them itself, but flags here)_
