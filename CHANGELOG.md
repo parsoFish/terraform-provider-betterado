@@ -7,6 +7,15 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_release_folder` migrated to terraform-plugin-framework.** The
+  resource now uses the terraform-plugin-framework implementation served through
+  the mux provider, alongside the existing SDKv2 path. CRUD operations continue
+  to target the Release Management API at `vsrm.dev.azure.com`; the schema is
+  unchanged (`project_id`, `path`, `description`). Verified by live acceptance
+  test `TestAccReleaseFolderFramework`.
+
 ## [1.0.5] - 2026-06-21
 
 ### ENHANCEMENTS

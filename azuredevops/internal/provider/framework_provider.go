@@ -203,6 +203,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 	return []func() resource.Resource{
 		taskagent.NewTaskGroupResource,
 		release.NewReleaseDefinitionResource,
+		release.NewReleaseFolderResource,
 	}
 }
 
