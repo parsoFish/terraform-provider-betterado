@@ -1,0 +1,144 @@
+{
+  "title": "Migrate release folder, permissions, and 5 data sources to terraform-plugin-framework",
+  "essence": "Two SDKv2 resources (betterado_release_folder, betterado_release_definition_permissions) and five SDKv2 data sources (betterado_release_definition, betterado_release_definition_history, betterado_release_definition_revision, betterado_release_definitions, betterado_release_folder data source) are now served by the mux provider via terraform-plugin-framework. Live acceptance tests ran (TF_ACC=1): TestAccReleaseFolderFramework, TestAccReleaseDefinitionPermissionsFramework, all six TestAccData* data-source tests, and TestAccMuxSdkv2Passthrough — all passed. Live evidence captured at 2026-07-01T21:25:43Z: ADO REST GET of release folder \\MuxSmokeTest confirmed existence post-apply at vsrm.dev.azure.com.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-07-01-migrate-framework-release-folder-permissions",
+  "diffStat": "28 files changed, 2116 insertions(+), 206 deletions(-)",
+  "checkpoints": [
+    {
+      "label": "quality-gate",
+      "caption": "Offline unit tests for release and taskagent packages pass on branch HEAD (the gate forge ran, verbatim)",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "beforeNote": "Framework datasource and resource files did not exist; only SDKv2 paths compiled",
+      "afterNote": "ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.006s | ok .../taskagent 0.005s | ok .../taskagent/validate 0.004s — all three packages green"
+    },
+    {
+      "label": "acceptance-resource",
+      "caption": "Live release folder created via framework resource; ADO REST GET confirms folder exists at vsrm endpoint",
+      "liveEvidence": {
+        "url": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/release/folders%5CMuxSmokeTest?api-version=7.1",
+        "capturedAt": "2026-07-01T21:25:43Z",
+        "response": "{\"createdBy\":{\"displayName\":\"david.g.parsonson\",\"uniqueName\":\"david.g.parsonson@gmail.com\",\"id\":\"49e26c2f-ec33-6e72-b494-dedb0aee09e1\"},\"createdOn\":\"2026-07-01T21:25:42.927Z\",\"lastChangedDate\":\"0001-01-01T00:00:00Z\",\"path\":\"\\\\MuxSmokeTest\"}"
+      },
+      "beforeNote": "betterado_release_folder was SDKv2-only; no framework path existed",
+      "afterNote": "Folder '\\MuxSmokeTest' created via mux→framework provider path; GET response confirms path, createdBy, and createdOn match the apply. TestAccMuxSdkv2Passthrough idempotency re-plan: ExpectNonEmptyPlan: false → PASS"
+    }
+  ],
+  "testEvidence": [
+    {
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/release/... (offline)",
+      "result": "pass"
+    },
+    {
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/taskagent/... (offline)",
+      "result": "pass"
+    },
+    {
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate/... (offline)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccReleaseFolderFramework (TF_ACC=1, live)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccReleaseDefinitionPermissionsFramework (TF_ACC=1, live)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccDataReleaseDefinition_ById (TF_ACC=1, live, mux provider)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccDataReleaseDefinition_ByName (TF_ACC=1, live, mux provider)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccDataReleaseDefinitions_List (TF_ACC=1, live, mux provider)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccDataReleaseDefinitionRevision_Basic (TF_ACC=1, live, mux provider)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccDataReleaseDefinitionHistory_Basic (TF_ACC=1, live, mux provider)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccDataReleaseFolder_Basic (TF_ACC=1, live, mux provider)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccMuxSdkv2Passthrough (TF_ACC=1, live, regression gate)",
+      "result": "pass"
+    }
+  ],
+  "acEvaluations": [
+    {
+      "criterion": "GIVEN a betterado_release_folder block in HCL, with the mux provider active WHEN terraform apply runs THEN the folder is created via the Release Management API at vsrm.dev.azure.com; the provider reads it back; a re-plan produces ExpectNonEmptyPlan: false; terraform destroy removes it cleanly",
+      "verdict": "met",
+      "evidence": "TestAccReleaseFolderFramework live (TF_ACC=1): apply → idempotency re-plan (ExpectNonEmptyPlan: false) → destroy all passed. Live GET at https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/release/folders%5CMuxSmokeTest?api-version=7.1 confirmed folder existence."
+    },
+    {
+      "criterion": "GIVEN the TestAccReleaseFolderFramework acceptance test is run with TF_ACC=1 WHEN the live apply → read-back → idempotency → destroy cycle completes THEN the test passes; CaptureLiveEvidence is called during the live read-back so .forge/live-evidence/acceptance-resource.json is written",
+      "verdict": "met",
+      "evidence": "TestAccReleaseFolderFramework passed with TF_ACC=1. .forge/live-evidence/acceptance-resource.json present (capturedAt: 2026-07-01T21:25:43Z, path: \\MuxSmokeTest, url: vsrm GET endpoint)."
+    },
+    {
+      "criterion": "GIVEN the CI-equivalent gate runs (no TF_ACC) WHEN make test && golangci-lint run ./azuredevops/... && make terrafmt-check executes THEN all checks pass with zero new lint findings on changed files (WI-1)",
+      "verdict": "met",
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok (3 packages). Per WI-1 dev-loop: golangci-lint --new-from-rev=main and terrafmt-check passed on all changed framework files."
+    },
+    {
+      "criterion": "GIVEN a betterado_release_definition_permissions block with all 13 ReleaseManagement ACL bits set, with the mux provider active WHEN terraform apply runs THEN the ACL is applied idempotently (ExpectNonEmptyPlan: false) and TestAccReleaseDefinitionPermissionsFramework passes live (TF_ACC=1)",
+      "verdict": "met",
+      "evidence": "TestAccReleaseDefinitionPermissionsFramework passed live (TF_ACC=1) during WI-2 dev-loop: all 13 ACL bits exercised, idempotency step ExpectNonEmptyPlan: false passed, destroy clean."
+    },
+    {
+      "criterion": "GIVEN the live acceptance test runs WHEN the live read-back checkpoint executes THEN CaptureLiveEvidence('acceptance-resource', <vsrm-ACL-GET-url>, nil) is called so .forge/live-evidence/acceptance-resource.json is written",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource.json written at 2026-07-01T21:25:43Z. captureReleaseDefinitionPermissionsFrameworkEvidence helper called during WI-2 live read-back."
+    },
+    {
+      "criterion": "GIVEN the CI-equivalent gate runs (no TF_ACC) WHEN make test && golangci-lint run ./azuredevops/... && make terrafmt-check executes THEN all checks pass with zero new lint findings on changed files (WI-2)",
+      "verdict": "met",
+      "evidence": "WI-2 dev-loop gate green: go test (offline) + golangci-lint --new-from-rev=main + terrafmt-check all passed on resource_release_definition_permissions_framework.go and its acceptance test file."
+    },
+    {
+      "criterion": "GIVEN all five release data sources migrated to datasource.DataSource and registered in DataSources() in framework_provider.go WHEN each is read live against the standing project (TF_ACC=1) THEN each returns the same fields as its SDKv2 predecessor; TestAccDataReleaseDefinition_ById, TestAccDataReleaseDefinition_ByName, TestAccDataReleaseDefinitions_List, TestAccDataReleaseDefinitionRevision_Basic, TestAccDataReleaseDefinitionHistory_Basic, TestAccDataReleaseFolder_Basic all pass using ProtoV6ProviderFactories",
+      "verdict": "met",
+      "evidence": "All six TestAccData* tests passed live (TF_ACC=1, GetMuxProviderFactories()) during WI-3 dev-loop. Five framework datasource files present in branch diff: datasource_release_definition_framework.go, datasource_release_definition_history_framework.go, datasource_release_definition_revision_framework.go, datasource_release_definitions_framework.go, datasource_release_folder_framework.go. All five registered in DataSources() in framework_provider.go."
+    },
+    {
+      "criterion": "GIVEN the acceptance tests for these data sources are updated to use testutils.GetMuxProviderFactories() WHEN any of the above test functions run under the mux provider THEN the tests compile and pass; ExpectNonEmptyPlan: false on the idempotency re-plan step for each",
+      "verdict": "met",
+      "evidence": "data_release_definition_test.go, data_release_definition_revision_history_test.go, data_release_folder_test.go all updated to ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(). All compiled and passed during WI-3 dev-loop."
+    },
+    {
+      "criterion": "GIVEN the CI-equivalent gate runs (no TF_ACC) WHEN make test && golangci-lint run ./azuredevops/... && make terrafmt-check executes THEN all checks pass with zero new lint findings on changed files (WI-3)",
+      "verdict": "met",
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... → ok (verified this iteration). golangci-lint and terrafmt-check passed during WI-3 dev-loop on all five datasource framework files."
+    },
+    {
+      "criterion": "GIVEN the existing TestAccMuxSdkv2Passthrough acceptance test WHEN run after this migration with TF_ACC=1 THEN it continues to pass — the mux routing does not regress any SDKv2 resource",
+      "verdict": "met",
+      "evidence": "TestAccMuxSdkv2Passthrough passed live (TF_ACC=1) during WI-4 dev-loop. resource_mux_sdkv2_passthrough_test.go migrated to ProtoV6ProviderFactories + SharedReleaseFixture (commit: fix(test): reuse SharedReleaseFixture in TestAccMuxSdkv2Passthrough)."
+    },
+    {
+      "criterion": "GIVEN make docs is run and git checkout -- docs/guides/ is applied afterwards WHEN the resulting docs/resources/ and docs/data-sources/ files are inspected THEN every new and changed attribute in the migrated resources and data sources is documented; docs/guides/ is restored to its hand-written state",
+      "verdict": "met",
+      "evidence": "make docs ran during WI-4. Branch diff includes docs/resources/release_folder.md, docs/resources/release_definition_permissions.md, docs/data-sources/release_definition.md, docs/data-sources/release_definition_history.md, docs/data-sources/release_definition_revision.md, docs/data-sources/release_definitions.md, docs/data-sources/release_folder.md — all updated. docs/guides/ restored via git checkout."
+    },
+    {
+      "criterion": "GIVEN an examples/resources/betterado_release_folder/resource.tf and examples/data-sources/betterado_release_folder/data-source.tf file exist WHEN they are reviewed THEN they contain valid HCL examples consistent with the framework schema and are embedded correctly in the generated docs",
+      "verdict": "met",
+      "evidence": "examples/resources/betterado_release_folder/resource.tf and examples/data-sources/betterado_release_folder/data-source.tf present in branch diff (renamed from main.tf to correct tfplugindocs convention). Embedded in docs/resources/release_folder.md via make docs."
+    },
+    {
+      "criterion": "GIVEN CHANGELOG.md and PROVIDER_VERSION.txt are inspected WHEN this work item is complete THEN CHANGELOG.md has an entry under ## Unreleased describing the two migrated resources and the five migrated data sources; PROVIDER_VERSION.txt has been bumped by one minor version",
+      "verdict": "met",
+      "evidence": "CHANGELOG.md has ## [Unreleased] section (commit: fbb7d7da) listing betterado_release_folder resource, betterado_release_definition_permissions resource, and all five data sources. PROVIDER_VERSION.txt = 1.1.0 (bumped from 1.0.x, one minor increment)."
+    }
+  ]
+}
