@@ -64,6 +64,17 @@ _(none yet — both iterations succeeded on first pass)_
   - `betterado_release_folder` resource type conflict between SDKv2 and framework (both register the same type name). This WOULD be a problem; but the framework resource replaces the SDKv2 one in the mux — verify mux routing handles this correctly.
 - Registry docs deferred to WI-4 (per WI spec explicitly).
 
+### Iteration 2 (complete)
+
+**Goal:** verify iteration 0+1 work is stable — no code changes required this iteration.
+
+**CI gates re-confirmed (iteration 2):**
+- `make test` → PASS (all packages, 0 FAIL lines)
+- `golangci-lint run --new-from-rev=main ./azuredevops/...` → 0 issues
+- `make terrafmt-check` → PASS
+
+**Status:** All ACs are satisfied. No new code was needed. The implementation from iterations 0 and 1 is complete and stable. Live acceptance (TF_ACC=1) is pending orchestrator run.
+
 ## Notes for reflection
 
 _(observations the reflector should capture into the brain; the agent doesn't write them itself, but flags here)_
