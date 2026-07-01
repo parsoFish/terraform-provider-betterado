@@ -29,20 +29,22 @@ func TestAccReleaseDefinitionPermissionsFramework(t *testing.T) {
 	tfNodeRoot := "betterado_release_definition_permissions.fw_permissions"
 
 	// All writable ReleaseManagement2 ACL bits (mirrors SDKv2 test coverage).
+	// Values must be lowercase to match the PermissionTypeValues constants
+	// ("allow", "deny", "notset") — the provider stores and reads back lowercase.
 	allPerms := map[string]string{
-		"ViewReleases":                 "Allow",
-		"EditReleaseEnvironment":       "Deny",
-		"DeleteReleases":               "Deny",
-		"ManageReleaseSettings":        "Allow",
-		"ViewReleaseDefinition":        "Allow",
-		"EditReleaseDefinition":        "Allow",
-		"DeleteReleaseDefinition":      "Deny",
-		"ManageReleaseApprovers":       "NotSet",
-		"CreateReleases":               "Allow",
-		"ManageReleases":               "Allow",
-		"AdministerReleasePermissions": "Deny",
-		"ManageDeployments":            "Allow",
-		"DeleteReleaseEnvironment":     "Deny",
+		"ViewReleases":                 "allow",
+		"EditReleaseEnvironment":       "deny",
+		"DeleteReleases":               "deny",
+		"ManageReleaseSettings":        "allow",
+		"ViewReleaseDefinition":        "allow",
+		"EditReleaseDefinition":        "allow",
+		"DeleteReleaseDefinition":      "deny",
+		"ManageReleaseApprovers":       "notset",
+		"CreateReleases":               "allow",
+		"ManageReleases":               "allow",
+		"AdministerReleasePermissions": "deny",
+		"ManageDeployments":            "allow",
+		"DeleteReleaseEnvironment":     "deny",
 	}
 	config := hclReleaseDefinitionPermissionsFramework(fixture, allPerms)
 
