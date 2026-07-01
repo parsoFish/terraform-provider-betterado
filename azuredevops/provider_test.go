@@ -157,11 +157,10 @@ func TestProvider_HasChildResources(t *testing.T) {
 
 func TestProvider_HasChildDataSources(t *testing.T) {
 	expectedDataSources := []string{
-		"betterado_release_definition",
-		"betterado_release_definition_history",
-		"betterado_release_definition_revision",
-		"betterado_release_definitions",
-		"betterado_release_folder",
+		// NOTE: betterado_release_definition, betterado_release_definition_history,
+		// betterado_release_definition_revision, betterado_release_definitions, and
+		// betterado_release_folder have been migrated to the framework provider —
+		// they are no longer registered in the SDKv2 DataSourcesMap.
 		"betterado_agent_pool",
 		"betterado_agent_pools",
 		"betterado_agent_queue",

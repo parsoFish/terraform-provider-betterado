@@ -20,8 +20,8 @@ func TestAccDataReleaseFolder_Basic(t *testing.T) {
 	tfDataNode := "data.betterado_release_folder.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataReleaseFolderBasic(name),

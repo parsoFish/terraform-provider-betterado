@@ -28,7 +28,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
@@ -181,11 +180,10 @@ func Provider() *schema.Provider {
 			"betterado_workitemtrackingprocess_rule":                workitemtrackingprocess.ResourceRule(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"betterado_release_definition":                    release.DataReleaseDefinition(),
-			"betterado_release_definition_history":            release.DataReleaseDefinitionHistory(),
-			"betterado_release_definition_revision":           release.DataReleaseDefinitionRevision(),
-			"betterado_release_definitions":                   release.DataReleaseDefinitions(),
-			"betterado_release_folder":                        release.DataReleaseFolder(),
+			// NOTE: betterado_release_definition, betterado_release_definition_history,
+			// betterado_release_definition_revision, betterado_release_definitions, and
+			// betterado_release_folder have been migrated to the terraform-plugin-framework
+			// provider (framework_provider.go) and are no longer registered here.
 			"betterado_agent_pool":                            taskagent.DataAgentPool(),
 			"betterado_agent_pools":                           taskagent.DataAgentPools(),
 			"betterado_agent_queue":                           taskagent.DataAgentQueue(),
