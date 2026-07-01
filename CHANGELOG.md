@@ -7,6 +7,8 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-01
+
 ### FEATURES
 
 - **`betterado_release_folder` migrated to terraform-plugin-framework.** The
