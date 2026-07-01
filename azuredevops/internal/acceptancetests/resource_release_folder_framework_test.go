@@ -25,8 +25,13 @@ import (
 //  4. destroy — cleans up cleanly
 //
 // Live evidence is captured during the read-back step via CaptureLiveEvidence.
+//
+// Uses SharedReleaseFixture to obtain a pre-existing persistent project
+// (betterado-standing-demo) so no new ADO project is created — the org is at
+// the 1000-project cap, so any project-create attempt would fail immediately.
 func TestAccReleaseFolderFramework(t *testing.T) {
 	name := testutils.GenerateResourceName()
+	fixture := SharedReleaseFixture(t)
 	tfNode := "betterado_release_folder.fw_test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,7 +41,7 @@ func TestAccReleaseFolderFramework(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Step 1: create + assert read-back + capture evidence
 			{
-				Config: hclReleaseFolderFramework(name),
+				Config: hclReleaseFolderFramework(name, fixture.ProjectID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "path", `\AccTestFW-`+name),
 					resource.TestCheckResourceAttr(tfNode, "description", "Acceptance test framework folder"),
@@ -46,7 +51,7 @@ func TestAccReleaseFolderFramework(t *testing.T) {
 			},
 			// Step 2: idempotency — no perpetual diff
 			{
-				Config:             hclReleaseFolderFramework(name),
+				Config:             hclReleaseFolderFramework(name, fixture.ProjectID),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -54,21 +59,14 @@ func TestAccReleaseFolderFramework(t *testing.T) {
 	})
 }
 
-func hclReleaseFolderFramework(name string) string {
+func hclReleaseFolderFramework(name, projectID string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "fw_test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
 resource "betterado_release_folder" "fw_test" {
-  project_id  = betterado_project.fw_test.id
+  project_id  = %[2]q
   path        = "\\AccTestFW-%[1]s"
   description = "Acceptance test framework folder"
 }
-`, name)
+`, name, projectID)
 }
 
 func checkReleaseFolderFrameworkDestroyed(s *terraform.State) error {
