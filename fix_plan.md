@@ -13,8 +13,15 @@
   - Updated `azuredevops/provider_test.go` `TestProvider_HasChildResources` to not expect it in SDKv2 map
   - Resource now exclusively lives in `framework_provider.go` → `release.NewReleaseFolderResource`
 
+- [x] Fix nil-Meta panic in checkReleaseFolderFrameworkDestroyed / captureReleaseFolderFrameworkEvidence
+  - Both helpers called testutils.GetProvider().Meta().(*client.AggregatedClient)
+  - ProtoV6ProviderFactories never configures the SDKv2 singleton → Meta() == nil → panic
+  - Fixed: use getDirectClient() (same package, resource_task_group_test.go) which builds client from env vars
+  - Dropped unused `client` import from the file
+
 - [ ] AC1 + AC2 live gate: TestAccReleaseFolderFramework must pass with TF_ACC=1
   - The framework resource implementation is committed (resource_release_folder_framework.go)
-  - The acceptance test now uses SharedReleaseFixture (no project created) — fixes the 1000-project-cap error
-  - The mux duplicate is fixed — provider schema loads cleanly
-  - Next blocker: live gate run with TF_ACC=1 — resource CRUD logic exercises the vsrm.dev.azure.com API
+  - The acceptance test now uses SharedReleaseFixture (no project created)
+  - The mux duplicate is fixed
+  - The nil-Meta panic is fixed
+  - Next gate run will verify the full live CRUD cycle
