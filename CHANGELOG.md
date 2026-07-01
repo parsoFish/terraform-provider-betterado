@@ -23,6 +23,35 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   `replace`). Supports all writable ACL bits with idempotent apply. Verified by
   live acceptance test `TestAccReleaseDefinitionPermissionsFramework`.
 
+- **`betterado_release_definition` data source migrated to terraform-plugin-framework.**
+  Reads a single release definition by `project_id` + `name`; returns `id`,
+  `description`, `path`, and `json_content` (full serialised definition).
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataReleaseDefinition_Basic`.
+
+- **`betterado_release_definition_history` data source migrated to terraform-plugin-framework.**
+  Reads the revision history for a release definition; exposes a `revisions` list with
+  `revision`, `changed_by`, `change_type`, and `comment` per entry.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataReleaseDefinitionHistory_Basic`.
+
+- **`betterado_release_definition_revision` data source migrated to terraform-plugin-framework.**
+  Fetches the serialised JSON snapshot of a specific release definition revision via
+  `project_id`, `definition_id`, and `revision`; exposes `json_content`.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataReleaseDefinitionRevision_Basic`.
+
+- **`betterado_release_definitions` data source migrated to terraform-plugin-framework.**
+  Lists all release definitions in a project (filtered by optional `path`); exposes a
+  `definitions` list with `id`, `name`, and `path` per entry.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataReleaseDefinitions_Basic`.
+
+- **`betterado_release_folder` data source migrated to terraform-plugin-framework.**
+  Reads release folder metadata by `project_id` + `path`; exposes `id`,
+  `path`, and `description`. Served through the mux provider. Verified by live
+  acceptance test `TestAccDataReleaseFolder_Basic`.
+
 ## [1.0.5] - 2026-06-21
 
 ### ENHANCEMENTS
