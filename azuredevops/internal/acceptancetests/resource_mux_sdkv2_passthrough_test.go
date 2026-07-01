@@ -24,10 +24,14 @@ import (
 // in INIT-2026-07-01-migrate-framework-release-folder-permissions; this test
 // confirms the mux routing for the framework resource still passes end-to-end.
 //
+// Uses SharedReleaseFixture to obtain a pre-existing persistent project
+// (betterado-standing-demo) so no new ADO project is created — the org is at
+// the 1000-project cap, so any project-create attempt would fail immediately.
+//
 // Evidence is captured in .forge/live-evidence/acceptance-resource.json via
 // CaptureLiveEvidence, satisfying the forge demo live-evidence contract.
 func TestAccMuxSdkv2Passthrough(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	fixture := SharedReleaseFixture(t)
 	folderPath := `\MuxSmokeTest`
 	tfNode := "betterado_release_folder.smoke"
 
@@ -37,7 +41,7 @@ func TestAccMuxSdkv2Passthrough(t *testing.T) {
 		CheckDestroy:             checkMuxSmokeFolderDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclMuxSmokeFolder(projectName, folderPath),
+				Config: hclMuxSmokeFolder(fixture.ProjectID, folderPath),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						tfNode, "path", folderPath,
@@ -49,20 +53,13 @@ func TestAccMuxSdkv2Passthrough(t *testing.T) {
 	})
 }
 
-func hclMuxSmokeFolder(projectName, folderPath string) string {
+func hclMuxSmokeFolder(projectID, folderPath string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "smoke" {
-  name               = %q
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
 resource "betterado_release_folder" "smoke" {
-  project_id = betterado_project.smoke.id
+  project_id = %q
   path       = %q
 }
-`, projectName, folderPath)
+`, projectID, folderPath)
 }
 
 func checkMuxSmokeFolderDestroyed(s *terraform.State) error {
