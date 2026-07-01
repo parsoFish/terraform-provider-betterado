@@ -13,13 +13,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	releaseapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
-// TestAccMuxSdkv2Passthrough verifies that existing SDKv2 resources continue to
-// work correctly when served through the mux entrypoint introduced in
-// INIT-2026-06-19-framework-mux-entrypoint. It uses betterado_release_folder as a
-// representative SDKv2 resource (lightweight, no required project sub-resources).
+// TestAccMuxSdkv2Passthrough verifies that the mux provider correctly serves
+// both SDKv2 resources (betterado_project) and framework resources
+// (betterado_release_folder) through the same mux entrypoint introduced in
+// INIT-2026-06-19-framework-mux-entrypoint.
+//
+// betterado_release_folder was migrated from SDKv2 to terraform-plugin-framework
+// in INIT-2026-07-01-migrate-framework-release-folder-permissions; this test
+// confirms the mux routing for the framework resource still passes end-to-end.
 //
 // Evidence is captured in .forge/live-evidence/acceptance-resource.json via
 // CaptureLiveEvidence, satisfying the forge demo live-evidence contract.
@@ -29,9 +32,9 @@ func TestAccMuxSdkv2Passthrough(t *testing.T) {
 	tfNode := "betterado_release_folder.smoke"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkMuxSmokeFolderDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             checkMuxSmokeFolderDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclMuxSmokeFolder(projectName, folderPath),
@@ -63,7 +66,13 @@ resource "betterado_release_folder" "smoke" {
 }
 
 func checkMuxSmokeFolderDestroyed(s *terraform.State) error {
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+	// Use getDirectClient (defined in resource_task_group_test.go) rather than
+	// testutils.GetProvider().Meta() because ProtoV6ProviderFactories does not
+	// wire the SDKv2 provider singleton's Meta — it would be nil here.
+	clients, err := getDirectClient()
+	if err != nil {
+		return fmt.Errorf("checkMuxSmokeFolderDestroyed: build client: %w", err)
+	}
 	for _, res := range s.RootModule().Resources {
 		if res.Type != "betterado_release_folder" {
 			continue
@@ -94,7 +103,12 @@ func captureMuxPassthroughEvidence(tfNode string) resource.TestCheckFunc {
 		}
 		path := res.Primary.ID
 		projectID := res.Primary.Attributes["project_id"]
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		// Use getDirectClient to avoid relying on the SDKv2 singleton Meta which
+		// is not populated when using ProtoV6ProviderFactories.
+		clients, err := getDirectClient()
+		if err != nil {
+			return nil // best-effort; never fail the test
+		}
 		folders, err := clients.ReleaseClient.GetFolders(clients.Ctx,
 			releaseapi.GetFoldersArgs{Project: &projectID, Path: &path})
 		if err != nil || folders == nil || len(*folders) == 0 {
