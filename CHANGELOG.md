@@ -16,6 +16,13 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   unchanged (`project_id`, `path`, `description`). Verified by live acceptance
   test `TestAccReleaseFolderFramework`.
 
+- **`betterado_release_definition_permissions` migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation (ReleaseManagement2 security
+  namespace, `c788c23e-1b46-4162-8f5e-d7585343b5de`) served through the mux provider.
+  Schema is unchanged (`project_id`, `principal`, `release_definition_id`, `permissions`,
+  `replace`). Supports all writable ACL bits with idempotent apply. Verified by
+  live acceptance test `TestAccReleaseDefinitionPermissionsFramework`.
+
 ## [1.0.5] - 2026-06-21
 
 ### ENHANCEMENTS

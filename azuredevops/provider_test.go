@@ -54,7 +54,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_project_permissions",
 		"betterado_project_pipeline_settings",
 		"betterado_project_tags",
-		"betterado_release_definition_permissions",
+		// betterado_release_definition_permissions is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		// betterado_release_folder is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
 		"betterado_repository_policy_author_email_pattern",
