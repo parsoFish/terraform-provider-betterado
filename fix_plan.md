@@ -15,6 +15,6 @@
 
 - [ ] AC1 + AC2 live gate: TestAccReleaseFolderFramework must pass with TF_ACC=1
   - The framework resource implementation is committed (resource_release_folder_framework.go)
-  - The acceptance test is committed (resource_release_folder_framework_test.go)
-  - The mux duplicate is now fixed — the live gate should be able to load the provider schema
-  - Next blocker: live acceptance test may have API/logic issues (unknown until live gate runs)
+  - The acceptance test now uses SharedReleaseFixture (no project created) — fixes the 1000-project-cap error
+  - The mux duplicate is fixed — provider schema loads cleanly
+  - Next blocker: live gate run with TF_ACC=1 — resource CRUD logic exercises the vsrm.dev.azure.com API
