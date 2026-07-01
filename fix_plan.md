@@ -17,10 +17,11 @@
 - [ ] AC1: GIVEN all five release data sources (`betterado_release_definition`, `betterado_release_definition_history`, `betterado_release_definition_revision`, `betterado_release_definitions`, `betterado_release_folder`) migrated to `datasource.DataSource` and registered in `DataSources()` in `framework_provider.go` WHEN each is read live against the standing project (TF_ACC=1) THEN each returns the same fields as its SDKv2 predecessor; `TestAccDataReleaseDefinition_ById`, `TestAccDataReleaseDefinition_ByName`, `TestAccDataReleaseDefinitions_List`, `TestAccDataReleaseDefinitionRevision_Basic`, `TestAccDataReleaseDefinitionHistory_Basic`, `TestAccDataReleaseFolder_Basic` all pass using `ProtoV6ProviderFactories`
   - Framework datasources implemented ✓
   - Tests use ProtoV6ProviderFactories ✓
+  - FIXED (iteration 1): TestAccDataReleaseFolder_Basic now uses SharedReleaseFixture to avoid project create (org at 1000-project cap)
   - Needs live TF_ACC gate run to confirm
 
 - [ ] AC2: GIVEN the acceptance tests for these data sources are updated to use `testutils.GetMuxProviderFactories()` WHEN any of the above test functions run under the mux provider THEN the tests compile and pass; `ExpectNonEmptyPlan: false` on the idempotency re-plan step for each
-  - data_release_folder_test.go updated ✓
+  - data_release_folder_test.go updated ✓ (uses SharedReleaseFixture + GetMuxProviderFactories)
   - data_release_definition_test.go already uses GetMuxProviderFactories() ✓
   - data_release_definition_revision_history_test.go already uses GetMuxProviderFactories() ✓
   - Needs live TF_ACC gate run to confirm pass

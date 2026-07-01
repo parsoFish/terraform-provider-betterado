@@ -60,6 +60,22 @@ Pattern: each datasource file has:
 - `data_release_definition_revision_history_test.go` → `ProtoV6ProviderFactories: testutils.GetMuxProviderFactories()` ✓
 - `data_release_folder_test.go` → `ProtoV6ProviderFactories: testutils.GetMuxProviderFactories()` ✓ (fixed in iter 0)
 
+### Gate failure (iteration 1) and fix
+
+**Failure:** `TestAccDataReleaseFolder_Basic` failed:
+```
+Error: creating project: Failed to add a project as this organization already has 1000 projects.
+```
+
+**Root cause:** `hclDataReleaseFolderBasic` created a `betterado_project` resource in the HCL config. Org is at 1000-project cap.
+
+**Fix applied:** Rewrote `data_release_folder_test.go` to:
+1. Call `fixture := SharedReleaseFixture(t)` in the test function
+2. Pass `fixture` to `hclDataReleaseFolderBasic(name, fixture)`
+3. Change `hclDataReleaseFolderBasic` signature to `(name string, fixture SharedFixtureResult)` and use `fixture.ProjectID` directly (no `betterado_project` resource created)
+
+This matches the exact pattern used in `resource_release_folder_framework_test.go` (commit `1a941e31`).
+
 ### What remains
 
 - Live TF_ACC gate run to confirm all 6 acceptance tests pass against real Azure DevOps
