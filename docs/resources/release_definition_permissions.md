@@ -16,26 +16,15 @@ queue, approve, and manage the release.
 
 ### Required
 
-- `permissions` (Map of String)
-- `principal` (String)
-- `project_id` (String)
+- `permissions` (Map of String) Map of permission bit names to `allow`, `deny`, or `notset`.
+- `principal` (String) The group or user descriptor to assign permissions to.
+- `project_id` (String) The ID of the Azure DevOps project.
 
 ### Optional
 
-- `release_definition_id` (Number)
-- `replace` (Boolean)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `release_definition_id` (Number) The ID of the release definition. If omitted, permissions apply at project level.
+- `replace` (Boolean) If true (default), replaces existing ACEs for this principal. If false, merges.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `id` (String) The resource ID, formed as `<token>/<principal>`.

@@ -15,32 +15,23 @@ DevOps project. Supports filtering by name and folder path.
 
 ### Required
 
-- `project_id` (String)
+- `project_id` (String) The ID of the project.
 
 ### Optional
 
-- `name` (String)
-- `path` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `name` (String) Filter release definitions by name search text.
+- `path` (String) Filter release definitions by folder path.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-- `release_definitions` (List of Object) (see [below for nested schema](#nestedatt--release_definitions))
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
-
+- `id` (String) A stable ID computed from the filter parameters.
+- `release_definitions` (Attributes List) The list of release definitions matching the filter. (see [below for nested schema](#nestedatt--release_definitions))
 
 <a id="nestedatt--release_definitions"></a>
 ### Nested Schema for `release_definitions`
 
 Read-Only:
 
-- `id` (String)
-- `name` (String)
-- `path` (String)
+- `id` (String) The ID of the release definition.
+- `name` (String) The name of the release definition.
+- `path` (String) The folder path of the release definition.

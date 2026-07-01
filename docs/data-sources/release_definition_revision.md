@@ -16,22 +16,11 @@ revisions.
 
 ### Required
 
-- `project_id` (String)
-- `release_definition_id` (Number)
-- `revision` (Number)
-
-### Optional
-
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `project_id` (String) The ID of the project.
+- `release_definition_id` (Number) The numeric ID of the release definition.
+- `revision` (Number) The revision number to fetch.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-- `json_content` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `id` (String) A stable ID for this data source.
+- `json_content` (String) The JSON content of the release definition at the specified revision.

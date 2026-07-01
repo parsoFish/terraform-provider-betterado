@@ -10,21 +10,26 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
-// TestAccDataReleaseFolder_Basic creates a project and a release folder resource,
-// then reads it back via the betterado_release_folder data source.
+// TestAccDataReleaseFolder_Basic creates a release folder resource in the
+// pre-existing shared project (SharedReleaseFixture), then reads it back via
+// the betterado_release_folder data source.
 // It verifies that the description attribute matches the resource and that
 // a re-plan produces no diff (idempotency).
+//
+// Uses SharedReleaseFixture so no new ADO project is created — the org is at
+// the 1000-project cap, so any project-create attempt would fail immediately.
 func TestAccDataReleaseFolder_Basic(t *testing.T) {
 	name := testutils.GenerateResourceName()
+	fixture := SharedReleaseFixture(t)
 	tfResNode := "betterado_release_folder.test"
 	tfDataNode := "data.betterado_release_folder.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclDataReleaseFolderBasic(name),
+				Config: hclDataReleaseFolderBasic(name, fixture),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(tfDataNode, "description",
 						tfResNode, "description"),
@@ -33,7 +38,7 @@ func TestAccDataReleaseFolder_Basic(t *testing.T) {
 			},
 			// Idempotency: re-plan must produce no diff.
 			{
-				Config:             hclDataReleaseFolderBasic(name),
+				Config:             hclDataReleaseFolderBasic(name, fixture),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -41,19 +46,13 @@ func TestAccDataReleaseFolder_Basic(t *testing.T) {
 	})
 }
 
-// hclDataReleaseFolderBasic builds a Terraform config that creates a project +
-// release folder resource and then reads it back via the data source.
-func hclDataReleaseFolderBasic(name string) string {
+// hclDataReleaseFolderBasic builds a Terraform config that creates a release
+// folder resource within the shared project and reads it back via the data source.
+// No betterado_project resource is created — the shared project already exists.
+func hclDataReleaseFolderBasic(name string, fixture SharedFixtureResult) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = %[1]q
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
 resource "betterado_release_folder" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = %[2]q
   path        = "\\DataSourceTest-%[1]s"
   description = "Created by acceptance test"
 }
@@ -62,5 +61,5 @@ data "betterado_release_folder" "test" {
   project_id = betterado_release_folder.test.project_id
   path       = betterado_release_folder.test.path
 }
-`, name)
+`, name, fixture.ProjectID)
 }

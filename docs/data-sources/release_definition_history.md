@@ -16,33 +16,21 @@ timestamp and the identity of the user who made the change.
 
 ### Required
 
-- `project_id` (String)
-- `release_definition_id` (Number)
-
-### Optional
-
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `project_id` (String) The ID of the project.
+- `release_definition_id` (Number) The numeric ID of the release definition.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-- `revisions` (List of Object) (see [below for nested schema](#nestedatt--revisions))
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
-
+- `id` (String) A stable ID for this data source.
+- `revisions` (Attributes List) The list of revisions for the release definition. (see [below for nested schema](#nestedatt--revisions))
 
 <a id="nestedatt--revisions"></a>
 ### Nested Schema for `revisions`
 
 Read-Only:
 
-- `change_type` (String)
-- `changed_by` (String)
-- `changed_date` (String)
-- `comment` (String)
-- `revision` (Number)
+- `change_type` (String) The type of change (add, update, delete).
+- `changed_by` (String) The display name of the user who made the change.
+- `changed_date` (String) The date/time of the change in RFC3339 format.
+- `comment` (String) The comment associated with the revision.
+- `revision` (Number) The revision number.

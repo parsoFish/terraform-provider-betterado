@@ -7,6 +7,53 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-01
+
+### FEATURES
+
+- **`betterado_release_folder` migrated to terraform-plugin-framework.** The
+  resource now uses the terraform-plugin-framework implementation served through
+  the mux provider, alongside the existing SDKv2 path. CRUD operations continue
+  to target the Release Management API at `vsrm.dev.azure.com`; the schema is
+  unchanged (`project_id`, `path`, `description`). Verified by live acceptance
+  test `TestAccReleaseFolderFramework`.
+
+- **`betterado_release_definition_permissions` migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation (ReleaseManagement2 security
+  namespace, `c788c23e-1b46-4162-8f5e-d7585343b5de`) served through the mux provider.
+  Schema is unchanged (`project_id`, `principal`, `release_definition_id`, `permissions`,
+  `replace`). Supports all writable ACL bits with idempotent apply. Verified by
+  live acceptance test `TestAccReleaseDefinitionPermissionsFramework`.
+
+- **`betterado_release_definition` data source migrated to terraform-plugin-framework.**
+  Reads a single release definition by `project_id` + `name` (or `release_definition_id`);
+  returns `id`, `description`, `path`, and `release_name_format`.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataReleaseDefinition_Basic`.
+
+- **`betterado_release_definition_history` data source migrated to terraform-plugin-framework.**
+  Reads the revision history for a release definition; exposes a `revisions` list with
+  `revision`, `changed_by`, `changed_date`, `change_type`, and `comment` per entry.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataReleaseDefinitionHistory_Basic`.
+
+- **`betterado_release_definition_revision` data source migrated to terraform-plugin-framework.**
+  Fetches the serialised JSON snapshot of a specific release definition revision via
+  `project_id`, `definition_id`, and `revision`; exposes `json_content`.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataReleaseDefinitionRevision_Basic`.
+
+- **`betterado_release_definitions` data source migrated to terraform-plugin-framework.**
+  Lists all release definitions in a project (filtered by optional `path`); exposes a
+  `definitions` list with `id`, `name`, and `path` per entry.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataReleaseDefinitions_Basic`.
+
+- **`betterado_release_folder` data source migrated to terraform-plugin-framework.**
+  Reads release folder metadata by `project_id` + `path`; exposes `id`,
+  `path`, and `description`. Served through the mux provider. Verified by live
+  acceptance test `TestAccDataReleaseFolder_Basic`.
+
 ## [1.0.5] - 2026-06-21
 
 ### ENHANCEMENTS
