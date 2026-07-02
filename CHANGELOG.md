@@ -7,6 +7,16 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### Changed
+
+- `betterado_dashboard`: migrated to terraform-plugin-framework (parity with existing SDKv2 behaviour; no schema changes)
+- `betterado_extension`: migrated to terraform-plugin-framework (parity with existing SDKv2 behaviour; no schema changes)
+
+### Added
+
+- `docs/dashboard-gap-matrix.md`: field-by-field coverage analysis of the ADO Dashboard API v7.1
+- `docs/extension-gap-matrix.md`: field-by-field coverage analysis of the ADO Extension Management API v7.1
+
 ### FEATURES
 
 - **`betterado_extension` migrated to terraform-plugin-framework.** The resource
