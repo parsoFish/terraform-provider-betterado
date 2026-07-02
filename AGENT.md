@@ -62,11 +62,34 @@ resource "betterado_git_repository" "test" {
 - `importPolicyState` with `<project_id>/<policy_id>` format
 - Split live evidence into wrapper + impl functions to avoid `nilerr` linter complaint
 
+### Iteration 4 — Fix project lookup in acc tests: data source → SharedFixtureProjectID (COMPLETE)
+
+**Root cause:** Gate failure was:
+```
+Error: Project with name betterado-standing-demo or ID does not exist
+```
+All 7 acceptance tests used `data "betterado_project" "test" { name = "betterado-standing-demo" }` in HCL templates. The Terraform provider's data-source READ runs during plan, but the project may not be found at that point (or the data source resolution itself fails).
+
+**Fix pattern:**
+```go
+// CORRECT — resolves project UUID via SDK before HCL is generated
+func TestAccBranchPolicy*(t *testing.T) {
+    projectID := SharedFixtureProjectID(t)  // returns UUID string
+    // pass projectID directly into HCL with %[1]q
+}
+// SharedFixtureProjectID(t) added to shared_fixtures.go — lightweight, no sub-resources, no cleanup
+```
+
+**Files changed:**
+- `shared_fixtures.go` — added `SharedFixtureProjectID(t)` helper
+- All 7 `resource_branchpolicy_*_test.go` — each test calls `projectID := SharedFixtureProjectID(t)`; HCL uses literal UUID instead of `data.betterado_project.test.id`
+
 ## What didn't work
 
 - `booldefault.StaticBool()`, `int64default.StaticInt64()` — NOT in vendor
 - `schema.ListNestedAttribute` for block-syntax HCL fields
 - `resource "betterado_project"` in acc tests — fails at 1000-project limit
+- `data "betterado_project"` in HCL templates — fails with "Project ... does not exist" on the live org
 
 ## Key Patterns
 

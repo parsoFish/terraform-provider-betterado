@@ -17,6 +17,8 @@
 - Fixed gofmt/gofumpt formatting in 3 framework files
 - Added CHANGELOG.md [Unreleased] entry
 
+**Iteration 4 (complete):** Fixed iteration 3's gate failure — all 7 acceptance tests used `data "betterado_project"` in HCL which fails with "Project does not exist" on the live org. Replaced with `SharedFixtureProjectID(t)` helper that resolves project UUID via CoreClient.GetProject SDK before HCL is generated.
+
 ## Remaining work
 
-All ACs are complete and all code quality gates (build, lint, offline tests) pass. The live acceptance tests should pass once the gate runs against the shared fixture project.
+All ACs are complete. Build, lint, and offline tests pass. Live acceptance tests should pass now that project IDs are resolved via direct SDK calls (not Terraform data source lookups that can fail if the project isn't present at plan time).
