@@ -8,7 +8,7 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 ## What I've tried
 
-### Iteration 1 (successful)
+### Iteration 1 (successful — offline)
 
 **Gate failure**: `[no tests to run]` — `TestAccProjectPermissionsFramework` did not exist.
 
@@ -32,16 +32,33 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 6. Created `azuredevops/internal/acceptancetests/resource_permissions_framework_test.go`:
    - Build tag: `(all || resource_project_permissions) && !exclude_resource_project_permissions`
-   - `TestAccProjectPermissionsFramework` creates a project (NOT using existing-project pattern)
-   - Asserts 4 permissions: DELETE=Deny, EDIT_BUILD_STATUS=NotSet, WORK_ITEM_MOVE=Allow, DELETE_TEST_RESULTS=Deny
+   - `TestAccProjectPermissionsFramework` creates a project (NOT using existing-project pattern — **this was a bug**)
    - Uses `testutils.GetMuxProviderFactories()`
-   - Calls `testutils.CaptureLiveEvidence("acceptance-resource", url, nil)` where url uses the project namespace ID
-   - Idempotency step: `PlanOnly: true, ExpectNonEmptyPlan: false`
-   - `CheckDestroy: testutils.CheckProjectDestroyed` (project is created, so project destroy is needed)
 
 7. Fixed nilerr lint in `resource_securityrole_assignment_framework.go`: poll loop on 404 now checks error string
 
-**Offline test results**: All pass. `make test` green. `golangci-lint` 0 issues. `TestProvider_HasChildResources` passes.
+### Iteration 2 (live gate failure → fix)
+
+**Gate failure**: `TestAccProjectPermissionsFramework` failed because it tried to create a new ADO project, but the org is at the 1000-project cap:
+```
+Error: creating project: Failed to add a project as this organization already has 1000 projects.
+```
+
+**Root cause**: The original test created a `betterado_project` resource. The org is at 1000-project cap — any create attempt fails immediately.
+
+**Fix**: Rewrote `TestAccProjectPermissionsFramework` to use an existing project instead of creating one.
+
+**Pattern**: Exactly mirrors `resolveSecurityPermissionsFixtureProject` from `resource_security_permissions_framework_test.go` (written in a prior WI iteration). Key details:
+- `resolveProjectPermissionsFixtureProject(t)` resolves an existing project ID at test setup time
+- Prefers `SharedFixtureProjectName` ("betterado-standing-demo")
+- Falls back to any WellFormed project from `GetProjects()`; skips `keepProjects` entries first
+- HCL uses the project ID as a literal (`%[1]q`) — no `betterado_project` resource created
+- `CheckDestroy: checkProjectPermissionsFrameworkDestroyed` (no-op: ACLs have no "does it exist?" endpoint)
+- `CheckProjectDestroyed` and `CheckProjectExists` removed (project not created by this test)
+
+**Client construction**: Use `azuredevops.NewAuthProviderPAT(pat)` + `client.GetAzdoClient(authProvider, orgURL)` — NOT `GetAzdoClientByPAT` (that doesn't exist).
+
+**Offline check**: `go test -tags all -run TestAccProjectPermissionsFramework ./azuredevops/internal/acceptancetests/` — compiles and `SKIP`s cleanly without TF_ACC.
 
 ## What worked
 
@@ -49,17 +66,20 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - Use unique `pp` prefix for plan modifiers to avoid duplicate type declarations
 - Build tag must use `resource_project_permissions` to match the `all` build tag set
 - `CaptureLiveEvidence("acceptance-resource", url, nil)` with the hardcoded Project namespace UUID
-- Creating a new project (not an existing one) keeps the test self-contained and avoids org cap issues for permissions tests that only need `project_id`
+- **For existing-project pattern**: use `resolveProjectPermissionsFixtureProject` (same pattern as `resolveSecurityPermissionsFixtureProject`) — resolve at test setup, pass ID as literal to HCL
 
 ## What didn't work
 
 - `_ = err` does NOT satisfy golangci-lint's `nilerr` checker — must use actual conditional logic
+- Creating a new ADO project in the test — the org is at 1000-project cap; any create fails immediately
 
 ## Open questions
 
-- AC2 and AC3 require all 13 resources migrated. Only project_permissions done so far. Gate only checks `TestAccProjectPermissionsFramework` so AC1 is satisfied, but next iteration should migrate remaining 12 if time permits.
+- AC2 and AC3 require all 13 resources migrated. Only project_permissions done so far. Gate only checks `TestAccProjectPermissionsFramework` so AC1 drives the gate, but next iteration should migrate remaining 12 if time permits.
 
 ## Notes for reflection
 
 - The gate command (`TestAccProjectPermissionsFramework`) requires TF_ACC=1 for a live pass. The offline test skips cleanly with `t.Skip("TF_ACC not set")`.
 - `GetMuxProviderFactories()` is defined in both `testutils/commons.go` and `testutils/mux_provider.go` as different functions. Use `testutils.GetMuxProviderFactories()` (commons.go version, same mux logic).
+- **CRITICAL**: Never create a `betterado_project` resource in framework acceptance tests. The org is at the 1000-project cap. Always use `resolveProject*FixtureProject` pattern.
+- `client.GetAzdoClient` signature: `(authProvider azuredevops.AuthProvider, organizationURL string)` — must wrap PAT with `azuredevops.NewAuthProviderPAT(pat)` first.
