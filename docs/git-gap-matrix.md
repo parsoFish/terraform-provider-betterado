@@ -43,12 +43,15 @@ The `initialization` block is a TF-only creation artifact; no direct ADO API fie
 
 | TF attribute | TF status | Notes |
 |---|---|---|
-| `initialization.init_type` | implemented | `Clean` / `Fork` / `Import` / `Uninitialized` |
-| `initialization.source_type` | implemented | `Git` — required with `source_url` for Import |
-| `initialization.source_url` | implemented | HTTPS URL of the remote to import from |
-| `initialization.service_connection_id` | implemented | Optional; auth for private remote (conflicts with username/password) |
-| `initialization.username` | implemented | Optional; basic auth username |
-| `initialization.password` | implemented | Optional; WriteOnly; basic auth password |
+| `initialization` (block) | implemented | Exactly one block required (`SizeBetween(1,1)` validator). |
+| `initialization.init_type` | implemented | Required; OneOf `Clean` / `Fork` / `Import` / `Uninitialized`; RequiresReplace (changes force resource recreation). |
+| `initialization.source_type` | implemented | Optional; OneOf `Git`; RequiredWith `source_url`; RequiresReplace. |
+| `initialization.source_url` | implemented | Optional; HTTP/HTTPS URL of the remote to import from; RequiredWith `source_type`; RequiresReplace. |
+| `initialization.service_connection_id` | implemented | Optional; auth for private remote; RequiredWith `source_url`+`source_type`; ConflictsWith `username`/`password`. |
+| `initialization.username` | implemented | Optional; basic auth username; RequiredWith `source_url`+`source_type`; ConflictsWith `service_connection_id`. |
+| `initialization.password` | implemented | Optional; `WriteOnly: true` — value is not stored in state; `Sensitive: true` — masked in CLI output; RequiredWith `source_url`+`source_type`; ConflictsWith `service_connection_id`. |
+
+**Note on `password` state-persistence:** In the framework resource, `password` has `WriteOnly: true`, matching the SDKv2 `WriteOnly: true` behaviour. The value is passed through to ADO on Create (via a temporary service-endpoint or UsernamePassword auth), but Terraform does not persist it in the state file after `apply`. Subsequent plan/apply cycles will see `password = null` in state; this is expected and correct.
 
 ---
 
