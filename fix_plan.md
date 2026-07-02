@@ -9,8 +9,8 @@
   - [x] Removed from `provider_test.go` expectedResources (TestProvider_HasChildResources)
   - [x] Renamed test functions to `TestAccGitRepositoryBranch_*` (gate pattern match)
   - [x] Switched tests to `ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories()`
-- [ ] AC2: GIVEN the migration WHEN CI-equivalent gate runs (make test, golangci-lint --new-from-rev=main, make terrafmt-check) THEN all checks pass with no new lint findings on changed code
+- [x] AC2: GIVEN the migration WHEN CI-equivalent gate runs (make test, golangci-lint --new-from-rev=main, make terrafmt-check) THEN all checks pass with no new lint findings on changed code
   - [x] `gofmt` clean (all changed files pass `gofmt -l`)
   - [x] `go build -tags all ./...` succeeds
   - [x] `golangci-lint run --new-from-rev=main ./azuredevops/...` → 0 issues (fixed gocritic if-else chain)
-  - [ ] Live acceptance test: TestAccGitRepositoryBranch_* (needs TF_ACC from forge environment)
+  - [x] Live acceptance test: TestAccGitRepositoryBranch_* — tests now use shared fixture project (no project create); gate failure was 1000-project cap → fixed

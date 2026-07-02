@@ -40,6 +40,24 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - `stringplanmodifier` package not in vendor → compilation failure if imported.
 - if-else chain on 3 conditions → gocritic violation → use `switch {}`.
 
+### Iteration 2
+
+**Root cause of iteration 1 gate failure:** Branch tests HCL was creating a fresh `betterado_project` resource each run. The ADO org is at the 1000-project cap → all four `TestAccGitRepositoryBranch_*` tests failed at Step 1 before any branch logic ran.
+
+**What was done:**
+- Rewrote all four HCL generator functions (`hclGitRepoBranchesFromBranch`, `hclGitRepoBranchesFromCommit`, `hclGitRepoBranchInvalidRef`, `hclGitRepoBranchesImportError`) to use `data "betterado_project" "test" { name = SharedFixtureProjectName }` instead of `resource "betterado_project" "test"`.
+- Switched `PreCheck` from `testutils.PreCheck(t, nil)` to `preCheckGitRepository(t)` (which resolves/creates the fixture project via direct client).
+- Switched `CheckDestroy` from `testutils.CheckProjectDestroyed` to `checkGitRepoDestroyed` (checks per-run repos, not shared project).
+- Removed unused `client` import and unused helper functions (`checkRepositoryBranchDestroyed`, `getProviderClientForBranch`).
+- Fixed trailing whitespace gofmt issue.
+
+**Verification:**
+- `go build -tags all ./...` → BUILD OK
+- `golangci-lint run --new-from-rev=main ./azuredevops/...` → 0 issues
+- Offline test run: 4 tests SKIP (no TF_ACC), exit 0
+
+**Pattern used:** Identical to how `resource_git_repository_test.go` handles it — the git repo tests were fixed in earlier iterations using the same shared project approach.
+
 ## Open questions
 
 _(none blocking)_
@@ -47,3 +65,4 @@ _(none blocking)_
 ## Notes for reflection
 
 - Test function name vs gate `-run` pattern mismatch is an easy mistake. Always grep actual function names against gate pattern before committing.
+- ADO org at 1000-project cap: ANY test that creates a `betterado_project` resource will fail. All git acceptance tests MUST use the shared fixture project data source instead of creating new projects.
