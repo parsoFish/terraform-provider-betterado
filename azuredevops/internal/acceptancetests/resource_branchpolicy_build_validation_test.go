@@ -9,20 +9,21 @@ import (
 )
 
 func TestAccBranchPolicyBuildValidation_basic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	name := testutils.GenerateResourceName()
 	buildValidationTfNode := "betterado_branch_policy_build_validation.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclBuildValidationBasic(name, true, true, "build validation", 0),
+				Config: hclBuildValidationBasic(projectID, name, true, true, "build validation", 0),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(buildValidationTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(buildValidationTfNode, "settings.0.filename_patterns.#", "3"),
 				),
 			}, {
-				Config: hclBuildValidationBasic(name, false, false, "build validation rename", 720),
+				Config: hclBuildValidationBasic(projectID, name, false, false, "build validation rename", 720),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(buildValidationTfNode, "enabled", "false"),
 					resource.TestCheckResourceAttr(buildValidationTfNode, "settings.0.filename_patterns.#", "3"),
@@ -37,23 +38,19 @@ func TestAccBranchPolicyBuildValidation_basic(t *testing.T) {
 	})
 }
 
-func hclBuildValidationBasic(name string, enabled, blocking bool, displayName string, validDuration int) string {
+func hclBuildValidationBasic(projectID, name string, enabled, blocking bool, displayName string, validDuration int) string {
 	return fmt.Sprintf(`
-data "betterado_project" "test" {
-  name = %[6]q
-}
-
 resource "betterado_git_repository" "test" {
-  project_id = data.betterado_project.test.id
-  name       = "%[1]s"
+  project_id = %[1]q
+  name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
 
 resource "betterado_build_definition" "test" {
-  project_id      = data.betterado_project.test.id
-  name            = "%[1]s-build"
+  project_id      = %[1]q
+  name            = "%[2]s-build"
   agent_pool_name = "Azure Pipelines"
   path            = "\\"
 
@@ -66,12 +63,12 @@ resource "betterado_build_definition" "test" {
 }
 
 resource "betterado_branch_policy_build_validation" "test" {
-  project_id = data.betterado_project.test.id
-  enabled    = %[2]t
-  blocking   = %[3]t
+  project_id = %[1]q
+  enabled    = %[3]t
+  blocking   = %[4]t
   settings {
-    display_name        = "%[4]s"
-    valid_duration      = %[5]d
+    display_name        = "%[5]s"
+    valid_duration      = %[6]d
     build_definition_id = betterado_build_definition.test.id
     filename_patterns = [
       "/WebApp/*",
@@ -84,5 +81,5 @@ resource "betterado_branch_policy_build_validation" "test" {
       match_type     = "Exact"
     }
   }
-}`, name, enabled, blocking, displayName, validDuration, SharedFixtureProjectName)
+}`, projectID, name, enabled, blocking, displayName, validDuration)
 }

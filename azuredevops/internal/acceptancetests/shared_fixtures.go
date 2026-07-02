@@ -313,6 +313,31 @@ func gatesStep(queryID string) *releaseapi.ReleaseDefinitionGatesStep {
 // the sweeper (keepProjects) so it is never reaped.
 const SharedFixtureProjectName = "betterado-standing-demo"
 
+// SharedFixtureProjectID returns the UUID of the persistent shared fixture project
+// (SharedFixtureProjectName). Unlike SharedReleaseFixture it creates NO sub-resources
+// and registers NO t.Cleanup — it is cheap to call from tests that only need a
+// project_id to pass into HCL templates.
+//
+// REQUIRES: TF_ACC=1, AZDO_ORG_SERVICE_URL, AZDO_PERSONAL_ACCESS_TOKEN
+func SharedFixtureProjectID(t *testing.T) string {
+	t.Helper()
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set; skipping live fixture")
+	}
+	testutils.PreCheck(t, nil)
+
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	authProvider := azuredevops.NewAuthProviderPAT(pat)
+	clients, err := client.GetAzdoClient(authProvider, orgURL)
+	if err != nil {
+		t.Fatalf("SharedFixtureProjectID: GetAzdoClient: %v", err)
+	}
+
+	project := resolveOrCreateFixtureProject(t, clients)
+	return project.Id.String()
+}
+
 // resolveOrCreateFixtureProject returns the shared persistent fixture project.
 // Normally it already exists (it's the standing-demo project) and is reused as-is;
 // the create path is a fallback for a fresh org and NEVER deletes the project (see

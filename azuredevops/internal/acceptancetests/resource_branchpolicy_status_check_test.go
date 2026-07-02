@@ -9,16 +9,16 @@ import (
 )
 
 func TestAccBranchPolicyStatusCheck_basic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	statusCheckTfNode := "betterado_branch_policy_status_check.p"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclBranchPolicyStatusCheckResourceBasic(projectName, repoName, "update"),
+				Config: hclBranchPolicyStatusCheckResourceBasic(projectID, repoName, "update"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(statusCheckTfNode, "settings.0.name", "update")),
 			}, {
@@ -32,16 +32,16 @@ func TestAccBranchPolicyStatusCheck_basic(t *testing.T) {
 }
 
 func TestAccBranchPolicyStatusCheck_complete(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	statusCheckTfNode := "betterado_branch_policy_status_check.p"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclBranchPolicyStatusCheckResourceComplete(projectName, repoName),
+				Config: hclBranchPolicyStatusCheckResourceComplete(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(statusCheckTfNode, "settings.0.author_id"),
 					resource.TestCheckResourceAttr(statusCheckTfNode, "settings.0.name", "Release"),
@@ -60,21 +60,21 @@ func TestAccBranchPolicyStatusCheck_complete(t *testing.T) {
 }
 
 func TestAccBranchPolicyStatusCheckUpdate(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	statusCheckTfNode := "betterado_branch_policy_status_check.p"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclBranchPolicyStatusCheckResourceBasic(projectName, repoName, "update"),
+				Config: hclBranchPolicyStatusCheckResourceBasic(projectID, repoName, "update"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(statusCheckTfNode, "settings.0.name", "update"),
 				),
 			}, {
-				Config: hclBranchPolicyStatusCheckResourceUpdate(projectName, repoName, "releaseCheck", true, "conditional", "updateName"),
+				Config: hclBranchPolicyStatusCheckResourceUpdate(projectID, repoName, "releaseCheck", true, "conditional", "updateName"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(statusCheckTfNode, "settings.0.author_id"),
 					resource.TestCheckResourceAttr(statusCheckTfNode, "settings.0.name", "releaseCheck"),
@@ -92,34 +92,29 @@ func TestAccBranchPolicyStatusCheckUpdate(t *testing.T) {
 	})
 }
 
-func hclBranchPolicyStatusCheckResourceTemplate(projectName string, repoName string) string {
-	// projectName is no longer used: the shared fixture project is always used instead.
+func hclBranchPolicyStatusCheckResourceTemplate(projectID string, repoName string) string {
 	return fmt.Sprintf(`
-data "betterado_project" "p" {
-  name = %[2]q
-}
-
 resource "betterado_git_repository" "r" {
-  project_id = data.betterado_project.p.id
-  name       = "%[1]s"
+  project_id = %[1]q
+  name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
-`, repoName, SharedFixtureProjectName)
+`, projectID, repoName)
 }
 
-func hclBranchPolicyStatusCheckResourceBasic(projectName string, repoName string, statusName string) string {
-	projectAndRepo := hclBranchPolicyStatusCheckResourceTemplate(projectName, repoName)
+func hclBranchPolicyStatusCheckResourceBasic(projectID string, repoName string, statusName string) string {
+	projectAndRepo := hclBranchPolicyStatusCheckResourceTemplate(projectID, repoName)
 	statusCheck := fmt.Sprintf(`
 resource "betterado_branch_policy_status_check" "p" {
-  project_id = data.betterado_project.p.id
+  project_id = %[2]q
 
   enabled  = true
   blocking = true
 
   settings {
-    name = "%s"
+    name = "%[1]s"
     scope {
       repository_id  = betterado_git_repository.r.id
       repository_ref = betterado_git_repository.r.default_branch
@@ -127,24 +122,23 @@ resource "betterado_branch_policy_status_check" "p" {
     }
   }
 }
-`, statusName)
+`, statusName, projectID)
 
 	return fmt.Sprintf(`%s %s`, projectAndRepo, statusCheck)
 }
 
-func hclBranchPolicyStatusCheckResourceComplete(projectName string, repoName string) string {
+func hclBranchPolicyStatusCheckResourceComplete(projectID string, repoName string) string {
 	return fmt.Sprintf(
 		`%s %s`,
-		hclBranchPolicyStatusCheckResourceTemplate(projectName, repoName), `
-
-
+		hclBranchPolicyStatusCheckResourceTemplate(projectID, repoName),
+		fmt.Sprintf(`
 resource "betterado_user_entitlement" "user" {
   principal_name       = "mail@email.com"
   account_license_type = "basic"
 }
 
 resource "betterado_branch_policy_status_check" "p" {
-  project_id = data.betterado_project.p.id
+  project_id = %[1]q
 
   enabled  = true
   blocking = true
@@ -164,30 +158,30 @@ resource "betterado_branch_policy_status_check" "p" {
     }
   }
 }
-`)
+`, projectID))
 }
 
-func hclBranchPolicyStatusCheckResourceUpdate(projectName string, repoName string,
+func hclBranchPolicyStatusCheckResourceUpdate(projectID string, repoName string,
 	statusName string, invalid bool, applicability string, displayName string,
 ) string {
 	statusCheck := fmt.Sprintf(`
 data "betterado_group" "group" {
-  project_id = data.betterado_project.p.id
+  project_id = %[6]q
   name       = "Project Administrators"
 }
 
 resource "betterado_branch_policy_status_check" "p" {
-  project_id = data.betterado_project.p.id
+  project_id = %[6]q
 
   enabled  = true
   blocking = true
 
   settings {
-    name                 = "%s"
+    name                 = "%[1]s"
     author_id            = data.betterado_group.group.origin_id
-    invalidate_on_update = %t
-    applicability        = "%s"
-    display_name         = "%s"
+    invalidate_on_update = %[2]t
+    applicability        = "%[3]s"
+    display_name         = "%[4]s"
     filename_patterns    = ["*.go", "**.ts"]
 
     scope {
@@ -197,10 +191,10 @@ resource "betterado_branch_policy_status_check" "p" {
     }
   }
 }
-`, statusName, invalid, applicability, displayName)
+`, statusName, invalid, applicability, displayName, repoName, projectID)
 
 	return fmt.Sprintf(
 		`%s %s`,
-		hclBranchPolicyStatusCheckResourceTemplate(projectName, repoName),
+		hclBranchPolicyStatusCheckResourceTemplate(projectID, repoName),
 		statusCheck)
 }
