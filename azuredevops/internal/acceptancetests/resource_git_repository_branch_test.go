@@ -13,16 +13,16 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/tfhelper"
 )
 
-func TestAccGitRepoBranch_fromBranch(t *testing.T) {
+func TestAccGitRepositoryBranch_fromBranch(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	branchName := testutils.GenerateResourceName()
 	resNode := "betterado_git_repository_branch.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclGitRepoBranchesFromBranch(projectName, gitRepoName, branchName),
@@ -45,16 +45,16 @@ func TestAccGitRepoBranch_fromBranch(t *testing.T) {
 	)
 }
 
-func TestAccGitRepoBranch_fromCommit(t *testing.T) {
+func TestAccGitRepositoryBranch_fromCommit(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	branchName := testutils.GenerateResourceName()
 	resNode := "betterado_git_repository_branch.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclGitRepoBranchesFromCommit(projectName, gitRepoName, branchName),
@@ -77,15 +77,15 @@ func TestAccGitRepoBranch_fromCommit(t *testing.T) {
 	)
 }
 
-func TestAccGitRepoBranch_invalidRef(t *testing.T) {
+func TestAccGitRepositoryBranch_invalidRef(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	branchName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config:      hclGitRepoBranchInvalidRef(projectName, gitRepoName, branchName),
@@ -96,15 +96,15 @@ func TestAccGitRepoBranch_invalidRef(t *testing.T) {
 	)
 }
 
-func TestAccGitRepoBranch_requireImportError(t *testing.T) {
+func TestAccGitRepositoryBranch_requireImportError(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	branchName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		CheckDestroy:      testutils.CheckProjectDestroyed,
-		ProviderFactories: testutils.GetProviderFactories(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		CheckDestroy:             testutils.CheckProjectDestroyed,
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config:      hclGitRepoBranchesImportError(projectName, gitRepoName, branchName),

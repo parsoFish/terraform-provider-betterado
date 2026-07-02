@@ -73,7 +73,7 @@ func Provider() *schema.Provider {
 			"betterado_feed_retention_policy":            feed.ResourceFeedRetentionPolicy(),
 			"betterado_git_permissions":                  permissions.ResourceGitPermissions(),
 			// "betterado_git_repository" migrated to terraform-plugin-framework (framework_provider.go)
-			"betterado_git_repository_branch":     git.ResourceGitRepositoryBranch(),
+			// "betterado_git_repository_branch" migrated to terraform-plugin-framework (framework_provider.go)
 			"betterado_git_repository_file":       git.ResourceGitRepositoryFile(),
 			"betterado_group":                     graph.ResourceGroup(),
 			"betterado_group_entitlement":         memberentitlementmanagement.ResourceGroupEntitlement(),

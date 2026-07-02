@@ -41,7 +41,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_feed_retention_policy",
 		"betterado_git_permissions",
 		// "betterado_git_repository" migrated to terraform-plugin-framework provider
-		"betterado_git_repository_branch",
+		// "betterado_git_repository_branch" migrated to terraform-plugin-framework provider
 		"betterado_git_repository_file",
 		"betterado_group",
 		"betterado_group_entitlement",

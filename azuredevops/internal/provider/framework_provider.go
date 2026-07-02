@@ -207,7 +207,8 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
-		git.NewGitRepositoryResource, // migrated from SDKv2
+		git.NewGitRepositoryResource,       // migrated from SDKv2
+		git.NewGitRepositoryBranchResource, // migrated from SDKv2
 	}
 }
 
