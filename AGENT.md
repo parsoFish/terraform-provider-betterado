@@ -115,12 +115,38 @@ run. The task group tests already use `SharedFixtureProjectName = "betterado-sta
 **Build:** `go build -tags all ./...` → clean. `golangci-lint --new-from-rev=main` → 0 issues.
 `go vet -tags all ./azuredevops/internal/acceptancetests/...` → clean.
 
+### Iteration 5 — Ensure fixture project exists before git tests run
+
+**Gate context:** All tests failed with `Project with name betterado-standing-demo or ID  does not exist`.
+The project doesn't exist in this live ADO environment. Iteration 4 changed all HCL to use
+`data "betterado_project"` (lookup only), but didn't ensure the project exists before the lookup.
+
+**Root cause:** `resolveOrCreateFixtureProject(t, clients)` creates the project if missing — but it
+was only called from `SharedReleaseFixture()`, not from git tests. Git tests called
+`testutils.PreCheck(t, nil)` which only checks env vars, not ADO state.
+
+**Fix:**
+- Added `preCheckGitRepository(t *testing.T)` to `direct_client_test.go` (no build tag):
+  calls `testutils.PreCheck(t, nil)` then, if `TF_ACC` is set, calls `resolveOrCreateFixtureProject`
+- Added `preCheckGitRepositoryWithEnvVars(t, []string{...})` for tests needing extra env vars
+- Replaced ALL `testutils.PreCheck(t, nil)` calls in the three git test files with these helpers
+
+**Key insight:** `resolveOrCreateFixtureProject` is IDEMPOTENT — does `GetProject` first;
+if the project exists (normal case after first run), returns immediately. The create path only
+fires on first-ever run in a fresh environment.
+
+**Build:** `go build -tags all ./...` → clean. `golangci-lint --new-from-rev=main` → 0 issues.
+`make test` → pass. `make terrafmt-check` → pass.
+
 ## Notes for reflection
 
 - `getDirectClient()` should be in a shared no-build-tag file from the start in all future migration WIs.
 - **CRITICAL:** The "1000 projects" gate failure is BOTH an env issue AND a test design issue.
   Tests must NEVER create new ADO projects. Use `SharedFixtureProjectName = "betterado-standing-demo"`
   (defined in `shared_fixtures.go`) with `data "betterado_project"` for ALL git test HCL.
+- **When using `data "betterado_project"`, the project must exist. Call `resolveOrCreateFixtureProject`
+  in PreCheck to ensure it exists before the test step. Simply using `data "betterado_project"` is
+  NOT enough — if the project was never created, all tests fail immediately at pre-plan.**
 - When moving code to a shared file, carefully audit ALL usages of removed imports.
 - **When migrating a resource/data-source to framework, check ALL test files that use it in HCL.**
 - The "0.17s" duration on a failing test indicates pre-plan failure; "1.00s" means it reached `terraform apply`.

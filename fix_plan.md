@@ -44,6 +44,16 @@
   - resource_git_repository_test.go: all 12 tests + all HCL helpers refactored
   - data_git_repository_test.go: both DataSource tests + HCL helpers
   - data_git_repository_file_test.go: both DataSource tests + HCL helper
+- Iteration 5: Gate blocked by "Project with name betterado-standing-demo or ID  does not exist".
+  Root cause: `betterado-standing-demo` project doesn't exist in this live ADO environment.
+  The `data "betterado_project"` lookup was added in iteration 4 but no code was added to
+  ensure the project actually exists before the lookup. `resolveOrCreateFixtureProject()` in
+  shared_fixtures.go handles "create if not exists", but was only called from SharedReleaseFixture().
+  **Fixed:** Added `preCheckGitRepository(t)` and `preCheckGitRepositoryWithEnvVars(t, vars)` to
+  direct_client_test.go. These call `resolveOrCreateFixtureProject(t, clients)` in PreCheck,
+  ensuring the project exists before any Terraform test step runs. Replaced all standard
+  `testutils.PreCheck(t, nil)` calls in the three git test files with the new helpers.
+  `go build -tags all ./...` passes; `golangci-lint --new-from-rev=main`: 0 issues.
 
 All known code-level issues are fixed. `go build -tags all ./...` passes;
 `golangci-lint --new-from-rev=main`: 0 issues; `make terrafmt-check`: pass.
