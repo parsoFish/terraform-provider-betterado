@@ -44,8 +44,8 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 
 **After output:**
 ```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.007s
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.005s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.008s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.007s
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.004s
 
 ```
@@ -102,9 +102,9 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 
 **After output:**
 ```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.006s
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.005s
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.003s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.008s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.007s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.004s
 
 ```
 
@@ -196,5 +196,5 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 ## Files Changed
 
 ```
-16 files changed, 1698 insertions(+), 173 deletions(-)
+27 files changed, 2096 insertions(+), 257 deletions(-)
 ```

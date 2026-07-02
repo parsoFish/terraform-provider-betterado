@@ -3,7 +3,7 @@
   "essence": "Both betterado_dashboard and betterado_extension are now served by terraform-plugin-framework via the mux provider. Schemas are unchanged; ForceNew, Computed, and Optional semantics preserved. Gap matrices document every ADO API field's coverage status. Provider no longer registers either resource in the SDKv2 ResourcesMap.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-dashboard-extension",
-  "diffStat": "16 files changed, 1698 insertions(+), 173 deletions(-)",
+  "diffStat": "27 files changed, 2096 insertions(+), 257 deletions(-)",
   "checkpoints": [
     {
       "label": "Quality gate — release + taskagent packages green",
@@ -14,7 +14,7 @@
       "beforeImage": null,
       "afterImage": null,
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.008s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n"
     },
     {
       "label": "Dashboard framework resource registered",
@@ -47,7 +47,7 @@
       "beforeImage": null,
       "afterImage": null,
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.008s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.003s\n"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.008s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n"
     },
     {
       "label": "dashboard-acceptance-resource",
