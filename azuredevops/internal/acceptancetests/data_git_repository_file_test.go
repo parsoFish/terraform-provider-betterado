@@ -20,7 +20,7 @@ func TestAccGitRepositoryFile_DataSource(t *testing.T) {
 	commitMessage := "first commit"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                  func() { testutils.PreCheck(t, nil) },
+		PreCheck:                  func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories:  testutils.GetMuxedProviderFactories(),
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -44,7 +44,7 @@ func TestAccGitRepositoryFile_DataSource_notExist(t *testing.T) {
 	not_exists_file := "not_exists.txt"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                  func() { testutils.PreCheck(t, nil) },
+		PreCheck:                  func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories:  testutils.GetMuxedProviderFactories(),
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{

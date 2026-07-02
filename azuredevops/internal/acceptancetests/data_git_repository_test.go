@@ -13,7 +13,7 @@ func TestAccGitRepository_DataSource(t *testing.T) {
 	repoName := testutils.GenerateResourceName()
 	tfNode := "data.betterado_git_repository.repository"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                  func() { testutils.PreCheck(t, nil) },
+		PreCheck:                  func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories:  testutils.GetMuxedProviderFactories(),
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -31,7 +31,7 @@ func TestAccGitRepository_DataSource(t *testing.T) {
 
 func TestAccGitRepository_DataSource_notExist(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                  func() { testutils.PreCheck(t, nil) },
+		PreCheck:                  func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories:  testutils.GetMuxedProviderFactories(),
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{

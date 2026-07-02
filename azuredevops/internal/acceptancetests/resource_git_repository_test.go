@@ -22,7 +22,7 @@ func TestAccGitRepository_withDefaultBranch(t *testing.T) {
 	tfRepoNode := "betterado_git_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
@@ -55,7 +55,7 @@ func TestAccGitRepository_update(t *testing.T) {
 	tfRepoNode := "betterado_git_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
@@ -96,7 +96,7 @@ func TestAccGitRepository_disabled(t *testing.T) {
 	tfRepoNode := "betterado_git_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
@@ -128,7 +128,7 @@ func TestAccGitRepository_disabledCannotUpdate(t *testing.T) {
 	tfRepoNode := "betterado_git_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
@@ -167,7 +167,7 @@ func TestAccGitRepository_disabledCannotUpdate(t *testing.T) {
 func TestAccGitRepository_incorrectInitialization(t *testing.T) {
 	gitRepoName := testutils.GenerateResourceName()
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
@@ -183,7 +183,7 @@ func TestAccGitRepository_importGitRepository(t *testing.T) {
 
 	tfRepoNode := "betterado_git_repository.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
@@ -208,7 +208,7 @@ func TestAccGitRepository_import_by_name(t *testing.T) {
 
 	tfRepoNode := "betterado_git_repository.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
@@ -249,7 +249,7 @@ func TestAccGitRepository_initializationClean(t *testing.T) {
 	tfRepoNode := "betterado_git_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
@@ -272,7 +272,7 @@ func TestAccGitRepository_uninitialized(t *testing.T) {
 	tfRepoNode := "betterado_git_repository.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
@@ -296,7 +296,7 @@ func TestAccGitRepository_forkBranchNotEmpty(t *testing.T) {
 	tfForkedRepoNode := "betterado_git_repository.fork"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckGitRepository(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
@@ -329,7 +329,7 @@ func TestAccGitRepository_privateImportServiceEndpointBranchNotEmpty(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
-			testutils.PreCheck(t, &[]string{
+			preCheckGitRepositoryWithEnvVars(t, []string{
 				"AZDO_GENERIC_GIT_SERVICE_CONNECTION_USERNAME",
 				"AZDO_GENERIC_GIT_SERVICE_CONNECTION_PASSWORD",
 			})
@@ -367,7 +367,7 @@ func TestAccGitRepository_privateUserNamePasswordImportBranchNotEmpty(t *testing
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
-			testutils.PreCheck(t, &[]string{
+			preCheckGitRepositoryWithEnvVars(t, []string{
 				"AZDO_GENERIC_GIT_SERVICE_CONNECTION_USERNAME",
 				"AZDO_GENERIC_GIT_SERVICE_CONNECTION_PASSWORD",
 			})
