@@ -49,9 +49,12 @@ func TestAccFeedFramework_basic(t *testing.T) {
 // TestAccFeedFramework_withProject verifies the betterado_feed resource
 // (framework path) for a project-scoped feed: create → read-back with name,
 // id and project_id set → idempotency re-plan → destroy.
+//
+// Uses SharedFixtureProjectName (betterado-standing-demo) via a data source
+// so no new ADO project is created — the org is at the 1000-project cap, so
+// any project-create attempt would fail immediately.
 func TestAccFeedFramework_withProject(t *testing.T) {
 	feedName := testutils.GenerateResourceName()
-	projectName := testutils.GenerateResourceName()
 	tfNode := "betterado_feed.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -60,7 +63,7 @@ func TestAccFeedFramework_withProject(t *testing.T) {
 		CheckDestroy:             checkFeedFrameworkDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclFeedFrameworkWithProject(projectName, feedName),
+				Config: hclFeedFrameworkWithProject(feedName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "name", feedName),
 					resource.TestCheckResourceAttrSet(tfNode, "id"),
@@ -69,7 +72,7 @@ func TestAccFeedFramework_withProject(t *testing.T) {
 			},
 			// Idempotency — no perpetual diff.
 			{
-				Config:             hclFeedFrameworkWithProject(projectName, feedName),
+				Config:             hclFeedFrameworkWithProject(feedName),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -95,7 +98,7 @@ func checkFeedFrameworkDestroyed(s *terraform.State) error {
 
 		_, err := clients.FeedClient.GetFeed(clients.Ctx, feedapi.GetFeedArgs{
 			FeedId:  &id,
-			Project: &projectID,
+			Project: nilIfEmptyStr(projectID),
 		})
 		if err == nil {
 			return fmt.Errorf("feed (ID: %s) should not exist after destroy", id)
@@ -123,7 +126,7 @@ func captureFeedFrameworkEvidence(tfNode string) resource.TestCheckFunc {
 
 		feedDetail, err := clients.FeedClient.GetFeed(clients.Ctx, feedapi.GetFeedArgs{
 			FeedId:  &feedID,
-			Project: &projectID,
+			Project: nilIfEmptyStr(projectID),
 		})
 		if err != nil || feedDetail == nil {
 			return nil
@@ -158,19 +161,25 @@ resource "betterado_feed" "test" {
 `, name)
 }
 
-func hclFeedFrameworkWithProject(projectName, feedName string) string {
+func hclFeedFrameworkWithProject(feedName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = %[1]q
-  description        = "Acceptance test project for feed framework"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_feed" "test" {
-  name       = %[2]q
-  project_id = betterado_project.test.id
+  name       = %[1]q
+  project_id = data.betterado_project.test.id
 }
-`, projectName, feedName)
+`, feedName, SharedFixtureProjectName)
+}
+
+// nilIfEmptyStr returns nil when s is empty, otherwise &s.
+// Prevents passing "" as an ADO project parameter (org-scoped feeds
+// should receive nil, not empty string, in the feed REST API).
+func nilIfEmptyStr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }

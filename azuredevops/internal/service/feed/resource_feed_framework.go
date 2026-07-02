@@ -152,7 +152,7 @@ func (r *feedFrameworkResource) Create(ctx context.Context, req resource.CreateR
 
 	feedDetail, err := r.client.FeedClient.CreateFeed(r.client.Ctx, feedapi.CreateFeedArgs{
 		Feed:    &feedapi.Feed{Name: &name},
-		Project: &projectID,
+		Project: nilIfEmpty(projectID),
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("Create error", fmt.Sprintf("creating feed %s: %s", name, err))
@@ -187,7 +187,7 @@ func (r *feedFrameworkResource) Read(ctx context.Context, req resource.ReadReque
 
 	feedDetail, err := r.client.FeedClient.GetFeed(r.client.Ctx, feedapi.GetFeedArgs{
 		FeedId:  &feedID,
-		Project: &projectID,
+		Project: nilIfEmpty(projectID),
 	})
 	if err != nil {
 		if utils.ResponseWasNotFound(err) {
@@ -204,8 +204,11 @@ func (r *feedFrameworkResource) Read(ctx context.Context, req resource.ReadReque
 		if feedDetail.Project != nil {
 			model.ProjectID = types.StringValue(feedDetail.Project.Id.String())
 		} else {
-			// Org-scoped feed: ADO returns no project; preserve "" in state.
-			model.ProjectID = types.StringValue("")
+			// Org-scoped feed: ADO returns no project. Preserve null so that a
+			// config with no project_id attribute sees no diff (null == not set).
+			// Do NOT write "" — empty-string != null in terraform-plugin-framework
+			// and would cause a perpetual destroy+recreate via requiresReplace.
+			model.ProjectID = types.StringNull()
 		}
 	}
 
@@ -239,7 +242,7 @@ func (r *feedFrameworkResource) Update(ctx context.Context, req resource.UpdateR
 	_, err := r.client.FeedClient.UpdateFeed(r.client.Ctx, feedapi.UpdateFeedArgs{
 		Feed:    &feedapi.FeedUpdate{},
 		FeedId:  &name,
-		Project: &projectID,
+		Project: nilIfEmpty(projectID),
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("Update error", fmt.Sprintf("updating feed %s: %s", name, err))
@@ -273,7 +276,7 @@ func (r *feedFrameworkResource) Delete(ctx context.Context, req resource.DeleteR
 
 	if err := r.client.FeedClient.DeleteFeed(r.client.Ctx, feedapi.DeleteFeedArgs{
 		FeedId:  &name,
-		Project: &projectID,
+		Project: nilIfEmpty(projectID),
 	}); err != nil {
 		resp.Diagnostics.AddError("Delete error", fmt.Sprintf("deleting feed %s: %s", name, err))
 		return
@@ -282,7 +285,7 @@ func (r *feedFrameworkResource) Delete(ctx context.Context, req resource.DeleteR
 	if len(model.Features) > 0 && model.Features[0].PermanentDelete.ValueBool() {
 		if err := r.client.FeedClient.PermanentDeleteFeed(r.client.Ctx, feedapi.PermanentDeleteFeedArgs{
 			FeedId:  &name,
-			Project: &projectID,
+			Project: nilIfEmpty(projectID),
 		}); err != nil {
 			resp.Diagnostics.AddError("Permanent delete error", fmt.Sprintf("permanently deleting feed %s: %s", name, err))
 		}
@@ -324,7 +327,7 @@ func (r *feedFrameworkResource) ImportState(ctx context.Context, req resource.Im
 func (r *feedFrameworkResource) isFeedRestorable(name, projectID string) bool {
 	change, err := r.client.FeedClient.GetFeedChange(r.client.Ctx, feedapi.GetFeedChangeArgs{
 		FeedId:  &name,
-		Project: &projectID,
+		Project: nilIfEmpty(projectID),
 	})
 	return err == nil && change != nil && change.ChangeType != nil &&
 		*(change.ChangeType) == feedapi.ChangeTypeValues.Delete
@@ -333,7 +336,7 @@ func (r *feedFrameworkResource) isFeedRestorable(name, projectID string) bool {
 func (r *feedFrameworkResource) restoreFeed(name, projectID string) error {
 	return r.client.FeedClient.RestoreDeletedFeed(r.client.Ctx, feedapi.RestoreDeletedFeedArgs{
 		FeedId:  &name,
-		Project: &projectID,
+		Project: nilIfEmpty(projectID),
 		PatchJson: &[]webapi.JsonPatchOperation{{
 			From:  nil,
 			Path:  converter.String("/isDeleted"),
@@ -346,10 +349,20 @@ func (r *feedFrameworkResource) restoreFeed(name, projectID string) error {
 func (r *feedFrameworkResource) getFeedByName(name, projectID string) (string, error) {
 	feedDetail, err := r.client.FeedClient.GetFeed(r.client.Ctx, feedapi.GetFeedArgs{
 		FeedId:  &name,
-		Project: &projectID,
+		Project: nilIfEmpty(projectID),
 	})
 	if err != nil {
 		return "", err
 	}
 	return feedDetail.Id.String(), nil
+}
+
+// nilIfEmpty returns nil if s is empty string, otherwise &s.
+// Used to distinguish org-scoped API calls (no project parameter) from
+// project-scoped ones (non-empty project ID).
+func nilIfEmpty(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }
