@@ -27,9 +27,11 @@ func projectStateForUnknown() planmodifier.String { return projectUseStateForUnk
 func (m projectUseStateForUnknown) Description(_ context.Context) string {
 	return "use prior state value when plan is unknown"
 }
+
 func (m projectUseStateForUnknown) MarkdownDescription(_ context.Context) string {
 	return "use prior state value when plan is unknown"
 }
+
 func (m projectUseStateForUnknown) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -44,9 +46,11 @@ func projectForceReplace() planmodifier.String { return projectRequiresReplace{}
 func (m projectRequiresReplace) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m projectRequiresReplace) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m projectRequiresReplace) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return

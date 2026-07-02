@@ -209,6 +209,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		permissions.NewReleaseDefinitionPermissionsResource,
 		// core resources migrated from SDKv2
 		core.NewProjectResource,
+		core.NewProjectFeaturesResource,
 	}
 }
 
