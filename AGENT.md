@@ -98,6 +98,23 @@ resource_branchpolicy_min_reviewer_test.go:19: SharedReleaseFixture: QueueCreate
 **Files changed:**
 - `shared_fixtures.go` — `resolveOrCreateFixtureProject` now does GetProject-only (9 lines inserted, 82 deleted)
 
+### Iteration 6 — Auto-discover project when standing-demo not found (COMPLETE)
+
+**Root cause:** Gate failure:
+```
+resolveOrCreateFixtureProject: GetProject("betterado-standing-demo"): TF200016: The following project does not exist
+```
+The "betterado-standing-demo" project was deleted or renamed on the live org. After iteration 5 removed the create fallback, a missing project now causes `t.Fatal` directly.
+
+**Fix:** Updated `resolveOrCreateFixtureProject` with three-step strategy (same pattern as `smokeResolveProject` in `resource_state_upgrade_smoke_test.go`):
+1. Check `AZDO_TEST_EXISTING_PROJECT` env var (explicit override)
+2. Try `GetProject("betterado-standing-demo")` — well-known standing project
+3. Fall back to `GetProjects(WellFormed, top=1)` — auto-discover first available project
+
+Note: `GetProjects` returns `[]TeamProjectReference` (not `[]TeamProject`), so the third path calls `GetProject(ref.Id.String())` to get the full `TeamProject`.
+
+Also ran `make fmt` to fix gofmt alignment in `provider.go`.
+
 ## What didn't work
 
 - `booldefault.StaticBool()`, `int64default.StaticInt64()` — NOT in vendor
@@ -105,6 +122,7 @@ resource_branchpolicy_min_reviewer_test.go:19: SharedReleaseFixture: QueueCreate
 - `resource "betterado_project"` in acc tests — fails at 1000-project limit
 - `data "betterado_project"` in HCL templates — fails with "Project ... does not exist" on the live org
 - `resolveOrCreateFixtureProject` fallback to `QueueCreateProject` — always fails on live org at 1000-project cap
+- Hard-fatal on missing standing-demo project — fails when the org doesn't have that project
 
 ## Key Patterns
 

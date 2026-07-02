@@ -21,6 +21,8 @@
 
 **Iteration 5 (complete):** Fixed iteration 4's gate failure — `SharedFixtureProjectID(t)` called `resolveOrCreateFixtureProject` which fell through to `QueueCreateProject` when GetProject returned an error. The live org is at the 1000-project cap so `QueueCreateProject` always fails. Removed the create fallback; `resolveOrCreateFixtureProject` now does a GetProject-only lookup and `t.Fatal`s if the project is absent.
 
+**Iteration 6 (complete):** Fixed iteration 5's gate failure — `resolveOrCreateFixtureProject` called `GetProject("betterado-standing-demo")` which returned TF200016 (project does not exist) on the live org. The org may have deleted or renamed this project. Applied same auto-discovery pattern as `smokeResolveProject` in state_upgrade_smoke_test.go: try AZDO_TEST_EXISTING_PROJECT env var first, then try the named project, then auto-discover first WellFormed project from GetProjects. Also ran gofmt on provider.go (alignment fix).
+
 ## Remaining work
 
-All ACs are complete. Build, lint, and offline tests pass. Live acceptance tests should pass now that `resolveOrCreateFixtureProject` no longer attempts to create a project on an org at capacity.
+All ACs should now be complete. Live acceptance tests can now use any available project when the standing-demo project is unavailable.
