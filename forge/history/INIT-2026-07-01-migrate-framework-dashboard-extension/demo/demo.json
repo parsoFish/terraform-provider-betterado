@@ -14,7 +14,7 @@
       "beforeImage": null,
       "afterImage": null,
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.008s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n"
     },
     {
       "label": "Dashboard framework resource registered",
@@ -46,8 +46,8 @@
       "afterNote": "docs/dashboard-gap-matrix.md (47 lines) and docs/extension-gap-matrix.md (49 lines) present on branch",
       "beforeImage": null,
       "afterImage": null,
-      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.008s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.008s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n"
+      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n",
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n"
     },
     {
       "label": "dashboard-acceptance-resource",
@@ -102,7 +102,7 @@
     {
       "criterion": "GIVEN changed Go files WHEN CI-equivalent gate runs THEN gate is green with zero new lint findings on changed files",
       "verdict": "met",
-      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release (0.006s), ok taskagent (0.006s), ok taskagent/validate (0.003s). All green."
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release (0.006s), ok taskagent (0.005s), ok taskagent/validate (0.004s). All green."
     },
     {
       "criterion": "GIVEN docs/extension-gap-matrix.md does not exist WHEN WI-2 implementation runs THEN docs/extension-gap-matrix.md is created and lists every field of the ADO SDK InstalledExtension struct with mapped/missing/writable status",
@@ -137,7 +137,7 @@
     {
       "criterion": "GIVEN changed Go files (extension) WHEN CI-equivalent gate runs THEN gate is green",
       "verdict": "met",
-      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → all ok. Extension framework resource compiles without error (no new lint findings in resource_extension_framework.go)."
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release (0.006s), ok taskagent (0.005s), ok taskagent/validate (0.004s). Extension framework resource compiles without error (no new lint findings in resource_extension_framework.go)."
     },
     {
       "criterion": "GIVEN betterado_dashboard and betterado_extension have both been migrated to framework WHEN WI-3 implementation runs THEN CHANGELOG.md has a new entry under '## Unreleased' documenting the framework migration",
@@ -152,7 +152,7 @@
     {
       "criterion": "GIVEN changed files WHEN CI-equivalent gate runs (make test) THEN make test exits 0",
       "verdict": "met",
-      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok (0.006s each). Quality gate passes on branch tip."
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release (0.006s), ok taskagent (0.005s), ok taskagent/validate (0.004s). Quality gate passes on branch tip."
     }
   ],
   "testEvidence": [
