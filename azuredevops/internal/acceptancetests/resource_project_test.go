@@ -68,16 +68,19 @@ func TestAccProject_importByName(t *testing.T) {
 		// No CheckDestroy: the standing-demo project must never be deleted.
 		Steps: []resource.TestStep{
 			// Step 1 — import by name; assert read-back + capture live evidence.
+			// NOTE: ImportStateVerify is intentionally omitted here. ImportStateVerify
+			// compares the imported state against the pre-import state, but since this
+			// test imports an existing project (no prior terraform apply), there is no
+			// pre-import state to compare against. The checkProjectImportByName function
+			// verifies all required attributes (name, visibility, version_control,
+			// work_item_template, process_template_id). Step 2's PlanOnly +
+			// ExpectNonEmptyPlan: false verifies idempotency.
 			{
-				Config:            hclProjectStandingDemo(),
-				ResourceName:      tfNode,
-				ImportState:       true,
-				ImportStateId:     standingDemoName,
-				ImportStateVerify: true,
-				// description is computed — ignore in verify diff; we assert it
-				// via ImportStateCheck below.
-				ImportStateVerifyIgnore: []string{"description"},
-				ImportStateCheck:        checkProjectImportByName(standingDemoName),
+				Config:           hclProjectStandingDemo(),
+				ResourceName:     tfNode,
+				ImportState:      true,
+				ImportStateId:    standingDemoName,
+				ImportStateCheck: checkProjectImportByName(standingDemoName),
 			},
 			// Step 2 — idempotency: re-plan must show no diff.
 			{
