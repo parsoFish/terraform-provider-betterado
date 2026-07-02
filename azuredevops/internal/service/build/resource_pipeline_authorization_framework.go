@@ -133,9 +133,11 @@ type paNotWhitespaceValidator struct{}
 func (v paNotWhitespaceValidator) Description(_ context.Context) string {
 	return "value must not be empty or whitespace"
 }
+
 func (v paNotWhitespaceValidator) MarkdownDescription(_ context.Context) string {
 	return v.Description(context.Background())
 }
+
 func (v paNotWhitespaceValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -150,9 +152,11 @@ type paTypeValidator struct{}
 func (v paTypeValidator) Description(_ context.Context) string {
 	return "type must be one of: endpoint, queue, variablegroup, environment, repository"
 }
+
 func (v paTypeValidator) MarkdownDescription(_ context.Context) string {
 	return v.Description(context.Background())
 }
+
 func (v paTypeValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -173,9 +177,11 @@ type paInt64AtLeastValidator struct{ min int64 }
 func (v paInt64AtLeastValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("value must be at least %d", v.min)
 }
+
 func (v paInt64AtLeastValidator) MarkdownDescription(_ context.Context) string {
 	return v.Description(context.Background())
 }
+
 func (v paInt64AtLeastValidator) ValidateInt64(_ context.Context, req validator.Int64Request, resp *validator.Int64Response) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -197,9 +203,11 @@ func paUseStateForUnknown() planmodifier.String { return paUseStateForUnknownImp
 func (paUseStateForUnknownImpl) Description(_ context.Context) string {
 	return "use prior state value for unknown"
 }
+
 func (paUseStateForUnknownImpl) MarkdownDescription(_ context.Context) string {
 	return "use prior state value for unknown"
 }
+
 func (paUseStateForUnknownImpl) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -217,9 +225,11 @@ func paRequiresReplaceString() planmodifier.String { return paRequiresReplaceStr
 func (paRequiresReplaceStringImpl) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (paRequiresReplaceStringImpl) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (paRequiresReplaceStringImpl) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -237,9 +247,11 @@ func paRequiresReplaceInt64() planmodifier.Int64 { return paRequiresReplaceInt64
 func (paRequiresReplaceInt64Impl) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (paRequiresReplaceInt64Impl) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (paRequiresReplaceInt64Impl) PlanModifyInt64(_ context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
 	if req.StateValue.IsNull() {
 		return
@@ -367,7 +379,8 @@ func (r *PipelineAuthorizationResource) Read(ctx context.Context, req resource.R
 		resId = projectId + "." + resId
 	}
 
-	result, err := r.client.PipelinePermissionsClient.GetPipelinePermissionsForResource(ctx,
+	result, err := r.client.PipelinePermissionsClient.GetPipelinePermissionsForResource(
+		ctx,
 		pipelinepermissions.GetPipelinePermissionsForResourceArgs{
 			Project:      &pipelineProjectId,
 			ResourceType: &resType,
@@ -521,7 +534,8 @@ func (r *PipelineAuthorizationResource) checkPipelineAuthorizationFramework(
 			resId = projectId + "." + resId
 		}
 
-		pollResp, err := r.client.PipelinePermissionsClient.GetPipelinePermissionsForResource(ctx,
+		pollResp, err := r.client.PipelinePermissionsClient.GetPipelinePermissionsForResource(
+			ctx,
 			pipelinepermissions.GetPipelinePermissionsForResourceArgs{
 				Project:      &pipelineProjectId,
 				ResourceType: &resType,

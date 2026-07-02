@@ -126,9 +126,11 @@ type raTypeValidator struct{}
 func (v raTypeValidator) Description(_ context.Context) string {
 	return "type must be one of: endpoint, queue, variablegroup"
 }
+
 func (v raTypeValidator) MarkdownDescription(_ context.Context) string {
 	return v.Description(context.Background())
 }
+
 func (v raTypeValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -155,9 +157,11 @@ func raUseStateForUnknown() planmodifier.String { return raUseStateForUnknownImp
 func (raUseStateForUnknownImpl) Description(_ context.Context) string {
 	return "use prior state value for unknown"
 }
+
 func (raUseStateForUnknownImpl) MarkdownDescription(_ context.Context) string {
 	return "use prior state value for unknown"
 }
+
 func (raUseStateForUnknownImpl) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -175,9 +179,11 @@ func raRequiresReplaceString() planmodifier.String { return raRequiresReplaceStr
 func (raRequiresReplaceStringImpl) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (raRequiresReplaceStringImpl) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (raRequiresReplaceStringImpl) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -195,9 +201,11 @@ func raStaticStringDefault(v string) defaults.String { return raStaticStringDefa
 func (d raStaticStringDefaultImpl) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d raStaticStringDefaultImpl) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%q`", d.value)
 }
+
 func (d raStaticStringDefaultImpl) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }

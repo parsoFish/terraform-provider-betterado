@@ -29,8 +29,10 @@ import (
 )
 
 // Compile-time interface checks.
-var _ datasource.DataSource = &BuildDefinitionDataSource{}
-var _ datasource.DataSourceWithConfigure = &BuildDefinitionDataSource{}
+var (
+	_ datasource.DataSource              = &BuildDefinitionDataSource{}
+	_ datasource.DataSourceWithConfigure = &BuildDefinitionDataSource{}
+)
 
 // BuildDefinitionDataSource is the framework data source for data.betterado_build_definition.
 type BuildDefinitionDataSource struct {

@@ -59,16 +59,6 @@ type buildDefinitionRepositoryModel struct {
 	ReportBuildStatus   types.Bool   `tfsdk:"report_build_status"`
 }
 
-type buildDefinitionCITriggerModel struct {
-	UseYaml types.Bool `tfsdk:"use_yaml"`
-}
-
-type buildDefinitionPRTriggerModel struct {
-	UseYaml         types.Bool   `tfsdk:"use_yaml"`
-	InitialBranch   types.String `tfsdk:"initial_branch"`
-	CommentRequired types.String `tfsdk:"comment_required"`
-}
-
 type buildDefinitionModel struct {
 	ID                    types.String `tfsdk:"id"`
 	Name                  types.String `tfsdk:"name"`
