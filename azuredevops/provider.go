@@ -28,7 +28,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
@@ -100,7 +99,7 @@ func Provider() *schema.Provider {
 			"betterado_repository_policy_reserved_names":       repository.ResourceRepositoryReservedNames(),
 			"betterado_resource_authorization":                 build.ResourceResourceAuthorization(),
 			// betterado_security_permissions migrated to terraform-plugin-framework (see framework_provider.go)
-			"betterado_securityrole_assignment":                     securityroles.ResourceSecurityRoleAssignment(),
+			// betterado_securityrole_assignment migrated to terraform-plugin-framework (see framework_provider.go)
 			"betterado_serviceendpoint_generic_v2":                  serviceendpoint.ResourceServiceEndpointGenericV2(),
 			"betterado_serviceendpoint_argocd":                      serviceendpoint.ResourceServiceEndpointArgoCD(),
 			"betterado_serviceendpoint_artifactory":                 serviceendpoint.ResourceServiceEndpointArtifactory(),
@@ -207,7 +206,7 @@ func Provider() *schema.Provider {
 			// betterado_security_namespace migrated to terraform-plugin-framework (see framework_provider.go)
 			// betterado_security_namespace_token migrated to terraform-plugin-framework (see framework_provider.go)
 			// betterado_security_namespaces migrated to terraform-plugin-framework (see framework_provider.go)
-			"betterado_securityrole_definitions":              securityroles.DataSecurityRoleDefinitions(),
+			// betterado_securityrole_definitions migrated to terraform-plugin-framework (see framework_provider.go)
 			"betterado_serviceendpoint_generic_v2":            serviceendpoint.DataServiceEndpointGenericV2(),
 			"betterado_serviceendpoint_azurecr":               serviceendpoint.DataResourceServiceEndpointAzureCR(),
 			"betterado_serviceendpoint_azurerm":               serviceendpoint.DataServiceEndpointAzureRM(),
