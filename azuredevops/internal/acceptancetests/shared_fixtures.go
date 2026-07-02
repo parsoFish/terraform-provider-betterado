@@ -313,95 +313,27 @@ func gatesStep(queryID string) *releaseapi.ReleaseDefinitionGatesStep {
 // the sweeper (keepProjects) so it is never reaped.
 const SharedFixtureProjectName = "betterado-standing-demo"
 
-// SharedFixtureProjectID returns the UUID of the persistent shared fixture project
-// (SharedFixtureProjectName). Unlike SharedReleaseFixture it creates NO sub-resources
-// and registers NO t.Cleanup — it is cheap to call from tests that only need a
-// project_id to pass into HCL templates.
-//
-// REQUIRES: TF_ACC=1, AZDO_ORG_SERVICE_URL, AZDO_PERSONAL_ACCESS_TOKEN
-func SharedFixtureProjectID(t *testing.T) string {
-	t.Helper()
-	if os.Getenv("TF_ACC") == "" {
-		t.Skip("TF_ACC not set; skipping live fixture")
-	}
-	testutils.PreCheck(t, nil)
-
-	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
-	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
-	authProvider := azuredevops.NewAuthProviderPAT(pat)
-	clients, err := client.GetAzdoClient(authProvider, orgURL)
-	if err != nil {
-		t.Fatalf("SharedFixtureProjectID: GetAzdoClient: %v", err)
-	}
-
-	project := resolveOrCreateFixtureProject(t, clients)
-	return project.Id.String()
-}
-
 // resolveOrCreateFixtureProject returns the shared persistent fixture project.
-// Strategy (in order):
-//  1. Try AZDO_TEST_EXISTING_PROJECT env var (explicit override).
-//  2. Try the well-known name SharedFixtureProjectName ("betterado-standing-demo").
-//  3. Fall back to auto-discovering the first WellFormed project in the org.
-//
-// The create path has been removed: the org is at the 1000-project cap and any
-// QueueCreateProject call will fail — see brain theme
-// 2026-06-20-ado-org-project-limit-blocks-test-creates.
+// It NEVER creates, auto-discovers, or substitutes a project: the fixture is
+// long-lived shared infrastructure (it hosts the standing demo), and any
+// "helpful" fallback turns a missing fixture into live writes against whatever
+// project the fallback picks — on 2026-07-02 an auto-discover fallback ran
+// terraform apply/destroy inside an unrelated real project after the fixture
+// was accidentally soft-deleted. If the lookup fails, fail loudly: the operator
+// restores the project from the ADO recycle bin (28-day retention).
 func resolveOrCreateFixtureProject(t *testing.T, clients *client.AggregatedClient) *core.TeamProject {
 	t.Helper()
 
-	// 1. Explicit override.
-	if name := os.Getenv("AZDO_TEST_EXISTING_PROJECT"); name != "" {
-		p, err := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
-			ProjectId: converter.String(name),
-		})
-		if err != nil {
-			t.Fatalf("resolveOrCreateFixtureProject: GetProject(%q) [from AZDO_TEST_EXISTING_PROJECT]: %v", name, err)
-		}
-		if p == nil || p.Id == nil {
-			t.Fatalf("resolveOrCreateFixtureProject: GetProject(%q) returned no project", name)
-		}
-		t.Logf("resolveOrCreateFixtureProject: using project %q (%s) [AZDO_TEST_EXISTING_PROJECT]", *p.Name, p.Id)
-		return p
-	}
-
-	// 2. Try the well-known standing-demo project.
 	existing, err := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
 		ProjectId: converter.String(SharedFixtureProjectName),
 	})
-	if err == nil && existing != nil && existing.Id != nil {
-		t.Logf("resolveOrCreateFixtureProject: using standing-demo project %q (%s)", *existing.Name, existing.Id)
-		return existing
+	if err != nil || existing == nil || existing.Id == nil {
+		t.Fatalf("SharedReleaseFixture: fixture project %q not found (%v). "+
+			"DO NOT create, auto-discover, or substitute another project — restore the fixture "+
+			"from the ADO recycle bin (Organization settings → Projects) and re-run.",
+			SharedFixtureProjectName, err)
 	}
-
-	// 3. Auto-discover: pick the first WellFormed project.
-	t.Logf("resolveOrCreateFixtureProject: %q not found (%v); auto-discovering project", SharedFixtureProjectName, err)
-	stateFilter := core.ProjectStateValues.WellFormed
-	top := 1
-	resp, listErr := clients.CoreClient.GetProjects(clients.Ctx, core.GetProjectsArgs{
-		StateFilter: &stateFilter,
-		Top:         &top,
-	})
-	if listErr != nil {
-		t.Fatalf("resolveOrCreateFixtureProject: GetProjects: %v — could not find any project; set AZDO_TEST_EXISTING_PROJECT", listErr)
-	}
-	if resp == nil || len(resp.Value) == 0 {
-		t.Fatal("resolveOrCreateFixtureProject: GetProjects returned no projects — set AZDO_TEST_EXISTING_PROJECT to an existing project name")
-	}
-	ref := resp.Value[0]
-	if ref.Id == nil || ref.Name == nil {
-		t.Fatal("resolveOrCreateFixtureProject: auto-discovered project has nil id or name")
-	}
-	// GetProjects returns TeamProjectReference; call GetProject for the full TeamProject.
-	projectIDStr := ref.Id.String()
-	full, getErr := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
-		ProjectId: &projectIDStr,
-	})
-	if getErr != nil {
-		t.Fatalf("resolveOrCreateFixtureProject: GetProject(%q): %v", projectIDStr, getErr)
-	}
-	t.Logf("resolveOrCreateFixtureProject: auto-discovered project %q (%s)", *full.Name, full.Id)
-	return full
+	return existing
 }
 
 func deleteFixtureProject(clients *client.AggregatedClient, projectID string) error {
