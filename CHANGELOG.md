@@ -7,6 +7,16 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_dashboard` migrated to terraform-plugin-framework.** The resource
+  now uses the terraform-plugin-framework implementation served through the mux
+  provider. Schema is unchanged (`project_id`, `team_id`, `name`, `description`,
+  `refresh_interval`, `owner_id`); supports both project-scoped and team-scoped
+  dashboards. Verified by live acceptance tests `TestAccDashboard_project_basic`,
+  `TestAccDashboard_project_update`, `TestAccDashboard_team_basic`,
+  `TestAccDashboard_team_update`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

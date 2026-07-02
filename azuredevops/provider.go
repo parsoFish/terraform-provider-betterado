@@ -18,7 +18,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/feed"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
@@ -62,30 +61,32 @@ func Provider() *schema.Provider {
 			"betterado_check_exclusive_lock":             approvalsandchecks.ResourceCheckExclusiveLock(),
 			"betterado_check_required_template":          approvalsandchecks.ResourceCheckRequiredTemplate(),
 			"betterado_check_rest_api":                   approvalsandchecks.ResourceCheckRestAPI(),
-			"betterado_dashboard":                        dashboard.ResourceDashboard(),
-			"betterado_deployment_group":                 taskagent.ResourceDeploymentGroup(),
-			"betterado_elastic_pool":                     taskagent.ResourceAgentPoolVMSS(),
-			"betterado_environment":                      taskagent.ResourceEnvironment(),
-			"betterado_environment_resource_kubernetes":  taskagent.ResourceEnvironmentKubernetes(),
-			"betterado_extension":                        extension.ResourceExtension(),
-			"betterado_feed":                             feed.ResourceFeed(),
-			"betterado_feed_permission":                  feed.ResourceFeedPermission(),
-			"betterado_feed_retention_policy":            feed.ResourceFeedRetentionPolicy(),
-			"betterado_git_permissions":                  permissions.ResourceGitPermissions(),
-			"betterado_git_repository":                   git.ResourceGitRepository(),
-			"betterado_git_repository_branch":            git.ResourceGitRepositoryBranch(),
-			"betterado_git_repository_file":              git.ResourceGitRepositoryFile(),
-			"betterado_group":                            graph.ResourceGroup(),
-			"betterado_group_entitlement":                memberentitlementmanagement.ResourceGroupEntitlement(),
-			"betterado_group_membership":                 graph.ResourceGroupMembership(),
-			"betterado_iteration_permissions":            permissions.ResourceIterationPermissions(),
-			"betterado_library_permissions":              permissions.ResourceLibraryPermissions(),
-			"betterado_pipeline_authorization":           build.ResourcePipelineAuthorization(),
-			"betterado_project":                          core.ResourceProject(),
-			"betterado_project_features":                 core.ResourceProjectFeatures(),
-			"betterado_project_permissions":              permissions.ResourceProjectPermissions(),
-			"betterado_project_pipeline_settings":        core.ResourceProjectPipelineSettings(),
-			"betterado_project_tags":                     core.ResourceProjectTag(),
+			// betterado_dashboard is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
+			"betterado_deployment_group":                taskagent.ResourceDeploymentGroup(),
+			"betterado_elastic_pool":                    taskagent.ResourceAgentPoolVMSS(),
+			"betterado_environment":                     taskagent.ResourceEnvironment(),
+			"betterado_environment_resource_kubernetes": taskagent.ResourceEnvironmentKubernetes(),
+			"betterado_extension":                       extension.ResourceExtension(),
+			"betterado_feed":                            feed.ResourceFeed(),
+			"betterado_feed_permission":                 feed.ResourceFeedPermission(),
+			"betterado_feed_retention_policy":           feed.ResourceFeedRetentionPolicy(),
+			"betterado_git_permissions":                 permissions.ResourceGitPermissions(),
+			"betterado_git_repository":                  git.ResourceGitRepository(),
+			"betterado_git_repository_branch":           git.ResourceGitRepositoryBranch(),
+			"betterado_git_repository_file":             git.ResourceGitRepositoryFile(),
+			"betterado_group":                           graph.ResourceGroup(),
+			"betterado_group_entitlement":               memberentitlementmanagement.ResourceGroupEntitlement(),
+			"betterado_group_membership":                graph.ResourceGroupMembership(),
+			"betterado_iteration_permissions":           permissions.ResourceIterationPermissions(),
+			"betterado_library_permissions":             permissions.ResourceLibraryPermissions(),
+			"betterado_pipeline_authorization":          build.ResourcePipelineAuthorization(),
+			"betterado_project":                         core.ResourceProject(),
+			"betterado_project_features":                core.ResourceProjectFeatures(),
+			"betterado_project_permissions":             permissions.ResourceProjectPermissions(),
+			"betterado_project_pipeline_settings":       core.ResourceProjectPipelineSettings(),
+			"betterado_project_tags":                    core.ResourceProjectTag(),
 			// betterado_release_definition_permissions is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.

@@ -2,17 +2,79 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/dashboard"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
+
+// getDirectDashboardClient builds an AggregatedClient directly from AZDO env vars.
+// Used by CheckDestroy and evidence helpers because ProtoV6ProviderFactories
+// does not wire the SDKv2 provider singleton's Meta, so testutils.GetProvider().Meta()
+// would be nil when the test uses the mux provider factory.
+func getDirectDashboardClient() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+}
+
+// captureDashboardEvidence fetches the live dashboard GET URL and writes forge live evidence.
+// Best-effort: never fails the test — errors are silently swallowed.
+func captureDashboardEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		_ = tryCaptureDashboardEvidence(tfNode, s) //nolint:errcheck
+		return nil
+	}
+}
+
+// tryCaptureDashboardEvidence performs the actual evidence capture and returns
+// an error on failure (caller ignores it).
+func tryCaptureDashboardEvidence(tfNode string, s *terraform.State) error {
+	res, ok := s.RootModule().Resources[tfNode]
+	if !ok {
+		return fmt.Errorf("resource %s not found in state", tfNode)
+	}
+
+	projectID := res.Primary.Attributes["project_id"]
+	dashboardID := res.Primary.ID
+
+	orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+	getURL := fmt.Sprintf("%s/%s/_apis/dashboard/dashboards/%s?api-version=7.1", orgURL, projectID, dashboardID)
+
+	clients, err := getDirectDashboardClient()
+	if err != nil {
+		return err
+	}
+
+	id, err := uuid.Parse(dashboardID)
+	if err != nil {
+		return err
+	}
+
+	args := dashboard.GetDashboardArgs{
+		Project:     converter.String(projectID),
+		DashboardId: &id,
+	}
+	if teamID, ok := res.Primary.Attributes["team_id"]; ok && teamID != "" {
+		args.Team = converter.String(teamID)
+	}
+
+	resp, err := clients.DashboardClient.GetDashboard(clients.Ctx, args)
+	if err != nil {
+		return err
+	}
+
+	return testutils.CaptureLiveEvidence("acceptance-resource", getURL, resp)
+}
 
 func TestAccDashboard_project_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
@@ -20,9 +82,9 @@ func TestAccDashboard_project_basic(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkDashboardDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclDashboardProjectBasic(projectName, name),
@@ -31,7 +93,15 @@ func TestAccDashboard_project_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "name", name),
 					resource.TestCheckResourceAttrSet(tfNode, "name"),
 					resource.TestCheckResourceAttrSet(tfNode, "owner_id"),
+					// Capture live evidence before destroy.
+					captureDashboardEvidence(tfNode),
 				),
+			},
+			// Idempotency: re-plan produces no diff.
+			{
+				Config:             hclDashboardProjectBasic(projectName, name),
+				ExpectNonEmptyPlan: false,
+				PlanOnly:           true,
 			},
 			{
 				ResourceName:      tfNode,
@@ -49,9 +119,9 @@ func TestAccDashboard_project_update(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkDashboardDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclDashboardProjectBasic(projectName, name),
@@ -77,6 +147,12 @@ func TestAccDashboard_project_update(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "refresh_interval", "5"),
 				),
 			},
+			// Idempotency after update.
+			{
+				Config:             hclDashboardProjectUpdate(projectName, name),
+				ExpectNonEmptyPlan: false,
+				PlanOnly:           true,
+			},
 			{
 				ResourceName:      tfNode,
 				ImportState:       true,
@@ -93,9 +169,9 @@ func TestAccDashboard_project_complete(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkDashboardDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclDashboardProjectComplete(projectName, name),
@@ -122,9 +198,9 @@ func TestAccDashboard_team_basic(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkDashboardDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclDashboardTeamBasic(projectName, name),
@@ -134,6 +210,12 @@ func TestAccDashboard_team_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfNode, "name"),
 					resource.TestCheckResourceAttrSet(tfNode, "owner_id"),
 				),
+			},
+			// Idempotency.
+			{
+				Config:             hclDashboardTeamBasic(projectName, name),
+				ExpectNonEmptyPlan: false,
+				PlanOnly:           true,
 			},
 			{
 				ResourceName:      tfNode,
@@ -151,9 +233,9 @@ func TestAccDashboard_team_update(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkDashboardDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclDashboardTeamBasic(projectName, name),
@@ -183,6 +265,12 @@ func TestAccDashboard_team_update(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "refresh_interval", "5"),
 				),
 			},
+			// Idempotency after update.
+			{
+				Config:             hclDashboardTeamUpdate(projectName, name),
+				ExpectNonEmptyPlan: false,
+				PlanOnly:           true,
+			},
 			{
 				ResourceName:      tfNode,
 				ImportState:       true,
@@ -199,9 +287,9 @@ func TestAccDashboard_team_complete(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkDashboardDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclDashboardTeamComplete(projectName, name),
@@ -231,9 +319,9 @@ func TestAccDashboard_team_requireImportError(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkDashboardDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclDashboardTeamBasic(projectName, name),
@@ -246,7 +334,7 @@ func TestAccDashboard_team_requireImportError(t *testing.T) {
 				),
 			},
 			{
-				ExpectError: regexp.MustCompile("Creating dashboard in Azure DevOps: VS403345: Duplicate name on dashboard. Each dashboard held by a team must use a distinct name"),
+				ExpectError: regexp.MustCompile("Creating Dashboard in Azure DevOps: VS403345: Duplicate name on dashboard. Each dashboard held by a team must use a distinct name"),
 				Config:      hclDashboardTeamRequireImport(projectName, name),
 			},
 		},
@@ -254,9 +342,12 @@ func TestAccDashboard_team_requireImportError(t *testing.T) {
 }
 
 func checkDashboardDestroyed(s *terraform.State) error {
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+	clients, err := getDirectDashboardClient()
+	if err != nil {
+		return fmt.Errorf("getting client: %w", err)
+	}
 
-	// verify that every project referenced in the state does not exist in AzDO
+	// verify that every dashboard referenced in the state does not exist in AzDO
 	for _, resource := range s.RootModule().Resources {
 		if resource.Type != "betterado_dashboard" {
 			continue
@@ -273,10 +364,10 @@ func checkDashboardDestroyed(s *terraform.State) error {
 			DashboardId: &dashboardId,
 		}
 
-		if v, ok := resource.Primary.Attributes["team_id"]; ok {
+		if v, ok := resource.Primary.Attributes["team_id"]; ok && v != "" {
 			args.Team = converter.String(v)
 		}
-		// indicates the project still exists - this should fail the test
+		// indicates the dashboard still exists - this should fail the test
 		if _, err = clients.DashboardClient.GetDashboard(clients.Ctx, args); err == nil {
 			return fmt.Errorf("Dashboard with ID %s should not exist", id)
 		}
@@ -291,7 +382,10 @@ func checkDashboardExist(expectedName string) resource.TestCheckFunc {
 			return fmt.Errorf("Did not find a `betterado_dashboard` in the Terraform state")
 		}
 
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		clients, err := getDirectDashboardClient()
+		if err != nil {
+			return fmt.Errorf("getting client: %w", err)
+		}
 
 		id := res.Primary.ID
 		dashboardId, err := uuid.Parse(id)
@@ -304,7 +398,7 @@ func checkDashboardExist(expectedName string) resource.TestCheckFunc {
 			DashboardId: &dashboardId,
 		}
 
-		if v, ok := res.Primary.Attributes["team_id"]; ok {
+		if v, ok := res.Primary.Attributes["team_id"]; ok && v != "" {
 			args.Team = converter.String(v)
 		}
 
@@ -324,7 +418,7 @@ func importDashboardId(resourceType string) resource.ImportStateIdFunc {
 	return func(s *terraform.State) (string, error) {
 		if res, ok := s.RootModule().Resources[resourceType]; ok {
 			projectId := res.Primary.Attributes["project_id"]
-			if teamId, ok := res.Primary.Attributes["team_id"]; ok {
+			if teamId, ok := res.Primary.Attributes["team_id"]; ok && teamId != "" {
 				return fmt.Sprintf("%s/%s/%s", projectId, teamId, res.Primary.ID), nil
 			}
 			return fmt.Sprintf("%s/%s", projectId, res.Primary.ID), nil
