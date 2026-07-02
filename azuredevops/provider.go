@@ -21,7 +21,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/feed"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/graph"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
@@ -193,7 +192,7 @@ func Provider() *schema.Provider {
 			"betterado_descriptor":       graph.DataDescriptor(),
 			"betterado_environment":      taskagent.DataEnvironment(),
 			"betterado_feed":             feed.DataFeed(),
-			"betterado_git_repositories": git.DataGitRepositories(),
+			// "betterado_git_repositories" data source migrated to terraform-plugin-framework (framework_provider.go)
 			// "betterado_git_repository" data source migrated to terraform-plugin-framework (framework_provider.go)
 			// "betterado_git_repository_file" data source migrated to terraform-plugin-framework (framework_provider.go)
 			"betterado_group":                                 graph.DataGroup(),

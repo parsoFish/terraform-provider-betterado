@@ -222,5 +222,6 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseFolderDataSource,
 		git.NewGitRepositoryDataSource,     // migrated from SDKv2
 		git.NewGitRepositoryFileDataSource, // migrated from SDKv2
+		git.NewGitRepositoriesDataSource,   // migrated from SDKv2
 	}
 }

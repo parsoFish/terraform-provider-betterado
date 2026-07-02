@@ -170,7 +170,7 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_descriptor",
 		"betterado_environment",
 		"betterado_feed",
-		"betterado_git_repositories",
+		// "betterado_git_repositories" data source migrated to terraform-plugin-framework provider
 		// "betterado_git_repository" data source migrated to terraform-plugin-framework provider
 		// "betterado_git_repository_file" data source migrated to terraform-plugin-framework provider
 		"betterado_group",
