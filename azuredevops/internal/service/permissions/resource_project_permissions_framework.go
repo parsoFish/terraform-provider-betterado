@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
@@ -76,7 +77,10 @@ func (r *projectPermissionsFrameworkResource) Schema(_ context.Context, _ resour
 			"permissions": schema.MapAttribute{
 				Required:    true,
 				ElementType: types.StringType,
-				Description: "Map of permission bit names to `allow`, `deny`, or `notset`.",
+				Description: "Map of permission bit names to `allow`, `deny`, or `notset` (case-insensitive; stored lowercase).",
+				PlanModifiers: []planmodifier.Map{
+					ppNormalizePermissionsCase(),
+				},
 			},
 			"replace": schema.BoolAttribute{
 				Optional:    true,
@@ -415,4 +419,56 @@ func (d ppStaticBoolDefault) MarkdownDescription(ctx context.Context) string {
 
 func (d ppStaticBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(d.value)
+}
+
+// ppNormalizePermissionsCase returns a Map plan modifier that normalises permission
+// values to lowercase so that config using "Deny"/"Allow"/"NotSet" (title-case,
+// which ADO documentation shows) and config using "deny"/"allow"/"notset" produce
+// the same plan.  GetPrincipalPermissions returns PermissionTypeValues.Allow/Deny/NotSet
+// which are lowercase strings, so normalising the plan to lowercase prevents a
+// perpetual non-empty plan whenever the config uses title-case values.
+func ppNormalizePermissionsCase() planmodifier.Map {
+	return ppNormalizePermissionsCaseModifier{}
+}
+
+type ppNormalizePermissionsCaseModifier struct{}
+
+func (m ppNormalizePermissionsCaseModifier) Description(_ context.Context) string {
+	return "Normalises permission values to lowercase for idempotent comparison."
+}
+
+func (m ppNormalizePermissionsCaseModifier) MarkdownDescription(ctx context.Context) string {
+	return m.Description(ctx)
+}
+
+func (m ppNormalizePermissionsCaseModifier) PlanModifyMap(ctx context.Context, req planmodifier.MapRequest, resp *planmodifier.MapResponse) {
+	if req.PlanValue.IsNull() || req.PlanValue.IsUnknown() {
+		return
+	}
+
+	elems := req.PlanValue.Elements()
+	normalised := make(map[string]attr.Value, len(elems))
+	changed := false
+	for k, v := range elems {
+		sv, ok := v.(types.String)
+		if !ok {
+			normalised[k] = v
+			continue
+		}
+		lower := strings.ToLower(sv.ValueString())
+		if lower != sv.ValueString() {
+			changed = true
+		}
+		normalised[k] = types.StringValue(lower)
+	}
+
+	if !changed {
+		return
+	}
+
+	newMap, diags := types.MapValue(types.StringType, normalised)
+	resp.Diagnostics.Append(diags...)
+	if !resp.Diagnostics.HasError() {
+		resp.PlanValue = newMap
+	}
 }
