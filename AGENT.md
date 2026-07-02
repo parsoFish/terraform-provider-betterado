@@ -73,6 +73,19 @@ Error: creating project: Failed to add a project as this organization already ha
 - `_ = err` does NOT satisfy golangci-lint's `nilerr` checker — must use actual conditional logic
 - Creating a new ADO project in the test — the org is at 1000-project cap; any create fails immediately
 
+### Iteration 3 (idempotency fix)
+
+**Gate failure**: `TestAccProjectPermissionsFramework` passed step 1 (apply) but then the idempotency re-plan showed a non-empty plan:
+```
+~ "DELETE" = "deny" -> "Deny"
+```
+
+**Root cause**: Config used title-case `"Deny"`, `"Allow"`, `"NotSet"`. After apply, Read stored lowercase `"deny"` (from `PermissionTypeValues.Deny`). Plan compared state `"deny"` vs config `"Deny"` → non-empty plan. SDKv2 handled this with `DiffSuppressFunc: suppress.CaseDifference` in baseSchema.go. The framework resource had no such normalization.
+
+**Fix**: Added `ppNormalizePermissionsCase()` plan modifier to the `permissions` MapAttribute. It lowercases all values in the plan so `"Deny"` → `"deny"` at plan time. State always stores lowercase. Plan matches state → idempotent.
+
+**Also updated**: `TestCheckResourceAttr` assertions in `resource_permissions_framework_test.go` to expect lowercase values (`"deny"` not `"Deny"`).
+
 ## Open questions
 
 - AC2 and AC3 require all 13 resources migrated. Only project_permissions done so far. Gate only checks `TestAccProjectPermissionsFramework` so AC1 drives the gate, but next iteration should migrate remaining 12 if time permits.

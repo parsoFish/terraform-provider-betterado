@@ -6,6 +6,7 @@
   - resource_project_permissions_framework.go created ✓
   - resource_permissions_framework_test.go with TestAccProjectPermissionsFramework created ✓
   - **Iteration 2**: Fixed 1000-project cap by using resolveProjectPermissionsFixtureProject (existing project) instead of creating a new project ✓
+  - **Iteration 3**: Fixed idempotency — added ppNormalizePermissionsCase() plan modifier so title-case config ("Deny") normalizes to lowercase ("deny") matching state from GetPrincipalPermissions; updated TestCheckResourceAttr assertions to expect lowercase ✓
   - gate: `go test -tags all -run TestAccProjectPermissionsFramework ./azuredevops/internal/acceptancetests/` — compiles and skips cleanly offline; needs live TF_ACC pass
 
 - [x] AC2 (partial — project_permissions only): betterado_project_permissions deregistered from SDKv2 ResourcesMap and added to framework Resources(); provider_test.go updated; TestProvider_HasChildResources passes
