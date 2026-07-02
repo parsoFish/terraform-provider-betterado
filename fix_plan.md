@@ -6,6 +6,7 @@
   - Implementation: resource_security_permissions_framework.go + 3 data source framework files
   - Test: resource_security_permissions_framework_test.go (TestAccSecurityPermissionsFramework with mux factory, idempotency step, CaptureLiveEvidence)
   - **Iteration 2 fix (commit 930af1f8):** replaced project creation with SharedReleaseFixture (avoids 1000-project cap); replaced CheckProjectDestroyed (nil-Meta panic on mux) with local checkSecurityPermissionsFrameworkDestroyed using getDirectClient(); replaced betterado_identity_group with betterado_group (descriptor attr)
+  - **Iteration 3 fix (commit 4772ff30):** SharedReleaseFixture itself calls QueueCreateProject when betterado-standing-demo doesn't exist → fails at 1000-cap. Replaced entirely with resolveSecurityPermissionsFixtureProject: prefers GetProject(standing-demo), falls back to GetProjects first-WellFormed-project — NEVER calls QueueCreateProject.
   - **Pending: live gate (TF_ACC=1) run to confirm pass**
 
 - [x] AC2: GIVEN betterado_security_permissions is registered in framework_provider.go and REMOVED from provider.go ResourcesMap WHEN provider compiles and TestProvider_HasChildResources runs THEN no duplicate-resource-type error; the resource is absent from the SDKv2 ResourcesMap count and present in the framework Resources() slice

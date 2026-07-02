@@ -70,6 +70,22 @@ Root cause of live gate failure (from `.forge/last-gate-failure.md`):
 - `betterado_group` data source uses `descriptor` attr (= the resource ID); `betterado_identity_group` uses `subject_descriptor`
 - `SharedReleaseFixture` skips automatically when `TF_ACC` is unset (line 79-81 in `shared_fixtures.go`)
 
+## Iteration 3 (fix, commit 4772ff30)
+
+Root cause of live gate failure (iteration 2):
+- `SharedReleaseFixture` calls `resolveOrCreateFixtureProject` which tries GetProject("betterado-standing-demo").
+- If that project doesn't exist in this org, it falls through to `QueueCreateProject` → fails at 1000-project cap.
+
+### Fix applied:
+- Replaced `SharedReleaseFixture(t)` entirely with `resolveSecurityPermissionsFixtureProject(t)`.
+- New helper: tries `GetProject("betterado-standing-demo")` first (fast path); if that fails, falls back to `GetProjects(WellFormed)` and picks the first project.
+- NEVER calls `QueueCreateProject` — zero project-creation path.
+- Only needs a `ProjectID` string; the full release fixture (repo, build def, vg, release def) was overkill.
+
+### Key pattern for this iteration:
+- `SharedReleaseFixture` is the WRONG fixture for tests that only need a project ID. It provisions an entire release pipeline and tries to create the project if it doesn't exist.
+- Use `resolveSecurityPermissionsFixtureProject` (or a similar minimal helper) for tests that just need an existing project.
+
 ## Open questions
 
 _(none)_
