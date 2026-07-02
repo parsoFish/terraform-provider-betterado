@@ -19,6 +19,13 @@
 - [x] `golangci-lint run --new-from-rev=main` → 0 issues
 - [x] `make terrafmt-check` passes
 
+## Sub-tasks completed (iteration 1)
+
+- [x] Fixed idempotency diff (AC1): Read() now writes `types.StringNull()` for org-scoped feeds (not `""`). Empty string ≠ null in terraform-plugin-framework; the diff triggered requiresReplace on project_id → perpetual destroy+recreate.
+- [x] Fixed TestAccFeedFramework_withProject (AC2): now uses `data "betterado_project"` against `SharedFixtureProjectName` ("betterado-standing-demo") instead of `resource "betterado_project"` — avoids project-create failure at the 1000-project org cap.
+- [x] Introduced `nilIfEmpty(s)` helper in resource_feed_framework.go to pass `nil` (not `""`) to all ADO API calls for org-scoped feeds.
+- [x] Introduced `nilIfEmptyStr(s)` helper in the test file for the same reason.
+
 ## Pending (needs live gate)
 
-- [ ] Live TF_ACC run to confirm acceptance tests actually pass end-to-end
+- [ ] Live TF_ACC run to confirm both acceptance tests pass end-to-end
