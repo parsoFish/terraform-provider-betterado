@@ -1,0 +1,176 @@
+//go:build (all || resource_feed) && !exclude_feed
+
+package acceptancetests
+
+import (
+	"fmt"
+	"os"
+	"strings"
+	"testing"
+
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	feedapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/feed"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+)
+
+// TestAccFeedFramework_basic verifies the betterado_feed resource (framework
+// path) for an org-scoped feed: create → read-back with name and id set →
+// idempotency re-plan → destroy.
+func TestAccFeedFramework_basic(t *testing.T) {
+	feedName := testutils.GenerateResourceName()
+	tfNode := "betterado_feed.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFeedFrameworkDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclFeedFrameworkBasic(feedName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(tfNode, "name", feedName),
+					resource.TestCheckResourceAttrSet(tfNode, "id"),
+					captureFeedFrameworkEvidence(tfNode),
+				),
+			},
+			// Idempotency — no perpetual diff.
+			{
+				Config:             hclFeedFrameworkBasic(feedName),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+// TestAccFeedFramework_withProject verifies the betterado_feed resource
+// (framework path) for a project-scoped feed: create → read-back with name,
+// id and project_id set → idempotency re-plan → destroy.
+func TestAccFeedFramework_withProject(t *testing.T) {
+	feedName := testutils.GenerateResourceName()
+	projectName := testutils.GenerateResourceName()
+	tfNode := "betterado_feed.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFeedFrameworkDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: hclFeedFrameworkWithProject(projectName, feedName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(tfNode, "name", feedName),
+					resource.TestCheckResourceAttrSet(tfNode, "id"),
+					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
+				),
+			},
+			// Idempotency — no perpetual diff.
+			{
+				Config:             hclFeedFrameworkWithProject(projectName, feedName),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+// checkFeedFrameworkDestroyed asserts that no betterado_feed resource remains
+// after destroy. Uses getDirectClient() (same as task group tests) because the
+// mux provider does not wire the SDKv2 meta singleton.
+func checkFeedFrameworkDestroyed(s *terraform.State) error {
+	clients, err := getDirectClient()
+	if err != nil {
+		return fmt.Errorf("getting direct client: %v", err)
+	}
+
+	for _, res := range s.RootModule().Resources {
+		if res.Type != "betterado_feed" {
+			continue
+		}
+		id := res.Primary.ID
+		projectID := res.Primary.Attributes["project_id"]
+
+		_, err := clients.FeedClient.GetFeed(clients.Ctx, feedapi.GetFeedArgs{
+			FeedId:  &id,
+			Project: &projectID,
+		})
+		if err == nil {
+			return fmt.Errorf("feed (ID: %s) should not exist after destroy", id)
+		}
+	}
+	return nil
+}
+
+// captureFeedFrameworkEvidence performs a real live API GET of the created feed
+// and persists the response as forge demo live-evidence. Best-effort: a capture
+// failure never fails the test.
+func captureFeedFrameworkEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		feedID := res.Primary.ID
+		projectID := res.Primary.Attributes["project_id"]
+
+		clients, err := getFeedDirectClient()
+		if err != nil {
+			return nil // best-effort
+		}
+
+		feedDetail, err := clients.FeedClient.GetFeed(clients.Ctx, feedapi.GetFeedArgs{
+			FeedId:  &feedID,
+			Project: &projectID,
+		})
+		if err != nil || feedDetail == nil {
+			return nil
+		}
+
+		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+		var url string
+		if projectID != "" {
+			url = fmt.Sprintf("%s/%s/_apis/packaging/feeds/%s?api-version=7.1", orgURL, projectID, feedID)
+		} else {
+			url = fmt.Sprintf("%s/_apis/packaging/feeds/%s?api-version=7.1", orgURL, feedID)
+		}
+
+		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, feedDetail)
+		return nil
+	}
+}
+
+// getFeedDirectClient builds an AggregatedClient directly from AZDO env vars.
+// Used because ProtoV6ProviderFactories does not wire the SDKv2 singleton Meta.
+func getFeedDirectClient() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+}
+
+func hclFeedFrameworkBasic(name string) string {
+	return fmt.Sprintf(`
+resource "betterado_feed" "test" {
+  name = %q
+}
+`, name)
+}
+
+func hclFeedFrameworkWithProject(projectName, feedName string) string {
+	return fmt.Sprintf(`
+resource "betterado_project" "test" {
+  name               = %[1]q
+  description        = "Acceptance test project for feed framework"
+  visibility         = "private"
+  version_control    = "Git"
+  work_item_template = "Agile"
+}
+
+resource "betterado_feed" "test" {
+  name       = %[2]q
+  project_id = betterado_project.test.id
+}
+`, projectName, feedName)
+}
