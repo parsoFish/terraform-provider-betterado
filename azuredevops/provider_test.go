@@ -49,7 +49,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_group_membership",
 		"betterado_iteration_permissions",
 		"betterado_library_permissions",
-		"betterado_pipeline_authorization",
+		// betterado_pipeline_authorization is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_project",
 		"betterado_project_features",
 		"betterado_project_permissions",
@@ -66,7 +67,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_repository_policy_max_file_size",
 		"betterado_repository_policy_max_path_length",
 		"betterado_repository_policy_reserved_names",
-		"betterado_resource_authorization",
+		// betterado_resource_authorization is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_security_permissions",
 		"betterado_securityrole_assignment",
 		"betterado_serviceendpoint_generic_v2",

@@ -209,6 +209,8 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		permissions.NewReleaseDefinitionPermissionsResource,
 		build.NewBuildFolderResource,
 		build.NewBuildDefinitionResource,
+		build.NewPipelineAuthorizationResource,
+		build.NewResourceAuthorizationResource,
 	}
 }
 
