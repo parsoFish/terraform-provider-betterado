@@ -14,7 +14,18 @@
 - Rewrote acceptance test to use `ProtoV6ProviderFactories` + `GetMuxedProviderFactories()` + `CaptureLiveEvidence` (AC1 ✓)
 - Exported `GetProjectFeatureStatesForEvidence` helper for the acceptance test
 - Fixed gofumpt in resource_project_framework.go
-- `make test` passes; `TestProvider_HasChildResources` passes; offline build clean
+- `TestProvider_HasChildResources` passes (AC2 verified)
+
+## Iteration 2 fix (this iteration)
+
+- Root-caused "Missing Configuration for Required Attribute" for `project_id`:
+  - Bug was in `projectUseStateForUnknown.PlanModifyString` in `resource_project_framework.go`
+  - When no prior state exists (StateValue.IsNull()), the modifier was setting PlanValue = StateValue (null)
+  - This converted unknown → null for `betterado_project.id` during plan
+  - Null then propagated as the config value for `project_id` in betterado_project_features
+  - Framework correctly rejects null for a Required attribute → "Missing Configuration" error
+  - Fix: guard with `if req.StateValue.IsNull() { return }` so unknown remains unknown on first apply
+- Build and golangci-lint pass clean after fix
 
 ## Awaiting
 
