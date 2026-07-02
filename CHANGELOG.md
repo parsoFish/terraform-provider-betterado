@@ -9,6 +9,13 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **`betterado_extension` migrated to terraform-plugin-framework.** The resource
+  now uses the terraform-plugin-framework implementation served through the mux
+  provider. Schema is unchanged (`extension_id`, `publisher_id`, `disabled`,
+  `version`, `extension_name`, `publisher_name`, `scope`); ForceNew behaviour on
+  `extension_id`/`publisher_id` is preserved. Verified by live acceptance tests
+  `TestAccExtension_basic`, `TestAccExtension_complete`, `TestAccExtension_update`.
+
 - **`betterado_dashboard` migrated to terraform-plugin-framework.** The resource
   now uses the terraform-plugin-framework implementation served through the mux
   provider. Schema is unchanged (`project_id`, `team_id`, `name`, `description`,
