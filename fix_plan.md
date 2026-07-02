@@ -7,6 +7,7 @@
   - All tests except TestAccCheckRestAPI_complete and TestAccCheckRestAPI_update were passing (iter 1 gate)
   - Iter 2 fix: resolved "inconsistent result after apply" for timeout/retry_interval/version/id in rest_api
   - Iter 3 fix: resolved nil-Meta panic in TestAccCheckEnvironment — getCheckFromState now builds ADO client from env vars instead of GetProvider().Meta()
+  - Iter 4 fix: switched body/headers/success_criteria/url_suffix/variable_group_name from checkUseStateForUnknown() to Default:staticCheckString("") to prevent Unknown-after-apply; always set to "" in flatten when absent from API
   - Pending: live gate confirmation
 - [x] AC2: GIVEN the framework migration is applied WHEN provider.go is inspected THEN all 6 check resources are removed from ResourcesMap (SDKv2) and added to framework_provider.go Resources()
   - All 6 removed from provider.go SDKv2 ResourcesMap

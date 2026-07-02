@@ -10,7 +10,29 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 _(updated by each iteration — most recent at the top)_
 
-### Iteration 3 (current)
+### Iteration 4 (current)
+
+**Problem**: Gate failure (iter 3) showed TestAccCheckRestAPI_complete and TestAccCheckRestAPI_update still failing with:
+`Error: Provider returned invalid result object after apply` — unknown values for: body, headers, success_criteria, url_suffix, variable_group_name.
+
+**Root cause**: These Optional+Computed fields used `checkUseStateForUnknown()` plan modifier. On create (no prior state), this leaves the plan value as `Unknown`. After apply:
+- In the basic test (fields not in config): API doesn't return them → flattenRestAPIFW didn't set them → model kept Unknown value → state had Unknown → error.
+- In the complete test (fields in config): plan had concrete values from config, but if API echoes them inconsistently, they could remain Unknown (though likely the fix for basic also resolves complete since the API probably returns them for complete test).
+
+**Fix applied** (commit `ae77dfd4`):
+- Changed `body`, `headers`, `success_criteria`, `url_suffix`, `variable_group_name` from `checkUseStateForUnknown()` plan modifier to `Default: staticCheckString("")`.
+- Updated `flattenRestAPIFW` to always set these fields to `""` (empty string) when absent from API response (instead of leaving model value unchanged).
+- When settings map is nil, all 5 optional fields are set to `""`.
+- `variable_group_name` has explicit else branch: set to `""` when `linkedVariableGroup` not in settings.
+- Before reading inputs, pre-initialize headers/body/successCriteria/urlSuffix to `""`.
+
+**Why Default is better than UseStateForUnknown for these fields**:
+- These fields are Optional — when user doesn't configure them, API returns empty (absent from inputs map).
+- The API round-trip is: user omits → API doesn't store → API doesn't return → state = "".
+- Default="" ensures plan is always concrete (""), state is always known. No Unknown-after-apply.
+- SDKv2 handled this by retaining plan values in optional fields; Framework requires explicit always-known values.
+
+### Iteration 3
 
 **Problem**: Gate failure (iter 2) showed `TestAccCheckEnvironment` panicking with:
 `interface conversion: interface {} is nil, not *client.AggregatedClient`
@@ -63,6 +85,8 @@ _(updated by each iteration — most recent at the top)_
 ## What worked
 
 - `Default` on Optional+Computed fields prevents "inconsistent result after apply" when the API always returns a concrete value for those fields.
+- `Default: staticCheckString("")` for Optional+Computed string fields that the API may not return: plan is always concrete, state is always known. Better than UseStateForUnknown for fields that don't round-trip through the API.
+- Always set Optional+Computed string fields to a concrete value (not null, not unknown) in flatten — either the API value or ""/0 when absent.
 - Plan modifier null-guard (check `req.StateValue.IsNull()`) prevents converting Unknown→null for Computed-only fields on create.
 - `staticCheckInt64(v)` helper (patterned after existing `staticCheckBool`, `staticCheckString`) works for Int64 defaults.
 - Build ADO client from env vars directly in testutils verify functions when tests use `GetMuxedProviderFactories()` — avoids nil `GetProvider().Meta()` panic (same pattern used in `shared_fixtures.go`).
@@ -70,6 +94,7 @@ _(updated by each iteration — most recent at the top)_
 ## What didn't work
 
 - Original `checkUseStateForUnknownInt64Val()` on Optional+Computed `timeout` / `retry_interval` without a Default: on create, plan was null, API returned non-null → "inconsistent result".
+- `checkUseStateForUnknown()` on Optional+Computed string fields (body/headers/url_suffix/success_criteria/variable_group_name) that the ADO API may not return: on create, plan was Unknown; after apply, if API doesn't return them, state had Unknown → "Provider returned invalid result object after apply".
 
 ## Open questions
 
