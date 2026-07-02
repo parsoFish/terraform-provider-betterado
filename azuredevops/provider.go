@@ -54,7 +54,7 @@ func Provider() *schema.Provider {
 			// betterado_build_definition is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_build_definition_permissions":     permissions.ResourceBuildDefinitionPermissions(),
+			"betterado_build_definition_permissions": permissions.ResourceBuildDefinitionPermissions(),
 			// betterado_build_folder is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
@@ -86,24 +86,24 @@ func Provider() *schema.Provider {
 			// betterado_pipeline_authorization is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_project":                         core.ResourceProject(),
-			"betterado_project_features":                core.ResourceProjectFeatures(),
-			"betterado_project_permissions":             permissions.ResourceProjectPermissions(),
-			"betterado_project_pipeline_settings":       core.ResourceProjectPipelineSettings(),
-			"betterado_project_tags":                    core.ResourceProjectTag(),
+			"betterado_project":                   core.ResourceProject(),
+			"betterado_project_features":          core.ResourceProjectFeatures(),
+			"betterado_project_permissions":       permissions.ResourceProjectPermissions(),
+			"betterado_project_pipeline_settings": core.ResourceProjectPipelineSettings(),
+			"betterado_project_tags":              core.ResourceProjectTag(),
 			// betterado_release_definition_permissions is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
 			// betterado_release_folder is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_repository_policy_author_email_pattern":      repository.ResourceRepositoryPolicyAuthorEmailPatterns(),
-			"betterado_repository_policy_case_enforcement":          repository.ResourceRepositoryEnforceConsistentCase(),
-			"betterado_repository_policy_check_credentials":         repository.ResourceRepositoryPolicyCheckCredentials(),
-			"betterado_repository_policy_file_path_pattern":         repository.ResourceRepositoryFilePathPatterns(),
-			"betterado_repository_policy_max_file_size":             repository.ResourceRepositoryMaxFileSize(),
-			"betterado_repository_policy_max_path_length":           repository.ResourceRepositoryMaxPathLength(),
-			"betterado_repository_policy_reserved_names":            repository.ResourceRepositoryReservedNames(),
+			"betterado_repository_policy_author_email_pattern": repository.ResourceRepositoryPolicyAuthorEmailPatterns(),
+			"betterado_repository_policy_case_enforcement":     repository.ResourceRepositoryEnforceConsistentCase(),
+			"betterado_repository_policy_check_credentials":    repository.ResourceRepositoryPolicyCheckCredentials(),
+			"betterado_repository_policy_file_path_pattern":    repository.ResourceRepositoryFilePathPatterns(),
+			"betterado_repository_policy_max_file_size":        repository.ResourceRepositoryMaxFileSize(),
+			"betterado_repository_policy_max_path_length":      repository.ResourceRepositoryMaxPathLength(),
+			"betterado_repository_policy_reserved_names":       repository.ResourceRepositoryReservedNames(),
 			// betterado_resource_authorization is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
