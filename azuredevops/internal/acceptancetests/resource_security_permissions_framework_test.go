@@ -10,7 +10,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 // TestAccSecurityPermissionsFramework exercises the terraform-plugin-framework
@@ -21,14 +25,20 @@ import (
 //  3. idempotency — re-plan produces no diff (ExpectNonEmptyPlan: false)
 //  4. destroy — cleans up cleanly
 //
-// Uses SharedReleaseFixture to obtain a pre-existing persistent project
-// (betterado-standing-demo) so no new ADO project is created — the org is at
-// the 1000-project cap, so any project-create attempt would fail immediately.
+// Uses resolveSecurityPermissionsFixtureProject to obtain an existing project
+// without creating any new ADO project — the org is at the 1000-project cap,
+// so any project-create attempt would fail immediately.
 func TestAccSecurityPermissionsFramework(t *testing.T) {
-	fixture := SharedReleaseFixture(t)
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set; skipping live fixture")
+	}
+
+	testutils.PreCheck(t, nil)
+
+	projectID := resolveSecurityPermissionsFixtureProject(t)
 	tfNodePermissions := "betterado_security_permissions.fw_permissions"
 
-	config := hclSecurityPermissionsFramework(fixture.ProjectID)
+	config := hclSecurityPermissionsFramework(projectID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
@@ -61,14 +71,61 @@ func TestAccSecurityPermissionsFramework(t *testing.T) {
 	})
 }
 
+// resolveSecurityPermissionsFixtureProject returns the ID of an existing ADO
+// project without creating a new one. It prefers the shared fixture project
+// (betterado-standing-demo) and falls back to the first WellFormed project in
+// the org — so the test runs even when the persistent project does not yet exist
+// (as long as any project exists in the org, which is always true at 1000-cap).
+func resolveSecurityPermissionsFixtureProject(t *testing.T) string {
+	t.Helper()
+
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	authProvider := azuredevops.NewAuthProviderPAT(pat)
+	clients, err := client.GetAzdoClient(authProvider, orgURL)
+	if err != nil {
+		t.Fatalf("resolveSecurityPermissionsFixtureProject: GetAzdoClient: %v", err)
+	}
+
+	// Prefer the canonical shared fixture project if it already exists.
+	if existing, err := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
+		ProjectId: converter.String(SharedFixtureProjectName),
+	}); err == nil && existing != nil && existing.Id != nil {
+		return existing.Id.String()
+	}
+
+	// Fall back: pick the first WellFormed project in the org.
+	// At the 1000-project cap there are always projects available; we just need
+	// one whose "Project" security namespace we can read.
+	resp, err := clients.CoreClient.GetProjects(clients.Ctx, core.GetProjectsArgs{
+		StateFilter: converter.ToPtr(core.ProjectStateValues.WellFormed),
+	})
+	if err != nil {
+		t.Fatalf("resolveSecurityPermissionsFixtureProject: GetProjects: %v", err)
+	}
+	for _, p := range resp.Value {
+		if p.Id != nil && !keepProjects[*p.Name] {
+			return p.Id.String()
+		}
+	}
+	// keepProjects entries are also valid — use the first available project of any kind.
+	for _, p := range resp.Value {
+		if p.Id != nil {
+			return p.Id.String()
+		}
+	}
+	t.Fatalf("resolveSecurityPermissionsFixtureProject: no WellFormed project found in org")
+	return ""
+}
+
 // hclSecurityPermissionsFramework builds HCL that:
 // 1. Uses the framework betterado_security_namespace data source to get the Project namespace ID
 // 2. Uses the framework betterado_security_namespace_token data source to build the token
-// 3. Uses data.betterado_group to find the Readers group in the shared fixture project
+// 3. Uses data.betterado_group to find the Readers group in the fixture project
 // 4. Creates betterado_security_permissions with the framework resource
 //
-// Uses a pre-existing shared project (via SharedReleaseFixture) to avoid the
-// 1000-project cap. No betterado_project resource is created here.
+// Uses a pre-existing project (via resolveSecurityPermissionsFixtureProject) to
+// avoid the 1000-project cap. No betterado_project resource is created here.
 func hclSecurityPermissionsFramework(projectID string) string {
 	return fmt.Sprintf(`
 data "betterado_security_namespace" "project_ns" {
