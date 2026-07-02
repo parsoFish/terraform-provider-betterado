@@ -7,6 +7,52 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_security_permissions` migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux
+  provider. Schema is unchanged (`namespace_id`, `token`, `principal`,
+  `permissions`, `replace`). Supports full ACL management via the Azure DevOps
+  Security REST API with idempotent apply. Verified by live acceptance test
+  `TestAccSecurityPermissionsFramework`.
+
+- **`betterado_security_namespace` data source migrated to terraform-plugin-framework.**
+  Reads a security namespace by `id` or `name`; returns `display_name` and an
+  `actions` list with `name`, `display_name`, and `bit` per permission action.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataSecurityNamespaceFramework`.
+
+- **`betterado_security_namespace_token` data source migrated to terraform-plugin-framework.**
+  Generates a scoped security token for a given namespace and set of resource
+  identifiers (`project_id`, `repository_id`, etc.); also supports
+  `return_identifier_info` mode to discover required and optional identifiers.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataSecurityNamespaceFramework`.
+
+- **`betterado_security_namespaces` data source migrated to terraform-plugin-framework.**
+  Lists all available security namespaces in the Azure DevOps organisation;
+  exposes a `namespaces` set with full namespace metadata per entry.
+  Served through the mux provider.
+
+- **`betterado_securityrole_assignment` migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux
+  provider. Schema is unchanged (`scope`, `resource_id`, `identity_id`,
+  `role_name`). Handles ADO inherited-access after delete. Verified by live
+  acceptance test `TestAccSecurityroleAssignmentFramework`.
+
+- **`betterado_securityrole_definitions` data source migrated to terraform-plugin-framework.**
+  Reads all security role definitions for a given `scope`; exposes a
+  `definitions` set with `name`, `display_name`, `description`, `identifier`,
+  `scope`, `allow_permissions`, and `deny_permissions` per entry.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataSecurityroleDefinitionsFramework`.
+
+- **`betterado_project_permissions` migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux
+  provider. Schema is unchanged (`project_id`, `principal`, `permissions`,
+  `replace`). Verified by live acceptance test
+  `TestAccProjectPermissionsFramework`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

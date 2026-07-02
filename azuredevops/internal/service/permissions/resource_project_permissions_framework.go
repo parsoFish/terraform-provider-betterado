@@ -416,4 +416,3 @@ func (d ppStaticBoolDefault) MarkdownDescription(ctx context.Context) string {
 func (d ppStaticBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(d.value)
 }
-
