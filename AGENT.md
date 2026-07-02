@@ -10,7 +10,30 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 _(updated by each iteration — most recent at the top)_
 
-### Iteration 4 (current)
+### Iteration 5 (current)
+
+**Problems**: Gate failure (iter 4) showed two classes of failures:
+
+1. `TestAccCheckRestAPI_update` (step 2): `.version: was cty.NumberIntVal(1), but now cty.NumberIntVal(2)` — the plan had version=1 (preserved by UseStateForUnknown), but after update the ADO API returned version=2 (it always increments on every write).
+
+2. `TestAccCheckRequiredTemplate_update` and `TestAccCheckBranchControl_complete`: "Service connection with name serviceendpoint already exists" — all 5 check test files used hardcoded `"serviceendpoint"` as the service endpoint name, causing name collisions when tests run in parallel.
+
+**Fix 1: version plan modifier** (commit `c9d4bb01`):
+- Added `checkVersionPlanModifierFn()` / `checkVersionPlanModifier` to `framework_helpers.go`
+- Uses `tftypes.Value` comparison of the full plan vs state (excluding the version attr itself)
+- On no-op re-plan (all other attrs unchanged): preserves state version → idempotency maintained
+- On actual update (any other attr changed): keeps version as Unknown → ADO API's incremented value accepted without conflict
+- `tftypes.Value` uses `IsKnown()` (not `IsUnknown()`) and `.As(&map[string]tftypes.Value{})` for object traversal
+- Applied to all 6 check framework resources (approval, branch_control, business_hours, exclusive_lock, required_template, rest_api)
+
+**Fix 2: generated service endpoint names** (same commit):
+- All 5 test files (approval, branch_control, business_hours, exclusive_lock, required_template) updated to call `testutils.GenerateResourceName()` for service endpoint names
+- Added `serviceEndpointName` param to all HCL helper functions; threaded through each `betterado_serviceendpoint_generic` resource
+- For multi-step tests (update): same `serviceEndpointName` used in both steps (endpoint stays the same; only the check resource changes)
+
+**Why branches NOT in gate failure (iter 4)**: The branch_control_complete and required_template_update tests fail at step 1 with serviceendpoint collision — they never reach step 2 where version inconsistency would manifest. Once collision is fixed, version inconsistency would have become visible for these too.
+
+### Iteration 4 (prior)
 
 **Problem**: Gate failure (iter 3) showed TestAccCheckRestAPI_complete and TestAccCheckRestAPI_update still failing with:
 `Error: Provider returned invalid result object after apply` — unknown values for: body, headers, success_criteria, url_suffix, variable_group_name.
@@ -90,6 +113,9 @@ _(updated by each iteration — most recent at the top)_
 - Plan modifier null-guard (check `req.StateValue.IsNull()`) prevents converting Unknown→null for Computed-only fields on create.
 - `staticCheckInt64(v)` helper (patterned after existing `staticCheckBool`, `staticCheckString`) works for Int64 defaults.
 - Build ADO client from env vars directly in testutils verify functions when tests use `GetMuxedProviderFactories()` — avoids nil `GetProvider().Meta()` panic (same pattern used in `shared_fixtures.go`).
+- `checkVersionPlanModifierFn()`: uses `tftypes.Value` comparison of full plan vs state (excluding version itself) to detect no-op re-plan vs actual update. On no-op: preserves state version for idempotency. On update: keeps Unknown so ADO's post-write incremented version is accepted.
+- `tftypes.Value` API: `IsKnown()` (not `IsUnknown()`), `IsNull()`, `.As(&map[string]tftypes.Value{})` for object traversal, `.Equal()` for comparison.
+- Generate unique service endpoint names in acceptance tests to prevent parallel-test name collisions in shared ADO environments.
 
 ## What didn't work
 
