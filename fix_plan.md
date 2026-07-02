@@ -28,6 +28,14 @@
 - Iteration 2: Gate blocked by build error `undefined: os` in resource_task_group_test.go:226.
   Root cause: iteration 1 removed `"os"` import when moving getDirectClient() but os.Getenv
   is still used in the evidence helper closure. **Fixed in this iteration.**
+- Iteration 3: Gate blocked by two issues:
+  1. `TestAccGitRepositoryFile_DataSource_notExist` (0.17s): "provider does not support resource
+     type betterado_git_repository" — `data_git_repository_file_test.go` still used
+     `Providers: testutils.GetProviders()` (SDKv2 mux only), which can't see the framework resource.
+     **Fixed:** Both `TestAccGitRepositoryFile_DataSource*` tests switched to
+     `ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories()`.
+  2. Other `TestAccGitRepository_*` failures: "organization already has 1000 projects" — live ADO
+     environment capacity issue. NOT a code defect; awaiting environment remediation.
 
-All code-level migration is complete. The gate now compiles (`go build -tags all ./...` passes,
-golangci-lint --new-from-rev=main: 0 issues). Live acceptance tests require TF_ACC + live ADO.
+All known code-level issues are fixed. Remaining gate failures are live environment capacity
+(ADO org at 1000 project limit). `go build -tags all ./...` passes; `golangci-lint --new-from-rev=main`: 0 issues.

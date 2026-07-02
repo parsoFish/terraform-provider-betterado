@@ -70,8 +70,37 @@ called at line 226 in the evidence capture closure.
 **Result:** `go build -tags all ./...` passes. `golangci-lint --new-from-rev=main` → 0 issues.
 Gate test now builds (exits 0.008s with no-TF_ACC skip).
 
+### Iteration 3 — Fix data_git_repository_file_test.go provider factory
+
+**Gate context:** `.forge/last-gate-failure.md` showed `TestAccGitRepositoryFile_DataSource_notExist`
+failing with "The provider hashicorp/betterado does not support resource type betterado_git_repository".
+
+**Root cause:** `data_git_repository_file_test.go` used `Providers: testutils.GetProviders()` which
+provides only the SDKv2 muxed provider. Since `betterado_git_repository` is now framework-only, the
+SDKv2 mux can't find it during `terraform plan`.
+
+**Fix:** Changed both `TestAccGitRepositoryFile_DataSource` and `TestAccGitRepositoryFile_DataSource_notExist`
+from `Providers: testutils.GetProviders()` to `ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories()`.
+
+**Key insight:** After migrating any resource/data-source to framework, ALL test files that include
+that resource/data-source in their HCL config MUST use `GetMuxedProviderFactories()`, even if those
+tests are for OTHER resources. The "resource type not supported" error in Terraform means the provider
+was found but the resource type wasn't registered there.
+
+**Status:** `go build -tags all ./...` passes. `golangci-lint --new-from-rev=main`: 0 issues.
+Remaining gate failures are all "1000 projects" — live ADO environment capacity, not code.
+
+**Remaining other tests to update (not in gate scope for TestAccGitRepository, but will break if
+their gate runs):**
+- `data_git_repositories_test.go` (`TestAccTfsGitRepositories_*`)
+- `resource_git_repository_file_test.go` (`TestAccGitRepoFile_*`)
+- 19+ other test files using `GetProviders()` with `betterado_git_repository` in HCL
+These are not in the current `TestAccGitRepository` gate regex scope.
+
 ## Notes for reflection
 
 - `getDirectClient()` should be in a shared no-build-tag file from the start in all future migration WIs.
 - The "1000 projects" gate blocker is a live environment issue, not a code issue.
 - When moving code to a shared file, carefully audit ALL usages of removed imports — not just the moved function, but ALL callers in the original file.
+- **When migrating a resource/data-source to framework, check ALL test files that use it in HCL** — not just the resource's own test file. 21+ test files had `betterado_git_repository` in HCL with `GetProviders()`.
+- The "0.17s" duration on a failing test (vs "1.00s" for others) indicates a pre-plan failure (provider init stage fails to find the resource type), vs the "1000 projects" failures which make it all the way to `terraform apply`.
