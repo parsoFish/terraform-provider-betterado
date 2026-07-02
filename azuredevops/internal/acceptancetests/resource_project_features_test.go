@@ -1,3 +1,5 @@
+//go:build all
+
 package acceptancetests
 
 import (
@@ -20,8 +22,14 @@ import (
 //
 // It uses GetMuxedProviderFactories so both betterado_project (framework) and
 // betterado_project_features (framework) are available in the same test.
+//
+// The test reuses the persistent standing-demo project (betterado-standing-demo)
+// via a data source rather than creating a new project — the ADO org is at the
+// 1000-project cap, so any project-create attempt fails immediately.
 func TestAccProjectFeatures_roundtrip(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	// Resolve the existing standing-demo project — never creates a new project.
+	projectName := SharedFixtureProjectName
+
 	tfNode := "betterado_project_features.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -87,21 +95,20 @@ func captureProjectFeaturesEvidence(tfNode string) resource.TestCheckFunc {
 	}
 }
 
-func hclProjectFeatureBasic(name, testPlanState, artifactState string) string {
+// hclProjectFeatureBasic returns Terraform HCL that reads the existing
+// standing-demo project via data source and manages its features. No project
+// resource is created — the org is at the 1000-project cap.
+func hclProjectFeatureBasic(projectName, testPlanState, artifactState string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "test" {
+  name = %[1]q
 }
 
 resource "betterado_project_features" "test" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.test.id
   features = {
-    "testplans" = "%[2]s"
-    "artifacts" = "%[3]s"
+    "testplans" = %[2]q
+    "artifacts" = %[3]q
   }
-}`, name, testPlanState, artifactState)
+}`, projectName, testPlanState, artifactState)
 }
