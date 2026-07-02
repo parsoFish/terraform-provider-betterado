@@ -339,96 +339,23 @@ func SharedFixtureProjectID(t *testing.T) string {
 }
 
 // resolveOrCreateFixtureProject returns the shared persistent fixture project.
-// Normally it already exists (it's the standing-demo project) and is reused as-is;
-// the create path is a fallback for a fresh org and NEVER deletes the project (see
-// SharedFixtureProjectName). Creating it would need one free project slot.
+// The project is expected to already exist (it's the standing-demo project that
+// is pre-provisioned on the org and reused across all runs). The create path has
+// been removed because the org is at the 1000-project cap and any QueueCreateProject
+// call will fail — see brain theme 2026-06-20-ado-org-project-limit-blocks-test-creates.
 func resolveOrCreateFixtureProject(t *testing.T, clients *client.AggregatedClient) *core.TeamProject {
 	t.Helper()
 
-	// Reuse the persistent project if it already exists.
-	if existing, err := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
-		ProjectId: converter.String(SharedFixtureProjectName),
-	}); err == nil && existing != nil && existing.Id != nil {
-		return existing
-	}
-
-	// Look up the "Agile" process template ID.
-	processes, err := clients.CoreClient.GetProcesses(clients.Ctx, core.GetProcessesArgs{})
-	if err != nil {
-		t.Fatalf("SharedReleaseFixture: GetProcesses: %v", err)
-	}
-	var processTemplateID string
-	for _, p := range *processes {
-		if p.Name != nil && *p.Name == "Agile" {
-			processTemplateID = p.Id.String()
-			break
-		}
-	}
-	if processTemplateID == "" {
-		t.Fatalf("SharedReleaseFixture: could not find Agile process template")
-	}
-
-	visibility := core.ProjectVisibilityValues.Private
-	vcType := "Git"
-	project := &core.TeamProject{
-		Name:        converter.String(SharedFixtureProjectName),
-		Description: converter.String("Persistent shared fixture project for betterado release acceptance tests — do not delete."),
-		Visibility:  &visibility,
-		Capabilities: &map[string]map[string]string{
-			"versioncontrol": {
-				"sourceControlType": vcType,
-			},
-			"processTemplate": {
-				"templateTypeId": processTemplateID,
-			},
-		},
-	}
-
-	operationRef, err := clients.CoreClient.QueueCreateProject(clients.Ctx, core.QueueCreateProjectArgs{
-		ProjectToCreate: project,
-	})
-	if err != nil {
-		t.Fatalf("SharedReleaseFixture: QueueCreateProject: %v", err)
-	}
-
-	stateConf := &retry.StateChangeConf{
-		ContinuousTargetOccurence: 1,
-		Delay:                     5 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Timeout:                   10 * time.Minute,
-		Pending: []string{
-			string(operations.OperationStatusValues.InProgress),
-			string(operations.OperationStatusValues.Queued),
-			string(operations.OperationStatusValues.NotSet),
-		},
-		Target: []string{
-			string(operations.OperationStatusValues.Failed),
-			string(operations.OperationStatusValues.Succeeded),
-			string(operations.OperationStatusValues.Cancelled),
-		},
-		Refresh: func() (interface{}, string, error) {
-			ret, err := clients.OperationsClient.GetOperation(clients.Ctx, operations.GetOperationArgs{
-				OperationId: operationRef.Id,
-				PluginId:    operationRef.PluginId,
-			})
-			if err != nil {
-				return nil, string(operations.OperationStatusValues.Failed), err
-			}
-			return ret, string(*ret.Status), nil
-		},
-	}
-	if _, err := stateConf.WaitForStateContext(clients.Ctx); err != nil {
-		t.Fatalf("SharedReleaseFixture: waiting for project creation: %v", err)
-	}
-
-	// Fetch the created project by name to obtain its UUID.
-	created, err := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
+	existing, err := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
 		ProjectId: converter.String(SharedFixtureProjectName),
 	})
 	if err != nil {
-		t.Fatalf("SharedReleaseFixture: GetProject after create: %v", err)
+		t.Fatalf("resolveOrCreateFixtureProject: GetProject(%q): %v — the persistent shared project must exist on the org before running acceptance tests", SharedFixtureProjectName, err)
 	}
-	return created
+	if existing == nil || existing.Id == nil {
+		t.Fatalf("resolveOrCreateFixtureProject: GetProject(%q) returned no project — the persistent shared project must exist on the org before running acceptance tests", SharedFixtureProjectName)
+	}
+	return existing
 }
 
 func deleteFixtureProject(clients *client.AggregatedClient, projectID string) error {
