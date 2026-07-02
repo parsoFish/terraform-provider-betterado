@@ -6,6 +6,9 @@
   - Framework files created for all 7 resources
   - Acceptance tests updated to use SharedFixtureProjectID(t) + GetMuxedProviderFactories()
   - No betterado_project creation in tests (avoids 1000-project cap)
+  - FIXED (iteration 1): Added emptyRepoPolicyList() default to repository_ids in all 7 schemas
+    - Root cause: Optional+Computed+no Default → unknown plan value → ElementsAs fails
+    - Fix: Default: emptyRepoPolicyList() makes plan value [] (known), fixing ProjectPolicies tests
   - Awaiting live gate run to confirm full ACC pass
 - [x] AC2: GIVEN the framework migration is applied WHEN provider.go is inspected THEN all 7 repository policy resources are removed from ResourcesMap (SDKv2) and added to framework_provider.go Resources()
   - All 7 removed from provider.go ResourcesMap

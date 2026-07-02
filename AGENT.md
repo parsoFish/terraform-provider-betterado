@@ -64,10 +64,24 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 Defined as `uuid.UUID` variables in `common.go`:
 - `AuthorEmailPattern`, `FilePathPattern`, `CaseEnforcement`, `CheckCredentials`, `ReservedNames`, `PathLength`, `FileSize`
 
+## Iteration 1 fix (2026-07-02)
+
+**Gate failure**: `TestAccRepositoryPolicyFileSize/ProjectPolicies/*` and `TestAccRepositoryPolicyPathLength/ProjectPolicies/*` failed with:
+```
+Received unknown value, however the target type cannot handle unknown values.
+Path:  Target Type: []string  Suggested Type: basetypes.ListValue
+```
+
+**Root cause**: `repository_ids` is `Optional: true, Computed: true` with **no Default**. When the user omits it from config, terraform-plugin-framework marks the plan value as **unknown** (will-be-computed by provider). Then `expandRepositoryIDs` calls `repoIDs.ElementsAs(ctx, &ids, false)` on the unknown list, which fails.
+
+**Fix**: Added `emptyRepoPolicyListDefault` type (implements `defaults.List`) to `framework_helpers.go`. Added `Default: emptyRepoPolicyList()` to `repository_ids` in all 7 resource schemas. Now when omitted from config, plan value is `[]` (known empty list) instead of unknown.
+
+**KEY PATTERN**: For `Optional+Computed` list/set attributes that default to "empty" when not set: ALWAYS add a `Default:` that returns the empty value. Without it, Terraform marks planned value as unknown, causing `ElementsAs` failures. This applies even when the empty default is semantically equivalent to the computed value.
+
 ## Open questions
 
-- Will live ACC tests pass? The local run shows `ok 0.00s` (skipped, no TF_ACC). Gate will run the real tests.
-- `check_credentials` is deprecated by ADO — it may fail if ADO has removed the policy type. The test may need to be skipped if create fails.
+- Will live ACC tests pass after iteration 1 fix? Gate will confirm.
+- `check_credentials` is deprecated by ADO — it may fail if ADO has removed the policy type.
 
 ## Notes for reflection
 
