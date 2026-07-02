@@ -17,7 +17,6 @@ package acceptancetests
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -315,151 +314,26 @@ func gatesStep(queryID string) *releaseapi.ReleaseDefinitionGatesStep {
 const SharedFixtureProjectName = "betterado-standing-demo"
 
 // resolveOrCreateFixtureProject returns the shared persistent fixture project.
-// Normally it already exists (it's the standing-demo project) and is reused as-is;
-// the create path is a fallback for a fresh org and NEVER deletes the project (see
-// SharedFixtureProjectName). Creating it would need one free project slot.
+// It NEVER creates, auto-discovers, or substitutes a project: the fixture is
+// long-lived shared infrastructure (it hosts the standing demo), and any
+// "helpful" fallback turns a missing fixture into live writes against whatever
+// project the fallback picks — on 2026-07-02 an auto-discover fallback ran
+// terraform apply/destroy inside an unrelated real project after the fixture
+// was accidentally soft-deleted. If the lookup fails, fail loudly: the operator
+// restores the project from the ADO recycle bin (28-day retention).
 func resolveOrCreateFixtureProject(t *testing.T, clients *client.AggregatedClient) *core.TeamProject {
 	t.Helper()
 
-	// Reuse the persistent project if it already exists.
-	if existing, err := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
-		ProjectId: converter.String(SharedFixtureProjectName),
-	}); err == nil && existing != nil && existing.Id != nil {
-		return existing
-	}
-
-	// Fallback: GetProject by name can return 404 even when the project exists
-	// in some ADO states (e.g. recently renamed, being provisioned). Search the
-	// full project list as a secondary lookup before attempting to create.
-	if found := searchProjectByName(clients, SharedFixtureProjectName); found != nil {
-		return found
-	}
-
-	// Look up the "Agile" process template ID.
-	processes, err := clients.CoreClient.GetProcesses(clients.Ctx, core.GetProcessesArgs{})
-	if err != nil {
-		t.Fatalf("SharedReleaseFixture: GetProcesses: %v", err)
-	}
-	var processTemplateID string
-	for _, p := range *processes {
-		if p.Name != nil && *p.Name == "Agile" {
-			processTemplateID = p.Id.String()
-			break
-		}
-	}
-	if processTemplateID == "" {
-		t.Fatalf("SharedReleaseFixture: could not find Agile process template")
-	}
-
-	visibility := core.ProjectVisibilityValues.Private
-	vcType := "Git"
-	project := &core.TeamProject{
-		Name:        converter.String(SharedFixtureProjectName),
-		Description: converter.String("Persistent shared fixture project for betterado release acceptance tests — do not delete."),
-		Visibility:  &visibility,
-		Capabilities: &map[string]map[string]string{
-			"versioncontrol": {
-				"sourceControlType": vcType,
-			},
-			"processTemplate": {
-				"templateTypeId": processTemplateID,
-			},
-		},
-	}
-
-	operationRef, err := clients.CoreClient.QueueCreateProject(clients.Ctx, core.QueueCreateProjectArgs{
-		ProjectToCreate: project,
-	})
-	if err != nil {
-		// The ADO org is at its project capacity limit (1000 projects) and the
-		// fixture project doesn't exist. We cannot create it. Skip instead of
-		// failing — this is an environment constraint, not a code defect.
-		// The test would need manual intervention (delete unused projects or use
-		// a different org) before it can run.
-		if strings.Contains(err.Error(), "1000 projects") ||
-			strings.Contains(err.Error(), "project count") ||
-			strings.Contains(err.Error(), "reduce total project count") {
-			t.Skipf("SharedReleaseFixture: cannot create fixture project %q: ADO org is at the 1000-project capacity limit; delete unused projects or use a different org to run live tests: %v", SharedFixtureProjectName, err)
-		}
-		t.Fatalf("SharedReleaseFixture: QueueCreateProject: %v", err)
-	}
-
-	stateConf := &retry.StateChangeConf{
-		ContinuousTargetOccurence: 1,
-		Delay:                     5 * time.Second,
-		MinTimeout:                10 * time.Second,
-		Timeout:                   10 * time.Minute,
-		Pending: []string{
-			string(operations.OperationStatusValues.InProgress),
-			string(operations.OperationStatusValues.Queued),
-			string(operations.OperationStatusValues.NotSet),
-		},
-		Target: []string{
-			string(operations.OperationStatusValues.Failed),
-			string(operations.OperationStatusValues.Succeeded),
-			string(operations.OperationStatusValues.Cancelled),
-		},
-		Refresh: func() (interface{}, string, error) {
-			ret, err := clients.OperationsClient.GetOperation(clients.Ctx, operations.GetOperationArgs{
-				OperationId: operationRef.Id,
-				PluginId:    operationRef.PluginId,
-			})
-			if err != nil {
-				return nil, string(operations.OperationStatusValues.Failed), err
-			}
-			return ret, string(*ret.Status), nil
-		},
-	}
-	if _, err := stateConf.WaitForStateContext(clients.Ctx); err != nil {
-		t.Fatalf("SharedReleaseFixture: waiting for project creation: %v", err)
-	}
-
-	// Fetch the created project by name to obtain its UUID.
-	created, err := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
+	existing, err := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
 		ProjectId: converter.String(SharedFixtureProjectName),
 	})
-	if err != nil {
-		t.Fatalf("SharedReleaseFixture: GetProject after create: %v", err)
+	if err != nil || existing == nil || existing.Id == nil {
+		t.Fatalf("SharedReleaseFixture: fixture project %q not found (%v). "+
+			"DO NOT create, auto-discover, or substitute another project — restore the fixture "+
+			"from the ADO recycle bin (Organization settings → Projects) and re-run.",
+			SharedFixtureProjectName, err)
 	}
-	return created
-}
-
-// searchProjectByName pages through all ADO projects looking for one whose name
-// matches the given name (case-insensitive). Returns the first match as a
-// *core.TeamProject (fetched individually for full detail), or nil if not found.
-// Used as a fallback when GetProject by name returns 404.
-func searchProjectByName(clients *client.AggregatedClient, name string) *core.TeamProject {
-	var continuationToken *int
-	for {
-		resp, err := clients.CoreClient.GetProjects(clients.Ctx, core.GetProjectsArgs{
-			Top:               func() *int { n := 200; return &n }(),
-			ContinuationToken: continuationToken,
-		})
-		if err != nil || resp == nil {
-			return nil
-		}
-		for _, ref := range resp.Value {
-			if ref.Name != nil && strings.EqualFold(*ref.Name, name) {
-				// Re-fetch the full project by its UUID so callers get a
-				// *TeamProject with Capabilities and Id populated.
-				full, err := clients.CoreClient.GetProject(clients.Ctx, core.GetProjectArgs{
-					ProjectId: converter.String(ref.Id.String()),
-				})
-				if err == nil && full != nil {
-					return full
-				}
-				return nil
-			}
-		}
-		if resp.ContinuationToken == "" {
-			return nil
-		}
-		tok, err := strconv.Atoi(resp.ContinuationToken)
-		if err != nil {
-			return nil
-		}
-		continuationToken = &tok
-	}
+	return existing
 }
 
 func deleteFixtureProject(clients *client.AggregatedClient, projectID string) error {
