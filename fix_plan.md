@@ -9,6 +9,10 @@
   - FIXED (iteration 1): Added emptyRepoPolicyList() default to repository_ids in all 7 schemas
     - Root cause: Optional+Computed+no Default → unknown plan value → ElementsAs fails
     - Fix: Default: emptyRepoPolicyList() makes plan value [] (known), fixing ProjectPolicies tests
+  - FIXED (iteration 2): flattenRepositoryIDs returned null list when ids==nil
+    - Root cause: types.ListValueFrom(ctx, StringType, nil) → null list, not empty list
+    - Fix: nil → []string{} guard before ListValueFrom → always returns known empty list
+    - Affected: TestAccRepositoryPolicyFileSize, TestAccRepositoryPolicyPathLength (ProjectPolicies tests)
   - Awaiting live gate run to confirm full ACC pass
 - [x] AC2: GIVEN the framework migration is applied WHEN provider.go is inspected THEN all 7 repository policy resources are removed from ResourcesMap (SDKv2) and added to framework_provider.go Resources()
   - All 7 removed from provider.go ResourcesMap

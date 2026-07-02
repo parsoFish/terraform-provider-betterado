@@ -78,9 +78,23 @@ Path:  Target Type: []string  Suggested Type: basetypes.ListValue
 
 **KEY PATTERN**: For `Optional+Computed` list/set attributes that default to "empty" when not set: ALWAYS add a `Default:` that returns the empty value. Without it, Terraform marks planned value as unknown, causing `ElementsAs` failures. This applies even when the empty default is semantically equivalent to the computed value.
 
+## Iteration 2 fix (2026-07-02)
+
+**Gate failure**: `TestAccRepositoryPolicyFileSize` and `TestAccRepositoryPolicyPathLength` (ProjectPolicies/basic and ProjectPolicies/update) failed with:
+```
+Error: Provider produced inconsistent result after apply
+.repository_ids: was cty.ListValEmpty(cty.String), but now null.
+```
+
+**Root cause**: In `flattenRepositoryIDs`, when the scope from the API is `[{"repositoryId": ""}]` (project-wide policy), the empty repositoryId is filtered out, leaving `ids = nil` (nil slice). Then `types.ListValueFrom(ctx, types.StringType, nil)` returns a **null** list, not an empty list. Terraform sees state had `[]` (empty list), read-back returns `null` — inconsistent result error.
+
+**Fix**: Added `if ids == nil { ids = []string{} }` guard in `flattenRepositoryIDs` before calling `types.ListValueFrom`. This ensures read-back always returns a known empty list `[]` for project-wide policies, consistent with the planned value from `emptyRepoPolicyList()`.
+
+**KEY PATTERN**: When using `types.ListValueFrom` with a potentially nil slice, ALWAYS guard with explicit empty slice initialization. `nil` → `null list`, `[]string{}` → `known empty list`. This is critical for `Optional+Computed` attributes that use `Default: emptyList()` in the schema.
+
 ## Open questions
 
-- Will live ACC tests pass after iteration 1 fix? Gate will confirm.
+- Will live ACC tests pass after iteration 2 fix? Gate will confirm.
 - `check_credentials` is deprecated by ADO — it may fail if ADO has removed the policy type.
 
 ## Notes for reflection
