@@ -95,8 +95,31 @@ func TestAccProject_importByName(t *testing.T) {
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
+			// Step 3 — forget, don't destroy. ImportStatePersist leaves the REAL
+			// standing-demo project in the test state, and the harness always runs
+			// terraform destroy on whatever state remains after the last step — on
+			// 2026-07-02 that soft-deleted the live shared fixture project. A
+			// `removed` block (terraform >= 1.7) drops the project from state
+			// without touching the remote resource, so the post-test destroy has
+			// nothing to delete.
+			{
+				Config: hclProjectRemovedFromState(),
+			},
 		},
 	})
+}
+
+// hclProjectRemovedFromState removes betterado_project.test from state WITHOUT
+// destroying the remote project (see Step 3 of TestAccProject_importByName).
+func hclProjectRemovedFromState() string {
+	return `
+removed {
+  from = betterado_project.test
+
+  lifecycle {
+    destroy = false
+  }
+}`
 }
 
 // hclProjectStandingDemo returns HCL for the standing betterado-standing-demo project
