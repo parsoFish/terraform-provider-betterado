@@ -19,6 +19,26 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
+// preCheckDashboard extends testutils.PreCheck by ensuring the shared
+// fixture project (SharedFixtureProjectName / "betterado-standing-demo")
+// exists, creating it on first use when the org has capacity.  This
+// mirrors the pattern used by SharedReleaseFixture so every dashboard
+// acceptance test can rely on the project being present before Terraform
+// looks it up via the betterado_project data source.
+func preCheckDashboard(t *testing.T) {
+	t.Helper()
+	testutils.PreCheck(t, nil)
+
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	authProvider := azuredevops.NewAuthProviderPAT(pat)
+	clients, err := client.GetAzdoClient(authProvider, orgURL)
+	if err != nil {
+		t.Fatalf("preCheckDashboard: GetAzdoClient: %v", err)
+	}
+	resolveOrCreateFixtureProject(t, clients)
+}
+
 // getDirectDashboardClient builds an AggregatedClient directly from AZDO env vars.
 // Used by CheckDestroy and evidence helpers because ProtoV6ProviderFactories
 // does not wire the SDKv2 provider singleton's Meta, so testutils.GetProvider().Meta()
@@ -83,7 +103,7 @@ func TestAccDashboard_project_basic(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckDashboard(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
@@ -119,7 +139,7 @@ func TestAccDashboard_project_update(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckDashboard(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
@@ -168,7 +188,7 @@ func TestAccDashboard_project_complete(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckDashboard(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
@@ -196,7 +216,7 @@ func TestAccDashboard_team_basic(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckDashboard(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
@@ -230,7 +250,7 @@ func TestAccDashboard_team_update(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckDashboard(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
@@ -283,7 +303,7 @@ func TestAccDashboard_team_complete(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckDashboard(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
@@ -314,7 +334,7 @@ func TestAccDashboard_team_requireImportError(t *testing.T) {
 
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { preCheckDashboard(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
