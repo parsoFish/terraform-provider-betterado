@@ -4,6 +4,7 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
