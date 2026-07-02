@@ -20,7 +20,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_branch_policy_min_reviewers",
 		"betterado_branch_policy_status_check",
 		"betterado_branch_policy_work_item_linking",
-		"betterado_build_definition",
+		// betterado_build_definition is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_build_definition_permissions",
 		// betterado_build_folder is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
@@ -164,11 +165,12 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		// betterado_release_definition_revision, betterado_release_definitions, and
 		// betterado_release_folder have been migrated to the framework provider —
 		// they are no longer registered in the SDKv2 DataSourcesMap.
+		// betterado_build_definition (data source) has also been migrated to the
+		// framework provider and is no longer listed here.
 		"betterado_agent_pool",
 		"betterado_agent_pools",
 		"betterado_agent_queue",
 		"betterado_area",
-		"betterado_build_definition",
 		"betterado_client_config",
 		"betterado_descriptor",
 		"betterado_environment",

@@ -7,6 +7,36 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_build_definition` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux provider.
+  CRUD operations continue to target the Build API. Schema is unchanged (`project_id`,
+  `name`, `path`, `repository`, `variable`, `ci_trigger`, `pull_request_trigger`,
+  `agent_pool_name`, `agent_specification`, `job_authorization_scope`, `queue_status`,
+  `skip_first_run`). Verified by unit test `TestBuildDefinitionFramework_Schema`.
+
+- **`betterado_build_folder` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`project_id`, `path`, `description`). Verified by live
+  acceptance test `TestAccBuildFolder_Framework_basic`.
+
+- **`betterado_pipeline_authorization` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation. Schema is unchanged (`project_id`,
+  `resource_id`, `type`). Verified by live acceptance test
+  `TestAccPipelineAuthorization_Framework_allPipeline_queue`.
+
+- **`betterado_resource_authorization` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation. Schema is unchanged (`project_id`,
+  `resource_id`, `definition_id`, `type`, `authorized`). Verified by unit test.
+
+- **`betterado_build_definition` data source migrated to terraform-plugin-framework.**
+  The data source now uses the framework implementation. Reads a build definition by
+  `project_id`, `name`, and optional `path`; returns `id`, `revision`, `repository`,
+  `ci_trigger`, `pull_request_trigger`, `variable`, `agent_pool_name`,
+  `agent_specification`, `job_authorization_scope`, `queue_status`, and `schedules`.
+  Verified by live acceptance test `TestAccBuildDefinition_Framework_DataSource`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

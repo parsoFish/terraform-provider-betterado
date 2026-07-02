@@ -16,7 +16,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
@@ -52,7 +51,9 @@ func Provider() *schema.Provider {
 			"betterado_branch_policy_min_reviewers":      branch.ResourceBranchPolicyMinReviewers(),
 			"betterado_branch_policy_status_check":       branch.ResourceBranchPolicyStatusCheck(),
 			"betterado_branch_policy_work_item_linking":  branch.ResourceBranchPolicyWorkItemLinking(),
-			"betterado_build_definition":                 build.ResourceBuildDefinition(),
+			// betterado_build_definition is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
 			"betterado_build_definition_permissions":     permissions.ResourceBuildDefinitionPermissions(),
 			// betterado_build_folder is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
@@ -190,11 +191,12 @@ func Provider() *schema.Provider {
 			// betterado_release_definition_revision, betterado_release_definitions, and
 			// betterado_release_folder have been migrated to the terraform-plugin-framework
 			// provider (framework_provider.go) and are no longer registered here.
+			// betterado_build_definition (data source) has also been migrated to the
+			// framework provider (framework_provider.go); it must NOT be listed here.
 			"betterado_agent_pool":                            taskagent.DataAgentPool(),
 			"betterado_agent_pools":                           taskagent.DataAgentPools(),
 			"betterado_agent_queue":                           taskagent.DataAgentQueue(),
 			"betterado_area":                                  workitemtracking.DataArea(),
-			"betterado_build_definition":                      build.DataBuildDefinition(),
 			"betterado_client_config":                         service.DataClientConfig(),
 			"betterado_descriptor":                            graph.DataDescriptor(),
 			"betterado_environment":                           taskagent.DataEnvironment(),
