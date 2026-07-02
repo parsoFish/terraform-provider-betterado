@@ -73,18 +73,32 @@ Error: creating project: Failed to add a project as this organization already ha
 - `_ = err` does NOT satisfy golangci-lint's `nilerr` checker — must use actual conditional logic
 - Creating a new ADO project in the test — the org is at 1000-project cap; any create fails immediately
 
-### Iteration 3 (idempotency fix)
+### Iteration 3 (idempotency fix — WRONG approach)
 
-**Gate failure**: `TestAccProjectPermissionsFramework` passed step 1 (apply) but then the idempotency re-plan showed a non-empty plan:
+**Gate failure (original)**: `TestAccProjectPermissionsFramework` idempotency re-plan showed non-empty plan — config `"Deny"` vs state `"deny"`.
+
+**Attempted fix (WRONG)**: Added `ppNormalizePermissionsCase()` map plan modifier to lowercase plan values. This actually caused the next gate failure.
+
+### Iteration 4 (correct idempotency fix)
+
+**Gate failure from iteration 3's wrong fix**:
 ```
-~ "DELETE" = "deny" -> "Deny"
+Error: Provider produced invalid plan
+planned value cty.MapVal({"DELETE":"deny",...}) does not match config value cty.MapVal({"DELETE":"Deny",...})
 ```
 
-**Root cause**: Config used title-case `"Deny"`, `"Allow"`, `"NotSet"`. After apply, Read stored lowercase `"deny"` (from `PermissionTypeValues.Deny`). Plan compared state `"deny"` vs config `"Deny"` → non-empty plan. SDKv2 handled this with `DiffSuppressFunc: suppress.CaseDifference` in baseSchema.go. The framework resource had no such normalization.
+**Root cause of iteration 3's wrong fix**: The terraform-plugin-framework **forbids** plan modifiers from changing the plan value of **required, non-computed** attributes whose config value is already known. The framework's `map_attribute.go` comment is explicit: *"If the plan value is known due to a known configuration value, the plan value cannot be changed or Terraform will return an error."* This check happens in Terraform core (the CLI), not in the plugin framework itself.
 
-**Fix**: Added `ppNormalizePermissionsCase()` plan modifier to the `permissions` MapAttribute. It lowercases all values in the plan so `"Deny"` → `"deny"` at plan time. State always stores lowercase. Plan matches state → idempotent.
+**Correct fix** (iteration 4):
+1. **Removed** `ppNormalizePermissionsCase()` plan modifier (and dead `attr` import)
+2. **Added** `strings.ToLower(v)` in `applyPermissions()` when building `permMap` — normalizes before sending to securityhelper
+3. **Changed HCL config** to use lowercase `"deny"/"allow"/"notset"` — these match what `GetPrincipalPermissions` returns (`PermissionTypeValues.Deny = "deny"`, always lowercase)
+4. State = lowercase, config = lowercase → no case mismatch → idempotent ✓
 
-**Also updated**: `TestCheckResourceAttr` assertions in `resource_permissions_framework_test.go` to expect lowercase values (`"deny"` not `"Deny"`).
+**Key principle for future framework migrations**:
+- Cannot use map/list plan modifiers to normalize required non-computed attribute values
+- Options for case-insensitive normalization: (a) enforce lowercase in config docs/tests, (b) custom type with `SemanticEquals`, (c) make attribute `Optional+Computed` (changes schema semantics)
+- securityhelper `PermissionTypeValues.Allow/Deny/NotSet` are all lowercase strings — config should use lowercase
 
 ## Open questions
 

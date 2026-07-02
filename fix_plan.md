@@ -6,7 +6,8 @@
   - resource_project_permissions_framework.go created ✓
   - resource_permissions_framework_test.go with TestAccProjectPermissionsFramework created ✓
   - **Iteration 2**: Fixed 1000-project cap by using resolveProjectPermissionsFixtureProject (existing project) instead of creating a new project ✓
-  - **Iteration 3**: Fixed idempotency — added ppNormalizePermissionsCase() plan modifier so title-case config ("Deny") normalizes to lowercase ("deny") matching state from GetPrincipalPermissions; updated TestCheckResourceAttr assertions to expect lowercase ✓
+  - **Iteration 3**: Added ppNormalizePermissionsCase() plan modifier (WRONG — caused "Provider produced invalid plan" because framework forbids plan modifiers from changing required non-computed attribute values)
+  - **Iteration 4**: Removed invalid map plan modifier; normalized case via strings.ToLower() in applyPermissions instead; HCL config now uses lowercase "deny"/"allow"/"notset" matching what GetPrincipalPermissions returns → idempotent ✓
   - gate: `go test -tags all -run TestAccProjectPermissionsFramework ./azuredevops/internal/acceptancetests/` — compiles and skips cleanly offline; needs live TF_ACC pass
 
 - [x] AC2 (partial — project_permissions only): betterado_project_permissions deregistered from SDKv2 ResourcesMap and added to framework Resources(); provider_test.go updated; TestProvider_HasChildResources passes
