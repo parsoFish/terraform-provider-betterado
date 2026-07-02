@@ -12,6 +12,11 @@
 
 **Iteration 2 (complete):** Fixed `settings` and `scope` schema definition from `ListNestedAttribute` (requires `= [{}]` HCL) to `ListNestedBlock` (requires `{}` block HCL). This matches the block syntax used in all acceptance test HCL.
 
+**Iteration 3 (complete):** Fixed root cause of gate failures — all 7 acceptance tests were creating new ADO projects, which fails at the 1000-project org limit. Switched all tests to use `data "betterado_project"` with `SharedFixtureProjectName`. Per-run git repos are still created uniquely and destroyed by Terraform. Also:
+- Added `captureMinReviewersPolicyEvidence` live evidence to min_reviewer_test.go
+- Fixed gofmt/gofumpt formatting in 3 framework files
+- Added CHANGELOG.md [Unreleased] entry
+
 ## Remaining work
 
-The code is complete. The gate runs live acceptance tests with TF_ACC. Those should pass once the schema block fix is in place.
+All ACs are complete and all code quality gates (build, lint, offline tests) pass. The live acceptance tests should pass once the gate runs against the shared fixture project.
