@@ -18,7 +18,6 @@ import (
 )
 
 func TestAccGitRepository_withDefaultBranch(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	tfRepoNode := "betterado_git_repository.test"
 
@@ -28,7 +27,7 @@ func TestAccGitRepository_withDefaultBranch(t *testing.T) {
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryWithDefaultBranch(projectName, gitRepoName, "Clean"),
+				Config: hclGitRepositoryWithDefaultBranch(gitRepoName, "Clean"),
 				Check: resource.ComposeTestCheckFunc(
 					checkGitRepoExists(gitRepoName),
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
@@ -42,7 +41,7 @@ func TestAccGitRepository_withDefaultBranch(t *testing.T) {
 			},
 			// Idempotency check — no perpetual diff
 			{
-				Config:             hclGitRepositoryWithDefaultBranch(projectName, gitRepoName, "Clean"),
+				Config:             hclGitRepositoryWithDefaultBranch(gitRepoName, "Clean"),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -51,7 +50,6 @@ func TestAccGitRepository_withDefaultBranch(t *testing.T) {
 }
 
 func TestAccGitRepository_update(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoNameFirst := testutils.GenerateResourceName()
 	gitRepoNameSecond := testutils.GenerateResourceName()
 	tfRepoNode := "betterado_git_repository.test"
@@ -62,7 +60,7 @@ func TestAccGitRepository_update(t *testing.T) {
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryBasic(projectName, gitRepoNameFirst, "Uninitialized"),
+				Config: hclGitRepositoryBasic(gitRepoNameFirst, "Uninitialized"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
 					resource.TestCheckResourceAttr(tfRepoNode, "name", gitRepoNameFirst),
@@ -76,7 +74,7 @@ func TestAccGitRepository_update(t *testing.T) {
 				),
 			},
 			{
-				Config: hclGitRepositoryBasic(projectName, gitRepoNameSecond, "Uninitialized"),
+				Config: hclGitRepositoryBasic(gitRepoNameSecond, "Uninitialized"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
 					resource.TestCheckResourceAttr(tfRepoNode, "name", gitRepoNameSecond),
@@ -94,7 +92,6 @@ func TestAccGitRepository_update(t *testing.T) {
 }
 
 func TestAccGitRepository_disabled(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	tfRepoNode := "betterado_git_repository.test"
 
@@ -104,7 +101,7 @@ func TestAccGitRepository_disabled(t *testing.T) {
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryDisable(projectName, gitRepoName, true),
+				Config: hclGitRepositoryDisable(gitRepoName, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkGitRepoExists(gitRepoName),
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
@@ -113,7 +110,7 @@ func TestAccGitRepository_disabled(t *testing.T) {
 				),
 			},
 			{
-				Config: hclGitRepositoryDisable(projectName, gitRepoName, false),
+				Config: hclGitRepositoryDisable(gitRepoName, false),
 				Check: resource.ComposeTestCheckFunc(
 					checkGitRepoExists(gitRepoName),
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
@@ -126,7 +123,6 @@ func TestAccGitRepository_disabled(t *testing.T) {
 }
 
 func TestAccGitRepository_disabledCannotUpdate(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	gitRepoNameUpdate := gitRepoName + "update"
 	tfRepoNode := "betterado_git_repository.test"
@@ -137,7 +133,7 @@ func TestAccGitRepository_disabledCannotUpdate(t *testing.T) {
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryDisable(projectName, gitRepoName, true),
+				Config: hclGitRepositoryDisable(gitRepoName, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkGitRepoExists(gitRepoName),
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
@@ -146,7 +142,7 @@ func TestAccGitRepository_disabledCannotUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: hclGitRepositoryDisable(projectName, gitRepoNameUpdate, true),
+				Config: hclGitRepositoryDisable(gitRepoNameUpdate, true),
 				Check: resource.ComposeTestCheckFunc(
 					checkGitRepoExists(gitRepoName),
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
@@ -156,7 +152,7 @@ func TestAccGitRepository_disabledCannotUpdate(t *testing.T) {
 				ExpectError: regexp.MustCompile(`(?i)disabled repository cannot be updated|Cannot update disabled repository`),
 			},
 			{
-				Config: hclGitRepositoryDisable(projectName, gitRepoName, false),
+				Config: hclGitRepositoryDisable(gitRepoName, false),
 				Check: resource.ComposeTestCheckFunc(
 					checkGitRepoExists(gitRepoName),
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
@@ -169,14 +165,13 @@ func TestAccGitRepository_disabledCannotUpdate(t *testing.T) {
 }
 
 func TestAccGitRepository_incorrectInitialization(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config:      hclGitRepositoryIncorrectInitialization(projectName, gitRepoName),
+				Config:      hclGitRepositoryIncorrectInitialization(gitRepoName),
 				ExpectError: regexp.MustCompile(`Insufficient initialization blocks`),
 			},
 		},
@@ -184,7 +179,6 @@ func TestAccGitRepository_incorrectInitialization(t *testing.T) {
 }
 
 func TestAccGitRepository_importGitRepository(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 
 	tfRepoNode := "betterado_git_repository.test"
@@ -193,7 +187,7 @@ func TestAccGitRepository_importGitRepository(t *testing.T) {
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryImport(projectName, gitRepoName),
+				Config: hclGitRepositoryImport(gitRepoName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfRepoNode, "is_fork"),
 					resource.TestCheckResourceAttrSet(tfRepoNode, "remote_url"),
@@ -210,7 +204,6 @@ func TestAccGitRepository_importGitRepository(t *testing.T) {
 }
 
 func TestAccGitRepository_import_by_name(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 
 	tfRepoNode := "betterado_git_repository.test"
@@ -219,7 +212,7 @@ func TestAccGitRepository_import_by_name(t *testing.T) {
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryBasic(projectName, gitRepoName, "Clean"),
+				Config: hclGitRepositoryBasic(gitRepoName, "Clean"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfRepoNode, "is_fork"),
 					resource.TestCheckResourceAttrSet(tfRepoNode, "remote_url"),
@@ -232,7 +225,7 @@ func TestAccGitRepository_import_by_name(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"initialization"},
-				ImportStateId:           fmt.Sprintf("%s/%s", projectName, gitRepoName),
+				ImportStateId:           fmt.Sprintf("%s/%s", SharedFixtureProjectName, gitRepoName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(tfRepoNode, "name", gitRepoName),
 					func(state *terraform.State) error {
@@ -252,7 +245,6 @@ func TestAccGitRepository_import_by_name(t *testing.T) {
 }
 
 func TestAccGitRepository_initializationClean(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	tfRepoNode := "betterado_git_repository.test"
 
@@ -262,7 +254,7 @@ func TestAccGitRepository_initializationClean(t *testing.T) {
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryBasic(projectName, gitRepoName, "Clean"),
+				Config: hclGitRepositoryBasic(gitRepoName, "Clean"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
 					resource.TestCheckResourceAttr(tfRepoNode, "name", gitRepoName),
@@ -276,7 +268,6 @@ func TestAccGitRepository_initializationClean(t *testing.T) {
 }
 
 func TestAccGitRepository_uninitialized(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	tfRepoNode := "betterado_git_repository.test"
 
@@ -286,7 +277,7 @@ func TestAccGitRepository_uninitialized(t *testing.T) {
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryBasic(projectName, gitRepoName, "Uninitialized"),
+				Config: hclGitRepositoryBasic(gitRepoName, "Uninitialized"),
 				Check: resource.ComposeTestCheckFunc(
 					checkGitRepoExists(gitRepoName),
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
@@ -299,7 +290,6 @@ func TestAccGitRepository_uninitialized(t *testing.T) {
 }
 
 func TestAccGitRepository_forkBranchNotEmpty(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	gitForkedRepoName := testutils.GenerateResourceName()
 	tfRepoNode := "betterado_git_repository.test"
@@ -311,7 +301,7 @@ func TestAccGitRepository_forkBranchNotEmpty(t *testing.T) {
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryForkBranchNotEmpty(projectName, gitRepoName, gitForkedRepoName),
+				Config: hclGitRepositoryForkBranchNotEmpty(gitRepoName, gitForkedRepoName),
 				Check: resource.ComposeTestCheckFunc(
 					checkGitRepoExists(gitRepoName),
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
@@ -330,7 +320,6 @@ func TestAccGitRepository_privateImportServiceEndpointBranchNotEmpty(t *testing.
 		os.Getenv("AZDO_GENERIC_GIT_SERVICE_CONNECTION_PASSWORD") == "" {
 		t.Skip("Skipping as AZDO_GENERIC_GIT_SERVICE_CONNECTION_USERNAME or AZDO_GENERIC_GIT_SERVICE_CONNECTION_PASSWORD is not specified")
 	}
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	gitImportRepoName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
@@ -349,7 +338,7 @@ func TestAccGitRepository_privateImportServiceEndpointBranchNotEmpty(t *testing.
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryImportPrivateServiceEndpoint(projectName, gitRepoName, gitImportRepoName, serviceEndpointName),
+				Config: hclGitRepositoryImportPrivateServiceEndpoint(gitRepoName, gitImportRepoName, serviceEndpointName),
 				Check: resource.ComposeTestCheckFunc(
 					checkGitRepoExists(gitRepoName),
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
@@ -369,7 +358,6 @@ func TestAccGitRepository_privateUserNamePasswordImportBranchNotEmpty(t *testing
 		os.Getenv("AZDO_GENERIC_GIT_SERVICE_CONNECTION_PASSWORD") == "" {
 		t.Skip("Skipping as AZDO_GENERIC_GIT_SERVICE_CONNECTION_USERNAME or AZDO_GENERIC_GIT_SERVICE_CONNECTION_PASSWORD is not specified")
 	}
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	gitImportRepoName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
@@ -388,7 +376,7 @@ func TestAccGitRepository_privateUserNamePasswordImportBranchNotEmpty(t *testing
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryImportPrivateUserNamePassword(projectName, gitRepoName, gitImportRepoName, serviceEndpointName),
+				Config: hclGitRepositoryImportPrivateUserNamePassword(gitRepoName, gitImportRepoName, serviceEndpointName),
 				Check: resource.ComposeTestCheckFunc(
 					checkGitRepoExists(gitRepoName),
 					resource.TestCheckResourceAttrSet(tfRepoNode, "project_id"),
@@ -530,116 +518,145 @@ func readGitRepo(clients *client.AggregatedClient, repoID string, projectID stri
 	return repo, nil
 }
 
-func hclGitRepositoryBasic(projectName, repoName, initType string) string {
+// hclGitRepositoryBasic returns HCL using the shared fixture project so no new
+// ADO project is created (org is at the 1000-project cap).
+func hclGitRepositoryBasic(repoName, initType string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "test" {
+  name = %[1]q
 }
 
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
   initialization {
-    init_type = "%s"
+    init_type = %[3]q
   }
 }
-`, projectName, repoName, initType)
+`, SharedFixtureProjectName, repoName, initType)
 }
 
-func hclGitRepositoryWithDefaultBranch(projectName, repoName, initType string) string {
+// hclGitRepositoryWithDefaultBranch returns HCL using the shared fixture project.
+func hclGitRepositoryWithDefaultBranch(repoName, initType string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "test" {
+  name = %[1]q
 }
 
 resource "betterado_git_repository" "test" {
-  project_id     = betterado_project.test.id
-  name           = "%s"
+  project_id     = data.betterado_project.test.id
+  name           = %[2]q
   default_branch = "refs/heads/main"
   initialization {
-    init_type = "%s"
+    init_type = %[3]q
   }
 }
-`, projectName, repoName, initType)
+`, SharedFixtureProjectName, repoName, initType)
 }
 
-func hclGitRepositoryDisable(projectName, repoName string, disabled bool) string {
+// hclGitRepositoryDisable returns HCL using the shared fixture project.
+func hclGitRepositoryDisable(repoName string, disabled bool) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "test" {
+  name = %[1]q
 }
 
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
-  disabled   = %t
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
+  disabled   = %[3]t
   initialization {
     init_type = "Clean"
   }
 }
-`, projectName, repoName, disabled)
+`, SharedFixtureProjectName, repoName, disabled)
 }
 
-func hclGitRepositoryIncorrectInitialization(projectName, repoName string) string {
+// hclGitRepositoryIncorrectInitialization returns HCL with no initialization block
+// (expects plan-time validation error "Insufficient initialization blocks").
+// Uses shared project — no new project needed.
+func hclGitRepositoryIncorrectInitialization(repoName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "test" {
+  name = %[1]q
 }
 
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
 }
-`, projectName, repoName)
+`, SharedFixtureProjectName, repoName)
 }
 
-func hclGitRepositoryImport(projectName, repoName string) string {
+// hclGitRepositoryImport returns HCL that imports a remote repo.
+func hclGitRepositoryImport(repoName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "test" {
+  name = %[1]q
 }
 
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
   initialization {
     init_type   = "Import"
     source_type = "Git"
     source_url  = "https://github.com/parsoFish/terraform-provider-betterado.git"
   }
 }
-`, projectName, repoName)
+`, SharedFixtureProjectName, repoName)
 }
 
-func hclGitRepositoryForkBranchNotEmpty(projectName, repoName, forkRepoName string) string {
-	repoInit := hclGitRepositoryBasic(projectName, repoName, "Clean")
+// hclGitRepositoryForkBranchNotEmpty creates a repo and a fork of it.
+func hclGitRepositoryForkBranchNotEmpty(repoName, forkRepoName string) string {
 	return fmt.Sprintf(`
-%s
+data "betterado_project" "test" {
+  name = %[1]q
+}
+
+resource "betterado_git_repository" "test" {
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
+  initialization {
+    init_type = "Clean"
+  }
+}
 
 resource "betterado_git_repository" "fork" {
-  project_id           = betterado_project.test.id
+  project_id           = data.betterado_project.test.id
   parent_repository_id = betterado_git_repository.test.id
-  name                 = "%s"
+  name                 = %[3]q
   initialization {
     init_type = "Fork"
   }
-}`, repoInit, forkRepoName)
+}
+`, SharedFixtureProjectName, repoName, forkRepoName)
 }
 
-func hclGitRepositoryImportPrivateServiceEndpoint(projectName, repoName, importRepoName, serviceEndpointName string) string {
-	repoInit := hclGitRepositoryBasic(projectName, repoName, "Clean")
+// hclGitRepositoryImportPrivateServiceEndpoint creates a repo and imports it via a service endpoint.
+func hclGitRepositoryImportPrivateServiceEndpoint(repoName, importRepoName, serviceEndpointName string) string {
 	return fmt.Sprintf(`
-%s
+data "betterado_project" "test" {
+  name = %[1]q
+}
+
+resource "betterado_git_repository" "test" {
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
+  initialization {
+    init_type = "Clean"
+  }
+}
 
 resource "betterado_serviceendpoint_generic_git" "test" {
-  project_id            = betterado_project.test.id
-  service_endpoint_name = "%s"
+  project_id            = data.betterado_project.test.id
+  service_endpoint_name = %[3]q
   repository_url        = betterado_git_repository.test.remote_url
 }
 
 resource "betterado_git_repository" "import" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = data.betterado_project.test.id
+  name       = %[4]q
   initialization {
     init_type             = "Import"
     source_type           = "Git"
@@ -647,24 +664,36 @@ resource "betterado_git_repository" "import" {
     service_connection_id = betterado_serviceendpoint_generic_git.test.id
   }
 }
-`, repoInit, serviceEndpointName, importRepoName)
+`, SharedFixtureProjectName, repoName, serviceEndpointName, importRepoName)
 }
 
-func hclGitRepositoryImportPrivateUserNamePassword(projectName, repoName, importRepoName, serviceEndpointName string) string {
-	repoInit := hclGitRepositoryBasic(projectName, repoName, "Clean")
+// hclGitRepositoryImportPrivateUserNamePassword imports a repo with username/password credentials.
+func hclGitRepositoryImportPrivateUserNamePassword(repoName, importRepoName, _ string) string {
 	return fmt.Sprintf(`
-%s
+data "betterado_project" "test" {
+  name = %[1]q
+}
+
+resource "betterado_git_repository" "test" {
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
+  initialization {
+    init_type = "Clean"
+  }
+}
 
 resource "betterado_git_repository" "import" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = data.betterado_project.test.id
+  name       = %[3]q
   initialization {
     init_type   = "Import"
     source_type = "Git"
     source_url  = betterado_git_repository.test.remote_url
-    username    = "%s"
-    password    = "%s"
+    username    = %[4]q
+    password    = %[5]q
   }
 }
-`, repoInit, importRepoName, os.Getenv("AZDO_GENERIC_GIT_SERVICE_CONNECTION_USERNAME"), os.Getenv("AZDO_GENERIC_GIT_SERVICE_CONNECTION_PASSWORD"))
+`, SharedFixtureProjectName, repoName, importRepoName,
+		os.Getenv("AZDO_GENERIC_GIT_SERVICE_CONNECTION_USERNAME"),
+		os.Getenv("AZDO_GENERIC_GIT_SERVICE_CONNECTION_PASSWORD"))
 }

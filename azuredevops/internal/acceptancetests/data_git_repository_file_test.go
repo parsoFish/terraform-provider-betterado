@@ -13,7 +13,6 @@ import (
 func TestAccGitRepositoryFile_DataSource(t *testing.T) {
 	tfNode := "data.betterado_git_repository_file.test"
 
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 	branch := "refs/heads/master"
 	file := "foo.txt"
@@ -26,7 +25,7 @@ func TestAccGitRepositoryFile_DataSource(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: hclDataRepositoryFile(projectName, repoName, branch, file, content, commitMessage, file),
+				Config: hclDataRepositoryFile(repoName, branch, file, content, commitMessage, file),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "content", content),
 					resource.TestCheckResourceAttr(tfNode, "last_commit_message", commitMessage),
@@ -37,7 +36,6 @@ func TestAccGitRepositoryFile_DataSource(t *testing.T) {
 }
 
 func TestAccGitRepositoryFile_DataSource_notExist(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 	branch := "refs/heads/master"
 	file := "foo.txt"
@@ -51,22 +49,24 @@ func TestAccGitRepositoryFile_DataSource_notExist(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config:      hclDataRepositoryFile(projectName, repoName, branch, file, content, commitMessage, not_exists_file),
+				Config:      hclDataRepositoryFile(repoName, branch, file, content, commitMessage, not_exists_file),
 				ExpectError: regexp.MustCompile(fmt.Sprintf("Error: Item not found, repositoryID: [A-Za-z0-9-]+, branch: %s, file: %s", regexp.QuoteMeta(strings.Split(branch, "/")[2]), regexp.QuoteMeta(not_exists_file))),
 			},
 		},
 	})
 }
 
-func hclDataRepositoryFile(projectName, repoName, branch, rfile, content, commitMessage, dfile string) string {
+// hclDataRepositoryFile creates a git repo and file in the shared fixture project.
+// Uses SharedFixtureProjectName so no new ADO project is created (org at 1000-project cap).
+func hclDataRepositoryFile(repoName, branch, rfile, content, commitMessage, dfile string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%[1]s"
+data "betterado_project" "test" {
+  name = %[1]q
 }
 
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[2]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
   initialization {
     init_type = "Clean"
   }
@@ -74,19 +74,18 @@ resource "betterado_git_repository" "test" {
 
 resource "betterado_git_repository_file" "test" {
   repository_id  = betterado_git_repository.test.id
-  branch         = "%[3]s"
-  file           = "%[4]s"
-  content        = "%[5]s"
-  commit_message = "%[6]s"
+  branch         = %[3]q
+  file           = %[4]q
+  content        = %[5]q
+  commit_message = %[6]q
 }
 
 data "betterado_git_repository_file" "test" {
   repository_id = betterado_git_repository.test.id
-  branch        = "%[3]s"
-  file          = "%[7]s"
+  branch        = %[3]q
+  file          = %[7]q
   depends_on    = [betterado_git_repository_file.test]
 }
 
-
-`, projectName, repoName, branch, rfile, content, commitMessage, dfile)
+`, SharedFixtureProjectName, repoName, branch, rfile, content, commitMessage, dfile)
 }
