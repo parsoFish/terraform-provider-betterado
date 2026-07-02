@@ -23,16 +23,14 @@ import (
 // It uses GetMuxedProviderFactories so both betterado_project (framework) and
 // betterado_project_features (framework) are available in the same test.
 //
-// The test reuses the persistent standing-demo project (betterado-standing-demo)
-// via SharedReleaseFixture — which resolves or creates the project via ADO API
-// and returns its UUID. The project UUID is then injected directly into HCL so
-// the test never relies on a data source lookup (which would fail if the project
-// doesn't exist yet). This pattern matches TestAccMuxSdkv2Passthrough.
+// The test resolves an existing ADO project via smokeResolveProject — which checks
+// AZDO_TEST_EXISTING_PROJECT first, then auto-discovers the first wellFormed project
+// via GetProjects. This avoids creating a project (which fails when the org is at
+// the 1000-project limit). The project UUID is injected directly into HCL.
 func TestAccProjectFeatures_roundtrip(t *testing.T) {
-	// SharedReleaseFixture resolves or creates betterado-standing-demo and
-	// returns its UUID. If TF_ACC is not set it calls t.Skip immediately.
-	fixture := SharedReleaseFixture(t)
-	projectID := fixture.ProjectID
+	// smokeResolveProject resolves an existing ADO project without creating one.
+	// Calls testutils.PreCheck which skips immediately if TF_ACC is not set.
+	projectID, _ := smokeResolveProject(t)
 
 	tfNode := "betterado_project_features.test"
 
@@ -101,7 +99,7 @@ func captureProjectFeaturesEvidence(tfNode string) resource.TestCheckFunc {
 
 // hclProjectFeatureBasic returns Terraform HCL that manages features on an
 // existing project identified by its UUID. No data source or resource create
-// is needed — the project ID is resolved by SharedReleaseFixture before the
+// is needed — the project ID is resolved by smokeResolveProject before the
 // Terraform test lifecycle starts.
 func hclProjectFeatureBasic(projectID, testPlanState, artifactState string) string {
 	return fmt.Sprintf(`
