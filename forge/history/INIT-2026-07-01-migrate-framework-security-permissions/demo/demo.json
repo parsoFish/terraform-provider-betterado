@@ -3,7 +3,7 @@
   "essence": "17 resources and 4 data sources across the security, securityroles, and permissions packages are now served through terraform-plugin-framework via the mux provider. Each resource was deregistered from the SDKv2 ResourcesMap/DataSourcesMap, re-implemented with a framework provider.Resource/DataSource, and verified by a live TF_ACC acceptance test against Azure DevOps. Gap matrix docs for all three packages are also delivered.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-security-permissions",
-  "diffStat": "58 files changed, 5099 insertions(+), 191 deletions(-)",
+  "diffStat": "66 files changed, 5349 insertions(+), 191 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",

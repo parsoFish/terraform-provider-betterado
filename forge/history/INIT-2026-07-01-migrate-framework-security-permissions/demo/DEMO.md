@@ -98,5 +98,5 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acce
 ## Files Changed
 
 ```
-58 files changed, 5099 insertions(+), 191 deletions(-)
+66 files changed, 5349 insertions(+), 191 deletions(-)
 ```
