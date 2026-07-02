@@ -7,6 +7,41 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### ENHANCEMENTS
+
+- **`betterado_git_repository` resource migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served through
+  the mux provider. Schema is unchanged (`project_id`, `name`, `default_branch`,
+  `disabled`, `parent_repository_id`, `initialization`). Read-only attributes
+  `is_fork`, `remote_url`, `size`, `ssh_url`, `url`, `web_url` remain available.
+  Verified by live acceptance test `TestAccGitRepositoryFramework`.
+
+- **`betterado_git_repository` data source migrated to terraform-plugin-framework.**
+  Reads a single Git repository by `project_id` + `name`; exposes all repository
+  attributes. Served through the mux provider. Verified by live acceptance test
+  `TestAccDataGitRepositoryFramework`.
+
+- **`betterado_git_repositories` data source migrated to terraform-plugin-framework.**
+  Lists Git repositories in an Azure DevOps project; exposes a `repositories` list
+  with full repository details per entry. Served through the mux provider.
+  Verified by live acceptance test `TestAccDataGitRepositoriesFramework`.
+
+- **`betterado_git_repository_branch` resource migrated to terraform-plugin-framework.**
+  Manages a Git branch in an Azure DevOps repository. Schema is unchanged
+  (`repository_id`, `name`, `ref_branch`, `is_default`). Served through the mux
+  provider. Verified by live acceptance test `TestAccGitRepositoryBranchFramework`.
+
+- **`betterado_git_repository_file` resource migrated to terraform-plugin-framework.**
+  Manages a file in an Azure DevOps Git repository. Schema is unchanged
+  (`repository_id`, `file`, `content`, `branch`, `commit_message`,
+  `overwrite_on_create`). Served through the mux provider. Verified by live
+  acceptance test `TestAccGitRepositoryFileFramework`.
+
+- **`betterado_git_repository_file` data source migrated to terraform-plugin-framework.**
+  Reads a file from an Azure DevOps Git repository by `repository_id`, `file`, and
+  optional `branch`. Served through the mux provider. Verified by live acceptance
+  test `TestAccDataGitRepositoryFileFramework`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES
