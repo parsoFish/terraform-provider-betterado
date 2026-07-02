@@ -70,7 +70,7 @@ resource "betterado_build_folder" "fw_test" {
 
 // checkBuildFolderFrameworkDestroyed returns a CheckDestroyFunc that verifies
 // the build folder has been deleted after destroy.
-func checkBuildFolderFrameworkDestroyed(path, projectID string) resource.TestCheckDestroyFunc {
+func checkBuildFolderFrameworkDestroyed(path, projectID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		clients, err := getDirectClient()
 		if err != nil {
