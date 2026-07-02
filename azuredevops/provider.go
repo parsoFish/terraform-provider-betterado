@@ -81,9 +81,9 @@ func Provider() *schema.Provider {
 			"betterado_pipeline_authorization":           build.ResourcePipelineAuthorization(),
 			"betterado_project":                          core.ResourceProject(),
 			"betterado_project_features":                 core.ResourceProjectFeatures(),
-			"betterado_project_permissions":              permissions.ResourceProjectPermissions(),
-			"betterado_project_pipeline_settings":        core.ResourceProjectPipelineSettings(),
-			"betterado_project_tags":                     core.ResourceProjectTag(),
+			// betterado_project_permissions migrated to terraform-plugin-framework (see framework_provider.go)
+			"betterado_project_pipeline_settings": core.ResourceProjectPipelineSettings(),
+			"betterado_project_tags":              core.ResourceProjectTag(),
 			// betterado_release_definition_permissions is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.

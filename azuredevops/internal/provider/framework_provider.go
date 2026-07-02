@@ -208,8 +208,9 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
-		security.NewSecurityPermissionsResource,              // migrated from SDKv2
-		securityroles.NewSecurityRoleAssignmentResource,      // migrated from SDKv2
+		security.NewSecurityPermissionsResource,         // migrated from SDKv2
+		securityroles.NewSecurityRoleAssignmentResource, // migrated from SDKv2
+		permissions.NewProjectPermissionsResource,       // migrated from SDKv2
 	}
 }
 
@@ -220,9 +221,9 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseDefinitionRevisionDataSource,
 		release.NewReleaseDefinitionsDataSource,
 		release.NewReleaseFolderDataSource,
-		security.NewSecurityNamespaceDataSource,              // migrated from SDKv2
-		security.NewSecurityNamespaceTokenDataSource,         // migrated from SDKv2
-		security.NewSecurityNamespacesDataSource,             // migrated from SDKv2
-		securityroles.NewSecurityRoleDefinitionsDataSource,   // migrated from SDKv2
+		security.NewSecurityNamespaceDataSource,            // migrated from SDKv2
+		security.NewSecurityNamespaceTokenDataSource,       // migrated from SDKv2
+		security.NewSecurityNamespacesDataSource,           // migrated from SDKv2
+		securityroles.NewSecurityRoleDefinitionsDataSource, // migrated from SDKv2
 	}
 }

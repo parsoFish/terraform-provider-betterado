@@ -346,8 +346,11 @@ func (r *securityRoleAssignmentFrameworkResource) waitForDeletion(
 			IdentityId: &identityID,
 		})
 		if err != nil {
-			// Any error (including 404/not-found) means the assignment is gone.
-			return nil
+			// A 404 / "not found" response means the assignment was already removed.
+			if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "404") {
+				return nil
+			}
+			return fmt.Errorf("poll GetSecurityRoleAssignment: %w", err)
 		}
 		if assignment == nil || (assignment.Identity == nil && assignment.Role == nil) {
 			// No matching assignment found — deletion confirmed.

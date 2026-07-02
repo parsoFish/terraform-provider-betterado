@@ -51,7 +51,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_pipeline_authorization",
 		"betterado_project",
 		"betterado_project_features",
-		"betterado_project_permissions",
+		// betterado_project_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_project_pipeline_settings",
 		"betterado_project_tags",
 		// betterado_release_definition_permissions is now a framework resource (registered in framework_provider.go)
