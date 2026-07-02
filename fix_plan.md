@@ -23,6 +23,17 @@
 
 **Iteration 6 (complete):** Fixed iteration 5's gate failure — `resolveOrCreateFixtureProject` called `GetProject("betterado-standing-demo")` which returned TF200016 (project does not exist) on the live org. The org may have deleted or renamed this project. Applied same auto-discovery pattern as `smokeResolveProject` in state_upgrade_smoke_test.go: try AZDO_TEST_EXISTING_PROJECT env var first, then try the named project, then auto-discover first WellFormed project from GetProjects. Also ran gofmt on provider.go (alignment fix).
 
+**Iteration 7 (complete):** Fixed two live gate failures:
+
+1. `TestAccBranchPolicyStatusCheck_complete`: replaced `betterado_user_entitlement` resource
+   (requires billing; always fails on live org with error 5015) with `data.betterado_group "Project
+   Administrators"` — group's `origin_id` serves as `author_id` for status check policy.
+
+2. `TestAccBranchPolicyMinReviewers_requiresImportError`: updated `ExpectError` regex from
+   `` ` creating policy in Azure DevOps: The update is rejected by policy` `` (SDKv2 common.go
+   error format with leading space) to `` `The update is rejected by policy` `` which matches
+   the framework resource diagnostic format (summary + detail) and also the legacy format.
+
 ## Remaining work
 
-All ACs should now be complete. Live acceptance tests can now use any available project when the standing-demo project is unavailable.
+All ACs should now be complete. All known live gate failures addressed.

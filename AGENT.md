@@ -98,6 +98,33 @@ resource_branchpolicy_min_reviewer_test.go:19: SharedReleaseFixture: QueueCreate
 **Files changed:**
 - `shared_fixtures.go` — `resolveOrCreateFixtureProject` now does GetProject-only (9 lines inserted, 82 deleted)
 
+### Iteration 7 — Fix two remaining live acc test failures (COMPLETE)
+
+**Root cause 1: `TestAccBranchPolicyStatusCheck_complete`**
+```
+Error: Creating user entitlement: Adding user entitlement: (5015) You need to set up billing
+  with betterado_user_entitlement.user
+```
+`hclBranchPolicyStatusCheckResourceComplete` used `resource "betterado_user_entitlement"` to set
+`author_id`. On the live org, creating user entitlements requires billing (error 5015) — always fails.
+
+**Fix:** Replace with `data "betterado_group" "author" { name = "Project Administrators" }` and use
+`data.betterado_group.author.origin_id` as `author_id`. Groups exist on every org without billing.
+
+**Root cause 2: `TestAccBranchPolicyMinReviewers_requiresImportError`**
+```
+Step 2/2, expected an error with pattern, no match on: Error running apply: exit status 1
+  Error: Error creating branch policy min reviewers
+    The update is rejected by policy.
+```
+`ExpectError` regex was `` ` creating policy in Azure DevOps: The update is rejected by policy` ``
+(with leading space) — this is the SDKv2 `common.go` error format. The framework resource uses
+`resp.Diagnostics.AddError("Error creating branch policy min reviewers", err.Error())` — the
+summary is the prefix, err detail is the raw API error, NOT wrapped by common.go.
+
+**Fix:** Updated regex to `The update is rejected by policy` (no leading space, no SDKv2 prefix) —
+matches the detail portion of the framework diagnostic.
+
 ### Iteration 6 — Auto-discover project when standing-demo not found (COMPLETE)
 
 **Root cause:** Gate failure:
@@ -123,6 +150,8 @@ Also ran `make fmt` to fix gofmt alignment in `provider.go`.
 - `data "betterado_project"` in HCL templates — fails with "Project ... does not exist" on the live org
 - `resolveOrCreateFixtureProject` fallback to `QueueCreateProject` — always fails on live org at 1000-project cap
 - Hard-fatal on missing standing-demo project — fails when the org doesn't have that project
+- `resource "betterado_user_entitlement"` in acc tests — requires billing on live org (error 5015); use `data "betterado_group"` instead for `author_id`
+- SDKv2 `common.go` error prefix `creating policy in Azure DevOps:` — NOT present in framework resources (they use `resp.Diagnostics.AddError`); update `ExpectError` regex to match only the API error substring
 
 ## Key Patterns
 
