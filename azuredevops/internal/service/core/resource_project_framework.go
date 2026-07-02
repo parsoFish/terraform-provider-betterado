@@ -36,6 +36,12 @@ func (m projectUseStateForUnknown) PlanModifyString(_ context.Context, req planm
 	if !req.PlanValue.IsUnknown() {
 		return
 	}
+	// Only propagate state when state already exists; on a first-apply there is
+	// no prior state (StateValue is null) and the plan value must remain unknown
+	// so that downstream resources see a proper unknown reference rather than null.
+	if req.StateValue.IsNull() {
+		return
+	}
 	resp.PlanValue = req.StateValue
 }
 
