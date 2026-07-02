@@ -1,7 +1,9 @@
 package testutils
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -9,6 +11,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/pipelineschecksextras"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 )
 
 // CheckPipelineCheckExistsWithName verifies that a service endpoint of a particular type exists in the state,
@@ -47,13 +50,26 @@ func CheckPipelineCheckDestroyed(resourceType string) resource.TestCheckFunc {
 			}
 
 			// indicates the resource exists - this should fail the test
-			if _, err := getSvcEndpointFromState(res); err == nil {
+			if _, err := getCheckFromState(res); err == nil {
 				return fmt.Errorf("Unexpectedly found a check that should have been deleted")
 			}
 		}
 
 		return nil
 	}
+}
+
+// getADOClientsFromEnv builds an AggregatedClient directly from environment variables.
+// This is necessary when using GetMuxedProviderFactories() because the SDKv2 provider
+// singleton does not have its Meta() configured in that case.
+func getADOClientsFromEnv() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	if orgURL == "" || pat == "" {
+		return nil, fmt.Errorf("AZDO_ORG_SERVICE_URL and AZDO_PERSONAL_ACCESS_TOKEN must be set")
+	}
+	authProvider := azuredevops.NewAuthProviderPAT(pat)
+	return client.GetAzdoClient(authProvider, orgURL)
 }
 
 // given a resource from the state, return a check (and error)
@@ -64,8 +80,15 @@ func getCheckFromState(resource *terraform.ResourceState) (*pipelineschecksextra
 	}
 
 	projectID := resource.Primary.Attributes["project_id"]
-	clients := GetProvider().Meta().(*client.AggregatedClient)
-	return clients.PipelinesChecksClientExtras.GetCheckConfiguration(clients.Ctx, pipelineschecksextras.GetCheckConfigurationArgs{
+
+	// Build the client directly from environment variables rather than using
+	// GetProvider().Meta(), which is nil when tests use GetMuxedProviderFactories().
+	clients, err := getADOClientsFromEnv()
+	if err != nil {
+		return nil, err
+	}
+	ctx := context.Background()
+	return clients.PipelinesChecksClientExtras.GetCheckConfiguration(ctx, pipelineschecksextras.GetCheckConfigurationArgs{
 		Project: &projectID,
 		Id:      &branchControlCheckID,
 		Expand:  converter.ToPtr(pipelineschecksextras.CheckConfigurationExpandParameterValues.Settings),
