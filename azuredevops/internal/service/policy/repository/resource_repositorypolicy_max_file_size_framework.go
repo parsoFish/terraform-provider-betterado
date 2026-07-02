@@ -80,6 +80,7 @@ func (r *MaxFileSizeResource) Schema(_ context.Context, _ resource.SchemaRequest
 				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
+				Default:     emptyRepoPolicyList(),
 			},
 			"max_file_size": schema.Int64Attribute{
 				Required: true,

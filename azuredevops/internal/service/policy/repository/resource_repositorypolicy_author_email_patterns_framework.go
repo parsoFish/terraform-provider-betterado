@@ -80,6 +80,7 @@ func (r *AuthorEmailPatternsResource) Schema(_ context.Context, _ resource.Schem
 				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
+				Default:     emptyRepoPolicyList(),
 			},
 			"author_email_patterns": schema.ListAttribute{
 				ElementType: types.StringType,

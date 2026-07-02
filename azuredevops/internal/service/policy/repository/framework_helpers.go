@@ -56,6 +56,28 @@ func (d staticRepoPolicyBoolDefault) DefaultBool(_ context.Context, _ defaults.B
 	resp.PlanValue = types.BoolValue(d.value)
 }
 
+// emptyRepoPolicyListDefault implements defaults.List returning an empty list of strings.
+// Without this default, omitting repository_ids from config causes Terraform to mark the
+// planned value as unknown (computed but not yet known), which causes ElementsAs to fail
+// with "Received unknown value, however the target type cannot handle unknown values."
+type emptyRepoPolicyListDefault struct{}
+
+func emptyRepoPolicyList() defaults.List { return emptyRepoPolicyListDefault{} }
+
+func (emptyRepoPolicyListDefault) Description(_ context.Context) string {
+	return "defaults to empty list (project-wide policy)"
+}
+
+func (emptyRepoPolicyListDefault) MarkdownDescription(_ context.Context) string {
+	return "defaults to empty list (project-wide policy)"
+}
+
+func (emptyRepoPolicyListDefault) DefaultList(ctx context.Context, _ defaults.ListRequest, resp *defaults.ListResponse) {
+	listVal, diags := types.ListValueFrom(ctx, types.StringType, []string{})
+	resp.Diagnostics.Append(diags...)
+	resp.PlanValue = listVal
+}
+
 // ── Plan modifier helpers ─────────────────────────────────────────────────────
 
 // repoPolicyUseStateForUnknownModifier is a plan modifier that uses the prior

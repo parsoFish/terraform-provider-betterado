@@ -80,6 +80,7 @@ func (r *ReservedNamesResource) Schema(_ context.Context, _ resource.SchemaReque
 				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
+				Default:     emptyRepoPolicyList(),
 			},
 		},
 	}

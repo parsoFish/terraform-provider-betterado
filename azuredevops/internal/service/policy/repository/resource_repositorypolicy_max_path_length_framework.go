@@ -80,6 +80,7 @@ func (r *MaxPathLengthResource) Schema(_ context.Context, _ resource.SchemaReque
 				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
+				Default:     emptyRepoPolicyList(),
 			},
 			"max_path_length": schema.Int64Attribute{
 				Required: true,

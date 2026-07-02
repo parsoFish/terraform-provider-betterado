@@ -80,6 +80,7 @@ func (r *FilePathPatternsResource) Schema(_ context.Context, _ resource.SchemaRe
 				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
+				Default:     emptyRepoPolicyList(),
 			},
 			"filepath_patterns": schema.ListAttribute{
 				ElementType: types.StringType,

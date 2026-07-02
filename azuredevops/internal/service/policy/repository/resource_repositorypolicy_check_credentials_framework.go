@@ -83,6 +83,7 @@ func (r *CheckCredentialsResource) Schema(_ context.Context, _ resource.SchemaRe
 				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
+				Default:     emptyRepoPolicyList(),
 			},
 		},
 	}

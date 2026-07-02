@@ -80,6 +80,7 @@ func (r *EnforceConsistentCaseResource) Schema(_ context.Context, _ resource.Sch
 				ElementType: types.StringType,
 				Optional:    true,
 				Computed:    true,
+				Default:     emptyRepoPolicyList(),
 			},
 			"enforce_consistent_case": schema.BoolAttribute{
 				Required: true,
