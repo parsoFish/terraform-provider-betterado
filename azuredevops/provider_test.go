@@ -53,13 +53,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// and is no longer in the SDKv2 provider resource map.
 		// betterado_release_folder is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
-		"betterado_repository_policy_author_email_pattern",
-		"betterado_repository_policy_case_enforcement",
-		"betterado_repository_policy_check_credentials",
-		"betterado_repository_policy_file_path_pattern",
-		"betterado_repository_policy_max_file_size",
-		"betterado_repository_policy_max_path_length",
-		"betterado_repository_policy_reserved_names",
+		// betterado_repository_policy_* resources are now framework resources (registered in framework_provider.go)
+		// and are no longer in the SDKv2 provider resource map.
 		"betterado_resource_authorization",
 		"betterado_security_permissions",
 		"betterado_securityrole_assignment",

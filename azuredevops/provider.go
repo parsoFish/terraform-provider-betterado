@@ -26,7 +26,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
@@ -86,13 +85,9 @@ func Provider() *schema.Provider {
 			// betterado_release_folder is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_repository_policy_author_email_pattern":      repository.ResourceRepositoryPolicyAuthorEmailPatterns(),
-			"betterado_repository_policy_case_enforcement":          repository.ResourceRepositoryEnforceConsistentCase(),
-			"betterado_repository_policy_check_credentials":         repository.ResourceRepositoryPolicyCheckCredentials(),
-			"betterado_repository_policy_file_path_pattern":         repository.ResourceRepositoryFilePathPatterns(),
-			"betterado_repository_policy_max_file_size":             repository.ResourceRepositoryMaxFileSize(),
-			"betterado_repository_policy_max_path_length":           repository.ResourceRepositoryMaxPathLength(),
-			"betterado_repository_policy_reserved_names":            repository.ResourceRepositoryReservedNames(),
+			// betterado_repository_policy_* resources are now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
 			"betterado_resource_authorization":                      build.ResourceResourceAuthorization(),
 			"betterado_security_permissions":                        security.ResourceGenericPermissions(),
 			"betterado_securityrole_assignment":                     securityroles.ResourceSecurityRoleAssignment(),

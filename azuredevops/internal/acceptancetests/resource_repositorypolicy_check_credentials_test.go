@@ -22,16 +22,16 @@ func TestAccRepositoryPolicyCheckCredentials(t *testing.T) {
 }
 
 func testAccRepoPolicyCheckCredentialsBasic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	checkCredentialsTfNode := "betterado_repository_policy_check_credentials.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepoPolicyCheckCredentialsBasic(projectName, repoName),
+				Config: hclRepoPolicyCheckCredentialsBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(checkCredentialsTfNode, "enabled", "true"),
 				),
@@ -46,21 +46,21 @@ func testAccRepoPolicyCheckCredentialsBasic(t *testing.T) {
 }
 
 func testAccRepoPolicyCheckCredentialsUpdate(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	checkCredentialsTfNode := "betterado_repository_policy_check_credentials.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepoPolicyCheckCredentialsBasic(projectName, repoName),
+				Config: hclRepoPolicyCheckCredentialsBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(checkCredentialsTfNode, "enabled", "true"),
 				),
 			}, {
-				Config: hclRepoPolicyCheckCredentialsUpdate(projectName, repoName),
+				Config: hclRepoPolicyCheckCredentialsUpdate(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(checkCredentialsTfNode, "enabled", "false"),
 				),
@@ -75,16 +75,16 @@ func testAccRepoPolicyCheckCredentialsUpdate(t *testing.T) {
 }
 
 func testAccProjectPolicyCheckCredentialsBasic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	checkCredentialsTfNode := "betterado_repository_policy_check_credentials.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectPolicyCheckCredentialsBasic(projectName, repoName),
+				Config: hclProjectPolicyCheckCredentialsBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(checkCredentialsTfNode, "enabled", "true"),
 				),
@@ -99,21 +99,21 @@ func testAccProjectPolicyCheckCredentialsBasic(t *testing.T) {
 }
 
 func testAccProjectPolicyCheckCredentialsUpdate(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	checkCredentialsTfNode := "betterado_repository_policy_check_credentials.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectPolicyCheckCredentialsBasic(projectName, repoName),
+				Config: hclProjectPolicyCheckCredentialsBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(checkCredentialsTfNode, "enabled", "true"),
 				),
 			}, {
-				Config: hclProjectPolicyCheckCredentialsUpdate(projectName, repoName),
+				Config: hclProjectPolicyCheckCredentialsUpdate(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(checkCredentialsTfNode, "enabled", "false"),
 				),
@@ -127,76 +127,68 @@ func testAccProjectPolicyCheckCredentialsUpdate(t *testing.T) {
 	})
 }
 
-func hclPolicyCheckCredentialsResourceTemplate(projectName string, repoName string) string {
+func hclPolicyCheckCredentialsResourceTemplate(projectID string, repoName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%s"
-  description        = "Test Project Description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = %[1]q
+  name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
-`, projectName, repoName)
+`, projectID, repoName)
 }
 
-func hclRepoPolicyCheckCredentialsBasic(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyCheckCredentialsResourceTemplate(projectName, repoName)
+func hclRepoPolicyCheckCredentialsBasic(projectID string, repoName string) string {
+	repoBlock := hclPolicyCheckCredentialsResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_check_credentials" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
 
   enabled        = true
   blocking       = true
   repository_ids = [betterado_git_repository.test.id]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclRepoPolicyCheckCredentialsUpdate(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyCheckCredentialsResourceTemplate(projectName, repoName)
+func hclRepoPolicyCheckCredentialsUpdate(projectID string, repoName string) string {
+	repoBlock := hclPolicyCheckCredentialsResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_check_credentials" "test" {
-  project_id     = betterado_project.test.id
+  project_id     = %[2]q
   enabled        = false
   blocking       = true
   repository_ids = [betterado_git_repository.test.id]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclProjectPolicyCheckCredentialsBasic(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyCheckCredentialsResourceTemplate(projectName, repoName)
+func hclProjectPolicyCheckCredentialsBasic(projectID string, repoName string) string {
+	repoBlock := hclPolicyCheckCredentialsResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_check_credentials" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
   enabled    = true
   blocking   = true
   depends_on = [betterado_git_repository.test]
 }
-`, projectAndRepo)
+`, repoBlock, projectID)
 }
 
-func hclProjectPolicyCheckCredentialsUpdate(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyCheckCredentialsResourceTemplate(projectName, repoName)
+func hclProjectPolicyCheckCredentialsUpdate(projectID string, repoName string) string {
+	repoBlock := hclPolicyCheckCredentialsResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_check_credentials" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
   enabled    = false
   blocking   = true
   depends_on = [betterado_git_repository.test]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }

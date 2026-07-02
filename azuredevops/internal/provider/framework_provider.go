@@ -14,6 +14,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 )
@@ -215,6 +216,14 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		branch.NewMinReviewersResource,
 		branch.NewStatusCheckResource,
 		branch.NewWorkItemLinkingResource,
+		// Repository policy framework resources (migrated from SDKv2)
+		repository.NewAuthorEmailPatternsResource,
+		repository.NewFilePathPatternsResource,
+		repository.NewEnforceConsistentCaseResource,
+		repository.NewCheckCredentialsResource,
+		repository.NewReservedNamesResource,
+		repository.NewMaxPathLengthResource,
+		repository.NewMaxFileSizeResource,
 	}
 }
 
