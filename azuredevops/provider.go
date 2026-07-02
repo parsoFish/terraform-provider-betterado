@@ -74,7 +74,7 @@ func Provider() *schema.Provider {
 			"betterado_git_permissions":                  permissions.ResourceGitPermissions(),
 			// "betterado_git_repository" migrated to terraform-plugin-framework (framework_provider.go)
 			// "betterado_git_repository_branch" migrated to terraform-plugin-framework (framework_provider.go)
-			"betterado_git_repository_file":       git.ResourceGitRepositoryFile(),
+			// "betterado_git_repository_file" migrated to terraform-plugin-framework (framework_provider.go)
 			"betterado_group":                     graph.ResourceGroup(),
 			"betterado_group_entitlement":         memberentitlementmanagement.ResourceGroupEntitlement(),
 			"betterado_group_membership":          graph.ResourceGroupMembership(),
@@ -195,7 +195,7 @@ func Provider() *schema.Provider {
 			"betterado_feed":             feed.DataFeed(),
 			"betterado_git_repositories": git.DataGitRepositories(),
 			// "betterado_git_repository" data source migrated to terraform-plugin-framework (framework_provider.go)
-			"betterado_git_repository_file":                   git.DataGitRepositoryFile(),
+			// "betterado_git_repository_file" data source migrated to terraform-plugin-framework (framework_provider.go)
 			"betterado_group":                                 graph.DataGroup(),
 			"betterado_group_membership":                      graph.DataGroupMembership(),
 			"betterado_groups":                                graph.DataGroups(),
