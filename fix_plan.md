@@ -19,6 +19,8 @@
 
 **Iteration 4 (complete):** Fixed iteration 3's gate failure — all 7 acceptance tests used `data "betterado_project"` in HCL which fails with "Project does not exist" on the live org. Replaced with `SharedFixtureProjectID(t)` helper that resolves project UUID via CoreClient.GetProject SDK before HCL is generated.
 
+**Iteration 5 (complete):** Fixed iteration 4's gate failure — `SharedFixtureProjectID(t)` called `resolveOrCreateFixtureProject` which fell through to `QueueCreateProject` when GetProject returned an error. The live org is at the 1000-project cap so `QueueCreateProject` always fails. Removed the create fallback; `resolveOrCreateFixtureProject` now does a GetProject-only lookup and `t.Fatal`s if the project is absent.
+
 ## Remaining work
 
-All ACs are complete. Build, lint, and offline tests pass. Live acceptance tests should pass now that project IDs are resolved via direct SDK calls (not Terraform data source lookups that can fail if the project isn't present at plan time).
+All ACs are complete. Build, lint, and offline tests pass. Live acceptance tests should pass now that `resolveOrCreateFixtureProject` no longer attempts to create a project on an org at capacity.

@@ -84,12 +84,27 @@ func TestAccBranchPolicy*(t *testing.T) {
 - `shared_fixtures.go` — added `SharedFixtureProjectID(t)` helper
 - All 7 `resource_branchpolicy_*_test.go` — each test calls `projectID := SharedFixtureProjectID(t)`; HCL uses literal UUID instead of `data.betterado_project.test.id`
 
+### Iteration 5 — Remove QueueCreateProject fallback (COMPLETE)
+
+**Root cause:** Gate failure was:
+```
+resource_branchpolicy_min_reviewer_test.go:19: SharedReleaseFixture: QueueCreateProject: Failed to add a project
+```
+
+`SharedFixtureProjectID(t)` calls `resolveOrCreateFixtureProject` which, after a failed `GetProject`, falls through to `QueueCreateProject`. On the live org at the 1000-project cap, `QueueCreateProject` always fails — the "create" fallback path is permanently broken.
+
+**Fix:** Removed the create fallback entirely from `resolveOrCreateFixtureProject`. Now it does a single `GetProject` and `t.Fatal`s if the project is missing, giving a clear diagnostic message. The `betterado-standing-demo` project is pre-provisioned and expected to always exist — no create path needed.
+
+**Files changed:**
+- `shared_fixtures.go` — `resolveOrCreateFixtureProject` now does GetProject-only (9 lines inserted, 82 deleted)
+
 ## What didn't work
 
 - `booldefault.StaticBool()`, `int64default.StaticInt64()` — NOT in vendor
 - `schema.ListNestedAttribute` for block-syntax HCL fields
 - `resource "betterado_project"` in acc tests — fails at 1000-project limit
 - `data "betterado_project"` in HCL templates — fails with "Project ... does not exist" on the live org
+- `resolveOrCreateFixtureProject` fallback to `QueueCreateProject` — always fails on live org at 1000-project cap
 
 ## Key Patterns
 
