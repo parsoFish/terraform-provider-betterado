@@ -15,7 +15,6 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
@@ -49,12 +48,8 @@ func Provider() *schema.Provider {
 			"betterado_build_definition_permissions":    permissions.ResourceBuildDefinitionPermissions(),
 			"betterado_build_folder":                    build.ResourceBuildFolder(),
 			"betterado_build_folder_permissions":        permissions.ResourceBuildFolderPermissions(),
-			"betterado_check_approval":                  approvalsandchecks.ResourceCheckApproval(),
-			"betterado_check_branch_control":            approvalsandchecks.ResourceCheckBranchControl(),
-			"betterado_check_business_hours":            approvalsandchecks.ResourceCheckBusinessHours(),
-			"betterado_check_exclusive_lock":            approvalsandchecks.ResourceCheckExclusiveLock(),
-			"betterado_check_required_template":         approvalsandchecks.ResourceCheckRequiredTemplate(),
-			"betterado_check_rest_api":                  approvalsandchecks.ResourceCheckRestAPI(),
+			// betterado_check_* resources are now framework resources (registered in framework_provider.go)
+			// and are no longer in the SDKv2 provider resource map.
 			"betterado_dashboard":                       dashboard.ResourceDashboard(),
 			"betterado_deployment_group":                taskagent.ResourceDeploymentGroup(),
 			"betterado_elastic_pool":                    taskagent.ResourceAgentPoolVMSS(),

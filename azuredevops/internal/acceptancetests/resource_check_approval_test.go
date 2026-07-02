@@ -10,19 +10,19 @@ import (
 )
 
 func TestAccCheckApproval_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
 
 	resourceType := "betterado_check_approval"
 	tfCheckNode := resourceType + ".test"
 	principalName := os.Getenv("AZDO_TEST_AAD_USER_EMAIL")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_USER_EMAIL"}) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckPipelineCheckDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_USER_EMAIL"}) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckApprovalResourceBasic(projectName, principalName),
+				Config: hclCheckApprovalResourceBasic(projectID, principalName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttr(tfCheckNode, "requester_can_approve", "false"),
@@ -35,7 +35,7 @@ func TestAccCheckApproval_basic(t *testing.T) {
 }
 
 func TestAccCheckApproval_complete(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
 
 	resourceType := "betterado_check_approval"
 	tfCheckNode := resourceType + ".test"
@@ -43,12 +43,12 @@ func TestAccCheckApproval_complete(t *testing.T) {
 	azdoGroupName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckPipelineCheckDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckApprovalResourceComplete(projectName, principalName, azdoGroupName),
+				Config: hclCheckApprovalResourceComplete(projectID, principalName, azdoGroupName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttr(tfCheckNode, "requester_can_approve", "true"),
@@ -61,7 +61,7 @@ func TestAccCheckApproval_complete(t *testing.T) {
 }
 
 func TestAccCheckApproval_update(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
 
 	resourceType := "betterado_check_approval"
 	tfCheckNode := resourceType + ".test"
@@ -69,19 +69,19 @@ func TestAccCheckApproval_update(t *testing.T) {
 	azdoGroupName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_USER_EMAIL"}) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckPipelineCheckDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_USER_EMAIL"}) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckApprovalResourceBasic(projectName, principalName),
+				Config: hclCheckApprovalResourceBasic(projectID, principalName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttr(tfCheckNode, "approvers.#", "1"),
 				),
 			},
 			{
-				Config: hclCheckApprovalResourceComplete(projectName, principalName, azdoGroupName),
+				Config: hclCheckApprovalResourceComplete(projectID, principalName, azdoGroupName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttr(tfCheckNode, "approvers.#", "2"),
@@ -92,14 +92,23 @@ func TestAccCheckApproval_update(t *testing.T) {
 	})
 }
 
-func hclCheckApprovalResourceBasic(projectName string, principalName string) string {
-	checkResource := fmt.Sprintf(`
+func hclCheckApprovalResourceBasic(projectID string, principalName string) string {
+	return fmt.Sprintf(`
+resource "betterado_serviceendpoint_generic" "test" {
+  project_id            = %q
+  service_endpoint_name = "serviceendpoint"
+  description           = "test"
+  server_url            = "https://test/"
+  username              = "test"
+  password              = "test"
+}
+
 data "betterado_users" "test" {
   principal_name = "%s"
 }
 
 resource "betterado_check_approval" "test" {
-  project_id           = betterado_project.project.id
+  project_id           = %q
   target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
 
@@ -108,14 +117,20 @@ resource "betterado_check_approval" "test" {
     one(data.betterado_users.test.users).id,
   ]
 }
-`, principalName)
-
-	genericcheckResource := testutils.HclServiceEndpointGenericResource(projectName, "serviceendpoint", "https://test/", "test", "test")
-	return fmt.Sprintf("%s\n%s", genericcheckResource, checkResource)
+`, projectID, principalName, projectID)
 }
 
-func hclCheckApprovalResourceComplete(projectName string, principalName string, azdoGroupName string) string {
-	checkResource := fmt.Sprintf(`
+func hclCheckApprovalResourceComplete(projectID string, principalName string, azdoGroupName string) string {
+	return fmt.Sprintf(`
+resource "betterado_serviceendpoint_generic" "test" {
+  project_id            = %q
+  service_endpoint_name = "serviceendpoint"
+  description           = "test"
+  server_url            = "https://test/"
+  username              = "test"
+  password              = "test"
+}
+
 data "betterado_users" "test" {
   principal_name = "%s"
 }
@@ -125,7 +140,7 @@ resource "betterado_group" "test" {
 }
 
 resource "betterado_check_approval" "test" {
-  project_id           = betterado_project.project.id
+  project_id           = %q
   target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
 
@@ -137,8 +152,5 @@ resource "betterado_check_approval" "test" {
 
   timeout = 40000
 }
-`, principalName, azdoGroupName)
-
-	genericcheckResource := testutils.HclServiceEndpointGenericResource(projectName, "serviceendpoint", "https://test/", "test", "test")
-	return fmt.Sprintf("%s\n%s", genericcheckResource, checkResource)
+`, projectID, principalName, azdoGroupName, projectID)
 }

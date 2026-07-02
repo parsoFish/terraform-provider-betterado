@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
@@ -224,6 +225,13 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		repository.NewReservedNamesResource,
 		repository.NewMaxPathLengthResource,
 		repository.NewMaxFileSizeResource,
+		// Approvals and checks framework resources (migrated from SDKv2)
+		approvalsandchecks.NewApprovalResource,
+		approvalsandchecks.NewBranchControlResource,
+		approvalsandchecks.NewBusinessHoursResource,
+		approvalsandchecks.NewExclusiveLockResource,
+		approvalsandchecks.NewRequiredTemplateResource,
+		approvalsandchecks.NewRestAPIResource,
 	}
 }
 

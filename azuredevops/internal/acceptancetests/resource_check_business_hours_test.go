@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccCheckBusinessHours_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
 	checkName := testutils.GenerateResourceName()
 	start_time := "01:20"
 	end_time := "03:20"
@@ -17,12 +17,12 @@ func TestAccCheckBusinessHours_basic(t *testing.T) {
 	resourceType := "betterado_check_business_hours"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckPipelineCheckDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckBusinessHoursResourceBasic(projectName, checkName, start_time, end_time),
+				Config: hclCheckBusinessHoursResourceBasic(projectID, checkName, start_time, end_time),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, checkName),
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
@@ -37,7 +37,7 @@ func TestAccCheckBusinessHours_basic(t *testing.T) {
 }
 
 func TestAccCheckBusinessHours_complete(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
 	checkName := testutils.GenerateResourceName()
 	start_time := "01:20"
 	end_time := "02:20"
@@ -53,12 +53,12 @@ func TestAccCheckBusinessHours_complete(t *testing.T) {
 	resourceType := "betterado_check_business_hours"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckPipelineCheckDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckBusinessHoursResourceComplete(projectName, checkName, start_time, end_time, time_zone, monday, tuesday, wednesday, thursday, friday, saturday, sunday),
+				Config: hclCheckBusinessHoursResourceComplete(projectID, checkName, start_time, end_time, time_zone, monday, tuesday, wednesday, thursday, friday, saturday, sunday),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, checkName),
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
@@ -82,7 +82,7 @@ func TestAccCheckBusinessHours_complete(t *testing.T) {
 }
 
 func TestAccCheckBusinessHours_update(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
 	checkNameFirst := testutils.GenerateResourceName()
 	start_time_first := "01:20"
 	end_time_first := "02:20"
@@ -110,12 +110,12 @@ func TestAccCheckBusinessHours_update(t *testing.T) {
 	resourceType := "betterado_check_business_hours"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckPipelineCheckDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckBusinessHoursResourceComplete(projectName, checkNameFirst, start_time_first, end_time_first, time_zone_first, monday_first, tuesday_first, wednesday_first, thursday_first, friday_first, saturday_first, sunday_first),
+				Config: hclCheckBusinessHoursResourceComplete(projectID, checkNameFirst, start_time_first, end_time_first, time_zone_first, monday_first, tuesday_first, wednesday_first, thursday_first, friday_first, saturday_first, sunday_first),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, checkNameFirst),
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
@@ -132,7 +132,7 @@ func TestAccCheckBusinessHours_update(t *testing.T) {
 				),
 			},
 			{
-				Config: hclCheckBusinessHoursResourceUpdate(projectName, checkNameSecond, start_time_second, end_time_second, time_zone_second, monday_second, tuesday_second, wednesday_second, thursday_second, friday_second, saturday_second, sunday_second),
+				Config: hclCheckBusinessHoursResourceUpdate(projectID, checkNameSecond, start_time_second, end_time_second, time_zone_second, monday_second, tuesday_second, wednesday_second, thursday_second, friday_second, saturday_second, sunday_second),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, checkNameSecond),
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
@@ -153,10 +153,19 @@ func TestAccCheckBusinessHours_update(t *testing.T) {
 	})
 }
 
-func hclCheckBusinessHoursResourceBasic(projectName string, checkName string, start_time string, end_time string) string {
-	checkResource := fmt.Sprintf(`
+func hclCheckBusinessHoursResourceBasic(projectID string, checkName string, start_time string, end_time string) string {
+	return fmt.Sprintf(`
+resource "betterado_serviceendpoint_generic" "test" {
+  project_id            = %q
+  service_endpoint_name = "serviceendpoint"
+  description           = "test"
+  server_url            = "https://test/"
+  username              = "test"
+  password              = "test"
+}
+
 resource "betterado_check_business_hours" "test" {
-  project_id           = betterado_project.project.id
+  project_id           = %q
   display_name         = "%s"
   target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
@@ -164,18 +173,24 @@ resource "betterado_check_business_hours" "test" {
   start_time           = "%s"
   end_time             = "%s"
   monday               = true
-}`, checkName, start_time, end_time)
-
-	genericServiceEndpointResource := testutils.HclServiceEndpointGenericResource(projectName, "serviceendpoint", "https://test/", "test", "test")
-	return fmt.Sprintf("%s\n%s", genericServiceEndpointResource, checkResource)
+}`, projectID, projectID, checkName, start_time, end_time)
 }
 
-func hclCheckBusinessHoursResourceComplete(projectName string, checkName string, start_time string, end_time string, time_zone string,
+func hclCheckBusinessHoursResourceComplete(projectID string, checkName string, start_time string, end_time string, time_zone string,
 	monday string, tuesday string, wednesday string, thursday string, friday string, saturday string, sunday string,
 ) string {
-	checkResource := fmt.Sprintf(`
+	return fmt.Sprintf(`
+resource "betterado_serviceendpoint_generic" "test" {
+  project_id            = %q
+  service_endpoint_name = "serviceendpoint"
+  description           = "test"
+  server_url            = "https://test/"
+  username              = "test"
+  password              = "test"
+}
+
 resource "betterado_check_business_hours" "test" {
-  project_id           = betterado_project.project.id
+  project_id           = %q
   display_name         = "%s"
   target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
@@ -189,19 +204,24 @@ resource "betterado_check_business_hours" "test" {
   friday               = "%s"
   saturday             = "%s"
   sunday               = "%s"
-}`, checkName, start_time, end_time, time_zone, monday, tuesday, wednesday, thursday, friday, saturday, sunday,
-	)
-
-	genericServiceEndpointResource := testutils.HclServiceEndpointGenericResource(projectName, "serviceendpoint", "https://test/", "test", "test")
-	return fmt.Sprintf("%s\n%s", genericServiceEndpointResource, checkResource)
+}`, projectID, projectID, checkName, start_time, end_time, time_zone, monday, tuesday, wednesday, thursday, friday, saturday, sunday)
 }
 
-func hclCheckBusinessHoursResourceUpdate(projectName string, checkName string, start_time string, end_time string, time_zone string,
+func hclCheckBusinessHoursResourceUpdate(projectID string, checkName string, start_time string, end_time string, time_zone string,
 	monday string, tuesday string, wednesday string, thursday string, friday string, saturday string, sunday string,
 ) string {
-	checkResource := fmt.Sprintf(`
+	return fmt.Sprintf(`
+resource "betterado_serviceendpoint_generic" "test" {
+  project_id            = %q
+  service_endpoint_name = "serviceendpoint"
+  description           = "test"
+  server_url            = "https://test/"
+  username              = "test"
+  password              = "test"
+}
+
 resource "betterado_check_business_hours" "test" {
-  project_id           = betterado_project.project.id
+  project_id           = %q
   display_name         = "%s"
   target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
@@ -216,9 +236,5 @@ resource "betterado_check_business_hours" "test" {
   saturday             = "%s"
   sunday               = "%s"
   timeout              = 50000
-}`, checkName, start_time, end_time, time_zone, monday, tuesday, wednesday, thursday, friday, saturday, sunday,
-	)
-
-	genericServiceEndpointResource := testutils.HclServiceEndpointGenericResource(projectName, "serviceendpoint", "https://test/", "test", "test")
-	return fmt.Sprintf("%s\n%s", genericServiceEndpointResource, checkResource)
+}`, projectID, projectID, checkName, start_time, end_time, time_zone, monday, tuesday, wednesday, thursday, friday, saturday, sunday)
 }
