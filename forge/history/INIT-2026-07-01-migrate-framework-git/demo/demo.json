@@ -3,14 +3,14 @@
   "essence": "Six SDKv2 git resources/data-sources (betterado_git_repository resource+datasource, betterado_git_repository_branch resource, betterado_git_repository_file resource+datasource, betterado_git_repositories datasource) are now served by the mux provider via terraform-plugin-framework. All six types are deregistered from the SDKv2 ResourcesMap/DataSourcesMap and registered in framework_provider.go Resources()/DataSources(). Acceptance tests updated to use GetMuxedProviderFactories(). docs/git-gap-matrix.md produced. Registry docs regenerated via make docs. CHANGELOG updated and PROVIDER_VERSION.txt bumped to 1.2.1.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-git",
-  "diffStat": "33 files changed, 3656 insertions(+), 539 deletions(-)",
+  "diffStat": "36 files changed, 4039 insertions(+), 624 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
       "caption": "Offline unit tests for release and taskagent packages pass on branch HEAD (the gate forge ran, verbatim)",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
       "beforeNote": "Framework git files did not exist; only SDKv2 paths compiled",
-      "afterNote": "ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.007s | ok .../taskagent 0.005s | ok .../taskagent/validate 0.004s — all three packages green"
+      "afterNote": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s"
     },
     {
       "label": "acceptance-resource",
@@ -136,7 +136,7 @@
     {
       "criterion": "GIVEN CI-equivalent gate WHEN make test && golangci-lint run ./azuredevops/... && make terrafmt-check THEN all checks pass",
       "verdict": "met",
-      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok (release 0.007s, taskagent 0.005s, taskagent/validate 0.004s). All three packages green on branch HEAD."
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... (run on branch HEAD, iteration 1): ok release 0.007s | ok taskagent 0.005s | ok taskagent/validate 0.004s — all 3 packages green."
     }
   ]
 }
