@@ -80,9 +80,9 @@ func (r *RestAPIResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				PlanModifiers: []planmodifier.String{checkUseStateForUnknown()},
 			},
 			"retry_interval": schema.Int64Attribute{
-				Optional:      true,
-				Computed:      true,
-				PlanModifiers: []planmodifier.Int64{checkUseStateForUnknownInt64Val()},
+				Optional: true,
+				Computed: true,
+				Default:  staticCheckInt64(0),
 			},
 			"success_criteria": schema.StringAttribute{
 				Optional:      true,
@@ -105,9 +105,9 @@ func (r *RestAPIResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Default:  staticCheckString(string(CompleteEventValues.Callback)),
 			},
 			"timeout": schema.Int64Attribute{
-				Optional:      true,
-				Computed:      true,
-				PlanModifiers: []planmodifier.Int64{checkUseStateForUnknownInt64Val()},
+				Optional: true,
+				Computed: true,
+				Default:  staticCheckInt64(1440),
 			},
 			"version": schema.Int64Attribute{
 				Computed:      true,

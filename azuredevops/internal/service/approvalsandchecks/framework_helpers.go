@@ -30,6 +30,21 @@ func (d staticCheckBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRe
 	resp.PlanValue = types.BoolValue(d.value)
 }
 
+// staticCheckInt64 returns a defaults.Int64 that always returns v.
+type staticCheckInt64Default struct{ value int64 }
+
+func staticCheckInt64(v int64) defaults.Int64 { return staticCheckInt64Default{value: v} }
+
+func (d staticCheckInt64Default) Description(_ context.Context) string {
+	return fmt.Sprintf("defaults to %d", d.value)
+}
+func (d staticCheckInt64Default) MarkdownDescription(_ context.Context) string {
+	return fmt.Sprintf("defaults to `%d`", d.value)
+}
+func (d staticCheckInt64Default) DefaultInt64(_ context.Context, _ defaults.Int64Request, resp *defaults.Int64Response) {
+	resp.PlanValue = types.Int64Value(d.value)
+}
+
 // staticCheckString returns a defaults.String that always returns v.
 type staticCheckStringDefault struct{ value string }
 
@@ -62,6 +77,11 @@ func (m checkUseStateForUnknownString) PlanModifyString(_ context.Context, req p
 	if !req.PlanValue.IsUnknown() {
 		return
 	}
+	// If there is no prior state (create), keep the plan value Unknown so the
+	// provider can set any value after apply without causing an inconsistency.
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+		return
+	}
 	resp.PlanValue = req.StateValue
 }
 
@@ -78,6 +98,11 @@ func (m checkUseStateForUnknownInt64) MarkdownDescription(_ context.Context) str
 }
 func (m checkUseStateForUnknownInt64) PlanModifyInt64(_ context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
 	if !req.PlanValue.IsUnknown() {
+		return
+	}
+	// If there is no prior state (create), keep the plan value Unknown so the
+	// provider can set any value after apply without causing an inconsistency.
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
 		return
 	}
 	resp.PlanValue = req.StateValue
