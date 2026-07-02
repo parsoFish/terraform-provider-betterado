@@ -75,12 +75,19 @@ func TestAccProject_importByName(t *testing.T) {
 			// verifies all required attributes (name, visibility, version_control,
 			// work_item_template, process_template_id). Step 2's PlanOnly +
 			// ExpectNonEmptyPlan: false verifies idempotency.
+			// ImportStatePersist: true is required so that the imported state is written
+			// to the main test working directory (testCaseWorkingDir) rather than a
+			// temporary directory that is discarded after this step. Without this flag,
+			// terraform-plugin-testing runs the import in a throw-away workingDir, the
+			// state is never propagated back, and Step 2 plans against empty state,
+			// showing "Plan: 1 to add" (false non-empty plan failure).
 			{
-				Config:           hclProjectStandingDemo(),
-				ResourceName:     tfNode,
-				ImportState:      true,
-				ImportStateId:    standingDemoName,
-				ImportStateCheck: checkProjectImportByName(standingDemoName),
+				Config:             hclProjectStandingDemo(),
+				ResourceName:       tfNode,
+				ImportState:        true,
+				ImportStateId:      standingDemoName,
+				ImportStatePersist: true,
+				ImportStateCheck:   checkProjectImportByName(standingDemoName),
 			},
 			// Step 2 — idempotency: re-plan must show no diff.
 			{
