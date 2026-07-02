@@ -132,10 +132,10 @@ resource "betterado_project_permissions" "fw_permissions" {
   project_id  = %[1]q
   principal   = data.betterado_group.readers.descriptor
   permissions = {
-    DELETE              = "Deny"
-    EDIT_BUILD_STATUS   = "NotSet"
-    WORK_ITEM_MOVE      = "Allow"
-    DELETE_TEST_RESULTS = "Deny"
+    DELETE              = "deny"
+    EDIT_BUILD_STATUS   = "notset"
+    WORK_ITEM_MOVE      = "allow"
+    DELETE_TEST_RESULTS = "deny"
   }
 }
 `, projectID)
