@@ -7,6 +7,20 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **Core gap matrix added.** `docs/core-gap-matrix.md` documents every ADO Projects/Teams/Features/PipelineSettings/Tags REST API v7.1 field for all 7 core resources (`betterado_project`, `betterado_project_features`, `betterado_project_pipeline_settings`, `betterado_project_tags`, `betterado_team`, `betterado_team_administrators`, `betterado_team_members`) with implemented/read-only/gap/out-of-scope status; every writable gap carries explicit rationale or deferral.
+
+- **`betterado_project` resource migrated to terraform-plugin-framework.** Served through the mux provider alongside remaining SDKv2 resources. Import-by-name and import-by-UUID both supported. 404 in Read → `resp.State.RemoveResource`. `process_template_id` is computed. Acceptance test `TestAccProject_importByName` verifies import round-trip against `betterado-standing-demo` (org is at 1000-project cap; no project creation). `ExpectNonEmptyPlan: false`.
+
+- **`data.betterado_project` and `data.betterado_projects` data sources migrated to terraform-plugin-framework.** Lookup by name or ID. `TestAccProject_dataSource_withID`, `TestAccProject_dataSource_withName`, and `TestAccProjects_dataSource` updated to use `GetMuxedProviderFactories()`.
+
+- **`betterado_project_features` resource migrated to terraform-plugin-framework.** Enable/disable per-project features (boards, pipelines, artifacts, testplans, repositories) with idempotent apply and clean destroy (feature state restored). `TestAccProjectFeatures_roundtrip` passes live; `CaptureLiveEvidence` records real REST GET of feature states from `betterado-standing-demo`. `ExpectNonEmptyPlan: false`.
+
+### NOTES
+
+- WI-4 (`betterado_project_pipeline_settings`), WI-5 (`betterado_project_tags`), WI-6 (`betterado_team` + data sources), WI-7 (`betterado_team_administrators`, `betterado_team_members`), WI-8 (`data.betterado_client_config`), and WI-9 (full docs regeneration) were not delivered in this initiative (per-WI Ralphs exhausted iteration budgets). Those resources remain in the SDKv2 `ResourcesMap`/`DataSourcesMap` and are deferred to a follow-up initiative.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES
