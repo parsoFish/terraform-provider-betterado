@@ -1,3 +1,5 @@
+//go:build (all || resource_dashboard) && !exclude_resource_dashboard
+
 package acceptancetests
 
 import (
@@ -77,7 +79,6 @@ func tryCaptureDashboardEvidence(tfNode string, s *terraform.State) error {
 }
 
 func TestAccDashboard_project_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
 	tfNode := "betterado_dashboard.test"
@@ -87,7 +88,7 @@ func TestAccDashboard_project_basic(t *testing.T) {
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclDashboardProjectBasic(projectName, name),
+				Config: hclDashboardProjectBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					checkDashboardExist(name),
 					resource.TestCheckResourceAttr(tfNode, "name", name),
@@ -99,7 +100,7 @@ func TestAccDashboard_project_basic(t *testing.T) {
 			},
 			// Idempotency: re-plan produces no diff.
 			{
-				Config:             hclDashboardProjectBasic(projectName, name),
+				Config:             hclDashboardProjectBasic(name),
 				ExpectNonEmptyPlan: false,
 				PlanOnly:           true,
 			},
@@ -114,7 +115,6 @@ func TestAccDashboard_project_basic(t *testing.T) {
 }
 
 func TestAccDashboard_project_update(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
 	tfNode := "betterado_dashboard.test"
@@ -124,7 +124,7 @@ func TestAccDashboard_project_update(t *testing.T) {
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclDashboardProjectBasic(projectName, name),
+				Config: hclDashboardProjectBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					checkDashboardExist(name),
 					resource.TestCheckResourceAttr(tfNode, "name", name),
@@ -139,7 +139,7 @@ func TestAccDashboard_project_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: hclDashboardProjectUpdate(projectName, name),
+				Config: hclDashboardProjectUpdate(name),
 				Check: resource.ComposeTestCheckFunc(
 					checkDashboardExist(name+"update"),
 					resource.TestCheckResourceAttr(tfNode, "name", name+"update"),
@@ -149,7 +149,7 @@ func TestAccDashboard_project_update(t *testing.T) {
 			},
 			// Idempotency after update.
 			{
-				Config:             hclDashboardProjectUpdate(projectName, name),
+				Config:             hclDashboardProjectUpdate(name),
 				ExpectNonEmptyPlan: false,
 				PlanOnly:           true,
 			},
@@ -164,7 +164,6 @@ func TestAccDashboard_project_update(t *testing.T) {
 }
 
 func TestAccDashboard_project_complete(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
 	tfNode := "betterado_dashboard.test"
@@ -174,7 +173,7 @@ func TestAccDashboard_project_complete(t *testing.T) {
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclDashboardProjectComplete(projectName, name),
+				Config: hclDashboardProjectComplete(name),
 				Check: resource.ComposeTestCheckFunc(
 					checkDashboardExist(name),
 					resource.TestCheckResourceAttr(tfNode, "name", name),
@@ -193,7 +192,6 @@ func TestAccDashboard_project_complete(t *testing.T) {
 }
 
 func TestAccDashboard_team_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
 	tfNode := "betterado_dashboard.test"
@@ -203,7 +201,7 @@ func TestAccDashboard_team_basic(t *testing.T) {
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclDashboardTeamBasic(projectName, name),
+				Config: hclDashboardTeamBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					checkDashboardExist(name),
 					resource.TestCheckResourceAttr(tfNode, "name", name),
@@ -213,7 +211,7 @@ func TestAccDashboard_team_basic(t *testing.T) {
 			},
 			// Idempotency.
 			{
-				Config:             hclDashboardTeamBasic(projectName, name),
+				Config:             hclDashboardTeamBasic(name),
 				ExpectNonEmptyPlan: false,
 				PlanOnly:           true,
 			},
@@ -228,7 +226,6 @@ func TestAccDashboard_team_basic(t *testing.T) {
 }
 
 func TestAccDashboard_team_update(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
 	tfNode := "betterado_dashboard.test"
@@ -238,7 +235,7 @@ func TestAccDashboard_team_update(t *testing.T) {
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclDashboardTeamBasic(projectName, name),
+				Config: hclDashboardTeamBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					checkDashboardExist(name),
 					resource.TestCheckResourceAttr(tfNode, "name", name),
@@ -254,7 +251,7 @@ func TestAccDashboard_team_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: hclDashboardTeamUpdate(projectName, name),
+				Config: hclDashboardTeamUpdate(name),
 				Check: resource.ComposeTestCheckFunc(
 					checkDashboardExist(name+"update"),
 					resource.TestCheckResourceAttr(tfNode, "name", name+"update"),
@@ -267,7 +264,7 @@ func TestAccDashboard_team_update(t *testing.T) {
 			},
 			// Idempotency after update.
 			{
-				Config:             hclDashboardTeamUpdate(projectName, name),
+				Config:             hclDashboardTeamUpdate(name),
 				ExpectNonEmptyPlan: false,
 				PlanOnly:           true,
 			},
@@ -282,7 +279,6 @@ func TestAccDashboard_team_update(t *testing.T) {
 }
 
 func TestAccDashboard_team_complete(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
 	tfNode := "betterado_dashboard.test"
@@ -292,7 +288,7 @@ func TestAccDashboard_team_complete(t *testing.T) {
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclDashboardTeamComplete(projectName, name),
+				Config: hclDashboardTeamComplete(name),
 				Check: resource.ComposeTestCheckFunc(
 					checkDashboardExist(name),
 					resource.TestCheckResourceAttr(tfNode, "name", name),
@@ -314,7 +310,6 @@ func TestAccDashboard_team_complete(t *testing.T) {
 }
 
 func TestAccDashboard_team_requireImportError(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	name := testutils.GenerateResourceName()
 
 	tfNode := "betterado_dashboard.test"
@@ -324,7 +319,7 @@ func TestAccDashboard_team_requireImportError(t *testing.T) {
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclDashboardTeamBasic(projectName, name),
+				Config: hclDashboardTeamBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					checkDashboardExist(name),
 					resource.TestCheckResourceAttr(tfNode, "name", name),
@@ -335,7 +330,7 @@ func TestAccDashboard_team_requireImportError(t *testing.T) {
 			},
 			{
 				ExpectError: regexp.MustCompile("Creating Dashboard in Azure DevOps: VS403345: Duplicate name on dashboard. Each dashboard held by a team must use a distinct name"),
-				Config:      hclDashboardTeamRequireImport(projectName, name),
+				Config:      hclDashboardTeamRequireImport(name),
 			},
 		},
 	})
@@ -427,111 +422,113 @@ func importDashboardId(resourceType string) resource.ImportStateIdFunc {
 	}
 }
 
-func hclDashboardProjectBasic(projectName, name string) string {
+// hclDashboardProjectBasic uses the shared persistent project (SharedFixtureProjectName)
+// as a data source instead of creating a new project, to avoid the ADO 1000-project cap.
+func hclDashboardProjectBasic(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_dashboard" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = data.betterado_project.test.id
+  name       = "%[1]s"
 }
-`, projectName, name)
+`, name, SharedFixtureProjectName)
 }
 
-func hclDashboardProjectUpdate(projectName, name string) string {
+func hclDashboardProjectUpdate(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_dashboard" "test" {
-  project_id       = betterado_project.test.id
-  name             = "%supdate"
+  project_id       = data.betterado_project.test.id
+  name             = "%[1]supdate"
   description      = "description"
   refresh_interval = 5
 }
-`, projectName, name)
+`, name, SharedFixtureProjectName)
 }
 
-func hclDashboardProjectComplete(projectName, name string) string {
+func hclDashboardProjectComplete(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_dashboard" "test" {
-  project_id       = betterado_project.test.id
-  name             = "%s"
+  project_id       = data.betterado_project.test.id
+  name             = "%[1]s"
   description      = "description"
   refresh_interval = 5
 }
-`, projectName, name)
+`, name, SharedFixtureProjectName)
 }
 
-func hclDashboardTeamBasic(projectName, name string) string {
+func hclDashboardTeamBasic(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%[1]s"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_team" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[2]s dashboard"
+  project_id = data.betterado_project.test.id
+  name       = "%[1]s dashboard"
 }
 
 resource "betterado_dashboard" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[2]s"
+  project_id = data.betterado_project.test.id
+  name       = "%[1]s"
   team_id    = betterado_team.test.id
 }
-`, projectName, name)
+`, name, SharedFixtureProjectName)
 }
 
-func hclDashboardTeamUpdate(projectName, name string) string {
+func hclDashboardTeamUpdate(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%[1]s"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_team" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[2]s dashboard"
+  project_id = data.betterado_project.test.id
+  name       = "%[1]s dashboard"
 }
 
 resource "betterado_dashboard" "test" {
-  project_id       = betterado_project.test.id
-  name             = "%[2]supdate"
+  project_id       = data.betterado_project.test.id
+  name             = "%[1]supdate"
   team_id          = betterado_team.test.id
   description      = "description"
   refresh_interval = 5
 }
-`, projectName, name)
+`, name, SharedFixtureProjectName)
 }
 
-func hclDashboardTeamComplete(projectName, name string) string {
+func hclDashboardTeamComplete(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%[1]s"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_team" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[2]s dashboard"
+  project_id = data.betterado_project.test.id
+  name       = "%[1]s dashboard"
 }
 
 resource "betterado_dashboard" "test" {
-  project_id       = betterado_project.test.id
-  name             = "%[2]s"
+  project_id       = data.betterado_project.test.id
+  name             = "%[1]s"
   team_id          = betterado_team.test.id
   description      = "description"
   refresh_interval = 5
 }
-`, projectName, name)
+`, name, SharedFixtureProjectName)
 }
 
-func hclDashboardTeamRequireImport(projectName, name string) string {
+func hclDashboardTeamRequireImport(name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -540,5 +537,5 @@ resource "betterado_dashboard" "import" {
   name       = betterado_dashboard.test.name
   team_id    = betterado_dashboard.test.team_id
 }
-`, hclDashboardTeamBasic(projectName, name))
+`, hclDashboardTeamBasic(name))
 }
