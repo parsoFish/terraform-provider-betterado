@@ -119,6 +119,40 @@ Gate failure after iteration 2:
 - `go test -tags all -run TestAccProjectFeatures ./azuredevops/internal/acceptancetests/ -v` — skips
   without TF_ACC (as expected); will run live with TF_ACC set.
 
+### Iteration 4 (this iteration)
+
+Gate failure after iteration 3:
+```
+--- FAIL: TestAccProjectFeatures_roundtrip (0.58s)
+    resource_project_features_test.go:35: Step 1/2 error: Error running pre-apply plan: exit status 1
+    Error: project not found
+      with data.betterado_project.test, line 12
+    Project with name or ID "betterado-standing-demo" does not exist
+```
+
+**Root cause:**
+- The test used `data "betterado_project" "test"` to look up `betterado-standing-demo` in the
+  live gate ADO org. However, `betterado-standing-demo` does NOT yet exist in that org.
+- A Terraform data source read at plan time goes directly to ADO API — if the project isn't there,
+  `GetProject` returns 404 → `ResponseWasNotFound` → "project not found" error → plan fails.
+- `resolveOrCreateFixtureProject` (in `SharedReleaseFixture`) handles the same scenario correctly:
+  it tries `GetProject`, and if the project doesn't exist, it creates it.
+
+**Fix:**
+- Replaced `data "betterado_project"` lookup with a call to `SharedReleaseFixture(t)` BEFORE
+  the `resource.ParallelTest` call.
+- `SharedReleaseFixture` returns `SharedFixtureResult.ProjectID` (a UUID string).
+- `hclProjectFeatureBasic` now takes `projectID` (UUID) instead of `projectName` and injects
+  the UUID as a string literal — no Terraform data source needed.
+- Pattern is identical to `TestAccMuxSdkv2Passthrough`.
+
+**Key lesson:**
+- `data "betterado_project"` in test HCL assumes the project exists at plan time.
+  If the project may not exist, ALWAYS use `SharedReleaseFixture(t)` to get the project ID
+  via `resolveOrCreateFixtureProject`, then pass the UUID directly into HCL.
+- `SharedReleaseFixture` calls `t.Skip` if `TF_ACC` is not set — so the test still correctly
+  skips in the offline unit-test environment.
+
 ## Open questions
 
 _(none blocking)_

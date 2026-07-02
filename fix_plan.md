@@ -35,7 +35,21 @@
 - Test still exercises full betterado_project_features lifecycle (apply → read-back → update → destroy).
 - Pattern aligns with SharedReleaseFixture and smokeResolveProject.
 
+## Iteration 4 fix
+
+- Root-caused "project not found" for `data.betterado_project.test`:
+  - The live gate org did NOT have `betterado-standing-demo` pre-created.
+  - Using `data "betterado_project"` (Terraform data source) fails at pre-plan if
+    the project doesn't exist — no project create happens.
+  - Fix: replace `data "betterado_project"` with `SharedReleaseFixture(t)` call
+    before `resource.ParallelTest`. `SharedReleaseFixture` calls
+    `resolveOrCreateFixtureProject` which either finds or creates the project via
+    ADO API and returns its UUID.
+  - HCL now receives the project UUID as a literal string — no data source needed.
+  - Pattern matches `TestAccMuxSdkv2Passthrough` (same motivation, same fix).
+
 ## Awaiting
 
 - Live gate run (TF_ACC): forge will run `TestAccProjectFeatures_roundtrip` against real ADO
-  — this time using existing standing-demo project, no project create attempt.
+  — this time using SharedReleaseFixture to resolve/create the project, passing
+  UUID directly into HCL. No data source lookup at plan time.
