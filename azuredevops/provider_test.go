@@ -49,7 +49,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_iteration_permissions",
 		"betterado_library_permissions",
 		"betterado_pipeline_authorization",
-		"betterado_project",
+		// betterado_project is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_project_features",
 		"betterado_project_permissions",
 		"betterado_project_pipeline_settings",
@@ -180,8 +181,8 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_identity_groups",
 		"betterado_identity_user",
 		"betterado_iteration",
-		"betterado_project",
-		"betterado_projects",
+		// betterado_project and betterado_projects are now framework data sources
+		// (registered in framework_provider.go) and no longer in the SDKv2 DataSourcesMap.
 		"betterado_security_namespace",
 		"betterado_security_namespace_token",
 		"betterado_security_namespaces",

@@ -81,11 +81,13 @@ func Provider() *schema.Provider {
 			"betterado_iteration_permissions":            permissions.ResourceIterationPermissions(),
 			"betterado_library_permissions":              permissions.ResourceLibraryPermissions(),
 			"betterado_pipeline_authorization":           build.ResourcePipelineAuthorization(),
-			"betterado_project":                          core.ResourceProject(),
-			"betterado_project_features":                 core.ResourceProjectFeatures(),
-			"betterado_project_permissions":              permissions.ResourceProjectPermissions(),
-			"betterado_project_pipeline_settings":        core.ResourceProjectPipelineSettings(),
-			"betterado_project_tags":                     core.ResourceProjectTag(),
+			// betterado_project is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
+			"betterado_project_features":          core.ResourceProjectFeatures(),
+			"betterado_project_permissions":       permissions.ResourceProjectPermissions(),
+			"betterado_project_pipeline_settings": core.ResourceProjectPipelineSettings(),
+			"betterado_project_tags":              core.ResourceProjectTag(),
 			// betterado_release_definition_permissions is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
@@ -184,27 +186,29 @@ func Provider() *schema.Provider {
 			// betterado_release_definition_revision, betterado_release_definitions, and
 			// betterado_release_folder have been migrated to the terraform-plugin-framework
 			// provider (framework_provider.go) and are no longer registered here.
-			"betterado_agent_pool":                            taskagent.DataAgentPool(),
-			"betterado_agent_pools":                           taskagent.DataAgentPools(),
-			"betterado_agent_queue":                           taskagent.DataAgentQueue(),
-			"betterado_area":                                  workitemtracking.DataArea(),
-			"betterado_build_definition":                      build.DataBuildDefinition(),
-			"betterado_client_config":                         service.DataClientConfig(),
-			"betterado_descriptor":                            graph.DataDescriptor(),
-			"betterado_environment":                           taskagent.DataEnvironment(),
-			"betterado_feed":                                  feed.DataFeed(),
-			"betterado_git_repositories":                      git.DataGitRepositories(),
-			"betterado_git_repository":                        git.DataGitRepository(),
-			"betterado_git_repository_file":                   git.DataGitRepositoryFile(),
-			"betterado_group":                                 graph.DataGroup(),
-			"betterado_group_membership":                      graph.DataGroupMembership(),
-			"betterado_groups":                                graph.DataGroups(),
-			"betterado_identity_group":                        identity.DataIdentityGroup(),
-			"betterado_identity_groups":                       identity.DataIdentityGroups(),
-			"betterado_identity_user":                         identity.DataIdentityUser(),
-			"betterado_iteration":                             workitemtracking.DataIteration(),
-			"betterado_project":                               core.DataProject(),
-			"betterado_projects":                              core.DataProjects(),
+			"betterado_agent_pool":          taskagent.DataAgentPool(),
+			"betterado_agent_pools":         taskagent.DataAgentPools(),
+			"betterado_agent_queue":         taskagent.DataAgentQueue(),
+			"betterado_area":                workitemtracking.DataArea(),
+			"betterado_build_definition":    build.DataBuildDefinition(),
+			"betterado_client_config":       service.DataClientConfig(),
+			"betterado_descriptor":          graph.DataDescriptor(),
+			"betterado_environment":         taskagent.DataEnvironment(),
+			"betterado_feed":                feed.DataFeed(),
+			"betterado_git_repositories":    git.DataGitRepositories(),
+			"betterado_git_repository":      git.DataGitRepository(),
+			"betterado_git_repository_file": git.DataGitRepositoryFile(),
+			"betterado_group":               graph.DataGroup(),
+			"betterado_group_membership":    graph.DataGroupMembership(),
+			"betterado_groups":              graph.DataGroups(),
+			"betterado_identity_group":      identity.DataIdentityGroup(),
+			"betterado_identity_groups":     identity.DataIdentityGroups(),
+			"betterado_identity_user":       identity.DataIdentityUser(),
+			"betterado_iteration":           workitemtracking.DataIteration(),
+			// betterado_project and betterado_projects data sources are now registered in
+			// the framework provider (framework_provider.go) and must NOT be listed here —
+			// duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
 			"betterado_security_namespace":                    security.DataSecurityNamespace(),
 			"betterado_security_namespace_token":              security.DataSecurityNamespaceToken(),
 			"betterado_security_namespaces":                   security.DataSecurityNamespaces(),
