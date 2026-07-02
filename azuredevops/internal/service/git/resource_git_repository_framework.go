@@ -5,16 +5,19 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
@@ -28,9 +31,10 @@ import (
 
 // Compile-time interface checks.
 var (
-	_ resource.Resource                = &gitRepositoryResource{}
-	_ resource.ResourceWithConfigure   = &gitRepositoryResource{}
-	_ resource.ResourceWithImportState = &gitRepositoryResource{}
+	_ resource.Resource                    = &gitRepositoryResource{}
+	_ resource.ResourceWithConfigure       = &gitRepositoryResource{}
+	_ resource.ResourceWithImportState     = &gitRepositoryResource{}
+	_ resource.ResourceWithValidateConfig  = &gitRepositoryResource{}
 )
 
 // ---- plan-modifier / default helpers ----------------------------------------
@@ -135,6 +139,88 @@ func (m gitRequiresReplaceMod) PlanModifyString(_ context.Context, req planmodif
 		return
 	}
 	resp.RequiresReplace = true
+}
+
+// ---- validators -------------------------------------------------------------
+
+// gitListSizeExactlyOneValidator checks that a List block has exactly one element.
+type gitListSizeExactlyOneValidator struct{}
+
+func gitListSizeExactlyOne() validator.List { return gitListSizeExactlyOneValidator{} }
+func (v gitListSizeExactlyOneValidator) Description(_ context.Context) string {
+	return "list must contain exactly one element"
+}
+func (v gitListSizeExactlyOneValidator) MarkdownDescription(_ context.Context) string {
+	return "list must contain exactly one element"
+}
+func (v gitListSizeExactlyOneValidator) ValidateList(_ context.Context, req validator.ListRequest, resp *validator.ListResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if len(req.ConfigValue.Elements()) != 1 {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid initialization block count",
+			fmt.Sprintf("The initialization block must appear exactly once, got %d.", len(req.ConfigValue.Elements())),
+		)
+	}
+}
+
+// gitStringOneOfValidator checks that a string value is one of a set of allowed values.
+type gitStringOneOfValidator struct {
+	allowed []string
+}
+
+func gitStringOneOf(allowed ...string) validator.String { return gitStringOneOfValidator{allowed: allowed} }
+func (v gitStringOneOfValidator) Description(_ context.Context) string {
+	return fmt.Sprintf("value must be one of: %s", strings.Join(v.allowed, ", "))
+}
+func (v gitStringOneOfValidator) MarkdownDescription(_ context.Context) string {
+	return fmt.Sprintf("value must be one of: `%s`", strings.Join(v.allowed, "`, `"))
+}
+func (v gitStringOneOfValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	val := req.ConfigValue.ValueString()
+	for _, a := range v.allowed {
+		if strings.EqualFold(val, a) {
+			return
+		}
+	}
+	resp.Diagnostics.AddAttributeError(
+		req.Path,
+		"Invalid value",
+		fmt.Sprintf("%q is not a valid value. Allowed values: %s", val, strings.Join(v.allowed, ", ")),
+	)
+}
+
+// gitURLHTTPSValidator checks that a string is a valid HTTP or HTTPS URL.
+type gitURLHTTPSValidator struct{}
+
+func gitURLHTTPS() validator.String { return gitURLHTTPSValidator{} }
+func (v gitURLHTTPSValidator) Description(_ context.Context) string {
+	return "value must be a valid HTTP or HTTPS URL"
+}
+func (v gitURLHTTPSValidator) MarkdownDescription(_ context.Context) string {
+	return "value must be a valid HTTP or HTTPS URL"
+}
+func (v gitURLHTTPSValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	val := req.ConfigValue.ValueString()
+	if val == "" {
+		return
+	}
+	u, err := url.ParseRequestURI(val)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		resp.Diagnostics.AddAttributeError(
+			req.Path,
+			"Invalid URL",
+			fmt.Sprintf("%q is not a valid HTTP or HTTPS URL.", val),
+		)
+	}
 }
 
 // ---- gitRepositoryResource --------------------------------------------------
@@ -257,41 +343,62 @@ func (r *gitRepositoryResource) Schema(_ context.Context, _ resource.SchemaReque
 		},
 		Blocks: map[string]schema.Block{
 			"initialization": schema.ListNestedBlock{
-				Description: "How the repository is initialized.",
+				Description: "How the repository is initialized. Exactly one block is required.",
+				Validators: []validator.List{
+					gitListSizeExactlyOne(),
+				},
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"init_type": schema.StringAttribute{
 							Required:    true,
 							Description: "The type of repository initialization. Valid values are `Clean`, `Fork`, `Import`, `Uninitialized`.",
+							Validators: []validator.String{
+								gitStringOneOf(
+									string(RepoInitTypeValues.Clean),
+									string(RepoInitTypeValues.Fork),
+									string(RepoInitTypeValues.Import),
+									string(RepoInitTypeValues.Uninitialized),
+								),
+							},
+							PlanModifiers: []planmodifier.String{gitRequiresReplace()},
 						},
 						"source_type": schema.StringAttribute{
 							Optional:    true,
 							Computed:    true,
 							Default:     gitDefaultString(""),
 							Description: "Type of the source repository. Only `Git` is supported.",
+							Validators: []validator.String{
+								gitStringOneOf("Git"),
+							},
+							PlanModifiers: []planmodifier.String{gitRequiresReplace()},
 						},
 						"source_url": schema.StringAttribute{
 							Optional:    true,
 							Computed:    true,
 							Default:     gitDefaultString(""),
-							Description: "The URL of the source repository.",
+							Description: "The URL of the source repository. Must be a valid HTTP or HTTPS URL.",
+							Validators: []validator.String{
+								gitURLHTTPS(),
+							},
+							PlanModifiers: []planmodifier.String{gitRequiresReplace()},
 						},
 						"service_connection_id": schema.StringAttribute{
 							Optional:    true,
 							Computed:    true,
 							Default:     gitDefaultString(""),
-							Description: "The ID of a service connection for authentication when importing.",
+							Description: "The ID of a service connection for authentication when importing. Required with `source_url` and `source_type`. Conflicts with `username` and `password`.",
 						},
 						"username": schema.StringAttribute{
 							Optional:    true,
 							Computed:    true,
 							Default:     gitDefaultString(""),
-							Description: "The username for importing a private repository.",
+							Description: "The username for importing a private repository. Required with `source_url` and `source_type`. Conflicts with `service_connection_id`.",
 						},
 						"password": schema.StringAttribute{
 							Optional:    true,
 							Sensitive:   true,
-							Description: "The password for importing a private repository.",
+							WriteOnly:   true,
+							Description: "The password for importing a private repository. Required with `source_url` and `source_type`. Conflicts with `service_connection_id`. This value is write-only and will not be stored in state.",
 						},
 					},
 				},
@@ -313,6 +420,100 @@ func (r *gitRepositoryResource) Configure(_ context.Context, req resource.Config
 		return
 	}
 	r.client = c
+}
+
+// ---- ValidateConfig ---------------------------------------------------------
+// Implements RequiredWith / ConflictsWith parity with SDKv2 for nested
+// initialization block attributes.
+
+func (r *gitRepositoryResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var cfg gitRepositoryModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &cfg)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if cfg.Initialization.IsNull() || cfg.Initialization.IsUnknown() {
+		return
+	}
+
+	var initBlocks []initializationModel
+	resp.Diagnostics.Append(cfg.Initialization.ElementsAs(ctx, &initBlocks, false)...)
+	if resp.Diagnostics.HasError() || len(initBlocks) == 0 {
+		return
+	}
+
+	init := initBlocks[0]
+	basePath := path.Root("initialization").AtListIndex(0)
+
+	hasSourceURL := !init.SourceURL.IsNull() && !init.SourceURL.IsUnknown() && init.SourceURL.ValueString() != ""
+	hasSourceType := !init.SourceType.IsNull() && !init.SourceType.IsUnknown() && init.SourceType.ValueString() != ""
+	hasServiceConn := !init.ServiceConnectionID.IsNull() && !init.ServiceConnectionID.IsUnknown() && init.ServiceConnectionID.ValueString() != ""
+	hasUsername := !init.Username.IsNull() && !init.Username.IsUnknown() && init.Username.ValueString() != ""
+	hasPassword := !init.Password.IsNull() && !init.Password.IsUnknown() && init.Password.ValueString() != ""
+
+	// source_type RequiredWith source_url
+	if hasSourceType && !hasSourceURL {
+		resp.Diagnostics.AddAttributeError(
+			basePath.AtName("source_type"),
+			"Missing required attribute",
+			"\"source_type\" requires \"source_url\" to be set.",
+		)
+	}
+
+	// source_url RequiredWith source_type
+	if hasSourceURL && !hasSourceType {
+		resp.Diagnostics.AddAttributeError(
+			basePath.AtName("source_url"),
+			"Missing required attribute",
+			"\"source_url\" requires \"source_type\" to be set.",
+		)
+	}
+
+	// service_connection_id RequiredWith source_url + source_type
+	if hasServiceConn && (!hasSourceURL || !hasSourceType) {
+		resp.Diagnostics.AddAttributeError(
+			basePath.AtName("service_connection_id"),
+			"Missing required attribute",
+			"\"service_connection_id\" requires \"source_url\" and \"source_type\" to be set.",
+		)
+	}
+
+	// username RequiredWith source_url + source_type
+	if hasUsername && (!hasSourceURL || !hasSourceType) {
+		resp.Diagnostics.AddAttributeError(
+			basePath.AtName("username"),
+			"Missing required attribute",
+			"\"username\" requires \"source_url\" and \"source_type\" to be set.",
+		)
+	}
+
+	// password RequiredWith source_url + source_type
+	if hasPassword && (!hasSourceURL || !hasSourceType) {
+		resp.Diagnostics.AddAttributeError(
+			basePath.AtName("password"),
+			"Missing required attribute",
+			"\"password\" requires \"source_url\" and \"source_type\" to be set.",
+		)
+	}
+
+	// service_connection_id ConflictsWith username
+	if hasServiceConn && hasUsername {
+		resp.Diagnostics.AddAttributeError(
+			basePath.AtName("service_connection_id"),
+			"Conflicting attributes",
+			"\"service_connection_id\" cannot be set together with \"username\".",
+		)
+	}
+
+	// service_connection_id ConflictsWith password
+	if hasServiceConn && hasPassword {
+		resp.Diagnostics.AddAttributeError(
+			basePath.AtName("service_connection_id"),
+			"Conflicting attributes",
+			"\"service_connection_id\" cannot be set together with \"password\".",
+		)
+	}
 }
 
 // ---- ImportState ------------------------------------------------------------
