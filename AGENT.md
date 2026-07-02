@@ -97,10 +97,30 @@ their gate runs):**
 - 19+ other test files using `GetProviders()` with `betterado_git_repository` in HCL
 These are not in the current `TestAccGitRepository` gate regex scope.
 
+### Iteration 4 — Switch all HCL helpers to shared fixture project
+
+**Gate context:** All test failures still "1000 projects". Root cause refined: every HCL helper
+used `resource "betterado_project" "test" { name = projectName }`, creating a NEW project each
+run. The task group tests already use `SharedFixtureProjectName = "betterado-standing-demo"` with
+`data "betterado_project" "test"` — we needed the same pattern everywhere.
+
+**Fix:**
+1. `resource_git_repository_test.go`: Removed `projectName` param from all test funcs and HCL
+   helpers. All helpers now use `data "betterado_project"` + `SharedFixtureProjectName`. Import
+   test `ImportStateId` uses `SharedFixtureProjectName` instead of a generated name.
+2. `data_git_repository_test.go`: `hclDataRepository(repoName)` now creates a git repo
+   (not a project) then data-sources it. `hclDataRepositoryNotExist()` takes no args.
+3. `data_git_repository_file_test.go`: `hclDataRepositoryFile` drops `projectName` param.
+
+**Build:** `go build -tags all ./...` → clean. `golangci-lint --new-from-rev=main` → 0 issues.
+`go vet -tags all ./azuredevops/internal/acceptancetests/...` → clean.
+
 ## Notes for reflection
 
 - `getDirectClient()` should be in a shared no-build-tag file from the start in all future migration WIs.
-- The "1000 projects" gate blocker is a live environment issue, not a code issue.
-- When moving code to a shared file, carefully audit ALL usages of removed imports — not just the moved function, but ALL callers in the original file.
-- **When migrating a resource/data-source to framework, check ALL test files that use it in HCL** — not just the resource's own test file. 21+ test files had `betterado_git_repository` in HCL with `GetProviders()`.
-- The "0.17s" duration on a failing test (vs "1.00s" for others) indicates a pre-plan failure (provider init stage fails to find the resource type), vs the "1000 projects" failures which make it all the way to `terraform apply`.
+- **CRITICAL:** The "1000 projects" gate failure is BOTH an env issue AND a test design issue.
+  Tests must NEVER create new ADO projects. Use `SharedFixtureProjectName = "betterado-standing-demo"`
+  (defined in `shared_fixtures.go`) with `data "betterado_project"` for ALL git test HCL.
+- When moving code to a shared file, carefully audit ALL usages of removed imports.
+- **When migrating a resource/data-source to framework, check ALL test files that use it in HCL.**
+- The "0.17s" duration on a failing test indicates pre-plan failure; "1.00s" means it reached `terraform apply`.

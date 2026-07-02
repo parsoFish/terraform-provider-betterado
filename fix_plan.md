@@ -35,7 +35,15 @@
      **Fixed:** Both `TestAccGitRepositoryFile_DataSource*` tests switched to
      `ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories()`.
   2. Other `TestAccGitRepository_*` failures: "organization already has 1000 projects" — live ADO
-     environment capacity issue. NOT a code defect; awaiting environment remediation.
+     environment capacity issue.
+- Iteration 4: Gate still blocked by "1000 projects". Root cause identified: ALL HCL helpers
+  used `resource "betterado_project" "test"` (creates new project). The shared fixture pattern
+  (used by resource_task_group_test.go) was overlooked.
+  **Fixed:** All three test files now use `data "betterado_project" "test"` with
+  `SharedFixtureProjectName = "betterado-standing-demo"` — zero new project creates:
+  - resource_git_repository_test.go: all 12 tests + all HCL helpers refactored
+  - data_git_repository_test.go: both DataSource tests + HCL helpers
+  - data_git_repository_file_test.go: both DataSource tests + HCL helper
 
-All known code-level issues are fixed. Remaining gate failures are live environment capacity
-(ADO org at 1000 project limit). `go build -tags all ./...` passes; `golangci-lint --new-from-rev=main`: 0 issues.
+All known code-level issues are fixed. `go build -tags all ./...` passes;
+`golangci-lint --new-from-rev=main`: 0 issues; `make terrafmt-check`: pass.
