@@ -16,40 +16,36 @@
 - Fixed gofumpt in resource_project_framework.go
 - `TestProvider_HasChildResources` passes (AC2 verified)
 
-## Iteration 2 fix (this iteration)
+## Iteration 2 fix
 
 - Root-caused "Missing Configuration for Required Attribute" for `project_id`:
   - Bug was in `projectUseStateForUnknown.PlanModifyString` in `resource_project_framework.go`
-  - When no prior state exists (StateValue.IsNull()), the modifier was setting PlanValue = StateValue (null)
-  - This converted unknown → null for `betterado_project.id` during plan
-  - Null then propagated as the config value for `project_id` in betterado_project_features
-  - Framework correctly rejects null for a Required attribute → "Missing Configuration" error
   - Fix: guard with `if req.StateValue.IsNull() { return }` so unknown remains unknown on first apply
-- Build and golangci-lint pass clean after fix
 
 ## Iteration 3 fix
 
-- Root-caused "Failed to add a project" — org is at 1000-project cap; can never create new projects.
-- Rewrote `hclProjectFeatureBasic` to use `data "betterado_project"` looking up `betterado-standing-demo`
-  (SharedFixtureProjectName) instead of `resource "betterado_project"` creating a new project.
-- Test still exercises full betterado_project_features lifecycle (apply → read-back → update → destroy).
-- Pattern aligns with SharedReleaseFixture and smokeResolveProject.
+- Root-caused "Failed to add a project" — org is at 1000-project cap.
+- Changed from `resource "betterado_project"` to `data "betterado_project"` looking up betterado-standing-demo.
 
 ## Iteration 4 fix
 
 - Root-caused "project not found" for `data.betterado_project.test`:
-  - The live gate org did NOT have `betterado-standing-demo` pre-created.
-  - Using `data "betterado_project"` (Terraform data source) fails at pre-plan if
-    the project doesn't exist — no project create happens.
-  - Fix: replace `data "betterado_project"` with `SharedReleaseFixture(t)` call
-    before `resource.ParallelTest`. `SharedReleaseFixture` calls
-    `resolveOrCreateFixtureProject` which either finds or creates the project via
-    ADO API and returns its UUID.
-  - HCL now receives the project UUID as a literal string — no data source needed.
-  - Pattern matches `TestAccMuxSdkv2Passthrough` (same motivation, same fix).
+  - betterado-standing-demo didn't exist in live gate org.
+  - Fix: used SharedReleaseFixture which resolves or creates the project.
+
+## Iteration 5 fix
+
+- Root-caused "SharedReleaseFixture: QueueCreateProject: Failed to add a project…":
+  - SharedReleaseFixture tried to CREATE betterado-standing-demo (which didn't exist in gate org)
+    but hit the 1000-project org cap.
+  - Fix: replaced SharedReleaseFixture with smokeResolveProject which:
+    1. Checks AZDO_TEST_EXISTING_PROJECT env var (explicit override)
+    2. Falls back to GetProjects(StateFilter=WellFormed, Top=1) — auto-discovers ANY existing project
+    3. NEVER creates a project — works even at the 1000-project limit
+  - Pattern matches TestAccTaskGroupStateUpgradeSmoke (same scenario, same pattern).
 
 ## Awaiting
 
-- Live gate run (TF_ACC): forge will run `TestAccProjectFeatures_roundtrip` against real ADO
-  — this time using SharedReleaseFixture to resolve/create the project, passing
-  UUID directly into HCL. No data source lookup at plan time.
+- Live gate run (TF_ACC): forge will run `TestAccProjectFeatures_roundtrip` against real ADO.
+  smokeResolveProject will find any existing wellFormed project → inject UUID into HCL →
+  no project creation needed.

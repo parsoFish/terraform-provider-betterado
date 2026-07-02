@@ -153,6 +153,39 @@ Gate failure after iteration 3:
 - `SharedReleaseFixture` calls `t.Skip` if `TF_ACC` is not set — so the test still correctly
   skips in the offline unit-test environment.
 
+### Iteration 5 (this iteration)
+
+Gate failure after iteration 4:
+```
+SharedReleaseFixture: QueueCreateProject: Failed to add a project as this organization already has 1000 projects.
+```
+
+**Root cause:**
+- `SharedReleaseFixture` calls `resolveOrCreateFixtureProject(t, clients)`.
+- That function first calls `GetProject("betterado-standing-demo")`.
+- If the project doesn't exist → falls through to `QueueCreateProject` → hits 1000-project cap → hard `t.Fatalf`.
+- The live gate org does NOT have `betterado-standing-demo` AND is at the project cap.
+- `SharedReleaseFixture` was the wrong tool — it's designed for release-definition tests that need a full
+  project + repo + build def + variable groups. For project features we only need any existing project UUID.
+
+**Fix:**
+- Replaced `SharedReleaseFixture(t)` with `smokeResolveProject(t)` in `TestAccProjectFeatures_roundtrip`.
+- `smokeResolveProject`:
+  1. Checks `AZDO_TEST_EXISTING_PROJECT` env var (explicit override)
+  2. Falls back to `GetProjects(StateFilter=WellFormed, Top=1)` — auto-discovers ANY existing project
+  3. NEVER creates a project — works even when org is at 1000-project limit
+  4. Calls `testutils.PreCheck` which skips if `TF_ACC` not set
+- Pattern is identical to `TestAccTaskGroupStateUpgradeSmoke` (same motivation, same fix).
+- `smokeResolveProject` is defined in `resource_state_upgrade_smoke_test.go` which has
+  build tag `all || resource_task_group`; when gate runs with `-tags all` both files are included.
+
+**Key lesson:**
+- **Never use `SharedReleaseFixture` when you only need a project ID.** Use `smokeResolveProject` instead.
+  `SharedReleaseFixture` always falls through to project creation if the standing-demo doesn't exist,
+  which fails at the 1000-project cap. `smokeResolveProject` ONLY reads, never writes.
+- **Project-features tests only need any existing project UUID.** They don't need a specific project
+  name, a git repo, a build definition, or any other sub-resource.
+
 ## Open questions
 
 _(none blocking)_
