@@ -132,9 +132,9 @@ func hclBranchPolicyStatusCheckResourceComplete(projectID string, repoName strin
 		`%s %s`,
 		hclBranchPolicyStatusCheckResourceTemplate(projectID, repoName),
 		fmt.Sprintf(`
-resource "betterado_user_entitlement" "user" {
-  principal_name       = "mail@email.com"
-  account_license_type = "basic"
+data "betterado_group" "author" {
+  project_id = %[1]q
+  name       = "Project Administrators"
 }
 
 resource "betterado_branch_policy_status_check" "p" {
@@ -145,7 +145,7 @@ resource "betterado_branch_policy_status_check" "p" {
 
   settings {
     name                 = "Release"
-    author_id            = betterado_user_entitlement.user.id
+    author_id            = data.betterado_group.author.origin_id
     invalidate_on_update = true
     applicability        = "conditional"
     display_name         = "PreCheck"

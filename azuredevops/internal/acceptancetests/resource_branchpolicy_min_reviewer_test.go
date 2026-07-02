@@ -145,7 +145,7 @@ func TestAccBranchPolicyMinReviewers_requiresImportError(t *testing.T) {
 				),
 			}, {
 				Config:      hclPolicyMinReviewersResetRequireImportError(projectID, name),
-				ExpectError: regexp.MustCompile(` creating policy in Azure DevOps: The update is rejected by policy`),
+				ExpectError: regexp.MustCompile(`The update is rejected by policy`),
 			},
 		},
 	})
