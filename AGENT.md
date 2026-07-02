@@ -8,7 +8,14 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 ## What I've tried
 
-### Iteration 2 (current)
+### Iteration 3 (current)
+- **Root cause of gate failure (iteration 3)**: Gate showed "Plan: 1 to add" in Step 2 of `TestAccProject_importByName`. The import itself succeeded (Step 1 passed `ImportStateCheck`), but Step 2's `PlanOnly` saw empty state.
+- **Root cause traced**: `ImportStatePersist: true` was missing from the import step. In `terraform-plugin-testing` v1.14.0, `testStepNewImportState()` uses a **temporary** `workingDir` (not `testCaseWorkingDir`) when `importStatePersist` is false. The temp dir is `defer workingDir.Close()`'d at end of import step — state is discarded. Step 2's plan runs against `testCaseWorkingDir` which has empty state → "1 to add".
+- **Fix**: Added `ImportStatePersist: true` to Step 1. This makes import write to `testCaseWorkingDir` directly. Step 2 sees the imported resource and generates a no-op plan.
+- **Source**: `/home/parso/go/pkg/mod/github.com/hashicorp/terraform-plugin-testing@v1.14.0/helper/resource/testing_new_import_state.go` lines 142–148 (the `if importStatePersist` branch).
+- Build: `go build -tags all ./...` clean. Gate cmd passes.
+
+### Iteration 2 (prior)
 - **Root cause identified**: `TestAccProject_importByName` failed with "resource with ID <uuid> not found" at `testing_new_import_state.go:326`. This error originates in `testImportCommand` which compares `importState` (post-import) against `state` (pre-import/"old" state). Since this is a pure import test (no prior terraform apply), `state` is empty. `oldResources` is empty, so the imported resource's ID can't be found in `oldResources` → `oldR == nil` → test fails.
 - **Fix applied**: Removed `ImportStateVerify: true` and `ImportStateVerifyIgnore: []string{"description"}` from the Step 1 in `TestAccProject_importByName`. The `checkProjectImportByName` function already verifies all required attributes; Step 2's `PlanOnly: true, ExpectNonEmptyPlan: false` verifies idempotency. Both satisfy AC1 fully.
 - Verified: `make test` passes clean (all offline tests). `go build -tags all ./azuredevops/internal/acceptancetests/` succeeds.
@@ -35,6 +42,7 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 ## Key insight for future iterations
 
 - The `ImportStateVerify` mechanism in terraform-plugin-testing requires a prior terraform apply step to work. For import-only tests (where you import an existing resource without first creating it via TF), you must omit `ImportStateVerify` and rely on `ImportStateCheck` for attribute verification.
+- **`ImportStatePersist: true` is REQUIRED when a subsequent step needs the imported state.** Without it, the import runs in a throw-away temp dir. This applies to any test where you import in Step N and then plan/apply in Step N+1 without a prior apply.
 - The mux provider setup (`GetMuxedProviderFactories()`) works correctly for framework resources alongside SDKv2 resources.
 - The `visibility` field from ADO API returns `"private"` (lowercase) for private projects.
 
@@ -45,3 +53,4 @@ _(things that aren't blocking but would be useful to clarify; reflector picks th
 ## Notes for reflection
 
 - Pattern: import-only acceptance tests (where creating the resource is not possible) MUST NOT use `ImportStateVerify: true` — document in testing conventions/brain.
+- Pattern: any import step followed by a plan/apply step MUST use `ImportStatePersist: true` to prevent state loss between steps.

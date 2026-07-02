@@ -5,6 +5,7 @@
 - [x] AC1: GIVEN betterado_project resource implemented as resource.Resource in terraform-plugin-framework WHEN terraform import is run against the betterado-standing-demo project (must NOT create a new project — org is at 1000-project cap) THEN the import succeeds, read-back asserts name/visibility/version_control attributes, and idempotency re-plan shows no diff (ExpectNonEmptyPlan: false)
   - [x] resource_project_framework.go implemented with full CRUD + ImportState by name/UUID
   - [x] Removed ImportStateVerify from TestAccProject_importByName (fixes "resource with ID not found" error from empty pre-import state)
+  - [x] Added ImportStatePersist: true to Step 1 so imported state persists to Step 2 (fixes "Plan: 1 to add" non-empty plan failure — state was being written to a throw-away workingDir without this flag)
   - [x] checkProjectImportByName verifies all required attributes
   - [x] Step 2 PlanOnly + ExpectNonEmptyPlan:false verifies idempotency
 - [ ] AC2: GIVEN data.betterado_project data source implemented in framework WHEN terraform apply runs with a data source lookup by name against betterado-standing-demo THEN data source returns correct project fields; TestAccProject_dataSource_withID and TestAccProject_dataSource_withName pass
@@ -13,6 +14,10 @@
 
 ## Status
 
-Gate failing: `TestAccProject_importByName` — FIXED in iteration 2 (removed ImportStateVerify from import-only test step; no prior apply means no pre-import state to compare against).
+Gate was failing: `TestAccProject_importByName` — now FIXED in iteration 3.
+
+Root cause: `ImportStatePersist: true` was missing from the import step. Without it, terraform-plugin-testing runs `terraform import` in a temporary workingDir that is closed/discarded after the step. The main workingDir (shared across all test steps) never receives the imported state, so Step 2's `PlanOnly` check sees empty state and plans "1 to add".
+
+Fix: Added `ImportStatePersist: true` to Step 1. Now the import writes state directly to the shared test working directory and Step 2's plan correctly sees the existing imported resource → no-op plan.
 
 AC2 and AC3 live acceptance tests not yet validated by live gate (gate only runs TestAccProject_importByName per the quality_gate_cmd).
