@@ -70,14 +70,14 @@ func (r *RestAPIResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"connected_service_name":          schema.StringAttribute{Required: true},
 			"method":                          schema.StringAttribute{Required: true},
 			"body": schema.StringAttribute{
-				Optional:      true,
-				Computed:      true,
-				PlanModifiers: []planmodifier.String{checkUseStateForUnknown()},
+				Optional: true,
+				Computed: true,
+				Default:  staticCheckString(""),
 			},
 			"headers": schema.StringAttribute{
-				Optional:      true,
-				Computed:      true,
-				PlanModifiers: []planmodifier.String{checkUseStateForUnknown()},
+				Optional: true,
+				Computed: true,
+				Default:  staticCheckString(""),
 			},
 			"retry_interval": schema.Int64Attribute{
 				Optional: true,
@@ -85,19 +85,19 @@ func (r *RestAPIResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Default:  staticCheckInt64(0),
 			},
 			"success_criteria": schema.StringAttribute{
-				Optional:      true,
-				Computed:      true,
-				PlanModifiers: []planmodifier.String{checkUseStateForUnknown()},
+				Optional: true,
+				Computed: true,
+				Default:  staticCheckString(""),
 			},
 			"url_suffix": schema.StringAttribute{
-				Optional:      true,
-				Computed:      true,
-				PlanModifiers: []planmodifier.String{checkUseStateForUnknown()},
+				Optional: true,
+				Computed: true,
+				Default:  staticCheckString(""),
 			},
 			"variable_group_name": schema.StringAttribute{
-				Optional:      true,
-				Computed:      true,
-				PlanModifiers: []planmodifier.String{checkUseStateForUnknown()},
+				Optional: true,
+				Computed: true,
+				Default:  staticCheckString(""),
 			},
 			"completion_event": schema.StringAttribute{
 				Optional: true,
@@ -346,6 +346,12 @@ func flattenRestAPIFW(model *restAPIModel, check *pipelineschecksextras.CheckCon
 		model.Version = types.Int64Value(int64(*check.Version))
 	}
 	if check.Settings == nil {
+		// Ensure all Optional+Computed fields are known (empty string) when settings absent.
+		model.Headers = types.StringValue("")
+		model.Body = types.StringValue("")
+		model.SuccessCriteria = types.StringValue("")
+		model.URLSuffix = types.StringValue("")
+		model.VariableGroupName = types.StringValue("")
 		return nil
 	}
 	settingsMap, err := settingsAsMap(check.Settings)
@@ -360,9 +366,17 @@ func flattenRestAPIFW(model *restAPIModel, check *pipelineschecksextras.CheckCon
 			model.RetryInterval = types.Int64Value(int64(val))
 		}
 	}
+	// variable_group_name: set to empty string when absent from API response.
 	if v, ok := settingsMap["linkedVariableGroup"]; ok {
 		model.VariableGroupName = types.StringValue(fmt.Sprintf("%v", v))
+	} else {
+		model.VariableGroupName = types.StringValue("")
 	}
+	// Initialise optional input fields to empty string so they are always known after apply.
+	model.Headers = types.StringValue("")
+	model.Body = types.StringValue("")
+	model.SuccessCriteria = types.StringValue("")
+	model.URLSuffix = types.StringValue("")
 	if inputsRaw, ok := settingsMap["inputs"]; ok {
 		if inputs, ok := inputsRaw.(map[string]interface{}); ok {
 			if v, ok := inputs["connectedServiceNameSelector"]; ok {
