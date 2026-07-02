@@ -22,7 +22,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_branch_policy_work_item_linking",
 		"betterado_build_definition",
 		"betterado_build_definition_permissions",
-		"betterado_build_folder",
+		// betterado_build_folder is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_build_folder_permissions",
 		"betterado_check_approval",
 		"betterado_check_branch_control",
