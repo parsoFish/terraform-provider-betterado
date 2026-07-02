@@ -111,7 +111,7 @@ func (r *RestAPIResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			},
 			"version": schema.Int64Attribute{
 				Computed:      true,
-				PlanModifiers: []planmodifier.Int64{checkUseStateForUnknownInt64Val()},
+				PlanModifiers: []planmodifier.Int64{checkVersionPlanModifierFn()},
 			},
 		},
 	}

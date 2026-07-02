@@ -73,7 +73,7 @@ func (r *ExclusiveLockResource) Schema(_ context.Context, _ resource.SchemaReque
 			},
 			"version": schema.Int64Attribute{
 				Computed:      true,
-				PlanModifiers: []planmodifier.Int64{checkUseStateForUnknownInt64Val()},
+				PlanModifiers: []planmodifier.Int64{checkVersionPlanModifierFn()},
 			},
 		},
 	}

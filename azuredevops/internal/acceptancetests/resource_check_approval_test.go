@@ -11,6 +11,7 @@ import (
 
 func TestAccCheckApproval_basic(t *testing.T) {
 	projectID := SharedFixtureProjectID(t)
+	serviceEndpointName := testutils.GenerateResourceName()
 
 	resourceType := "betterado_check_approval"
 	tfCheckNode := resourceType + ".test"
@@ -22,7 +23,7 @@ func TestAccCheckApproval_basic(t *testing.T) {
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckApprovalResourceBasic(projectID, principalName),
+				Config: hclCheckApprovalResourceBasic(projectID, serviceEndpointName, principalName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttr(tfCheckNode, "requester_can_approve", "false"),
@@ -36,6 +37,7 @@ func TestAccCheckApproval_basic(t *testing.T) {
 
 func TestAccCheckApproval_complete(t *testing.T) {
 	projectID := SharedFixtureProjectID(t)
+	serviceEndpointName := testutils.GenerateResourceName()
 
 	resourceType := "betterado_check_approval"
 	tfCheckNode := resourceType + ".test"
@@ -48,7 +50,7 @@ func TestAccCheckApproval_complete(t *testing.T) {
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckApprovalResourceComplete(projectID, principalName, azdoGroupName),
+				Config: hclCheckApprovalResourceComplete(projectID, serviceEndpointName, principalName, azdoGroupName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttr(tfCheckNode, "requester_can_approve", "true"),
@@ -62,6 +64,7 @@ func TestAccCheckApproval_complete(t *testing.T) {
 
 func TestAccCheckApproval_update(t *testing.T) {
 	projectID := SharedFixtureProjectID(t)
+	serviceEndpointName := testutils.GenerateResourceName()
 
 	resourceType := "betterado_check_approval"
 	tfCheckNode := resourceType + ".test"
@@ -74,14 +77,14 @@ func TestAccCheckApproval_update(t *testing.T) {
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckApprovalResourceBasic(projectID, principalName),
+				Config: hclCheckApprovalResourceBasic(projectID, serviceEndpointName, principalName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttr(tfCheckNode, "approvers.#", "1"),
 				),
 			},
 			{
-				Config: hclCheckApprovalResourceComplete(projectID, principalName, azdoGroupName),
+				Config: hclCheckApprovalResourceComplete(projectID, serviceEndpointName, principalName, azdoGroupName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttr(tfCheckNode, "approvers.#", "2"),
@@ -92,11 +95,11 @@ func TestAccCheckApproval_update(t *testing.T) {
 	})
 }
 
-func hclCheckApprovalResourceBasic(projectID string, principalName string) string {
+func hclCheckApprovalResourceBasic(projectID string, serviceEndpointName string, principalName string) string {
 	return fmt.Sprintf(`
 resource "betterado_serviceendpoint_generic" "test" {
   project_id            = %q
-  service_endpoint_name = "serviceendpoint"
+  service_endpoint_name = "%s"
   description           = "test"
   server_url            = "https://test/"
   username              = "test"
@@ -117,14 +120,14 @@ resource "betterado_check_approval" "test" {
     one(data.betterado_users.test.users).id,
   ]
 }
-`, projectID, principalName, projectID)
+`, projectID, serviceEndpointName, principalName, projectID)
 }
 
-func hclCheckApprovalResourceComplete(projectID string, principalName string, azdoGroupName string) string {
+func hclCheckApprovalResourceComplete(projectID string, serviceEndpointName string, principalName string, azdoGroupName string) string {
 	return fmt.Sprintf(`
 resource "betterado_serviceendpoint_generic" "test" {
   project_id            = %q
-  service_endpoint_name = "serviceendpoint"
+  service_endpoint_name = "%s"
   description           = "test"
   server_url            = "https://test/"
   username              = "test"
@@ -152,5 +155,5 @@ resource "betterado_check_approval" "test" {
 
   timeout = 40000
 }
-`, projectID, principalName, azdoGroupName, projectID)
+`, projectID, serviceEndpointName, principalName, azdoGroupName, projectID)
 }

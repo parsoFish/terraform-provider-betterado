@@ -76,7 +76,7 @@ func (r *RequiredTemplateResource) Schema(_ context.Context, _ resource.SchemaRe
 			},
 			"version": schema.Int64Attribute{
 				Computed:      true,
-				PlanModifiers: []planmodifier.Int64{checkUseStateForUnknownInt64Val()},
+				PlanModifiers: []planmodifier.Int64{checkVersionPlanModifierFn()},
 			},
 		},
 		Blocks: map[string]schema.Block{

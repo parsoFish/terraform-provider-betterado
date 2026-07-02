@@ -10,6 +10,7 @@ import (
 
 func TestAccCheckExclusiveLock_basic(t *testing.T) {
 	projectID := SharedFixtureProjectID(t)
+	serviceEndpointName := testutils.GenerateResourceName()
 	timeout := 43200
 	newTimeout := 21600
 
@@ -21,7 +22,7 @@ func TestAccCheckExclusiveLock_basic(t *testing.T) {
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckExclusiveLockResourceBasic(projectID, timeout),
+				Config: hclCheckExclusiveLockResourceBasic(projectID, serviceEndpointName, timeout),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfCheckNode, "target_resource_id"),
@@ -30,7 +31,7 @@ func TestAccCheckExclusiveLock_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: hclCheckExclusiveLockResourceBasic(projectID, newTimeout),
+				Config: hclCheckExclusiveLockResourceBasic(projectID, serviceEndpointName, newTimeout),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfCheckNode, "target_resource_id"),
@@ -42,11 +43,11 @@ func TestAccCheckExclusiveLock_basic(t *testing.T) {
 	})
 }
 
-func hclCheckExclusiveLockResourceBasic(projectID string, timeout int) string {
+func hclCheckExclusiveLockResourceBasic(projectID string, serviceEndpointName string, timeout int) string {
 	return fmt.Sprintf(`
 resource "betterado_serviceendpoint_generic" "test" {
   project_id            = %q
-  service_endpoint_name = "serviceendpoint"
+  service_endpoint_name = "%s"
   description           = "test"
   server_url            = "https://test/"
   username              = "test"
@@ -58,5 +59,5 @@ resource "betterado_check_exclusive_lock" "test" {
   target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
   timeout              = %d
-}`, projectID, projectID, timeout)
+}`, projectID, serviceEndpointName, projectID, timeout)
 }

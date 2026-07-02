@@ -11,6 +11,7 @@ import (
 func TestAccCheckBusinessHours_basic(t *testing.T) {
 	projectID := SharedFixtureProjectID(t)
 	checkName := testutils.GenerateResourceName()
+	serviceEndpointName := testutils.GenerateResourceName()
 	start_time := "01:20"
 	end_time := "03:20"
 
@@ -22,7 +23,7 @@ func TestAccCheckBusinessHours_basic(t *testing.T) {
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckBusinessHoursResourceBasic(projectID, checkName, start_time, end_time),
+				Config: hclCheckBusinessHoursResourceBasic(projectID, serviceEndpointName, checkName, start_time, end_time),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, checkName),
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
@@ -39,6 +40,7 @@ func TestAccCheckBusinessHours_basic(t *testing.T) {
 func TestAccCheckBusinessHours_complete(t *testing.T) {
 	projectID := SharedFixtureProjectID(t)
 	checkName := testutils.GenerateResourceName()
+	serviceEndpointName := testutils.GenerateResourceName()
 	start_time := "01:20"
 	end_time := "02:20"
 	time_zone := "UTC"
@@ -58,7 +60,7 @@ func TestAccCheckBusinessHours_complete(t *testing.T) {
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckBusinessHoursResourceComplete(projectID, checkName, start_time, end_time, time_zone, monday, tuesday, wednesday, thursday, friday, saturday, sunday),
+				Config: hclCheckBusinessHoursResourceComplete(projectID, serviceEndpointName, checkName, start_time, end_time, time_zone, monday, tuesday, wednesday, thursday, friday, saturday, sunday),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, checkName),
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
@@ -83,6 +85,7 @@ func TestAccCheckBusinessHours_complete(t *testing.T) {
 
 func TestAccCheckBusinessHours_update(t *testing.T) {
 	projectID := SharedFixtureProjectID(t)
+	serviceEndpointName := testutils.GenerateResourceName()
 	checkNameFirst := testutils.GenerateResourceName()
 	start_time_first := "01:20"
 	end_time_first := "02:20"
@@ -115,7 +118,7 @@ func TestAccCheckBusinessHours_update(t *testing.T) {
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckBusinessHoursResourceComplete(projectID, checkNameFirst, start_time_first, end_time_first, time_zone_first, monday_first, tuesday_first, wednesday_first, thursday_first, friday_first, saturday_first, sunday_first),
+				Config: hclCheckBusinessHoursResourceComplete(projectID, serviceEndpointName, checkNameFirst, start_time_first, end_time_first, time_zone_first, monday_first, tuesday_first, wednesday_first, thursday_first, friday_first, saturday_first, sunday_first),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, checkNameFirst),
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
@@ -132,7 +135,7 @@ func TestAccCheckBusinessHours_update(t *testing.T) {
 				),
 			},
 			{
-				Config: hclCheckBusinessHoursResourceUpdate(projectID, checkNameSecond, start_time_second, end_time_second, time_zone_second, monday_second, tuesday_second, wednesday_second, thursday_second, friday_second, saturday_second, sunday_second),
+				Config: hclCheckBusinessHoursResourceUpdate(projectID, serviceEndpointName, checkNameSecond, start_time_second, end_time_second, time_zone_second, monday_second, tuesday_second, wednesday_second, thursday_second, friday_second, saturday_second, sunday_second),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, checkNameSecond),
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
@@ -153,11 +156,11 @@ func TestAccCheckBusinessHours_update(t *testing.T) {
 	})
 }
 
-func hclCheckBusinessHoursResourceBasic(projectID string, checkName string, start_time string, end_time string) string {
+func hclCheckBusinessHoursResourceBasic(projectID string, serviceEndpointName string, checkName string, start_time string, end_time string) string {
 	return fmt.Sprintf(`
 resource "betterado_serviceendpoint_generic" "test" {
   project_id            = %q
-  service_endpoint_name = "serviceendpoint"
+  service_endpoint_name = "%s"
   description           = "test"
   server_url            = "https://test/"
   username              = "test"
@@ -173,16 +176,16 @@ resource "betterado_check_business_hours" "test" {
   start_time           = "%s"
   end_time             = "%s"
   monday               = true
-}`, projectID, projectID, checkName, start_time, end_time)
+}`, projectID, serviceEndpointName, projectID, checkName, start_time, end_time)
 }
 
-func hclCheckBusinessHoursResourceComplete(projectID string, checkName string, start_time string, end_time string, time_zone string,
+func hclCheckBusinessHoursResourceComplete(projectID string, serviceEndpointName string, checkName string, start_time string, end_time string, time_zone string,
 	monday string, tuesday string, wednesday string, thursday string, friday string, saturday string, sunday string,
 ) string {
 	return fmt.Sprintf(`
 resource "betterado_serviceendpoint_generic" "test" {
   project_id            = %q
-  service_endpoint_name = "serviceendpoint"
+  service_endpoint_name = "%s"
   description           = "test"
   server_url            = "https://test/"
   username              = "test"
@@ -204,16 +207,16 @@ resource "betterado_check_business_hours" "test" {
   friday               = "%s"
   saturday             = "%s"
   sunday               = "%s"
-}`, projectID, projectID, checkName, start_time, end_time, time_zone, monday, tuesday, wednesday, thursday, friday, saturday, sunday)
+}`, projectID, serviceEndpointName, projectID, checkName, start_time, end_time, time_zone, monday, tuesday, wednesday, thursday, friday, saturday, sunday)
 }
 
-func hclCheckBusinessHoursResourceUpdate(projectID string, checkName string, start_time string, end_time string, time_zone string,
+func hclCheckBusinessHoursResourceUpdate(projectID string, serviceEndpointName string, checkName string, start_time string, end_time string, time_zone string,
 	monday string, tuesday string, wednesday string, thursday string, friday string, saturday string, sunday string,
 ) string {
 	return fmt.Sprintf(`
 resource "betterado_serviceendpoint_generic" "test" {
   project_id            = %q
-  service_endpoint_name = "serviceendpoint"
+  service_endpoint_name = "%s"
   description           = "test"
   server_url            = "https://test/"
   username              = "test"
@@ -236,5 +239,5 @@ resource "betterado_check_business_hours" "test" {
   saturday             = "%s"
   sunday               = "%s"
   timeout              = 50000
-}`, projectID, projectID, checkName, start_time, end_time, time_zone, monday, tuesday, wednesday, thursday, friday, saturday, sunday)
+}`, projectID, serviceEndpointName, projectID, checkName, start_time, end_time, time_zone, monday, tuesday, wednesday, thursday, friday, saturday, sunday)
 }

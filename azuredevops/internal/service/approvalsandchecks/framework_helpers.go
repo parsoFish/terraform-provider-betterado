@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // ── Static default helpers ────────────────────────────────────────────────────
@@ -106,6 +107,93 @@ func (m checkUseStateForUnknownInt64) PlanModifyInt64(_ context.Context, req pla
 		return
 	}
 	resp.PlanValue = req.StateValue
+}
+
+// checkVersionPlanModifier handles the 'version' field, which the ADO server
+// increments on every write. During a no-op re-plan (no other attribute changes),
+// it preserves the state value so the plan appears empty (idempotency). During
+// an actual update (other attributes differ between plan and state), it keeps the
+// version as Unknown so the post-apply API value (n+1) does not conflict with a
+// planned value of n.
+type checkVersionPlanModifier struct{}
+
+func checkVersionPlanModifierFn() planmodifier.Int64 { return checkVersionPlanModifier{} }
+
+func (m checkVersionPlanModifier) Description(_ context.Context) string {
+	return "preserves version for no-op re-plans; keeps Unknown when other attributes change"
+}
+func (m checkVersionPlanModifier) MarkdownDescription(_ context.Context) string {
+	return "preserves version for no-op re-plans; keeps Unknown when other attributes change"
+}
+func (m checkVersionPlanModifier) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
+	if !req.PlanValue.IsUnknown() {
+		// Already known (user-specified); do not override.
+		return
+	}
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+		// Create path: no prior state, keep Unknown so the provider can write any value.
+		return
+	}
+	// At this point we have a prior known version in state and Unknown in the plan.
+	// Determine whether this is a no-op re-plan (nothing else changed) or an actual
+	// update (other attributes changed → version will be incremented by the server).
+	// We detect changes by comparing the full plan and state tftypes.Value trees,
+	// ignoring the 'version' attribute itself.
+	planRaw := req.Plan.Raw
+	stateRaw := req.State.Raw
+	if planRaw.IsNull() || !planRaw.IsKnown() || stateRaw.IsNull() || !stateRaw.IsKnown() {
+		// Cannot compare — err on the side of preserving state (safe for re-plans).
+		resp.PlanValue = req.StateValue
+		return
+	}
+	// Walk both values, comparing non-version attributes.
+	otherChanged := checkOtherAttrsChanged(planRaw, stateRaw, req.Path)
+	if !otherChanged {
+		// No-op re-plan: preserve the state version for idempotency.
+		resp.PlanValue = req.StateValue
+	}
+	// else: actual update — keep Unknown so the post-apply version (n+1) is accepted.
+}
+
+// checkOtherAttrsChanged returns true if the plan and state tftypes.Value differ
+// in any top-level attribute EXCEPT the one at excludePath.
+func checkOtherAttrsChanged(plan, state tftypes.Value, excludePath path.Path) bool {
+	if !plan.Type().Is(tftypes.Object{}) || !state.Type().Is(tftypes.Object{}) {
+		return !plan.Equal(state)
+	}
+	var planAttrs map[string]tftypes.Value
+	var stateAttrs map[string]tftypes.Value
+	if err := plan.As(&planAttrs); err != nil {
+		return true
+	}
+	if err := state.As(&stateAttrs); err != nil {
+		return true
+	}
+	// Determine the attribute name to exclude (the version attribute's last step).
+	excludeAttr := ""
+	steps := excludePath.Steps()
+	if len(steps) == 1 {
+		if attr, ok := steps[0].(path.PathStepAttributeName); ok {
+			excludeAttr = string(attr)
+		}
+	}
+	for k, pv := range planAttrs {
+		if k == excludeAttr {
+			continue
+		}
+		sv, ok := stateAttrs[k]
+		if !ok {
+			return true
+		}
+		// Skip Unknown plan values (other computed fields also being planned).
+		if !pv.IsKnown() {
+			continue
+		}
+		if !pv.Equal(sv) {
+			return true
+		}
+	}
+	return false
 }
 
 // checkRequiresReplace forces recreation when a string attribute changes.
