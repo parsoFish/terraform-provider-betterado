@@ -1,0 +1,26 @@
+---
+page_title: "betterado_pipeline_authorization Resource - betterado"
+subcategory: "Build"
+description: |-
+  Manages pipeline authorization for a resource in an Azure DevOps project.
+---
+
+# betterado_pipeline_authorization (Resource)
+
+Manages pipeline authorization for a protected resource (such as a service connection,
+agent pool, environment, or variable group) in Azure DevOps. Authorized pipelines
+may access the resource without per-run approval prompts.
+
+## Example Usage
+
+{{ tffile "examples/resources/betterado_pipeline_authorization/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Pipeline authorizations are imported using `projectID/resourceType/resourceID/pipelineID`:
+
+```shell
+terraform import betterado_pipeline_authorization.example 00000000-0000-0000-0000-000000000000/endpoint/00000000-0000-0000-0000-000000000001/42
+```
