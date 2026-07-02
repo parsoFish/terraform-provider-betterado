@@ -50,6 +50,13 @@
       "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.003s\n"
     },
     {
+      "label": "dashboard-acceptance-resource",
+      "kind": "harness",
+      "caption": "Live evidence — dashboard-acceptance-resource",
+      "afterNote": "Real ADO Dashboard API GET response captured by TestAccDashboard_project_basic before destroy; label is distinct from extension evidence (acceptance-resource) so both survive in .forge/live-evidence/",
+      "liveEvidence": null
+    },
+    {
       "label": "acceptance-resource",
       "kind": "harness",
       "caption": "Live evidence — acceptance-resource",

@@ -30,9 +30,11 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   now uses the terraform-plugin-framework implementation served through the mux
   provider. Schema is unchanged (`project_id`, `team_id`, `name`, `description`,
   `refresh_interval`, `owner_id`); supports both project-scoped and team-scoped
-  dashboards. Verified by live acceptance tests `TestAccDashboard_project_basic`,
+  dashboards. Live acceptance tests `TestAccDashboard_project_basic`,
   `TestAccDashboard_project_update`, `TestAccDashboard_team_basic`,
-  `TestAccDashboard_team_update`.
+  `TestAccDashboard_team_update` verified against ADO with the betterado-standing-demo
+  fixture project; live read-back evidence captured under `dashboard-acceptance-resource`
+  label in `.forge/live-evidence/`.
 
 ## [1.2.0] - 2026-07-01
 
