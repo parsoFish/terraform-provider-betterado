@@ -66,7 +66,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_repository_policy_max_path_length",
 		"betterado_repository_policy_reserved_names",
 		"betterado_resource_authorization",
-		"betterado_security_permissions",
+		// betterado_security_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_securityrole_assignment",
 		"betterado_serviceendpoint_generic_v2",
 		"betterado_serviceendpoint_argocd",
@@ -182,9 +182,9 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_iteration",
 		"betterado_project",
 		"betterado_projects",
-		"betterado_security_namespace",
-		"betterado_security_namespace_token",
-		"betterado_security_namespaces",
+		// betterado_security_namespace — migrated to framework (framework_provider.go DataSources())
+		// betterado_security_namespace_token — migrated to framework (framework_provider.go DataSources())
+		// betterado_security_namespaces — migrated to framework (framework_provider.go DataSources())
 		"betterado_securityrole_definitions",
 		"betterado_serviceendpoint_generic_v2",
 		"betterado_serviceendpoint_azurecr",

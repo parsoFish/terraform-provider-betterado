@@ -28,7 +28,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
@@ -92,15 +91,15 @@ func Provider() *schema.Provider {
 			// betterado_release_folder is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_repository_policy_author_email_pattern":      repository.ResourceRepositoryPolicyAuthorEmailPatterns(),
-			"betterado_repository_policy_case_enforcement":          repository.ResourceRepositoryEnforceConsistentCase(),
-			"betterado_repository_policy_check_credentials":         repository.ResourceRepositoryPolicyCheckCredentials(),
-			"betterado_repository_policy_file_path_pattern":         repository.ResourceRepositoryFilePathPatterns(),
-			"betterado_repository_policy_max_file_size":             repository.ResourceRepositoryMaxFileSize(),
-			"betterado_repository_policy_max_path_length":           repository.ResourceRepositoryMaxPathLength(),
-			"betterado_repository_policy_reserved_names":            repository.ResourceRepositoryReservedNames(),
-			"betterado_resource_authorization":                      build.ResourceResourceAuthorization(),
-			"betterado_security_permissions":                        security.ResourceGenericPermissions(),
+			"betterado_repository_policy_author_email_pattern": repository.ResourceRepositoryPolicyAuthorEmailPatterns(),
+			"betterado_repository_policy_case_enforcement":     repository.ResourceRepositoryEnforceConsistentCase(),
+			"betterado_repository_policy_check_credentials":    repository.ResourceRepositoryPolicyCheckCredentials(),
+			"betterado_repository_policy_file_path_pattern":    repository.ResourceRepositoryFilePathPatterns(),
+			"betterado_repository_policy_max_file_size":        repository.ResourceRepositoryMaxFileSize(),
+			"betterado_repository_policy_max_path_length":      repository.ResourceRepositoryMaxPathLength(),
+			"betterado_repository_policy_reserved_names":       repository.ResourceRepositoryReservedNames(),
+			"betterado_resource_authorization":                 build.ResourceResourceAuthorization(),
+			// betterado_security_permissions migrated to terraform-plugin-framework (see framework_provider.go)
 			"betterado_securityrole_assignment":                     securityroles.ResourceSecurityRoleAssignment(),
 			"betterado_serviceendpoint_generic_v2":                  serviceendpoint.ResourceServiceEndpointGenericV2(),
 			"betterado_serviceendpoint_argocd":                      serviceendpoint.ResourceServiceEndpointArgoCD(),
@@ -184,30 +183,30 @@ func Provider() *schema.Provider {
 			// betterado_release_definition_revision, betterado_release_definitions, and
 			// betterado_release_folder have been migrated to the terraform-plugin-framework
 			// provider (framework_provider.go) and are no longer registered here.
-			"betterado_agent_pool":                            taskagent.DataAgentPool(),
-			"betterado_agent_pools":                           taskagent.DataAgentPools(),
-			"betterado_agent_queue":                           taskagent.DataAgentQueue(),
-			"betterado_area":                                  workitemtracking.DataArea(),
-			"betterado_build_definition":                      build.DataBuildDefinition(),
-			"betterado_client_config":                         service.DataClientConfig(),
-			"betterado_descriptor":                            graph.DataDescriptor(),
-			"betterado_environment":                           taskagent.DataEnvironment(),
-			"betterado_feed":                                  feed.DataFeed(),
-			"betterado_git_repositories":                      git.DataGitRepositories(),
-			"betterado_git_repository":                        git.DataGitRepository(),
-			"betterado_git_repository_file":                   git.DataGitRepositoryFile(),
-			"betterado_group":                                 graph.DataGroup(),
-			"betterado_group_membership":                      graph.DataGroupMembership(),
-			"betterado_groups":                                graph.DataGroups(),
-			"betterado_identity_group":                        identity.DataIdentityGroup(),
-			"betterado_identity_groups":                       identity.DataIdentityGroups(),
-			"betterado_identity_user":                         identity.DataIdentityUser(),
-			"betterado_iteration":                             workitemtracking.DataIteration(),
-			"betterado_project":                               core.DataProject(),
-			"betterado_projects":                              core.DataProjects(),
-			"betterado_security_namespace":                    security.DataSecurityNamespace(),
-			"betterado_security_namespace_token":              security.DataSecurityNamespaceToken(),
-			"betterado_security_namespaces":                   security.DataSecurityNamespaces(),
+			"betterado_agent_pool":          taskagent.DataAgentPool(),
+			"betterado_agent_pools":         taskagent.DataAgentPools(),
+			"betterado_agent_queue":         taskagent.DataAgentQueue(),
+			"betterado_area":                workitemtracking.DataArea(),
+			"betterado_build_definition":    build.DataBuildDefinition(),
+			"betterado_client_config":       service.DataClientConfig(),
+			"betterado_descriptor":          graph.DataDescriptor(),
+			"betterado_environment":         taskagent.DataEnvironment(),
+			"betterado_feed":                feed.DataFeed(),
+			"betterado_git_repositories":    git.DataGitRepositories(),
+			"betterado_git_repository":      git.DataGitRepository(),
+			"betterado_git_repository_file": git.DataGitRepositoryFile(),
+			"betterado_group":               graph.DataGroup(),
+			"betterado_group_membership":    graph.DataGroupMembership(),
+			"betterado_groups":              graph.DataGroups(),
+			"betterado_identity_group":      identity.DataIdentityGroup(),
+			"betterado_identity_groups":     identity.DataIdentityGroups(),
+			"betterado_identity_user":       identity.DataIdentityUser(),
+			"betterado_iteration":           workitemtracking.DataIteration(),
+			"betterado_project":             core.DataProject(),
+			"betterado_projects":            core.DataProjects(),
+			// betterado_security_namespace migrated to terraform-plugin-framework (see framework_provider.go)
+			// betterado_security_namespace_token migrated to terraform-plugin-framework (see framework_provider.go)
+			// betterado_security_namespaces migrated to terraform-plugin-framework (see framework_provider.go)
 			"betterado_securityrole_definitions":              securityroles.DataSecurityRoleDefinitions(),
 			"betterado_serviceendpoint_generic_v2":            serviceendpoint.DataServiceEndpointGenericV2(),
 			"betterado_serviceendpoint_azurecr":               serviceendpoint.DataResourceServiceEndpointAzureCR(),

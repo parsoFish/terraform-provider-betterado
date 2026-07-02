@@ -14,6 +14,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 )
 
@@ -206,6 +207,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
+		security.NewSecurityPermissionsResource, // migrated from SDKv2
 	}
 }
 
@@ -216,5 +218,8 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseDefinitionRevisionDataSource,
 		release.NewReleaseDefinitionsDataSource,
 		release.NewReleaseFolderDataSource,
+		security.NewSecurityNamespaceDataSource,      // migrated from SDKv2
+		security.NewSecurityNamespaceTokenDataSource, // migrated from SDKv2
+		security.NewSecurityNamespacesDataSource,     // migrated from SDKv2
 	}
 }
