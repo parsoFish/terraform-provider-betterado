@@ -10,7 +10,21 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 _(updated by each iteration — most recent at the top)_
 
-### Iteration 2 (current)
+### Iteration 3 (current)
+
+**Problem**: Gate failure (iter 2) showed `TestAccCheckEnvironment` panicking with:
+`interface conversion: interface {} is nil, not *client.AggregatedClient`
+
+**Root cause**: `pipelinechecks.go:getCheckFromState()` called `GetProvider().Meta().(*client.AggregatedClient)`. When tests use `GetMuxedProviderFactories()` (proto v6 mux), the SDKv2 singleton `provider` variable in `commons.go` never has its `Meta()` set by the Terraform test lifecycle (only `ProviderFactories`/`Providers` wire `Meta`). Result: `Meta()` returns `nil`, type assertion panics.
+
+**Additional bug fixed**: `CheckPipelineCheckDestroyed` was calling `getSvcEndpointFromState` (wrong — that's for service endpoints, not checks). Fixed to call `getCheckFromState`.
+
+**Fix applied** (commit `852c4283`):
+- Replaced `GetProvider().Meta()` with `getADOClientsFromEnv()` helper that builds client from env vars directly.
+- `CheckPipelineCheckDestroyed` now uses `getCheckFromState` (semantically correct: check API).
+- Uses `context.Background()` instead of `clients.Ctx`.
+
+### Iteration 2
 
 **Problem**: Gate failure (iter 1) showed `TestAccCheckRestAPI_complete` and `TestAccCheckRestAPI_update` failing with "Provider produced inconsistent result after apply":
 - `.timeout: was null, but now cty.NumberIntVal(1440)` (basic test config, timeout not set)
@@ -51,6 +65,7 @@ _(updated by each iteration — most recent at the top)_
 - `Default` on Optional+Computed fields prevents "inconsistent result after apply" when the API always returns a concrete value for those fields.
 - Plan modifier null-guard (check `req.StateValue.IsNull()`) prevents converting Unknown→null for Computed-only fields on create.
 - `staticCheckInt64(v)` helper (patterned after existing `staticCheckBool`, `staticCheckString`) works for Int64 defaults.
+- Build ADO client from env vars directly in testutils verify functions when tests use `GetMuxedProviderFactories()` — avoids nil `GetProvider().Meta()` panic (same pattern used in `shared_fixtures.go`).
 
 ## What didn't work
 
