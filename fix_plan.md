@@ -27,6 +27,15 @@
   - Fix: guard with `if req.StateValue.IsNull() { return }` so unknown remains unknown on first apply
 - Build and golangci-lint pass clean after fix
 
+## Iteration 3 fix
+
+- Root-caused "Failed to add a project" — org is at 1000-project cap; can never create new projects.
+- Rewrote `hclProjectFeatureBasic` to use `data "betterado_project"` looking up `betterado-standing-demo`
+  (SharedFixtureProjectName) instead of `resource "betterado_project"` creating a new project.
+- Test still exercises full betterado_project_features lifecycle (apply → read-back → update → destroy).
+- Pattern aligns with SharedReleaseFixture and smokeResolveProject.
+
 ## Awaiting
 
 - Live gate run (TF_ACC): forge will run `TestAccProjectFeatures_roundtrip` against real ADO
+  — this time using existing standing-demo project, no project create attempt.
