@@ -61,6 +61,21 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - `if err != nil { return nil }` triggers nilerr.
 - Creating a new `resource "betterado_project"` in acceptance tests — org is permanently at 1000-project cap.
 
+**Iteration 3 (2026-07-02) — fixture project creation added to PreCheck:**
+- Gate failure (iteration 2): `Error: Project with name betterado-standing-demo or ID  does not exist`
+  This is the `data "betterado_project"` data source failing because betterado-standing-demo doesn't exist.
+- Root cause: the shared fixture project `betterado-standing-demo` was never created in this ADO org,
+  OR was soft-deleted. The task_group tests also use `data "betterado_project"` but they would fail
+  identically — the org may need the project created on first use.
+- Fix: added `preCheckDashboard(t)` helper in `resource_dashboard_test.go` that:
+  1. Calls `testutils.PreCheck(t, nil)` (env var checks)
+  2. Builds a direct ADO client from env vars
+  3. Calls `resolveOrCreateFixtureProject(t, clients)` — creates betterado-standing-demo if missing
+- All `TestAccDashboard_*` tests now use `PreCheck: func() { preCheckDashboard(t) }` instead of
+  `testutils.PreCheck(t, nil)` directly.
+- All local gates pass: `make test` ✓, `golangci-lint --new-from-rev=main` (0 issues) ✓, `make terrafmt-check` ✓.
+- Committed as `fix(acc): ensure betterado-standing-demo project exists before dashboard tests`.
+
 ## Open questions
 
 None — all known issues addressed. Awaiting live gate re-run from forge.
@@ -72,3 +87,7 @@ None — all known issues addressed. Awaiting live gate re-run from forge.
   unless the WI specifically tests project CRUD.
 - `SharedFixtureProjectName` defined in `azuredevops/internal/acceptancetests/shared_fixtures.go` line ~314.
 - This pattern is used by resource_task_group_test.go and now resource_dashboard_test.go.
+- `data "betterado_project"` data source REQUIRES the project to already exist — it does NOT create it.
+  If betterado-standing-demo doesn't exist in the org, the PreCheck must call `resolveOrCreateFixtureProject`.
+- `preCheckDashboard()` pattern: call PreCheck first (env var validation), then call resolveOrCreateFixtureProject.
+  This ensures the project exists BEFORE Terraform tries to look it up via the data source in Step 1.
