@@ -9,6 +9,13 @@ import (
 )
 
 func TestAccRepositoryPolicyCheckCredentials(t *testing.T) {
+	// The Azure DevOps policy type for check_credentials
+	// (type ID e67ae10f-cf9a-40bc-8e66-6b3a8216956e) has been removed from the
+	// live ADO service.  The resource is retained in the provider for
+	// import/read/destroy of any pre-existing policies but can no longer be
+	// created.  Acceptance tests cannot exercise create against this policy type.
+	t.Skip("betterado_repository_policy_check_credentials: ADO policy type e67ae10f-cf9a-40bc-8e66-6b3a8216956e has been removed from the live service; cannot create")
+
 	testutils.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"RepositoryPolicies": {
 			"basic":  testAccRepoPolicyCheckCredentialsBasic,
