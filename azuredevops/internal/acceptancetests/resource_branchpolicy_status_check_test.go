@@ -93,30 +93,27 @@ func TestAccBranchPolicyStatusCheckUpdate(t *testing.T) {
 }
 
 func hclBranchPolicyStatusCheckResourceTemplate(projectName string, repoName string) string {
+	// projectName is no longer used: the shared fixture project is always used instead.
 	return fmt.Sprintf(`
-resource "betterado_project" "p" {
-  name               = "%s"
-  description        = "Test Project Description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "p" {
+  name = %[2]q
 }
 
 resource "betterado_git_repository" "r" {
-  project_id = betterado_project.p.id
-  name       = "%s"
+  project_id = data.betterado_project.p.id
+  name       = "%[1]s"
   initialization {
     init_type = "Clean"
   }
 }
-`, projectName, repoName)
+`, repoName, SharedFixtureProjectName)
 }
 
 func hclBranchPolicyStatusCheckResourceBasic(projectName string, repoName string, statusName string) string {
 	projectAndRepo := hclBranchPolicyStatusCheckResourceTemplate(projectName, repoName)
 	statusCheck := fmt.Sprintf(`
 resource "betterado_branch_policy_status_check" "p" {
-  project_id = betterado_project.p.id
+  project_id = data.betterado_project.p.id
 
   enabled  = true
   blocking = true
@@ -147,7 +144,7 @@ resource "betterado_user_entitlement" "user" {
 }
 
 resource "betterado_branch_policy_status_check" "p" {
-  project_id = betterado_project.p.id
+  project_id = data.betterado_project.p.id
 
   enabled  = true
   blocking = true
@@ -175,12 +172,12 @@ func hclBranchPolicyStatusCheckResourceUpdate(projectName string, repoName strin
 ) string {
 	statusCheck := fmt.Sprintf(`
 data "betterado_group" "group" {
-  project_id = betterado_project.p.id
+  project_id = data.betterado_project.p.id
   name       = "Project Administrators"
 }
 
 resource "betterado_branch_policy_status_check" "p" {
-  project_id = betterado_project.p.id
+  project_id = data.betterado_project.p.id
 
   enabled  = true
   blocking = true

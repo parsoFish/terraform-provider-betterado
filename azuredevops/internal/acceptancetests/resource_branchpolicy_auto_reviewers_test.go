@@ -76,14 +76,16 @@ func TestAccBranchPolicyAutoReviewers_minimumApproverCount(t *testing.T) {
 
 func hclAutoReviewersBasic(name string, enabled, blocking, submitterCanVote bool, message string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name        = "%[1]s"
-  description = "description"
+data "betterado_project" "test" {
+  name = %[7]q
 }
 
-data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = data.betterado_project.test.id
   name       = "%[1]s"
+  initialization {
+    init_type = "Clean"
+  }
 }
 
 resource "betterado_user_entitlement" "test" {
@@ -92,7 +94,7 @@ resource "betterado_user_entitlement" "test" {
 }
 
 resource "betterado_branch_policy_auto_reviewers" "test" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.test.id
   enabled    = %[3]t
   blocking   = %[4]t
   settings {
@@ -101,34 +103,36 @@ resource "betterado_branch_policy_auto_reviewers" "test" {
     message            = "%[6]s"
     path_filters       = ["*/API*.cs", "README.md"]
     scope {
-      repository_id  = data.betterado_git_repository.test.id
+      repository_id  = betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }
   }
 }
-`, name, os.Getenv("AZDO_TEST_AAD_USER_EMAIL"), enabled, blocking, submitterCanVote, message)
+`, name, os.Getenv("AZDO_TEST_AAD_USER_EMAIL"), enabled, blocking, submitterCanVote, message, SharedFixtureProjectName)
 }
 
 func hclAutoReviewersMinimumApprover(name string, enabled, blocking, submitterCanVote bool, message string, numberOfApprovers int) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name        = "%[1]s"
-  description = "description"
+data "betterado_project" "test" {
+  name = %[7]q
 }
 
-data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = data.betterado_project.test.id
   name       = "%[1]s"
+  initialization {
+    init_type = "Clean"
+  }
 }
 
 resource "betterado_group" "test" {
-  scope        = betterado_project.test.id
-  display_name = "test group"
+  scope        = data.betterado_project.test.id
+  display_name = "%[1]s-group"
 }
 
 resource "betterado_branch_policy_auto_reviewers" "test" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.test.id
   enabled    = %[2]t
   blocking   = %[3]t
   settings {
@@ -138,11 +142,11 @@ resource "betterado_branch_policy_auto_reviewers" "test" {
     minimum_number_of_reviewers = %[6]d
     path_filters                = ["*/API*.cs", "README.md"]
     scope {
-      repository_id  = data.betterado_git_repository.test.id
+      repository_id  = betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }
   }
 }
-`, name, enabled, blocking, submitterCanVote, message, numberOfApprovers)
+`, name, enabled, blocking, submitterCanVote, message, numberOfApprovers, SharedFixtureProjectName)
 }

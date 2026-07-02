@@ -20,8 +20,8 @@ import (
 
 // Compile-time interface checks.
 var (
-	_ resource.Resource              = (*MinReviewersResource)(nil)
-	_ resource.ResourceWithConfigure = (*MinReviewersResource)(nil)
+	_ resource.Resource                = (*MinReviewersResource)(nil)
+	_ resource.ResourceWithConfigure   = (*MinReviewersResource)(nil)
 	_ resource.ResourceWithImportState = (*MinReviewersResource)(nil)
 )
 
@@ -175,15 +175,15 @@ type minReviewersSettingsModel struct {
 
 func minReviewersSettingsAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"reviewer_count":                           types.Int64Type,
-		"submitter_can_vote":                       types.BoolType,
-		"allow_completion_with_rejects_or_waits":   types.BoolType,
-		"on_last_iteration_require_vote":            types.BoolType,
-		"on_each_iteration_require_vote":            types.BoolType,
-		"on_push_reset_approved_votes":              types.BoolType,
-		"on_push_reset_all_votes":                   types.BoolType,
-		"last_pusher_cannot_approve":                types.BoolType,
-		"scope":                                     types.ListType{ElemType: types.ObjectType{AttrTypes: scopeAttrTypes()}},
+		"reviewer_count":                         types.Int64Type,
+		"submitter_can_vote":                     types.BoolType,
+		"allow_completion_with_rejects_or_waits": types.BoolType,
+		"on_last_iteration_require_vote":         types.BoolType,
+		"on_each_iteration_require_vote":         types.BoolType,
+		"on_push_reset_approved_votes":           types.BoolType,
+		"on_push_reset_all_votes":                types.BoolType,
+		"last_pusher_cannot_approve":             types.BoolType,
+		"scope":                                  types.ListType{ElemType: types.ObjectType{AttrTypes: scopeAttrTypes()}},
 	}
 }
 

@@ -7,6 +7,10 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **7 branch policy resources migrated to terraform-plugin-framework** (`betterado_branch_policy_auto_reviewers`, `betterado_branch_policy_build_validation`, `betterado_branch_policy_comment_resolution`, `betterado_branch_policy_merge_types`, `betterado_branch_policy_min_reviewers`, `betterado_branch_policy_status_check`, `betterado_branch_policy_work_item_linking`). All resources now use the framework implementation served through the mux provider. Schema and CRUD semantics are unchanged; `settings` and `scope` continue to use block syntax. Verified by live acceptance tests `TestAccBranchPolicy*`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

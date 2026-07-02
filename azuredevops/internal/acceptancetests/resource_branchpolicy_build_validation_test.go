@@ -39,32 +39,34 @@ func TestAccBranchPolicyBuildValidation_basic(t *testing.T) {
 
 func hclBuildValidationBasic(name string, enabled, blocking bool, displayName string, validDuration int) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name        = "%[1]s"
-  description = "description"
+data "betterado_project" "test" {
+  name = %[6]q
 }
 
-data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = data.betterado_project.test.id
   name       = "%[1]s"
+  initialization {
+    init_type = "Clean"
+  }
 }
 
 resource "betterado_build_definition" "test" {
-  project_id      = betterado_project.test.id
-  name            = "Example Build Definition"
+  project_id      = data.betterado_project.test.id
+  name            = "%[1]s-build"
   agent_pool_name = "Azure Pipelines"
   path            = "\\"
 
   repository {
     repo_type   = "TfsGit"
-    repo_id     = data.betterado_git_repository.test.id
+    repo_id     = betterado_git_repository.test.id
     branch_name = "main"
     yml_path    = "path/to/yaml"
   }
 }
 
 resource "betterado_branch_policy_build_validation" "test" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.test.id
   enabled    = %[2]t
   blocking   = %[3]t
   settings {
@@ -77,10 +79,10 @@ resource "betterado_branch_policy_build_validation" "test" {
       "*.cs"
     ]
     scope {
-      repository_id  = data.betterado_git_repository.test.id
+      repository_id  = betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }
   }
-}`, name, enabled, blocking, displayName, validDuration)
+}`, name, enabled, blocking, displayName, validDuration, SharedFixtureProjectName)
 }

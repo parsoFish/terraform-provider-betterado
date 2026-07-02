@@ -45,18 +45,20 @@ func TestAccBranchPolicyMergeTypes_basic(t *testing.T) {
 
 func hclMergeTypesBasic(name string, enabled, blocking, allowSquash, allowRebase, allowNoFastForward, allowRebaseMerge bool) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name        = "%[1]s"
-  description = "description"
+data "betterado_project" "test" {
+  name = %[8]q
 }
 
-data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
+resource "betterado_git_repository" "test" {
+  project_id = data.betterado_project.test.id
   name       = "%[1]s"
+  initialization {
+    init_type = "Clean"
+  }
 }
 
 resource "betterado_branch_policy_merge_types" "test" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.test.id
   enabled    = %[2]t
   blocking   = %[3]t
   settings {
@@ -65,10 +67,10 @@ resource "betterado_branch_policy_merge_types" "test" {
     allow_basic_no_fast_forward   = %[6]t
     allow_rebase_with_merge       = %[7]t
     scope {
-      repository_id  = data.betterado_git_repository.test.id
+      repository_id  = betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }
   }
-}`, name, enabled, blocking, allowSquash, allowRebase, allowNoFastForward, allowRebaseMerge)
+}`, name, enabled, blocking, allowSquash, allowRebase, allowNoFastForward, allowRebaseMerge, SharedFixtureProjectName)
 }

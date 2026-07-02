@@ -156,13 +156,13 @@ type buildValidationSettingsModel struct {
 
 func buildValidationSettingsAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"build_definition_id":       types.Int64Type,
-		"display_name":              types.StringType,
-		"manual_queue_only":         types.BoolType,
+		"build_definition_id":         types.Int64Type,
+		"display_name":                types.StringType,
+		"manual_queue_only":           types.BoolType,
 		"queue_on_source_update_only": types.BoolType,
-		"valid_duration":            types.Int64Type,
-		"filename_patterns":         types.ListType{ElemType: types.StringType},
-		"scope":                     types.ListType{ElemType: types.ObjectType{AttrTypes: scopeAttrTypes()}},
+		"valid_duration":              types.Int64Type,
+		"filename_patterns":           types.ListType{ElemType: types.StringType},
+		"scope":                       types.ListType{ElemType: types.ObjectType{AttrTypes: scopeAttrTypes()}},
 	}
 }
 

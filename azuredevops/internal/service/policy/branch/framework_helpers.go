@@ -193,9 +193,11 @@ func staticPolicyBool(v bool) defaults.Bool { return staticPolicyBoolDefault{val
 func (d staticPolicyBoolDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %v", d.value)
 }
+
 func (d staticPolicyBoolDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%v`", d.value)
 }
+
 func (d staticPolicyBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(d.value)
 }
@@ -208,9 +210,11 @@ func staticPolicyInt64(v int64) defaults.Int64 { return staticPolicyInt64Default
 func (d staticPolicyInt64Default) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %d", d.value)
 }
+
 func (d staticPolicyInt64Default) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%d`", d.value)
 }
+
 func (d staticPolicyInt64Default) DefaultInt64(_ context.Context, _ defaults.Int64Request, resp *defaults.Int64Response) {
 	resp.PlanValue = types.Int64Value(d.value)
 }
@@ -223,9 +227,11 @@ func staticPolicyString(v string) defaults.String { return staticPolicyStringDef
 func (d staticPolicyStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d staticPolicyStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%q`", d.value)
 }
+
 func (d staticPolicyStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }
@@ -241,9 +247,11 @@ func policyUseStateForUnknown() planmodifier.String { return policyUseStateForUn
 func (m policyUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "use prior state value when unknown"
 }
+
 func (m policyUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "use prior state value when unknown"
 }
+
 func (m policyUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -263,9 +271,11 @@ func policyRequiresReplace() planmodifier.String { return policyRequiresReplaceM
 func (m policyRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m policyRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m policyRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
