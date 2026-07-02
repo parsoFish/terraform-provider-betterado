@@ -1,7 +1,0 @@
-# Fix Plan
-
-> Checklist for WI-1. Tick items as you complete them; add items as you discover sub-problems.
-
-- [x] AC1: GIVEN the ADO Security REST API v7.1 and the current betterado_security_permissions / betterado_security_namespace* SDKv2 schema WHEN a gap matrix doc is produced for the security package THEN docs/security-gap-matrix.md exists, lists every API field vs provider field, marks writable gaps as resolved or deferred with rationale
-- [x] AC2: GIVEN the ADO SecurityRoles REST API v7.1 and the current betterado_securityrole_assignment / betterado_securityrole_definitions SDKv2 schema WHEN a gap matrix doc is produced for the securityroles package THEN docs/securityroles-gap-matrix.md exists, lists every API field vs provider field, marks writable gaps as resolved or deferred with rationale
-- [x] AC3: GIVEN the ADO permissions package resources (betterado_area_permissions, betterado_build_definition_permissions, betterado_build_folder_permissions, betterado_git_permissions, betterado_iteration_permissions, betterado_library_permissions, betterado_project_permissions, betterado_serviceendpoint_permissions, betterado_servicehook_permissions, betterado_tagging_permissions, betterado_variable_group_permissions, betterado_workitemquery_permissions, betterado_workitemtrackingprocess_process_permissions) WHEN a gap matrix doc is produced for the permissions package THEN docs/permissions-gap-matrix.md exists, covers each resource's security namespace token format and lists fields vs API, marks gaps as resolved or deferred
