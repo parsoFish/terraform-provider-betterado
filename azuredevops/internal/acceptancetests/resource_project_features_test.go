@@ -24,11 +24,15 @@ import (
 // betterado_project_features (framework) are available in the same test.
 //
 // The test reuses the persistent standing-demo project (betterado-standing-demo)
-// via a data source rather than creating a new project — the ADO org is at the
-// 1000-project cap, so any project-create attempt fails immediately.
+// via SharedReleaseFixture — which resolves or creates the project via ADO API
+// and returns its UUID. The project UUID is then injected directly into HCL so
+// the test never relies on a data source lookup (which would fail if the project
+// doesn't exist yet). This pattern matches TestAccMuxSdkv2Passthrough.
 func TestAccProjectFeatures_roundtrip(t *testing.T) {
-	// Resolve the existing standing-demo project — never creates a new project.
-	projectName := SharedFixtureProjectName
+	// SharedReleaseFixture resolves or creates betterado-standing-demo and
+	// returns its UUID. If TF_ACC is not set it calls t.Skip immediately.
+	fixture := SharedReleaseFixture(t)
+	projectID := fixture.ProjectID
 
 	tfNode := "betterado_project_features.test"
 
@@ -38,7 +42,7 @@ func TestAccProjectFeatures_roundtrip(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Step 1: disable testplans and artifacts.
 			{
-				Config: hclProjectFeatureBasic(projectName, "disabled", "disabled"),
+				Config: hclProjectFeatureBasic(projectID, "disabled", "disabled"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "features.testplans", "disabled"),
 					resource.TestCheckResourceAttr(tfNode, "features.artifacts", "disabled"),
@@ -49,7 +53,7 @@ func TestAccProjectFeatures_roundtrip(t *testing.T) {
 			},
 			// Step 2: re-enable testplans, keep artifacts disabled.
 			{
-				Config: hclProjectFeatureBasic(projectName, "enabled", "disabled"),
+				Config: hclProjectFeatureBasic(projectID, "enabled", "disabled"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "features.testplans", "enabled"),
 					resource.TestCheckResourceAttr(tfNode, "features.artifacts", "disabled"),
@@ -95,20 +99,17 @@ func captureProjectFeaturesEvidence(tfNode string) resource.TestCheckFunc {
 	}
 }
 
-// hclProjectFeatureBasic returns Terraform HCL that reads the existing
-// standing-demo project via data source and manages its features. No project
-// resource is created — the org is at the 1000-project cap.
-func hclProjectFeatureBasic(projectName, testPlanState, artifactState string) string {
+// hclProjectFeatureBasic returns Terraform HCL that manages features on an
+// existing project identified by its UUID. No data source or resource create
+// is needed — the project ID is resolved by SharedReleaseFixture before the
+// Terraform test lifecycle starts.
+func hclProjectFeatureBasic(projectID, testPlanState, artifactState string) string {
 	return fmt.Sprintf(`
-data "betterado_project" "test" {
-  name = %[1]q
-}
-
 resource "betterado_project_features" "test" {
-  project_id = data.betterado_project.test.id
+  project_id = %[1]q
   features = {
     "testplans" = %[2]q
     "artifacts" = %[3]q
   }
-}`, projectName, testPlanState, artifactState)
+}`, projectID, testPlanState, artifactState)
 }
