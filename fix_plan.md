@@ -9,14 +9,18 @@
   - [x] ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories() used
   - [x] getDirectDashboardClient() helper for checkDashboardDestroyed/checkDashboardExist
   - [x] Idempotency steps added (ExpectNonEmptyPlan: false, PlanOnly: true)
-  - [ ] Live gate blocked by ADO org at 1000 project limit (infrastructure issue, not code)
+  - [x] Switched all HCL helpers from `resource "betterado_project" "test"` to `data "betterado_project" "test"` using SharedFixtureProjectName — avoids ADO 1000-project cap
+  - [ ] Live gate: awaiting forge re-run to confirm pass
 - [x] AC5: GIVEN the framework Dashboard resource runs the live acceptance test WHEN the acceptance test performs a live read-back before destroy THEN testutils.CaptureLiveEvidence("acceptance-resource", <dashboard GET URL>, <apiResponse>) is called so .forge/live-evidence/acceptance-resource.json is written
 - [x] AC6: GIVEN docs/resources/dashboard.md exists (from upstream docs/) WHEN WI-1 implementation runs THEN examples/resources/betterado_dashboard/resource.tf is created with non-default values for all writable fields; make docs is run and docs/resources/dashboard.md is updated; git checkout -- docs/guides/ restores hand-written guides
 - [x] AC7: GIVEN changed Go files WHEN CI-equivalent gate runs (make test + golangci-lint --new-from-rev=main ./azuredevops/... + make terrafmt-check) THEN gate is green with zero new lint findings on changed files
 
-## Gate failure from last iteration
-The live gate `TestAccDashboard_project_basic` failed with:
+## Gate failure from iteration 1 — FIXED in iteration 2
+The live gate `TestAccDashboard_project_basic` was failing with:
 ```
 Error: creating project: Failed to add a project as this organization already has 1000 projects.
 ```
-This is an ADO infrastructure constraint (org at project limit) — not a code bug. The framework resource implementation, local gates (make test, lint, terrafmt), and acceptance test wiring are all correct. The live gate will pass once ADO org has available project slots.
+Fix (iteration 2): switched all dashboard HCL helpers to use `data "betterado_project" "test"` pointing
+at `SharedFixtureProjectName` ("betterado-standing-demo") — the persistent shared project. Pattern
+is consistent with resource_task_group_test.go. No new project creation; teams are still created
+per-test (don't count toward the project cap).
