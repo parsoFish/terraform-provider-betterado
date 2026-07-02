@@ -163,8 +163,15 @@ resource "betterado_securityrole_assignment" "fw_sra" {
 `, scope, resourceID, identityID, roleName)
 }
 
-// checkSecurityRoleAssignmentFrameworkDestroyed verifies the security role
-// assignment was removed when the resource was destroyed.
+// checkSecurityRoleAssignmentFrameworkDestroyed verifies the explicit security
+// role assignment was removed when the resource was destroyed.
+//
+// ADO security roles distinguish between "assigned" (explicitly set) and
+// "inherited" (derived from parent scope) access. After Terraform destroy the
+// PATCH revert-to-inherited call removes the explicit assignment; any remaining
+// inherited assignment is expected ADO behaviour (e.g. Project Administrators
+// always have inherited Administrator access to environments). We only fail if
+// an EXPLICIT assignment still exists.
 func checkSecurityRoleAssignmentFrameworkDestroyed(
 	clients *client.AggregatedClient,
 	scope, resourceID, identityIDStr string,
@@ -192,7 +199,14 @@ func checkSecurityRoleAssignmentFrameworkDestroyed(
 		}
 
 		if assignment == nil || (assignment.Identity == nil && assignment.Role == nil) {
-			return nil // already gone
+			return nil // no matching assignment found — already gone
+		}
+
+		// If the remaining assignment is inherited (not explicitly assigned),
+		// the explicit Terraform-managed assignment has been successfully removed.
+		// An inherited entry is expected ADO behaviour and is NOT a dangling resource.
+		if assignment.Access != nil && strings.EqualFold(*assignment.Access, "inherited") {
+			return nil
 		}
 
 		return fmt.Errorf("security role assignment still exists after destroy: scope=%s resource_id=%s identity_id=%s",

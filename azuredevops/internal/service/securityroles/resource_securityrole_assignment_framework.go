@@ -185,9 +185,10 @@ func (r *securityRoleAssignmentFrameworkResource) Read(ctx context.Context, req 
 	if assignment.Role != nil && assignment.Role.Name != nil {
 		state.RoleName = types.StringValue(*assignment.Role.Name)
 	}
-	if assignment.Role != nil && assignment.Role.Scope != nil {
-		state.Scope = types.StringValue(*assignment.Role.Scope)
-	}
+	// Note: do NOT overwrite state.Scope from assignment.Role.Scope.
+	// Role.Scope is the role-definition's own scope field (may differ from the
+	// query scope used to look up the assignment).  The query scope is the
+	// resource's stable identity key and must not drift.
 	if assignment.Identity != nil && assignment.Identity.ID != nil {
 		state.IdentityID = types.StringValue(*assignment.Identity.ID)
 	}
@@ -271,6 +272,13 @@ func (r *securityRoleAssignmentFrameworkResource) Delete(ctx context.Context, re
 		resp.Diagnostics.AddError("Error deleting security role assignment", err.Error())
 		return
 	}
+
+	// Poll until the assignment is gone (ADO security-roles API is eventually
+	// consistent — the PATCH delete can return 200 before the assignment
+	// disappears from subsequent GET responses).
+	if err := r.waitForDeletion(ctx, scope, resourceID, identityID, 10*time.Minute); err != nil {
+		resp.Diagnostics.AddError("Error waiting for security role assignment deletion", err.Error())
+	}
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -313,6 +321,46 @@ func (r *securityRoleAssignmentFrameworkResource) waitForAssignment(
 		time.Sleep(5 * time.Second)
 	}
 	return fmt.Errorf("timed out waiting for security role assignment to reflect role %q", roleName)
+}
+
+// waitForDeletion polls the API until the explicit assignment for the given
+// identity is gone (or until timeout). This handles ADO's eventual-consistency
+// window after a PATCH revert-to-inherited request.
+//
+// ADO security roles distinguish "assigned" (explicit) from "inherited" access.
+// The PATCH delete reverts an explicit assignment to inherited; if the identity
+// has no inherited role the entry disappears entirely. Either outcome — no
+// matching entry OR an entry with Access="inherited" — means the explicit
+// Terraform-managed assignment has been successfully removed.
+func (r *securityRoleAssignmentFrameworkResource) waitForDeletion(
+	ctx context.Context,
+	scope, resourceID string,
+	identityID uuid.UUID,
+	timeout time.Duration,
+) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		assignment, err := r.client.SecurityRolesClient.GetSecurityRoleAssignment(ctx, &sdkroles.GetSecurityRoleAssignmentArgs{
+			Scope:      &scope,
+			ResourceId: &resourceID,
+			IdentityId: &identityID,
+		})
+		if err != nil {
+			// Any error (including 404/not-found) means the assignment is gone.
+			return nil
+		}
+		if assignment == nil || (assignment.Identity == nil && assignment.Role == nil) {
+			// No matching assignment found — deletion confirmed.
+			return nil
+		}
+		// If the remaining entry has inherited access, the explicit assignment
+		// was successfully removed (inherited is expected ADO behaviour).
+		if assignment.Access != nil && strings.EqualFold(*assignment.Access, "inherited") {
+			return nil
+		}
+		time.Sleep(5 * time.Second)
+	}
+	return fmt.Errorf("timed out waiting for security role assignment to be deleted (scope=%s resource_id=%s identity_id=%s)", scope, resourceID, identityID.String())
 }
 
 // ── Inline plan modifiers ─────────────────────────────────────────────────────
