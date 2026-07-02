@@ -191,6 +191,13 @@ func flattenRepositoryIDs(ctx context.Context, raw map[string]interface{}) (type
 		}
 	}
 
+	// Ensure we always return an empty list (not null) when there are no repo IDs.
+	// types.ListValueFrom with a nil slice returns a null list, which causes
+	// "provider produced inconsistent result after apply" when the plan had an
+	// empty list. Explicitly convert nil → []string{} to get a known empty list.
+	if ids == nil {
+		ids = []string{}
+	}
 	listVal, d := types.ListValueFrom(ctx, types.StringType, ids)
 	diags.Append(d...)
 	return listVal, diags
