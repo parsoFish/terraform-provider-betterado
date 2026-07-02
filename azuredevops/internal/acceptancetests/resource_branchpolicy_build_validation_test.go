@@ -13,7 +13,7 @@ func TestAccBranchPolicyBuildValidation_basic(t *testing.T) {
 	buildValidationTfNode := "betterado_branch_policy_build_validation.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclBuildValidationBasic(name, true, true, "build validation", 0),

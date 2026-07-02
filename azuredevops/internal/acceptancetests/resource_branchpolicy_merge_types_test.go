@@ -13,7 +13,7 @@ func TestAccBranchPolicyMergeTypes_basic(t *testing.T) {
 	buildValidationTfNode := "betterado_branch_policy_merge_types.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclMergeTypesBasic(name, true, true, true, true, true, true),

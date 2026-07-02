@@ -18,7 +18,7 @@ func TestAccBranchPolicyAutoReviewers_basic(t *testing.T) {
 	autoReviewerTfNode := "betterado_branch_policy_auto_reviewers.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_USER_EMAIL"}) },
-		Providers: testutils.GetProviders(),
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclAutoReviewersBasic(name, true, true, false, "auto reviewer"),
@@ -46,7 +46,7 @@ func TestAccBranchPolicyAutoReviewers_minimumApproverCount(t *testing.T) {
 	name := testutils.GenerateResourceName()
 	autoReviewerTfNode := "betterado_branch_policy_auto_reviewers.test"
 	resource.ParallelTest(t, resource.TestCase{
-		Providers: testutils.GetProviders(),
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclAutoReviewersMinimumApprover(name, true, true, true, "auto reviewer", 1),

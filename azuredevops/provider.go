@@ -26,7 +26,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
@@ -45,13 +44,8 @@ func Provider() *schema.Provider {
 			"betterado_agent_pool":                       taskagent.ResourceAgentPool(),
 			"betterado_agent_queue":                      taskagent.ResourceAgentQueue(),
 			"betterado_area_permissions":                 permissions.ResourceAreaPermissions(),
-			"betterado_branch_policy_auto_reviewers":     branch.ResourceBranchPolicyAutoReviewers(),
-			"betterado_branch_policy_build_validation":   branch.ResourceBranchPolicyBuildValidation(),
-			"betterado_branch_policy_comment_resolution": branch.ResourceBranchPolicyCommentResolution(),
-			"betterado_branch_policy_merge_types":        branch.ResourceBranchPolicyMergeTypes(),
-			"betterado_branch_policy_min_reviewers":      branch.ResourceBranchPolicyMinReviewers(),
-			"betterado_branch_policy_status_check":       branch.ResourceBranchPolicyStatusCheck(),
-			"betterado_branch_policy_work_item_linking":  branch.ResourceBranchPolicyWorkItemLinking(),
+			// betterado_branch_policy_* resources are now framework resources (registered in framework_provider.go)
+			// and are no longer in the SDKv2 provider resource map.
 			"betterado_build_definition":                 build.ResourceBuildDefinition(),
 			"betterado_build_definition_permissions":     permissions.ResourceBuildDefinitionPermissions(),
 			"betterado_build_folder":                     build.ResourceBuildFolder(),

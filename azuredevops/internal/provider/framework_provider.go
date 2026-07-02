@@ -13,6 +13,7 @@ import (
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 )
@@ -206,6 +207,14 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
+		// Branch policy framework resources (migrated from SDKv2)
+		branch.NewAutoReviewersResource,
+		branch.NewBuildValidationResource,
+		branch.NewCommentResolutionResource,
+		branch.NewMergeTypesResource,
+		branch.NewMinReviewersResource,
+		branch.NewStatusCheckResource,
+		branch.NewWorkItemLinkingResource,
 	}
 }
 

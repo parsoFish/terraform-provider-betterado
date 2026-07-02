@@ -15,7 +15,7 @@ func TestAccBranchPolicyStatusCheck_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclBranchPolicyStatusCheckResourceBasic(projectName, repoName, "update"),
@@ -38,7 +38,7 @@ func TestAccBranchPolicyStatusCheck_complete(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclBranchPolicyStatusCheckResourceComplete(projectName, repoName),
@@ -66,7 +66,7 @@ func TestAccBranchPolicyStatusCheckUpdate(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclBranchPolicyStatusCheckResourceBasic(projectName, repoName, "update"),
