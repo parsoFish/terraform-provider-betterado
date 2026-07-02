@@ -76,9 +76,10 @@ func (r *MergeTypesResource) Schema(_ context.Context, _ resource.SchemaRequest,
 				Computed: true,
 				Default:  staticPolicyBool(true),
 			},
-			"settings": schema.ListNestedAttribute{
-				Required: true,
-				NestedObject: schema.NestedAttributeObject{
+		},
+		Blocks: map[string]schema.Block{
+			"settings": schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"allow_squash": schema.BoolAttribute{
 							Optional: true,
@@ -100,9 +101,10 @@ func (r *MergeTypesResource) Schema(_ context.Context, _ resource.SchemaRequest,
 							Computed: true,
 							Default:  staticPolicyBool(false),
 						},
-						"scope": schema.ListNestedAttribute{
-							Required: true,
-							NestedObject: schema.NestedAttributeObject{
+					},
+					Blocks: map[string]schema.Block{
+						"scope": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"repository_id": schema.StringAttribute{
 										Optional: true,
@@ -137,11 +139,11 @@ type mergeTypesModel struct {
 }
 
 type mergeTypesSettingsModel struct {
-	AllowSquash              types.Bool `tfsdk:"allow_squash"`
+	AllowSquash               types.Bool `tfsdk:"allow_squash"`
 	AllowRebaseAndFastForward types.Bool `tfsdk:"allow_rebase_and_fast_forward"`
-	AllowBasicNoFastForward  types.Bool `tfsdk:"allow_basic_no_fast_forward"`
-	AllowRebaseWithMerge     types.Bool `tfsdk:"allow_rebase_with_merge"`
-	Scope                    types.List `tfsdk:"scope"`
+	AllowBasicNoFastForward   types.Bool `tfsdk:"allow_basic_no_fast_forward"`
+	AllowRebaseWithMerge      types.Bool `tfsdk:"allow_rebase_with_merge"`
+	Scope                     types.List `tfsdk:"scope"`
 }
 
 func mergeTypesSettingsAttrTypes() map[string]attr.Type {

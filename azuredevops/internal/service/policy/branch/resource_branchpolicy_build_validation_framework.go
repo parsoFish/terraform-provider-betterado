@@ -76,9 +76,10 @@ func (r *BuildValidationResource) Schema(_ context.Context, _ resource.SchemaReq
 				Computed: true,
 				Default:  staticPolicyBool(true),
 			},
-			"settings": schema.ListNestedAttribute{
-				Required: true,
-				NestedObject: schema.NestedAttributeObject{
+		},
+		Blocks: map[string]schema.Block{
+			"settings": schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"build_definition_id": schema.Int64Attribute{
 							Required: true,
@@ -106,9 +107,10 @@ func (r *BuildValidationResource) Schema(_ context.Context, _ resource.SchemaReq
 							Optional:    true,
 							Computed:    true,
 						},
-						"scope": schema.ListNestedAttribute{
-							Required: true,
-							NestedObject: schema.NestedAttributeObject{
+					},
+					Blocks: map[string]schema.Block{
+						"scope": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"repository_id": schema.StringAttribute{
 										Optional: true,

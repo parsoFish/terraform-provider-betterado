@@ -76,13 +76,13 @@ func (r *WorkItemLinkingResource) Schema(_ context.Context, _ resource.SchemaReq
 				Computed: true,
 				Default:  staticPolicyBool(true),
 			},
-			"settings": schema.ListNestedAttribute{
-				Required: true,
-				NestedObject: schema.NestedAttributeObject{
-					Attributes: map[string]schema.Attribute{
-						"scope": schema.ListNestedAttribute{
-							Required: true,
-							NestedObject: schema.NestedAttributeObject{
+		},
+		Blocks: map[string]schema.Block{
+			"settings": schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
+					Blocks: map[string]schema.Block{
+						"scope": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"repository_id": schema.StringAttribute{
 										Optional: true,

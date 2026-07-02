@@ -76,9 +76,10 @@ func (r *StatusCheckResource) Schema(_ context.Context, _ resource.SchemaRequest
 				Computed: true,
 				Default:  staticPolicyBool(true),
 			},
-			"settings": schema.ListNestedAttribute{
-				Required: true,
-				NestedObject: schema.NestedAttributeObject{
+		},
+		Blocks: map[string]schema.Block{
+			"settings": schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{
 							Required: true,
@@ -113,9 +114,10 @@ func (r *StatusCheckResource) Schema(_ context.Context, _ resource.SchemaRequest
 							Computed: true,
 							Default:  staticPolicyString(""),
 						},
-						"scope": schema.ListNestedAttribute{
-							Required: true,
-							NestedObject: schema.NestedAttributeObject{
+					},
+					Blocks: map[string]schema.Block{
+						"scope": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"repository_id": schema.StringAttribute{
 										Optional: true,
@@ -323,13 +325,13 @@ func expandStatusCheck(ctx context.Context, model *statusCheckModel) (*policy.Po
 
 	typeID := StatusCheck
 	policySettings := map[string]interface{}{
-		"statusName":             s.Name.ValueString(),
-		"statusGenre":            s.Genre.ValueString(),
-		"authorId":               s.AuthorID.ValueString(),
+		"statusName":               s.Name.ValueString(),
+		"statusGenre":              s.Genre.ValueString(),
+		"authorId":                 s.AuthorID.ValueString(),
 		"invalidateOnSourceUpdate": s.InvalidateOnUpdate.ValueBool(),
-		"defaultDisplayName":     s.DisplayName.ValueString(),
-		"filenamePatterns":       patterns,
-		"scope":                  scopes,
+		"defaultDisplayName":       s.DisplayName.ValueString(),
+		"filenamePatterns":         patterns,
+		"scope":                    scopes,
 	}
 
 	if s.Applicability.ValueString() == "conditional" {

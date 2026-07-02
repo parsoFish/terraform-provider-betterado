@@ -79,9 +79,10 @@ func (r *MinReviewersResource) Schema(_ context.Context, _ resource.SchemaReques
 				Computed: true,
 				Default:  staticPolicyBool(true),
 			},
-			"settings": schema.ListNestedAttribute{
-				Required: true,
-				NestedObject: schema.NestedAttributeObject{
+		},
+		Blocks: map[string]schema.Block{
+			"settings": schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"reviewer_count": schema.Int64Attribute{
 							Optional: true,
@@ -123,9 +124,10 @@ func (r *MinReviewersResource) Schema(_ context.Context, _ resource.SchemaReques
 							Computed: true,
 							Default:  staticPolicyBool(false),
 						},
-						"scope": schema.ListNestedAttribute{
-							Required: true,
-							NestedObject: schema.NestedAttributeObject{
+					},
+					Blocks: map[string]schema.Block{
+						"scope": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"repository_id": schema.StringAttribute{
 										Optional: true,
@@ -160,15 +162,15 @@ type minReviewersModel struct {
 }
 
 type minReviewersSettingsModel struct {
-	ReviewerCount                   types.Int64 `tfsdk:"reviewer_count"`
-	SubmitterCanVote                types.Bool  `tfsdk:"submitter_can_vote"`
-	AllowCompletionWithRejectsOrWaits types.Bool `tfsdk:"allow_completion_with_rejects_or_waits"`
-	OnLastIterationRequireVote      types.Bool  `tfsdk:"on_last_iteration_require_vote"`
-	OnEachIterationRequireVote      types.Bool  `tfsdk:"on_each_iteration_require_vote"`
-	OnPushResetApprovedVotes        types.Bool  `tfsdk:"on_push_reset_approved_votes"`
-	OnPushResetAllVotes             types.Bool  `tfsdk:"on_push_reset_all_votes"`
-	LastPusherCannotApprove         types.Bool  `tfsdk:"last_pusher_cannot_approve"`
-	Scope                           types.List  `tfsdk:"scope"`
+	ReviewerCount                     types.Int64 `tfsdk:"reviewer_count"`
+	SubmitterCanVote                  types.Bool  `tfsdk:"submitter_can_vote"`
+	AllowCompletionWithRejectsOrWaits types.Bool  `tfsdk:"allow_completion_with_rejects_or_waits"`
+	OnLastIterationRequireVote        types.Bool  `tfsdk:"on_last_iteration_require_vote"`
+	OnEachIterationRequireVote        types.Bool  `tfsdk:"on_each_iteration_require_vote"`
+	OnPushResetApprovedVotes          types.Bool  `tfsdk:"on_push_reset_approved_votes"`
+	OnPushResetAllVotes               types.Bool  `tfsdk:"on_push_reset_all_votes"`
+	LastPusherCannotApprove           types.Bool  `tfsdk:"last_pusher_cannot_approve"`
+	Scope                             types.List  `tfsdk:"scope"`
 }
 
 func minReviewersSettingsAttrTypes() map[string]attr.Type {
@@ -405,15 +407,15 @@ func flattenMinReviewers(ctx context.Context, model *minReviewersModel, policyCo
 	}
 
 	sm := minReviewersSettingsModel{
-		ReviewerCount:                   types.Int64Value(int64Coerce(raw["minimumApproverCount"])),
-		SubmitterCanVote:                types.BoolValue(boolCoerce(raw["creatorVoteCounts"])),
+		ReviewerCount:                     types.Int64Value(int64Coerce(raw["minimumApproverCount"])),
+		SubmitterCanVote:                  types.BoolValue(boolCoerce(raw["creatorVoteCounts"])),
 		AllowCompletionWithRejectsOrWaits: types.BoolValue(boolCoerce(raw["allowDownvotes"])),
-		OnLastIterationRequireVote:      types.BoolValue(boolCoerce(raw["requireVoteOnLastIteration"])),
-		OnEachIterationRequireVote:      types.BoolValue(boolCoerce(raw["requireVoteOnEachIteration"])),
-		OnPushResetApprovedVotes:        types.BoolValue(boolCoerce(raw["resetOnSourcePush"])),
-		OnPushResetAllVotes:             types.BoolValue(boolCoerce(raw["resetRejectionsOnSourcePush"])),
-		LastPusherCannotApprove:         types.BoolValue(boolCoerce(raw["blockLastPusherVote"])),
-		Scope:                           scopeList,
+		OnLastIterationRequireVote:        types.BoolValue(boolCoerce(raw["requireVoteOnLastIteration"])),
+		OnEachIterationRequireVote:        types.BoolValue(boolCoerce(raw["requireVoteOnEachIteration"])),
+		OnPushResetApprovedVotes:          types.BoolValue(boolCoerce(raw["resetOnSourcePush"])),
+		OnPushResetAllVotes:               types.BoolValue(boolCoerce(raw["resetRejectionsOnSourcePush"])),
+		LastPusherCannotApprove:           types.BoolValue(boolCoerce(raw["blockLastPusherVote"])),
+		Scope:                             scopeList,
 	}
 
 	settingsVal, d := types.ListValueFrom(ctx,

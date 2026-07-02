@@ -76,9 +76,10 @@ func (r *AutoReviewersResource) Schema(_ context.Context, _ resource.SchemaReque
 				Computed: true,
 				Default:  staticPolicyBool(true),
 			},
-			"settings": schema.ListNestedAttribute{
-				Required: true,
-				NestedObject: schema.NestedAttributeObject{
+		},
+		Blocks: map[string]schema.Block{
+			"settings": schema.ListNestedBlock{
+				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"auto_reviewer_ids": schema.ListAttribute{
 							ElementType: types.StringType,
@@ -104,9 +105,10 @@ func (r *AutoReviewersResource) Schema(_ context.Context, _ resource.SchemaReque
 							Computed: true,
 							Default:  staticPolicyInt64(1),
 						},
-						"scope": schema.ListNestedAttribute{
-							Required: true,
-							NestedObject: schema.NestedAttributeObject{
+					},
+					Blocks: map[string]schema.Block{
+						"scope": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"repository_id": schema.StringAttribute{
 										Optional: true,
@@ -151,12 +153,12 @@ type autoReviewersSettingsModel struct {
 
 func autoReviewersSettingsAttrTypes() map[string]attr.Type {
 	return map[string]attr.Type{
-		"auto_reviewer_ids":          types.ListType{ElemType: types.StringType},
-		"path_filters":               types.ListType{ElemType: types.StringType},
-		"message":                    types.StringType,
-		"submitter_can_vote":         types.BoolType,
+		"auto_reviewer_ids":           types.ListType{ElemType: types.StringType},
+		"path_filters":                types.ListType{ElemType: types.StringType},
+		"message":                     types.StringType,
+		"submitter_can_vote":          types.BoolType,
 		"minimum_number_of_reviewers": types.Int64Type,
-		"scope":                      types.ListType{ElemType: types.ObjectType{AttrTypes: scopeAttrTypes()}},
+		"scope":                       types.ListType{ElemType: types.ObjectType{AttrTypes: scopeAttrTypes()}},
 	}
 }
 
@@ -330,12 +332,12 @@ func expandAutoReviewers(ctx context.Context, model *autoReviewersModel) (*polic
 
 	typeID := AutoReviewers
 	policySettings := map[string]interface{}{
-		"creatorVoteCounts":      s.SubmitterCanVote.ValueBool(),
-		"message":                s.Message.ValueString(),
-		"minimumApproverCount":   s.MinimumNumberOfReviewers.ValueInt64(),
-		"requiredReviewerIds":    reviewerIDs,
-		"filenamePatterns":       pathFilters,
-		"scope":                  scopes,
+		"creatorVoteCounts":    s.SubmitterCanVote.ValueBool(),
+		"message":              s.Message.ValueString(),
+		"minimumApproverCount": s.MinimumNumberOfReviewers.ValueInt64(),
+		"requiredReviewerIds":  reviewerIDs,
+		"filenamePatterns":     pathFilters,
+		"scope":                scopes,
 	}
 
 	pc := &policy.PolicyConfiguration{
