@@ -15,11 +15,8 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
@@ -31,16 +28,16 @@ import (
 func Provider() *schema.Provider {
 	p := &schema.Provider{
 		ResourcesMap: map[string]*schema.Resource{
-			"betterado_agent_pool":                       taskagent.ResourceAgentPool(),
-			"betterado_agent_queue":                      taskagent.ResourceAgentQueue(),
-			"betterado_area_permissions":                 permissions.ResourceAreaPermissions(),
-			"betterado_branch_policy_auto_reviewers":     branch.ResourceBranchPolicyAutoReviewers(),
-			"betterado_branch_policy_build_validation":   branch.ResourceBranchPolicyBuildValidation(),
-			"betterado_branch_policy_comment_resolution": branch.ResourceBranchPolicyCommentResolution(),
-			"betterado_branch_policy_merge_types":        branch.ResourceBranchPolicyMergeTypes(),
-			"betterado_branch_policy_min_reviewers":      branch.ResourceBranchPolicyMinReviewers(),
-			"betterado_branch_policy_status_check":       branch.ResourceBranchPolicyStatusCheck(),
-			"betterado_branch_policy_work_item_linking":  branch.ResourceBranchPolicyWorkItemLinking(),
+			"betterado_agent_pool":       taskagent.ResourceAgentPool(),
+			"betterado_agent_queue":      taskagent.ResourceAgentQueue(),
+			"betterado_area_permissions": permissions.ResourceAreaPermissions(),
+			// betterado_branch_policy_auto_reviewers is now registered in the framework provider (framework_provider.go)
+			// betterado_branch_policy_build_validation is now registered in the framework provider (framework_provider.go)
+			// betterado_branch_policy_comment_resolution is now registered in the framework provider (framework_provider.go)
+			// betterado_branch_policy_merge_types is now registered in the framework provider (framework_provider.go)
+			// betterado_branch_policy_min_reviewers is now registered in the framework provider (framework_provider.go)
+			// betterado_branch_policy_status_check is now registered in the framework provider (framework_provider.go)
+			// betterado_branch_policy_work_item_linking is now registered in the framework provider (framework_provider.go)
 			// betterado_build_definition is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
@@ -49,12 +46,12 @@ func Provider() *schema.Provider {
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
 			"betterado_build_folder_permissions": permissions.ResourceBuildFolderPermissions(),
-			"betterado_check_approval":           approvalsandchecks.ResourceCheckApproval(),
-			"betterado_check_branch_control":     approvalsandchecks.ResourceCheckBranchControl(),
-			"betterado_check_business_hours":     approvalsandchecks.ResourceCheckBusinessHours(),
-			"betterado_check_exclusive_lock":     approvalsandchecks.ResourceCheckExclusiveLock(),
-			"betterado_check_required_template":  approvalsandchecks.ResourceCheckRequiredTemplate(),
-			"betterado_check_rest_api":           approvalsandchecks.ResourceCheckRestAPI(),
+			// betterado_check_approval is now registered in the framework provider (framework_provider.go)
+			// betterado_check_branch_control is now registered in the framework provider (framework_provider.go)
+			// betterado_check_business_hours is now registered in the framework provider (framework_provider.go)
+			// betterado_check_exclusive_lock is now registered in the framework provider (framework_provider.go)
+			// betterado_check_required_template is now registered in the framework provider (framework_provider.go)
+			// betterado_check_rest_api is now registered in the framework provider (framework_provider.go)
 			// betterado_dashboard is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
@@ -91,13 +88,13 @@ func Provider() *schema.Provider {
 			// betterado_release_folder is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_repository_policy_author_email_pattern": repository.ResourceRepositoryPolicyAuthorEmailPatterns(),
-			"betterado_repository_policy_case_enforcement":     repository.ResourceRepositoryEnforceConsistentCase(),
-			"betterado_repository_policy_check_credentials":    repository.ResourceRepositoryPolicyCheckCredentials(),
-			"betterado_repository_policy_file_path_pattern":    repository.ResourceRepositoryFilePathPatterns(),
-			"betterado_repository_policy_max_file_size":        repository.ResourceRepositoryMaxFileSize(),
-			"betterado_repository_policy_max_path_length":      repository.ResourceRepositoryMaxPathLength(),
-			"betterado_repository_policy_reserved_names":       repository.ResourceRepositoryReservedNames(),
+			// betterado_repository_policy_author_email_pattern is now registered in the framework provider (framework_provider.go)
+			// betterado_repository_policy_case_enforcement is now registered in the framework provider (framework_provider.go)
+			// betterado_repository_policy_check_credentials is now registered in the framework provider (framework_provider.go)
+			// betterado_repository_policy_file_path_pattern is now registered in the framework provider (framework_provider.go)
+			// betterado_repository_policy_max_file_size is now registered in the framework provider (framework_provider.go)
+			// betterado_repository_policy_max_path_length is now registered in the framework provider (framework_provider.go)
+			// betterado_repository_policy_reserved_names is now registered in the framework provider (framework_provider.go)
 			// betterado_resource_authorization is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.

@@ -9,6 +9,16 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **7 branch policy resources migrated to terraform-plugin-framework** (`betterado_branch_policy_auto_reviewers`, `betterado_branch_policy_build_validation`, `betterado_branch_policy_comment_resolution`, `betterado_branch_policy_merge_types`, `betterado_branch_policy_min_reviewers`, `betterado_branch_policy_status_check`, `betterado_branch_policy_work_item_linking`). All resources now use the framework implementation served through the mux provider. Schema and CRUD semantics are unchanged; `settings` and `scope` continue to use block syntax. Verified by live acceptance tests `TestAccBranchPolicy*`.
+
+- **7 repository policy resources migrated to terraform-plugin-framework** (`betterado_repository_policy_author_email_pattern`, `betterado_repository_policy_case_enforcement`, `betterado_repository_policy_check_credentials`, `betterado_repository_policy_file_path_pattern`, `betterado_repository_policy_max_file_size`, `betterado_repository_policy_max_path_length`, `betterado_repository_policy_reserved_names`). All resources now use the framework implementation served through the mux provider. Schema is unchanged; `repository_ids` is a flat list attribute. Verified by live acceptance tests `TestAccRepositoryPolicy*`.
+
+- **6 approvalsandchecks resources migrated to terraform-plugin-framework** (`betterado_check_approval`, `betterado_check_branch_control`, `betterado_check_business_hours`, `betterado_check_exclusive_lock`, `betterado_check_required_template`, `betterado_check_rest_api`). All resources now use the framework implementation served through the mux provider. Schema and CRUD semantics are unchanged; resources target pipeline environments and other resource types via `target_resource_id`/`target_resource_type`. Verified by live acceptance tests `TestAccCheck*`.
+
+- Added `docs/policy-gap-matrix.md` and `docs/approvalsandchecks-gap-matrix.md` documenting parity between the betterado provider and the upstream microsoft/azuredevops provider for policy and checks resources.
+
+### FEATURES
+
 - **New resource `betterado_pipeline`** — manages a Pipelines v2 pipeline
   (`_apis/pipelines`) in Azure DevOps via terraform-plugin-framework. Supports
   Create, Read, Update (name/folder via PATCH), and Delete. Schema: `project_id`

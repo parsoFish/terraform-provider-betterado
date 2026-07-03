@@ -2,23 +2,30 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/policy"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccBranchPolicyMinReviewers_basic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	name := testutils.GenerateResourceName()
 	node := "betterado_branch_policy_min_reviewers.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclPolicyMinReviewersBasic(1, name),
+				Config: hclPolicyMinReviewersBasic(projectID, 1, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(node, "id"),
 					resource.TestCheckResourceAttr(node, "blocking", "true"),
@@ -29,6 +36,9 @@ func TestAccBranchPolicyMinReviewers_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(node, "settings.0.on_last_iteration_require_vote", "false"),
 					resource.TestCheckResourceAttr(node, "settings.0.on_push_reset_approved_votes", "true"),
 					resource.TestCheckResourceAttr(node, "settings.0.on_each_iteration_require_vote", "false"),
+					// Capture a real API GET of the live policy config as forge demo evidence
+					// (before destroy) — proves the demo shows the actual resource, not just test names.
+					captureMinReviewersPolicyEvidence(node),
 				),
 			}, {
 				ResourceName:      node,
@@ -41,15 +51,16 @@ func TestAccBranchPolicyMinReviewers_basic(t *testing.T) {
 }
 
 func TestAccBranchPolicyMinReviewers_update(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	name := testutils.GenerateResourceName()
 	node := "betterado_branch_policy_min_reviewers.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclPolicyMinReviewersBasic(1, name),
+				Config: hclPolicyMinReviewersBasic(projectID, 1, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(node, "id"),
 					resource.TestCheckResourceAttr(node, "blocking", "true"),
@@ -62,7 +73,7 @@ func TestAccBranchPolicyMinReviewers_update(t *testing.T) {
 					resource.TestCheckResourceAttr(node, "settings.0.on_each_iteration_require_vote", "false"),
 				),
 			}, {
-				Config: hclPolicyMinReviewersUpdate(2, name),
+				Config: hclPolicyMinReviewersUpdate(projectID, 2, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(node, "id"),
 					resource.TestCheckResourceAttr(node, "blocking", "false"),
@@ -85,15 +96,16 @@ func TestAccBranchPolicyMinReviewers_update(t *testing.T) {
 }
 
 func TestAccBranchPolicyMinReviewers_resetAllVote(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	name := testutils.GenerateResourceName()
 	node := "betterado_branch_policy_min_reviewers.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclPolicyMinReviewersResetAllVote(name),
+				Config: hclPolicyMinReviewersResetAllVote(projectID, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(node, "id"),
 					resource.TestCheckResourceAttr(node, "blocking", "true"),
@@ -113,15 +125,16 @@ func TestAccBranchPolicyMinReviewers_resetAllVote(t *testing.T) {
 }
 
 func TestAccBranchPolicyMinReviewers_requiresImportError(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	name := testutils.GenerateResourceName()
 	node := "betterado_branch_policy_min_reviewers.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclPolicyMinReviewersResetAllVote(name),
+				Config: hclPolicyMinReviewersResetAllVote(projectID, name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(node, "id"),
 					resource.TestCheckResourceAttr(node, "blocking", "true"),
@@ -131,38 +144,79 @@ func TestAccBranchPolicyMinReviewers_requiresImportError(t *testing.T) {
 					resource.TestCheckResourceAttr(node, "settings.0.on_push_reset_approved_votes", "true"),
 				),
 			}, {
-				Config:      hclPolicyMinReviewersResetRequireImportError(name),
-				ExpectError: regexp.MustCompile(` creating policy in Azure DevOps: The update is rejected by policy`),
+				Config:      hclPolicyMinReviewersResetRequireImportError(projectID, name),
+				ExpectError: regexp.MustCompile(`The update is rejected by policy`),
 			},
 		},
 	})
 }
 
-func hclPolicyMinReviewersTemplate(name string) string {
+// captureMinReviewersPolicyEvidence performs a live API GET of the created policy
+// configuration and writes it to .forge/live-evidence/acceptance-resource.json.
+// Best-effort: failure does not fail the test (always returns nil).
+func captureMinReviewersPolicyEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		if err := doCapturePolicyEvidence(s, tfNode); err != nil {
+			// best-effort: evidence capture must never fail the real assertion
+			_ = err
+		}
+		return nil
+	}
+}
+
+func doCapturePolicyEvidence(s *terraform.State, tfNode string) error {
+	res, ok := s.RootModule().Resources[tfNode]
+	if !ok {
+		return nil
+	}
+	policyID, err := strconv.Atoi(res.Primary.ID)
+	if err != nil {
+		return err
+	}
+	projectID := res.Primary.Attributes["project_id"]
+
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	clients, err := client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+	if err != nil {
+		return err
+	}
+
+	cfg, err := clients.PolicyClient.GetPolicyConfiguration(clients.Ctx, policy.GetPolicyConfigurationArgs{
+		Project:         &projectID,
+		ConfigurationId: &policyID,
+	})
+	if err != nil {
+		return err
+	}
+	if cfg == nil {
+		return nil
+	}
+
+	url := fmt.Sprintf("%s/%s/_apis/policy/configurations/%d?api-version=7.1",
+		orgURL, projectID, policyID)
+	return testutils.CaptureLiveEvidence("acceptance-resource-branch_policy_min_reviewers", url, cfg)
+}
+
+func hclPolicyMinReviewersTemplate(projectID, name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+resource "betterado_git_repository" "test" {
+  project_id = %[1]q
+  name       = "%[2]s"
+  initialization {
+    init_type = "Clean"
+  }
+}
+`, projectID, name)
 }
 
-data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
-}
-`, name)
-}
-
-func hclPolicyMinReviewersBasic(reviewers int, name string) string {
-	template := hclPolicyMinReviewersTemplate(name)
+func hclPolicyMinReviewersBasic(projectID string, reviewers int, name string) string {
+	template := hclPolicyMinReviewersTemplate(projectID, name)
 	return fmt.Sprintf(`
-
-
 %s
 
 resource "betterado_branch_policy_min_reviewers" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[3]q
   enabled    = true
   blocking   = true
   settings {
@@ -172,22 +226,22 @@ resource "betterado_branch_policy_min_reviewers" "test" {
     on_push_reset_approved_votes           = true
     on_each_iteration_require_vote         = false
     scope {
-      repository_id  = data.betterado_git_repository.test.id
+      repository_id  = betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }
   }
 }
-`, template, reviewers)
+`, template, reviewers, projectID)
 }
 
-func hclPolicyMinReviewersUpdate(reviewers int, name string) string {
-	template := hclPolicyMinReviewersTemplate(name)
+func hclPolicyMinReviewersUpdate(projectID string, reviewers int, name string) string {
+	template := hclPolicyMinReviewersTemplate(projectID, name)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_branch_policy_min_reviewers" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[3]q
   enabled    = false
   blocking   = false
   settings {
@@ -198,22 +252,22 @@ resource "betterado_branch_policy_min_reviewers" "test" {
     on_last_iteration_require_vote         = true
     on_each_iteration_require_vote         = true
     scope {
-      repository_id  = data.betterado_git_repository.test.id
+      repository_id  = betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }
   }
 }
-`, template, reviewers)
+`, template, reviewers, projectID)
 }
 
-func hclPolicyMinReviewersResetAllVote(name string) string {
-	template := hclPolicyMinReviewersTemplate(name)
+func hclPolicyMinReviewersResetAllVote(projectID, name string) string {
+	template := hclPolicyMinReviewersTemplate(projectID, name)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_branch_policy_min_reviewers" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
   enabled    = true
   blocking   = true
   settings {
@@ -222,17 +276,17 @@ resource "betterado_branch_policy_min_reviewers" "test" {
     on_push_reset_all_votes      = true
     on_push_reset_approved_votes = true
     scope {
-      repository_id  = data.betterado_git_repository.test.id
+      repository_id  = betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }
   }
 }
-`, template)
+`, template, projectID)
 }
 
-func hclPolicyMinReviewersResetRequireImportError(name string) string {
-	template := hclPolicyMinReviewersResetAllVote(name)
+func hclPolicyMinReviewersResetRequireImportError(projectID, name string) string {
+	template := hclPolicyMinReviewersResetAllVote(projectID, name)
 	return fmt.Sprintf(`
 %s
 

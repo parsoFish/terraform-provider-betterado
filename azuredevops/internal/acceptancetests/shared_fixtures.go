@@ -782,3 +782,27 @@ func createFixtureReleaseDefinition(t *testing.T, clients *client.AggregatedClie
 	}
 	return created
 }
+
+// SharedFixtureProjectID resolves the shared fixture project and returns its
+// UUID. Fails the test loudly if the fixture is missing — it never creates,
+// auto-discovers, or substitutes a project (see resolveOrCreateFixtureProject).
+//
+// REQUIRES: TF_ACC=1, AZDO_ORG_SERVICE_URL, AZDO_PERSONAL_ACCESS_TOKEN
+func SharedFixtureProjectID(t *testing.T) string {
+	t.Helper()
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set; skipping live fixture")
+	}
+	testutils.PreCheck(t, nil)
+
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	authProvider := azuredevops.NewAuthProviderPAT(pat)
+	clients, err := client.GetAzdoClient(authProvider, orgURL)
+	if err != nil {
+		t.Fatalf("SharedFixtureProjectID: GetAzdoClient: %v", err)
+	}
+
+	project := resolveOrCreateFixtureProject(t, clients)
+	return project.Id.String()
+}

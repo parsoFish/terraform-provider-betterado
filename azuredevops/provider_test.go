@@ -13,25 +13,25 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_agent_pool",
 		"betterado_agent_queue",
 		"betterado_area_permissions",
-		"betterado_branch_policy_auto_reviewers",
-		"betterado_branch_policy_build_validation",
-		"betterado_branch_policy_comment_resolution",
-		"betterado_branch_policy_merge_types",
-		"betterado_branch_policy_min_reviewers",
-		"betterado_branch_policy_status_check",
-		"betterado_branch_policy_work_item_linking",
+		// betterado_branch_policy_auto_reviewers is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_build_validation is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_comment_resolution is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_merge_types is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_min_reviewers is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_status_check is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_work_item_linking is now in the framework provider (framework_provider.go)
 		// betterado_build_definition is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
 		"betterado_build_definition_permissions",
 		// betterado_build_folder is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
 		"betterado_build_folder_permissions",
-		"betterado_check_approval",
-		"betterado_check_branch_control",
-		"betterado_check_business_hours",
-		"betterado_check_exclusive_lock",
-		"betterado_check_required_template",
-		"betterado_check_rest_api",
+		// betterado_check_approval is now in the framework provider (framework_provider.go)
+		// betterado_check_branch_control is now in the framework provider (framework_provider.go)
+		// betterado_check_business_hours is now in the framework provider (framework_provider.go)
+		// betterado_check_exclusive_lock is now in the framework provider (framework_provider.go)
+		// betterado_check_required_template is now in the framework provider (framework_provider.go)
+		// betterado_check_rest_api is now in the framework provider (framework_provider.go)
 		// betterado_dashboard is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
 		"betterado_deployment_group",
@@ -61,13 +61,13 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// and is no longer in the SDKv2 provider resource map.
 		// betterado_release_folder is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
-		"betterado_repository_policy_author_email_pattern",
-		"betterado_repository_policy_case_enforcement",
-		"betterado_repository_policy_check_credentials",
-		"betterado_repository_policy_file_path_pattern",
-		"betterado_repository_policy_max_file_size",
-		"betterado_repository_policy_max_path_length",
-		"betterado_repository_policy_reserved_names",
+		// betterado_repository_policy_author_email_pattern is now in the framework provider (framework_provider.go)
+		// betterado_repository_policy_case_enforcement is now in the framework provider (framework_provider.go)
+		// betterado_repository_policy_check_credentials is now in the framework provider (framework_provider.go)
+		// betterado_repository_policy_file_path_pattern is now in the framework provider (framework_provider.go)
+		// betterado_repository_policy_max_file_size is now in the framework provider (framework_provider.go)
+		// betterado_repository_policy_max_path_length is now in the framework provider (framework_provider.go)
+		// betterado_repository_policy_reserved_names is now in the framework provider (framework_provider.go)
 		// betterado_resource_authorization is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
 		"betterado_security_permissions",

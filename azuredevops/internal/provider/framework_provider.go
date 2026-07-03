@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
@@ -24,6 +25,8 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/notification"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/pipelines"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
@@ -273,6 +276,26 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		workitemtracking.NewWorkItemQueryFolderResource,
 		notification.NewNotificationSubscriptionResource,
 		pipelines.NewPipelineResource,
+		branch.NewAutoReviewersResource,
+		branch.NewBuildValidationResource,
+		branch.NewCommentResolutionResource,
+		branch.NewMergeTypesResource,
+		branch.NewMinReviewersResource,
+		branch.NewStatusCheckResource,
+		branch.NewWorkItemLinkingResource,
+		repository.NewAuthorEmailPatternsResource,
+		repository.NewFilePathPatternsResource,
+		repository.NewEnforceConsistentCaseResource,
+		repository.NewCheckCredentialsResource,
+		repository.NewReservedNamesResource,
+		repository.NewMaxPathLengthResource,
+		repository.NewMaxFileSizeResource,
+		approvalsandchecks.NewApprovalResource,
+		approvalsandchecks.NewBranchControlResource,
+		approvalsandchecks.NewBusinessHoursResource,
+		approvalsandchecks.NewExclusiveLockResource,
+		approvalsandchecks.NewRequiredTemplateResource,
+		approvalsandchecks.NewRestAPIResource,
 	}
 }
 
