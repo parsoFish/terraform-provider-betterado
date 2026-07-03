@@ -219,9 +219,9 @@ resource "betterado_variable_group" "vg" {
   description  = "A sample variable group."
   allow_access = true
   variable {
-    name          = "key1"
-    secret_value  = "value1"
-    is_secret     = true
+    name         = "key1"
+    secret_value = "value1"
+    is_secret    = true
   }
   variable {
     name  = "key2"
