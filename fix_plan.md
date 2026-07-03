@@ -17,7 +17,8 @@
   - [x] go build -tags all ./... passes
   - [x] quality_gate_cmd passes (go test release/... taskagent/...)
 - [ ] AC3: GIVEN serviceendpoint_azurerm framework resource is registered WHEN terraform apply -> provider read-back -> idempotency re-plan -> destroy runs live THEN TestAccServiceEndpointAzureRm_CreateAndUpdate passes (ExpectNonEmptyPlan: false); CaptureLiveEvidence called with label acceptance-resource-azurerm; .forge/live-evidence/acceptance-resource-azurerm.json written
-  - [ ] Live acceptance test run required
+  - [x] BUG FIX (iteration 2): flattenFromServiceEndpoint now always sets WIF fields to known empty string for non-WIF schemes; fixes "provider returned invalid result object after apply" gate failure
+  - [ ] Live acceptance test run — awaiting next gate run
 - [x] AC4: GIVEN acceptance tests for migrated resources WHEN test helper provider factory is used THEN tests use ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(); provider_test.go counts updated for removed SDKv2 resources
   - [x] resource_serviceendpoint_azurerm_test.go rewritten with GetMuxedProviderFactories + SharedFixtureProjectName
   - [x] provider_test.go expectedResources/expectedDataSources lists updated

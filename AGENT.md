@@ -41,10 +41,19 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 The `serviceendpoint` unit test package has build failures because many `expandServiceEndpoint*` functions return 1 value but old test files expect 2 values. These existed before iteration 1. The `graph` package also has a pre-existing test failure. These are out of scope.
 
-## Remaining work (iteration 2+)
+## Iteration 2 (completed)
 
-- **AC3**: Run `TestAccServiceEndpointAzureRm_CreateAndUpdate` live (needs `AZDO_ORG_SERVICE_URL`, `AZDO_PERSONAL_ACCESS_TOKEN`, `AZDO_AZR_SPN_ID`, `AZDO_AZR_SPN_KEY` env vars). This writes `.forge/live-evidence/acceptance-resource-azurerm.json` via `CaptureLiveEvidence`.
-- Live gate is the only remaining unchecked AC.
+**Root cause fixed:** Gate failure was `"provider still indicated an unknown value for workload_identity_federation_issuer/subject after apply"`. Root cause: `flattenFromServiceEndpoint` only set WIF fields when `scheme == WorkloadIdentityFederation`. For `ServicePrincipal` scheme (what the test uses), these computed-only fields were never set → remained unknown in the state → Terraform error.
+
+**Fix applied:** In `flattenFromServiceEndpoint`, initialise all three computed-only fields (`WorkloadIdentityFederationIssuer`, `WorkloadIdentityFederationSubject`, `ServicePrincipalID`) to empty string `""` before reading API params, if they are currently unknown. This ensures they are always a known value after apply, regardless of auth scheme. For WIF scheme, the actual API values then overwrite the empty string.
+
+**Build:** `go build -tags all ./...` passes. Quality gate (`go test release/... taskagent/...`) passes.
+
+**Idempotency reasoning:** After re-plan, plan for these fields triggers `UseStateForUnknown`: plan is unknown → state is `""` (not null) → plan becomes `""` → matches state → no diff. ✓
+
+## Remaining work (iteration 3+)
+
+- **AC3**: Live gate must re-run `TestAccServiceEndpointAzureRm_CreateAndUpdate` with the fix applied. The test should now pass — WIF fields will have known empty string values for `ServicePrincipal` scheme.
 
 ## Open questions
 
