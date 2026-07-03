@@ -122,7 +122,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_team_administrators",
 		"betterado_team_members",
 		"betterado_user_entitlement",
-		"betterado_variable_group",
+		// betterado_variable_group is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_variable_group_permissions",
 		"betterado_variable_group_variable",
 		"betterado_wiki",
@@ -203,7 +204,8 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_teams",
 		"betterado_user",
 		"betterado_users",
-		"betterado_variable_group",
+		// betterado_variable_group is now a framework data source (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider data source map.
 		"betterado_workitemtrackingprocess_process",
 		"betterado_workitemtrackingprocess_processes",
 		"betterado_workitemtrackingprocess_workitemtype",

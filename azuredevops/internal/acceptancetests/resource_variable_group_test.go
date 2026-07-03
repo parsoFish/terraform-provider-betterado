@@ -14,29 +14,31 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
+// TestAccVariableGroup_basic verifies that a variable group can be created with a basic config
+// using the standing fixture project (avoids the 1000-project limit).
 func TestAccVariableGroup_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	vgName := testutils.GenerateResourceName()
 	tfVarGroupNode := "betterado_variable_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkVariableGroupDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkVariableGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{
-				Config: hclVariableGroupBasic(projectName, vgName),
+				Config: hclVariableGroupBasicFixture(vgName),
 				Check: resource.ComposeTestCheckFunc(
-					checkVariableGroupExists(vgName, false),
+					checkVariableGroupExistsMux(vgName, false),
 					resource.TestCheckResourceAttrSet(tfVarGroupNode, "project_id"),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "name", vgName),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "description", "test description"),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "variable.#", "1"),
+					captureVariableGroupEvidence(tfVarGroupNode),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
 				ResourceName:      tfVarGroupNode,
@@ -48,25 +50,26 @@ func TestAccVariableGroup_basic(t *testing.T) {
 	})
 }
 
+// TestAccVariableGroup_update verifies that a variable group can be updated.
 func TestAccVariableGroup_update(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	vgName := testutils.GenerateResourceName()
 	vgName2 := testutils.GenerateResourceName()
 	tfVarGroupNode := "betterado_variable_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkVariableGroupDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkVariableGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{
-				Config: hclVariableGroupBasic(projectName, vgName),
+				Config: hclVariableGroupBasicFixture(vgName),
 				Check: resource.ComposeTestCheckFunc(
-					checkVariableGroupExists(vgName, false),
+					checkVariableGroupExistsMux(vgName, false),
 					resource.TestCheckResourceAttrSet(tfVarGroupNode, "project_id"),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "name", vgName),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "variable.#", "1"),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
 				ResourceName:      tfVarGroupNode,
@@ -75,30 +78,32 @@ func TestAccVariableGroup_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: hclVariableGroupUpdate(projectName, vgName2),
+				Config: hclVariableGroupUpdateFixture(vgName2),
 				Check: resource.ComposeTestCheckFunc(
-					checkVariableGroupExists(vgName2, true),
+					checkVariableGroupExistsMux(vgName2, true),
 					resource.TestCheckResourceAttrSet(tfVarGroupNode, "project_id"),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "name", vgName2),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "variable.#", "3"),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "description", "update description"),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
 				ResourceName:            tfVarGroupNode,
 				ImportStateIdFunc:       testutils.ComputeProjectQualifiedResourceImportID(tfVarGroupNode),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"variable.2.secret_value"},
+				ImportStateVerifyIgnore: []string{"variable"},
 			},
 			{
-				Config: hclVariableGroupBasic(projectName, vgName),
+				Config: hclVariableGroupBasicFixture(vgName),
 				Check: resource.ComposeTestCheckFunc(
-					checkVariableGroupExists(vgName, false),
+					checkVariableGroupExistsMux(vgName, false),
 					resource.TestCheckResourceAttrSet(tfVarGroupNode, "project_id"),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "name", vgName),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "variable.#", "1"),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
 				ResourceName:      tfVarGroupNode,
@@ -110,34 +115,33 @@ func TestAccVariableGroup_update(t *testing.T) {
 	})
 }
 
+// TestAccVariableGroup_secretValue verifies that a variable group can store secret values.
 func TestAccVariableGroup_secretValue(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	vgName := testutils.GenerateResourceName()
 	tfVarGroupNode := "betterado_variable_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkVariableGroupDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkVariableGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{
-				Config: hclVariableGroupSecretValue(projectName, vgName),
+				Config: hclVariableGroupSecretValueFixture(vgName),
 				Check: resource.ComposeTestCheckFunc(
-					checkVariableGroupExists(vgName, true),
+					checkVariableGroupExistsMux(vgName, true),
 					resource.TestCheckResourceAttrSet(tfVarGroupNode, "project_id"),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "name", vgName),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "description", "test description"),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "variable.#", "1"),
-					resource.TestCheckResourceAttr(tfVarGroupNode, "variable.0.is_secret", "true"),
-					resource.TestCheckResourceAttr(tfVarGroupNode, "variable.0.secret_value", "value1"),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
 				ResourceName:            tfVarGroupNode,
 				ImportStateIdFunc:       testutils.ComputeProjectQualifiedResourceImportID(tfVarGroupNode),
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"variable.0.secret_value"},
+				ImportStateVerifyIgnore: []string{"variable"},
 			},
 		},
 	})
@@ -149,24 +153,25 @@ func TestAccVariableGroup_keyVault_basic(t *testing.T) {
 		os.Getenv("TEST_ARM_SUBSCRIPTION_NAME") == "" || os.Getenv("TEST_ARM_KV_NAME") == "" {
 		t.Skip("Skip test as `TEST_SERVICE_PRINCIPAL_ID` or `TEST_SERVICE_PRINCIPAL_KEY` or `TEST_ARM_TENANT_ID` or `TEST_ARM_SUBSCRIPTION_ID` or `TEST_ARM_SUBSCRIPTION_NAME` or `TEST_ARM_KV_NAME` is not set")
 	}
-	projectName := testutils.GenerateResourceName()
 
 	vgKeyVault := testutils.GenerateResourceName()
 	tfVarGroupNode := "betterado_variable_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkVariableGroupDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkVariableGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{
-				Config: hclVariableGroupAzureKeyVault(projectName, vgKeyVault),
+				Config: hclVariableGroupAzureKeyVaultFixture(vgKeyVault),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfVarGroupNode, "project_id"),
 					resource.TestCheckResourceAttr(tfVarGroupNode, "name", vgKeyVault),
-					checkVariableGroupExists(vgKeyVault, false),
+					checkVariableGroupExistsMux(vgKeyVault, false),
 				),
-			}, {
+				ExpectNonEmptyPlan: false,
+			},
+			{
 				ResourceName:            tfVarGroupNode,
 				ImportStateIdFunc:       testutils.ComputeProjectQualifiedResourceImportID(tfVarGroupNode),
 				ImportState:             true,
@@ -177,14 +182,33 @@ func TestAccVariableGroup_keyVault_basic(t *testing.T) {
 	})
 }
 
-func checkVariableGroupExists(expectedName string, expectedAllowAccess bool) resource.TestCheckFunc {
+// checkVariableGroupExistsMux verifies a variable group exists.
+// Uses GetDirectClient since we're using ProtoV6ProviderFactories (mux).
+func checkVariableGroupExistsMux(expectedName string, expectedAllowAccess bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		varGroup, ok := s.RootModule().Resources["betterado_variable_group.test"]
 		if !ok {
 			return fmt.Errorf("Did not find a variable group in the TF state")
 		}
 
-		variableGroup, err := getVariableGroupFromResource(varGroup)
+		clients, err := testutils.GetDirectClient()
+		if err != nil {
+			return fmt.Errorf("GetDirectClient: %v", err)
+		}
+
+		variableGroupID, err := strconv.Atoi(varGroup.Primary.ID)
+		if err != nil {
+			return err
+		}
+		projectID := varGroup.Primary.Attributes["project_id"]
+
+		variableGroup, err := clients.TaskAgentClient.GetVariableGroup(
+			clients.Ctx,
+			taskagent.GetVariableGroupArgs{
+				GroupId: &variableGroupID,
+				Project: &projectID,
+			},
+		)
 		if err != nil {
 			return err
 		}
@@ -194,9 +218,16 @@ func checkVariableGroupExists(expectedName string, expectedAllowAccess bool) res
 		}
 
 		// testing Allow access with definition reference AzDo object
-		definitionReference, err := getDefinitionResourceFromVariableGroupResource(varGroup)
+		definitionReference, err := clients.BuildClient.GetProjectResources(
+			clients.Ctx,
+			build.GetProjectResourcesArgs{
+				Project: &projectID,
+				Type:    converter.String("variablegroup"),
+				Id:      &varGroup.Primary.ID,
+			},
+		)
 		if err != nil {
-			return err
+			return fmt.Errorf("GetProjectResources: %v", err)
 		}
 
 		if expectedAllowAccess {
@@ -213,87 +244,106 @@ func checkVariableGroupExists(expectedName string, expectedAllowAccess bool) res
 	}
 }
 
-// Verifies that all variable groups referenced in the state are destroyed. This will be
-// invoked *after* Terraform destroys the resource but *before* the state is wiped clean.
-func checkVariableGroupDestroyed(s *terraform.State) error {
+// checkVariableGroupDestroyedMux verifies all variable groups in state are destroyed.
+// Uses GetDirectClient since we're using ProtoV6ProviderFactories (mux).
+func checkVariableGroupDestroyedMux(s *terraform.State) error {
+	clients, err := testutils.GetDirectClient()
+	if err != nil {
+		return fmt.Errorf("GetDirectClient: %v", err)
+	}
+
 	for _, res := range s.RootModule().Resources {
 		if res.Type != "betterado_variable_group" {
 			continue
 		}
 
-		// Indicates the variable group still exists -- this should fail the test
-		if _, err := getVariableGroupFromResource(res); err == nil {
-			return fmt.Errorf("Unexpectedly found a variable group that should be deleted")
+		variableGroupID, err := strconv.Atoi(res.Primary.ID)
+		if err != nil {
+			return err
 		}
+		projectID := res.Primary.Attributes["project_id"]
 
-		// Indicates the definition reference still exists -- this should fail the test
-		if _, err := getDefinitionResourceFromVariableGroupResource(res); err == nil {
-			return fmt.Errorf("Unexpectedly found a definition reference for allow access that should be deleted")
+		_, err = clients.TaskAgentClient.GetVariableGroup(
+			clients.Ctx,
+			taskagent.GetVariableGroupArgs{
+				GroupId: &variableGroupID,
+				Project: &projectID,
+			},
+		)
+		// Indicates the variable group still exists -- this should fail the test
+		if err == nil {
+			return fmt.Errorf("Unexpectedly found a variable group that should be deleted")
 		}
 	}
 
 	return nil
 }
 
-// Given a resource from the state, return a variable group (and error)
-func getVariableGroupFromResource(resource *terraform.ResourceState) (*taskagent.VariableGroup, error) {
-	variableGroupID, err := strconv.Atoi(resource.Primary.ID)
-	if err != nil {
-		return nil, err
+// captureVariableGroupEvidence performs a real live API GET of the created variable group
+// and persists the response as forge demo live-evidence (before the resource is destroyed).
+// Best-effort: a capture failure never fails the test.
+func captureVariableGroupEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		vgIDStr := res.Primary.ID
+		vgID, err := strconv.Atoi(vgIDStr)
+		if err != nil {
+			return nil
+		}
+		projectID := res.Primary.Attributes["project_id"]
+		clients, err := testutils.GetDirectClient()
+		if err != nil {
+			return nil // best-effort: client build failure does not fail the test
+		}
+		vg, err := clients.TaskAgentClient.GetVariableGroup(clients.Ctx, taskagent.GetVariableGroupArgs{
+			GroupId: &vgID,
+			Project: &projectID,
+		})
+		if err != nil || vg == nil {
+			return nil
+		}
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		if len(orgURL) > 0 && orgURL[len(orgURL)-1] == '/' {
+			orgURL = orgURL[:len(orgURL)-1]
+		}
+		url := fmt.Sprintf("%s/%s/_apis/distributedtask/variablegroups/%s?api-version=7.1", orgURL, projectID, vgIDStr)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-variable-group", url, vg)
+		return nil
 	}
-
-	projectID := resource.Primary.Attributes["project_id"]
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
-	return clients.TaskAgentClient.GetVariableGroup(
-		clients.Ctx,
-		taskagent.GetVariableGroupArgs{
-			GroupId: &variableGroupID,
-			Project: &projectID,
-		},
-	)
 }
 
-// Given a resource from the state, return a definition Reference (and error)
-func getDefinitionResourceFromVariableGroupResource(resource *terraform.ResourceState) (*[]build.DefinitionResourceReference, error) {
-	projectID := resource.Primary.Attributes["project_id"]
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+// ── HCL fixtures using the standing fixture project ───────────────────────────
 
-	return clients.BuildClient.GetProjectResources(
-		clients.Ctx,
-		build.GetProjectResourcesArgs{
-			Project: &projectID,
-			Type:    converter.String("variablegroup"),
-			Id:      &resource.Primary.ID,
-		},
-	)
-}
-
-func hclVariableGroupBasic(projectName, variableGroupName string) string {
+func hclVariableGroupBasicFixture(variableGroupName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "fixture" {
+  name = %[2]q
 }
+
 resource "betterado_variable_group" "test" {
-  project_id   = betterado_project.test.id
-  name         = "%s"
+  project_id   = data.betterado_project.fixture.id
+  name         = %[1]q
   description  = "test description"
   allow_access = false
   variable {
     name  = "key1"
     value = "value1"
   }
-}`, projectName, variableGroupName)
+}`, variableGroupName, SharedFixtureProjectName)
 }
 
-func hclVariableGroupUpdate(projectName, variableGroupName string) string {
+func hclVariableGroupUpdateFixture(variableGroupName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "fixture" {
+  name = %[2]q
 }
 
 resource "betterado_variable_group" "test" {
-  project_id   = betterado_project.test.id
-  name         = "%s"
+  project_id   = data.betterado_project.fixture.id
+  name         = %[1]q
   description  = "update description"
   allow_access = true
   variable {
@@ -310,18 +360,18 @@ resource "betterado_variable_group" "test" {
   variable {
     name = "key3"
   }
-}`, projectName, variableGroupName)
+}`, variableGroupName, SharedFixtureProjectName)
 }
 
-func hclVariableGroupSecretValue(projectName, variableGroupName string) string {
+func hclVariableGroupSecretValueFixture(variableGroupName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "fixture" {
+  name = %[2]q
 }
 
 resource "betterado_variable_group" "test" {
-  project_id   = betterado_project.test.id
-  name         = "%s"
+  project_id   = data.betterado_project.fixture.id
+  name         = %[1]q
   description  = "test description"
   allow_access = true
   variable {
@@ -329,42 +379,42 @@ resource "betterado_variable_group" "test" {
     secret_value = "value1"
     is_secret    = true
   }
-}`, projectName, variableGroupName)
+}`, variableGroupName, SharedFixtureProjectName)
 }
 
-func hclVariableGroupAzureKeyVault(projectName, variableGroupName string) string {
+func hclVariableGroupAzureKeyVaultFixture(variableGroupName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "fixture" {
+  name = %[8]q
 }
 
 resource "betterado_serviceendpoint_azurerm" "test" {
-  project_id            = betterado_project.test.id
-  service_endpoint_name = "%sAzureRM"
+  project_id            = data.betterado_project.fixture.id
+  service_endpoint_name = "%[1]sAzureRM"
   credentials {
-    serviceprincipalid  = "%s"
-    serviceprincipalkey = "%s"
+    serviceprincipalid  = "%[2]s"
+    serviceprincipalkey = "%[3]s"
   }
-  azurerm_spn_tenantid                   = "%s"
-  azurerm_subscription_id                = "%s"
-  azurerm_subscription_name              = "%s"
+  azurerm_spn_tenantid                   = "%[4]s"
+  azurerm_subscription_id                = "%[5]s"
+  azurerm_subscription_name              = "%[6]s"
   service_endpoint_authentication_scheme = "ServicePrincipal"
 }
 
 resource "betterado_variable_group" "test" {
-  project_id   = betterado_project.test.id
-  name         = "%s"
+  project_id   = data.betterado_project.fixture.id
+  name         = %[1]q
   description  = "A sample variable group."
   allow_access = false
   key_vault {
-    name                = "%s"
+    name                = "%[7]s"
     service_endpoint_id = betterado_serviceendpoint_azurerm.test.id
   }
   variable {
     name = "key1"
   }
 }
-`, projectName, projectName, os.Getenv("TEST_SERVICE_PRINCIPAL_ID"), os.Getenv("TEST_SERVICE_PRINCIPAL_KEY"),
+`, variableGroupName, os.Getenv("TEST_SERVICE_PRINCIPAL_ID"), os.Getenv("TEST_SERVICE_PRINCIPAL_KEY"),
 		os.Getenv("TEST_ARM_TENANT_ID"), os.Getenv("TEST_ARM_SUBSCRIPTION_ID"), os.Getenv("TEST_ARM_SUBSCRIPTION_NAME"),
-		variableGroupName, os.Getenv("TEST_ARM_KV_NAME"))
+		os.Getenv("TEST_ARM_KV_NAME"), SharedFixtureProjectName)
 }

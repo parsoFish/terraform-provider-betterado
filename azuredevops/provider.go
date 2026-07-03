@@ -161,7 +161,8 @@ func Provider() *schema.Provider {
 			"betterado_team_administrators":                         core.ResourceTeamAdministrators(),
 			"betterado_team_members":                                core.ResourceTeamMembers(),
 			"betterado_user_entitlement":                            memberentitlementmanagement.ResourceUserEntitlement(),
-			"betterado_variable_group":                              taskagent.ResourceVariableGroup(),
+			// betterado_variable_group is now a framework resource (registered in framework_provider.go)
+			// and is no longer in the SDKv2 provider resource map.
 			"betterado_variable_group_permissions":                  permissions.ResourceVariableGroupPermissions(),
 			"betterado_variable_group_variable":                     taskagent.ResourceVariableGroupVariable(),
 			"betterado_wiki":                                        wiki.ResourceWiki(),
@@ -234,7 +235,9 @@ func Provider() *schema.Provider {
 			"betterado_teams":                                 core.DataTeams(),
 			"betterado_user":                                  graph.DataUser(),
 			"betterado_users":                                 graph.DataUsers(),
-			"betterado_variable_group":                        taskagent.DataVariableGroup(),
+			// betterado_variable_group data source is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a data source type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
 			"betterado_workitemtrackingprocess_process":       workitemtrackingprocess.DataProcess(),
 			"betterado_workitemtrackingprocess_processes":     workitemtrackingprocess.DataProcesses(),
 			"betterado_workitemtrackingprocess_workitemtype":  workitemtrackingprocess.DataWorkItemType(),

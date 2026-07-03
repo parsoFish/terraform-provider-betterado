@@ -209,6 +209,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		taskagent.NewEnvironmentResourceKubernetesResource,
 		taskagent.NewDeploymentGroupResource,
 		taskagent.NewElasticPoolResource,
+		taskagent.NewVariableGroupResource,
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
@@ -227,5 +228,6 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		taskagent.NewAgentPoolsDataSource,
 		taskagent.NewAgentQueueDataSource,
 		taskagent.NewEnvironmentDataSource,
+		taskagent.NewVariableGroupDataSource,
 	}
 }
