@@ -16,7 +16,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azdosdk "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
@@ -26,6 +28,16 @@ var provider = azuredevops.Provider()
 // GetProvider returns the azuredevops provider
 func GetProvider() *schema.Provider {
 	return provider
+}
+
+// GetDirectClient builds an AggregatedClient directly from AZDO env vars.
+// Used by CheckDestroy and evidence helpers in tests that use
+// ProtoV6ProviderFactories (mux), where the SDKv2 provider singleton's Meta()
+// is not populated and would be nil.
+func GetDirectClient() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	return client.GetAzdoClient(azdosdk.NewAuthProviderPAT(pat), orgURL)
 }
 
 func GetProviderFactories() map[string]func() (*schema.Provider, error) {

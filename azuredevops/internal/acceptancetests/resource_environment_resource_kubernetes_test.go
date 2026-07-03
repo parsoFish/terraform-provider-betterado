@@ -21,9 +21,9 @@ func TestAccEnvironmentKubernetes_createUpdate(t *testing.T) {
 	tfNode := "betterado_environment_resource_kubernetes.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkEnvironmentKubernetesDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkEnvironmentKubernetesDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclEnvironmentKubernetes(projectName, environmentName, serviceEndpointName, resourceNameFirst),
@@ -58,7 +58,10 @@ func checkEnvironmentKubernetesExists(tfNode string, expectedName string) resour
 			return fmt.Errorf("Did not find an resource in the TF state")
 		}
 
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		clients, err := testutils.GetDirectClient()
+		if err != nil {
+			return fmt.Errorf("building direct client: %v", err)
+		}
 		id, err := strconv.Atoi(res.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Parse resource id, ID:  %v !. Error= %v", res.Primary.ID, err)
@@ -85,7 +88,10 @@ func checkEnvironmentKubernetesExists(tfNode string, expectedName string) resour
 // verifies that environment referenced in the state is destroyed. This will be invoked
 // *after* terraform destroys the resource but *before* the state is wiped clean.
 func checkEnvironmentKubernetesDestroyed(s *terraform.State) error {
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+	clients, err := testutils.GetDirectClient()
+	if err != nil {
+		return fmt.Errorf("building direct client: %v", err)
+	}
 
 	// verify that every environment referenced in the state does not exist in AzDO
 	for _, res := range s.RootModule().Resources {
