@@ -16,9 +16,10 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   Schema: `project_id` (required), `approval_id` (required), `status` (required,
   `approved`/`rejected`), `comment` (optional). Approval IDs are ephemeral
   (bound to a specific pipeline run) and not importable.
-- **New data source `betterado_pipeline_approvals`** — reads pending pipeline
-  approval requests for a project. Returns a list of approvals with `approval_id`,
-  `status`, `pipeline_id`, `stage`, and `approver_id`. Scoped to a `project_id`.
+- **New data source `betterado_pipeline_approvals`** — lists pending pipeline
+  approval requests for a given pipeline run in Azure DevOps. Required attributes:
+  `project_id` and `pipeline_run_id`. Returns a computed `approvals` list; each
+  item exposes `id`, `status`, `comment`, `instructions`, and `approved_by_id`.
 
 - **7 branch policy resources migrated to terraform-plugin-framework** (`betterado_branch_policy_auto_reviewers`, `betterado_branch_policy_build_validation`, `betterado_branch_policy_comment_resolution`, `betterado_branch_policy_merge_types`, `betterado_branch_policy_min_reviewers`, `betterado_branch_policy_status_check`, `betterado_branch_policy_work_item_linking`). All resources now use the framework implementation served through the mux provider. Schema and CRUD semantics are unchanged; `settings` and `scope` continue to use block syntax. Verified by live acceptance tests `TestAccBranchPolicy*`.
 
