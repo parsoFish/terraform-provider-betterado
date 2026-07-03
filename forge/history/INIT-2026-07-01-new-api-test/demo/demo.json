@@ -3,21 +3,21 @@
   "essence": "Six new framework-native resources and data sources for the ADO Test Plans API. Live acceptance tests (TF_ACC=1) created all four managed resource types (test_plan id=95, test_suite id=96, test_configuration id=10, test_variable id=5) in the betterado-standing-demo project, captured per-type live evidence with distinct file labels, and destroyed cleanly. REST GETs confirmed: plans/95, plans/95/suites/96, test/configurations/10, testplan/variables/5. Unit tests for test_run/test_result data sources pass offline (gomock); live acceptance skipped (data sources require pre-existing test run — marked missed). CI-equivalent gate green.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-new-api-test",
-  "diffStat": "38 files changed, 7348 insertions(+), 2 deletions(-)",
+  "diffStat": "114 files changed, 11510 insertions(+), 159 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
       "caption": "CI-equivalent offline unit tests — servicehook package green (the gate forge ran)",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "No test_plan/suite/configuration/variable resources; servicehook gate was already green",
-      "afterNote": "servicehook gate still green after adding 6 new testplan types (PASS, 0.008s)"
+      "afterNote": "servicehook gate still green after adding 6 new testplan types (PASS, 0.011s)"
     },
     {
       "label": "unit-tests-testplan",
       "caption": "Unit tests for all new testplan types (offline gomock)",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/testplan/...",
       "beforeNote": "Package did not exist on main",
-      "afterNote": "All TestUnitTestPlan*, TestUnitTestSuite*, TestUnitTestConfiguration*, TestUnitTestRun* pass"
+      "afterNote": "All 26 unit tests pass: TestUnitTestPlan*, TestUnitTestSuite* (incl. SuiteType_ValidatorRejectsInvalidEnum), TestUnitTestConfiguration*, TestUnitTestRun* (ok 0.005s)"
     },
     {
       "label": "acceptance-test-plan",
@@ -137,6 +137,7 @@
     { "name": "TestUnitTestSuite_expandFlatten_queryString", "result": "pass" },
     { "name": "TestUnitTestSuite_Schema", "result": "pass" },
     { "name": "TestUnitTestSuite_Read404", "result": "pass" },
+    { "name": "TestUnitTestSuite_SuiteType_ValidatorRejectsInvalidEnum", "result": "pass" },
     { "name": "TestUnitTestSuite_Create_Error", "result": "pass" },
     { "name": "TestUnitTestConfiguration_expandFlatten", "result": "pass" },
     { "name": "TestUnitTestConfiguration_Read404", "result": "pass" },
@@ -164,16 +165,7 @@
       "result": "missed",
       "rationale": "betterado_test_result is a read-only data source that requires a pre-existing test run with results; WI-6 marked the smoke test optional/best-effort; no live run was available in the standing-demo project at capture time"
     },
-    {
-      "name": "enum validator: betterado_test_plan state attribute (Active/Inactive)",
-      "result": "missed",
-      "rationale": "test_plan does not expose a 'state' attribute in the Terraform schema; ADO plan state is managed server-side and is not a declarative input — adding a OneOf validator would be meaningless here"
-    },
-    {
-      "name": "enum validator: betterado_test_configuration state attribute (active/inactive)",
-      "result": "missed",
-      "rationale": "test_configuration does not expose a 'state' attribute in the Terraform schema; ADO configuration state is managed server-side and is not a declarative input — adding a OneOf validator would be meaningless here"
-    }
+    { "name": "enum validator: betterado_test_suite suite_type (staticTestSuite/requirementTestSuite/dynamicTestSuite)", "result": "pass", "delta": "+1 OneOf validator on suite_type; TestUnitTestSuite_SuiteType_ValidatorRejectsInvalidEnum confirms rejection of invalid value" }
   ],
   "acEvaluations": [
     {
