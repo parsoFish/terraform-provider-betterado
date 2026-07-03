@@ -99,8 +99,9 @@ func captureWikiPageEvidence(tfNode string) resource.TestCheckFunc {
 
 // TestAccWikiPageResource_basic verifies creating and reading a wiki page using
 // the framework provider (betterado_wiki_page registered via GetMuxedProviderFactories).
+// Uses the standing fixture project (SharedFixtureProjectName) to avoid the
+// org's 1000-project cap.
 func TestAccWikiPageResource_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	wikiName := testutils.GenerateResourceName()
 	tf := "betterado_wiki_page.test"
 
@@ -110,19 +111,19 @@ func TestAccWikiPageResource_basic(t *testing.T) {
 		CheckDestroy:             checkWikiPageDestroyedByAttrs,
 		Steps: []resource.TestStep{
 			{
-				Config: hclWikiPageBasic(projectName, wikiName),
+				Config: hclWikiPageBasic(wikiName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tf, "id"),
 					resource.TestCheckResourceAttrSet(tf, "project_id"),
 					resource.TestCheckResourceAttrSet(tf, "wiki_id"),
-					resource.TestCheckResourceAttr(tf, "path", "/path"),
+					resource.TestCheckResourceAttr(tf, "path", "/page-path"),
 					resource.TestCheckResourceAttr(tf, "content", "content"),
 					captureWikiPageEvidence(tf),
 				),
 			},
 			// Idempotency: re-plan must produce no diff.
 			{
-				Config:             hclWikiPageBasic(projectName, wikiName),
+				Config:             hclWikiPageBasic(wikiName),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -132,8 +133,9 @@ func TestAccWikiPageResource_basic(t *testing.T) {
 
 // TestAccWikiPageResource_update verifies that updating a wiki page's content
 // succeeds and the updated value is reflected in state.
+// Uses the standing fixture project (SharedFixtureProjectName) to avoid the
+// org's 1000-project cap.
 func TestAccWikiPageResource_update(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	wikiName := testutils.GenerateResourceName()
 	tf := "betterado_wiki_page.test"
 
@@ -143,29 +145,29 @@ func TestAccWikiPageResource_update(t *testing.T) {
 		CheckDestroy:             checkWikiPageDestroyedByAttrs,
 		Steps: []resource.TestStep{
 			{
-				Config: hclWikiPageBasic(projectName, wikiName),
+				Config: hclWikiPageBasic(wikiName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tf, "id"),
 					resource.TestCheckResourceAttrSet(tf, "project_id"),
 					resource.TestCheckResourceAttrSet(tf, "wiki_id"),
-					resource.TestCheckResourceAttr(tf, "path", "/path"),
+					resource.TestCheckResourceAttr(tf, "path", "/page-path"),
 					resource.TestCheckResourceAttr(tf, "content", "content"),
 				),
 			},
 			{
-				Config: hclWikiPageUpdate(projectName, wikiName),
+				Config: hclWikiPageUpdate(wikiName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tf, "id"),
 					resource.TestCheckResourceAttrSet(tf, "project_id"),
 					resource.TestCheckResourceAttrSet(tf, "wiki_id"),
-					resource.TestCheckResourceAttr(tf, "path", "/path"),
+					resource.TestCheckResourceAttr(tf, "path", "/page-path"),
 					resource.TestCheckResourceAttr(tf, "content", "contentupdate"),
 					captureWikiPageEvidence(tf),
 				),
 			},
 			// Idempotency: re-plan must produce no diff.
 			{
-				Config:             hclWikiPageUpdate(projectName, wikiName),
+				Config:             hclWikiPageUpdate(wikiName),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -173,53 +175,48 @@ func TestAccWikiPageResource_update(t *testing.T) {
 	})
 }
 
-// hclWikiPageBasic creates a betterado_project, betterado_wiki (projectWiki),
-// and a betterado_wiki_page within that wiki.
-func hclWikiPageBasic(projectName, wikiName string) string {
+// hclWikiPageBasic creates a betterado_wiki (projectWiki) in the standing fixture
+// project and a betterado_wiki_page within that wiki. Uses SharedFixtureProjectName
+// to avoid the org's 1000-project cap.
+func hclWikiPageBasic(wikiName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = %[1]q
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "fixture" {
+  name = %[2]q
 }
 
 resource "betterado_wiki" "test" {
-  project_id = betterado_project.test.id
-  name       = %[2]q
+  project_id = data.betterado_project.fixture.id
+  name       = %[1]q
   type       = "projectWiki"
 }
 
 resource "betterado_wiki_page" "test" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.fixture.id
   wiki_id    = betterado_wiki.test.id
-  path       = "/path"
+  path       = "/page-path"
   content    = "content"
 }
-`, projectName, wikiName)
+`, wikiName, SharedFixtureProjectName)
 }
 
-// hclWikiPageUpdate updates the content of the wiki page.
-func hclWikiPageUpdate(projectName, wikiName string) string {
+// hclWikiPageUpdate updates the content of the wiki page in the standing fixture project.
+func hclWikiPageUpdate(wikiName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = %[1]q
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "fixture" {
+  name = %[2]q
 }
 
 resource "betterado_wiki" "test" {
-  project_id = betterado_project.test.id
-  name       = %[2]q
+  project_id = data.betterado_project.fixture.id
+  name       = %[1]q
   type       = "projectWiki"
 }
 
 resource "betterado_wiki_page" "test" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.fixture.id
   wiki_id    = betterado_wiki.test.id
-  path       = "/path"
+  path       = "/page-path"
   content    = "contentupdate"
 }
-`, projectName, wikiName)
+`, wikiName, SharedFixtureProjectName)
 }
