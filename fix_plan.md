@@ -26,6 +26,11 @@
 - [x] Introduced `nilIfEmpty(s)` helper in resource_feed_framework.go to pass `nil` (not `""`) to all ADO API calls for org-scoped feeds.
 - [x] Introduced `nilIfEmptyStr(s)` helper in the test file for the same reason.
 
+## Sub-tasks completed (iteration 2)
+
+- [x] Fixed checkFeedFrameworkDestroyed: ADO DeleteFeed is a soft-delete; GetFeed still returns the feed with DeletedDate != nil. Now treat DeletedDate-set feeds as destroyed (recycle-bin state is expected).
+- [x] Fixed Read() in resource_feed_framework.go: if GetFeed returns a feed with DeletedDate != nil, call RemoveResource so Terraform treats it as gone.
+
 ## Pending (needs live gate)
 
 - [ ] Live TF_ACC run to confirm both acceptance tests pass end-to-end

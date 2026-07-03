@@ -49,6 +49,16 @@ Fix: `data "betterado_project"` referencing `SharedFixtureProjectName` ("bettera
 - `types.StringValue("")` for null optionals in Read() — causes perpetual diff when `requiresReplace` is on the attribute. Must use `types.StringNull()`.
 - Creating `betterado_project` resources in acceptance tests — org at 1000-project cap, all creates fail.
 
+### Iteration 2 — soft-delete destroy fix (2025-07-03)
+
+**Root cause:** ADO `DeleteFeed` is a **soft delete**. After calling it, `GetFeed` by GUID still returns the feed — but with `DeletedDate` set on the `Feed` struct. The iteration-1 `checkFeedFrameworkDestroyed` treated any non-error response from `GetFeed` as "feed still exists" → test reported dangling resource error.
+
+**Fix 1 — `checkFeedFrameworkDestroyed`:** After `GetFeed` returns without error, check `feedDetail.DeletedDate != nil`. If set, the feed is in the recycle bin — `continue` (treat as destroyed). Only return an error if the feed is returned AND has no `DeletedDate`.
+
+**Fix 2 — `Read()` in `resource_feed_framework.go`:** Same logic: if `feedDetail.DeletedDate != nil`, call `resp.State.RemoveResource(ctx)` and return. This prevents the "restore" path from being confused by a stale recycle-bin entry on next apply.
+
+**Key ADO fact:** `Feed.DeletedDate` (from `models.go`) is non-nil when `DeleteFeed` has been called. `PermanentDeletedDate` is non-nil after `PermanentDeleteFeed`. There is no `IsDeleted` bool on `Feed` (that field is on `FeedCore`/`FeedSettings`).
+
 ## Open questions
 
 _(none blocking)_
