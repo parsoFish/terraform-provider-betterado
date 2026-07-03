@@ -141,14 +141,18 @@ data "betterado_identity_groups" "test" {
 `, SharedFixtureProjectName)
 }
 
-// hclIdentityUserFrameworkRead looks up the project's build service identity user
-// by display name. The "Project Collection Build Service" is a stable system identity
-// present in all ADO projects without needing a user entitlement.
+// hclIdentityUserFrameworkRead looks up the shared project's build service identity
+// user by display name. The build service account follows the ADO naming convention
+// "{ProjectName} Build Service ({OrgName})" and is a stable system identity that
+// exists without requiring a user entitlement. The org name is extracted dynamically
+// from betterado_client_config.organization_url to avoid hard-coding.
 func hclIdentityUserFrameworkRead() string {
-	return `
+	return fmt.Sprintf(`
+data "betterado_client_config" "current" {}
+
 data "betterado_identity_user" "test" {
-  name          = "Project Collection Build Service"
+  name          = "%[1]s Build Service (${compact(split("/", data.betterado_client_config.current.organization_url))[2]})"
   search_filter = "DisplayName"
 }
-`
+`, SharedFixtureProjectName)
 }
