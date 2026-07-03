@@ -12,7 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/featuremanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
@@ -203,13 +208,23 @@ func (p *BetteradoFrameworkProvider) Configure(ctx context.Context, req provider
 
 func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		dashboard.NewDashboardResource,
+		extension.NewExtensionResource,
 		taskagent.NewTaskGroupResource,
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
-		git.NewGitRepositoryResource,       // migrated from SDKv2
-		git.NewGitRepositoryBranchResource, // migrated from SDKv2
-		git.NewGitRepositoryFileResource,   // migrated from SDKv2
+		build.NewBuildFolderResource,
+		build.NewBuildDefinitionResource,
+		build.NewPipelineAuthorizationResource,
+		build.NewResourceAuthorizationResource,
+		memberentitlementmanagement.NewUserEntitlementResource,
+		memberentitlementmanagement.NewGroupEntitlementResource,
+		memberentitlementmanagement.NewServicePrincipalEntitlementResource,
+		featuremanagement.NewFeatureFlagResource,
+		git.NewGitRepositoryResource,
+		git.NewGitRepositoryBranchResource,
+		git.NewGitRepositoryFileResource,
 	}
 }
 
@@ -220,8 +235,10 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseDefinitionRevisionDataSource,
 		release.NewReleaseDefinitionsDataSource,
 		release.NewReleaseFolderDataSource,
-		git.NewGitRepositoryDataSource,     // migrated from SDKv2
-		git.NewGitRepositoryFileDataSource, // migrated from SDKv2
-		git.NewGitRepositoriesDataSource,   // migrated from SDKv2
+		build.NewBuildDefinitionDataSource,
+		featuremanagement.NewFeatureFlagDataSource,
+		git.NewGitRepositoryDataSource,
+		git.NewGitRepositoriesDataSource,
+		git.NewGitRepositoryFileDataSource,
 	}
 }
