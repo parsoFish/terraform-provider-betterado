@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	adoPipelines "github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelines"
@@ -26,38 +27,47 @@ import (
 func TestAccDataPipelineRun(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	// Trigger a run and capture its run_id before the TF test steps execute.
-	// We do this outside of Terraform so the run has time to complete while
-	// the resource step runs. We store into these variables via a PreCheck
-	// extension that runs once before the first test step.
+	// configFilePath is written by Step 1's Check (triggerAndWaitForRun) after
+	// the run completes. Steps 2 and 3 use a ConfigFile closure that returns
+	// this path — ConfigFile funcs are evaluated lazily per-step, so by the
+	// time they are called for Step 2 the file already exists.
 	var (
-		pipelineIDStr string
-		runIDStr      string
+		pipelineIDStr  string
+		runIDStr       string
+		configFilePath string
 	)
 
 	tfDataNode := "data.betterado_pipeline_run.test"
+
+	// hclDataSourceConfigFile is used as ConfigFile for Steps 2 and 3.
+	// It is a func so the framework evaluates it lazily; by Step 2 execution
+	// time, triggerAndWaitForRun has written the file and set configFilePath.
+	// Returns "" when called before Step 1 finishes (during initialisation
+	// probes) — the framework treats nil Config as "no config yet" which is
+	// safe for those early calls.
+	hclDataSourceConfigFile := func(_ config.TestStepConfigRequest) string {
+		return configFilePath
+	}
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		// Runs are immutable in ADO — no destroy needed, and no CheckDestroy.
 		Steps: []resource.TestStep{
-			// Step 1: create the pipeline + trigger + wait, then plan the data source config.
+			// Step 1: create the pipeline + trigger + wait, then record run IDs.
 			{
-				// Use a Config that creates the pipeline resource. The run is
-				// triggered imperatively in the Check function, which also discovers
-				// pipelineIDStr / runIDStr for the next step.
 				Config: hclPipelineRunResourceOnly(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("betterado_pipeline.test", "id"),
-					// Trigger the run and wait; populate pipelineIDStr + runIDStr
-					// so the next step can build the data source config.
-					triggerAndWaitForRun(name, &pipelineIDStr, &runIDStr),
+					// Trigger the run, wait for completion, then write the
+					// HCL for Steps 2/3 to a temp file (populates configFilePath).
+					triggerAndWaitForRun(name, &pipelineIDStr, &runIDStr, &configFilePath),
 				),
 			},
 			// Step 2: read the completed run via the data source.
+			// ConfigFile returns configFilePath which was written by Step 1's Check.
 			{
-				Config: hclPipelineRunDataSource(name, &pipelineIDStr, &runIDStr),
+				ConfigFile: hclDataSourceConfigFile,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfDataNode, "id"),
 					resource.TestCheckResourceAttrSet(tfDataNode, "state"),
@@ -67,7 +77,7 @@ func TestAccDataPipelineRun(t *testing.T) {
 			},
 			// Step 3: idempotency — ExpectNonEmptyPlan:false (AC1).
 			{
-				Config:             hclPipelineRunDataSource(name, &pipelineIDStr, &runIDStr),
+				ConfigFile:         hclDataSourceConfigFile,
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -99,19 +109,31 @@ resource "betterado_pipeline" "test" {
 `, name, SharedFixtureProjectName)
 }
 
-// hclPipelineRunDataSource returns the config that includes both the pipeline
-// resource and the data source that reads the triggered run. The pointers are
-// dereferenced at call-time so the config is evaluated lazily during Step 2.
-func hclPipelineRunDataSource(name string, pipelineIDStr, runIDStr *string) string {
-	pid := ""
-	rid := ""
-	if pipelineIDStr != nil {
-		pid = *pipelineIDStr
+// hclPipelineRunDataSourceContent returns the full HCL content — including a
+// terraform { required_providers } block so the ConfigFile path can supply it
+// without relying on the framework's mergedConfig injection (which only applies
+// to steps using Config, not ConfigFile).
+func hclPipelineRunDataSourceContent(name, pid, rid string) string {
+	// Compute the provider source address the same way the framework does.
+	host := "registry.terraform.io"
+	if v := os.Getenv("TF_ACC_PROVIDER_HOST"); v != "" {
+		host = strings.TrimSuffix(v, "/")
 	}
-	if runIDStr != nil {
-		rid = *runIDStr
+	namespace := "hashicorp"
+	if v := os.Getenv("TF_ACC_PROVIDER_NAMESPACE"); v != "" {
+		namespace = strings.TrimSuffix(v, "/")
 	}
+	providerSource := host + "/" + namespace + "/betterado"
+
 	return fmt.Sprintf(`
+terraform {
+  required_providers {
+    betterado = {
+      source = %[5]q
+    }
+  }
+}
+
 data "betterado_project" "test" {
   name = %[3]q
 }
@@ -135,7 +157,7 @@ data "betterado_pipeline_run" "test" {
   pipeline_id = %[2]s
   run_id      = %[4]s
 }
-`, name, pid, SharedFixtureProjectName, rid)
+`, name, pid, SharedFixtureProjectName, rid, providerSource)
 }
 
 // triggerAndWaitForRun is a TestCheckFunc that:
@@ -143,7 +165,8 @@ data "betterado_pipeline_run" "test" {
 //  2. Calls RunPipeline to trigger a run.
 //  3. Polls GetRun until state == "completed" or a 3-minute timeout is reached.
 //  4. Sets *pipelineIDStr and *runIDStr so subsequent steps can reference them.
-func triggerAndWaitForRun(_ string, pipelineIDStr, runIDStr *string) resource.TestCheckFunc {
+//  5. Writes the Step-2/3 HCL to a temp file and sets *configFilePath to its path.
+func triggerAndWaitForRun(name string, pipelineIDStr, runIDStr, configFilePath *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		res, ok := s.RootModule().Resources["betterado_pipeline.test"]
 		if !ok {
@@ -200,6 +223,22 @@ func triggerAndWaitForRun(_ string, pipelineIDStr, runIDStr *string) resource.Te
 
 		*pipelineIDStr = pipelineIDRaw
 		*runIDStr = fmt.Sprintf("%d", runID)
+
+		// Write the Step-2/3 HCL to a temp file. Steps 2 and 3 use ConfigFile
+		// which is evaluated lazily — by the time those steps run, this file
+		// exists and configFilePath points to it.
+		content := hclPipelineRunDataSourceContent(name, pipelineIDRaw, *runIDStr)
+		f, err := os.CreateTemp("", "betterado_pipeline_run_*.tf")
+		if err != nil {
+			return fmt.Errorf("triggerAndWaitForRun: create temp config file: %v", err)
+		}
+		if _, err := fmt.Fprint(f, content); err != nil {
+			f.Close()
+			return fmt.Errorf("triggerAndWaitForRun: write temp config file: %v", err)
+		}
+		f.Close()
+		*configFilePath = f.Name()
+
 		return nil
 	}
 }
