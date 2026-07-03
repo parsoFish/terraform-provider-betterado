@@ -8,7 +8,27 @@ No forge brain queries made — WI spec was the single source of truth.
 
 ## What I've tried
 
-### Iteration 0 (current)
+### Iteration 1 (current)
+
+**Gate failure from iter 0:** `AZDO_TEST_AAD_USER_EMAIL must be set` — the forge gate environment does NOT inject this env var.
+
+**Root causes fixed:**
+1. `TestAccNotificationSubscription_basic` called `testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_USER_EMAIL"})` which fatalf'd because the env var was missing.
+2. The HCL template used `mail = email` for `betterado_identity_user` but the actual schema uses `name` + `search_filter = "MailAddress"`.
+
+**What was changed (iter 1):**
+- Rewrote `resource_notification_subscription_test.go`:
+  - Removed `AZDO_TEST_AAD_USER_EMAIL` from `PreCheck`
+  - Added `resolveNotificationSubscriberDirect(t)` — uses `GraphClient.ListUsers` (subjectTypes=aad,msa) to page through users, calls `resolveIdentityUUIDByEmailDirect` (IdentityClient.ReadIdentities with SearchFilter=MailAddress) to get UUID
+  - `hclNotificationSubscriptionBasic` now takes `(email, subscriberID string)` and embeds the UUID directly as a literal string in HCL — no `betterado_identity_user` data source in HCL
+  - Falls back to `AZDO_TEST_AAD_USER_EMAIL` if set
+- `go build -tags all ./...` clean, `go test -list TestAccNotificationSubscription` finds the test
+
+**Key ADO API facts (for next iteration):**
+- `GraphClient.ListUsers` args: `ContinuationToken *string`; response `PagedGraphUsers.ContinuationToken *[]string` (extract `(*token)[0]`)
+- `IdentityClient.ReadIdentities` with `SearchFilter:"MailAddress"` + `FilterValue:email` returns `[]identity.Identity` with `.Id` being the GUID
+
+### Iteration 0
 
 **Prior commits when iteration started:**
 - `feat(notification): add betterado_notification_subscription framework resource` — full CRUD resource already existed at `azuredevops/internal/service/notification/resource_notification_subscription_framework.go`, unit tests at `resource_notification_subscription_framework_test.go`, and resource registered in `framework_provider.go` Resources().
@@ -30,19 +50,18 @@ No forge brain queries made — WI spec was the single source of truth.
 
 ## What worked
 
-- The resource was already committed from a prior WI-2 iteration — only the data source and acceptance test were missing.
-- `getDirectClient()` reuse from `resource_task_group_test.go` works for the notification client too since `AggregatedClient.NotificationClient` is wired in `client.go`.
-- `betterado_identity_user` data source is the right HCL approach for subscriber_id resolution from an email.
+- `getDirectClient()` reuse from `resource_task_group_test.go` works for notification client.
+- `GraphClient.ListUsers` + `IdentityClient.ReadIdentities(MailAddress)` is the right pattern for auto-discovering a real user without env var dependency.
+- Embedding subscriber_id as a literal UUID in HCL avoids data source dependency and schema confusion.
 
-## What didn't work
+## What didn't work / watch out for
 
-_(nothing in this iteration)_
+- `betterado_identity_user` data source uses `name` + `search_filter` — NOT `mail`. The original HCL was wrong.
+- AZDO_TEST_AAD_USER_EMAIL is NOT injected by the forge gate — tests that require it will fatalf, not skip.
+- `PagedGraphUsers.ContinuationToken` is `*[]string`, not `*string` — use `(*page.ContinuationToken)[0]`.
+- `ListUsersArgs.ContinuationToken` is `*string`.
 
-## Open questions
+## Open questions for next iteration
 
-- **AZDO_TEST_AAD_USER_EMAIL in serve env**: the acceptance test requires this env var. If not set in forge's serve env, the test will skip (`t.Skip`) rather than fail, which may still count as `[no tests to run]`. If the next gate failure is still a skip, consider: (a) inlining a hardcoded known test user ID, or (b) using `getDirectClient()` in `TestMain` or a helper to discover the PAT owner's identity and store it in an env var.
-- **channel_address round-trip**: the ADO `ISubscriptionChannel` struct may not return `address` on GET (it's set as email on the `EmailHtml` channel). The resource uses `notifUseStateForUnknown` plan modifier, so state preserves it — idempotency should work. But if ADO returns it in a nested struct we haven't mapped, the plan diff could re-appear. Watch the live gate output.
-
-## Notes for reflection
-
-- The `channel_address` field in `ISubscriptionChannel` may need to be fetched from a sub-field not currently mapped in `flattenNotificationSubscription`. If `ExpectNonEmptyPlan: false` fails live, check the actual JSON returned by ADO for the EmailHtml channel and update the flatten function.
+- **channel_address idempotency**: ADO `ISubscriptionChannel` may not return `address` on GET for `EmailHtml`. The resource uses `notifUseStateForUnknown` plan modifier for channel_address, which should preserve state value. But if ADO returns email in a sub-field not currently mapped in `flattenNotificationSubscription`, plan diff will be non-empty. Watch the live gate output for `ExpectNonEmptyPlan` failure.
+- **If flattenNotificationSubscription needs fixing**: check the actual JSON response body for `ISubscriptionChannel.EmailHtml` — look for `address` or `Address` field and map it in the flatten function.
