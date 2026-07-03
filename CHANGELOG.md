@@ -7,6 +7,10 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### Added
+
+- `betterado_feature_flag` resource and data source — manage ADO Feature Management API state at project or host scope.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

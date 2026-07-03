@@ -273,7 +273,6 @@ func readFeatureFlag(ctx context.Context, fc featuremanagementapi.Client, model 
 		ScopeName:  converter.String(scopeName),
 		ScopeValue: converter.String(scopeValue),
 	})
-
 	if err != nil {
 		if utils.ResponseWasNotFound(err) {
 			d.AddError("NotFound", fmt.Sprintf("feature flag %q at scope %q/%q not found (404)", featureID, scopeName, scopeValue))
