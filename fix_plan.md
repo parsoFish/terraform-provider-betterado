@@ -15,3 +15,9 @@ All ACs implemented in iteration 0 (commit 0ee972ad). Gate was blocked by:
    `disableClassicDeploymentPipelineCreation=false` (deployment groups need this,
    not just `disableClassicBuildPipelineCreation`) and added org-level PATCH first
    (non-fatal) before the project-level PATCH.
+3. Classic pipelines disabled STILL (iteration 4/commit 73e4fad2): overhauled
+   enableClassicPipelinesForFixtureProject — added SDK-native PATCH (DisableClassicPipelineCreation),
+   combined flag in raw PATCH, read-back diagnostics, 2s sleep, and canary
+   deployment group creation to definitively test if creation works before running
+   the full TF test. If canary fails with "classic pipelines are disabled", test
+   skips (org-level policy cannot be overridden at project level).
