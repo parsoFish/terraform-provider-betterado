@@ -51,9 +51,21 @@ The `serviceendpoint` unit test package has build failures because many `expandS
 
 **Idempotency reasoning:** After re-plan, plan for these fields triggers `UseStateForUnknown`: plan is unknown → state is `""` (not null) → plan becomes `""` → matches state → no diff. ✓
 
-## Remaining work (iteration 3+)
+## Iteration 3 (completed)
 
-- **AC3**: Live gate must re-run `TestAccServiceEndpointAzureRm_CreateAndUpdate` with the fix applied. The test should now pass — WIF fields will have known empty string values for `ServicePrincipal` scheme.
+**Root cause fixed:** Gate failure was `.server_url: was cty.StringVal(""), but now cty.StringVal("https://management.azure.com/")`.
+
+**Root cause:** `server_url` schema had `Default: seAzureRMDefaultString("")`. This pre-planned the attribute as `""`. After Create, `flattenFromServiceEndpoint` set `state.ServerURL` from `ep.Url` which is `"https://management.azure.com/"` (computed from `environment = "AzureCloud"`). Framework then detected: plan = `""`, returned = `"https://management.azure.com/"` → "provider produced inconsistent result after apply".
+
+**Fix:** Removed `Default: seAzureRMDefaultString("")` from `server_url` schema. Added `seAzureRMUseStateForUnknown()` plan modifier. Now for Optional+Computed without a default: plan is `null` on Create (user didn't set it in config) → framework allows provider to fill in the computed value → no inconsistency.
+
+**Idempotency:** On re-plan, Optional+Computed preserves prior state value (`"https://management.azure.com/"`) in plan → plan matches state → no diff.
+
+**Build:** `go build -tags all ./...` passes. Quality gate passes.
+
+## Remaining work (iteration 4+)
+
+- **AC3**: Live gate must re-run `TestAccServiceEndpointAzureRm_CreateAndUpdate` with the fix applied. The test should now pass — `server_url` will not have an inconsistency.
 
 ## Open questions
 
