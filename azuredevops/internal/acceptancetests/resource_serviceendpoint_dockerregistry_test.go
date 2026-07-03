@@ -41,7 +41,8 @@ func TestAccServiceEndpointDockerRegistry_CreateAndUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "docker_email"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "docker_password", "secret"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "service_endpoint_name", serviceEndpointNameSecond),
-					testutils.CheckServiceEndpointExistsWithName(tfSvcEpNode, serviceEndpointNameSecond)),
+					testutils.CheckServiceEndpointExistsWithName(tfSvcEpNode, serviceEndpointNameSecond),
+				),
 			},
 		},
 	})

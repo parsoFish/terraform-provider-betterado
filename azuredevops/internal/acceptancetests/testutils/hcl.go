@@ -491,7 +491,8 @@ func HclBuildDefinitionResourceGitHub(projectName string, buildDefinitionName st
 		"repoOrg/repoName",
 		"refs/heads/master",
 		"path/to/yaml",
-		"")
+		"",
+	)
 }
 
 // HclBuildDefinitionResourceBitbucket HCL describing an AzDO build definition sourced from Bitbucket
@@ -504,7 +505,8 @@ func HclBuildDefinitionResourceBitbucket(projectName string, buildDefinitionName
 		"repoOrg/repoName",
 		"master",
 		"path/to/yaml",
-		serviceConnectionID)
+		serviceConnectionID,
+	)
 }
 
 // HclBuildDefinitionResourceTfsGit HCL describing an AzDO build definition sourced from AzDo Git Repo
@@ -517,7 +519,8 @@ func HclBuildDefinitionResourceTfsGit(projectName string, gitRepoName string, bu
 		"${betterado_git_repository.repository.id}",
 		"refs/heads/master",
 		"path/to/yaml",
-		"")
+		"",
+	)
 
 	azureGitRepoResource := getGitRepoResource(gitRepoName, "Clean")
 

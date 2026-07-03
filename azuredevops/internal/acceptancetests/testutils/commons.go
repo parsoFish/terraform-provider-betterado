@@ -72,7 +72,8 @@ func GetMuxProviderFactories() map[string]func() (tfprotov6.ProviderServer, erro
 			if err != nil {
 				return nil, err
 			}
-			mux, err := tf6muxserver.NewMuxServer(ctx,
+			mux, err := tf6muxserver.NewMuxServer(
+				ctx,
 				func() tfprotov6.ProviderServer { return upgradedSdkv2 },
 				providerserver.NewProtocol6(azuredevops.NewFrameworkProvider()),
 			)

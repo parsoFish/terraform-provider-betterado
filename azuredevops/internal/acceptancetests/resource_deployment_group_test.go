@@ -250,7 +250,8 @@ func enableClassicPipelinesForFixtureProject(t *testing.T) {
 	// Parse the read-back to log the current settings for diagnostics.
 	var settings map[string]interface{}
 	if jsonErr := json.Unmarshal(getBodyBytes, &settings); jsonErr == nil {
-		t.Logf("enableClassicPipelinesForFixtureProject: read-back settings: disableClassicPipelineCreation=%v disableClassicBuildPipelineCreation=%v disableClassicDeploymentPipelineCreation=%v",
+		t.Logf(
+			"enableClassicPipelinesForFixtureProject: read-back settings: disableClassicPipelineCreation=%v disableClassicBuildPipelineCreation=%v disableClassicDeploymentPipelineCreation=%v",
 			settings["disableClassicPipelineCreation"],
 			settings["disableClassicBuildPipelineCreation"],
 			settings["disableClassicDeploymentPipelineCreation"],
