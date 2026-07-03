@@ -55,13 +55,13 @@ func Provider() *schema.Provider {
 			// betterado_build_folder is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_build_folder_permissions":      permissions.ResourceBuildFolderPermissions(),
-			"betterado_check_approval":                approvalsandchecks.ResourceCheckApproval(),
-			"betterado_check_branch_control":          approvalsandchecks.ResourceCheckBranchControl(),
-			"betterado_check_business_hours":          approvalsandchecks.ResourceCheckBusinessHours(),
-			"betterado_check_exclusive_lock":          approvalsandchecks.ResourceCheckExclusiveLock(),
-			"betterado_check_required_template":       approvalsandchecks.ResourceCheckRequiredTemplate(),
-			"betterado_check_rest_api":                approvalsandchecks.ResourceCheckRestAPI(),
+			"betterado_build_folder_permissions": permissions.ResourceBuildFolderPermissions(),
+			"betterado_check_approval":           approvalsandchecks.ResourceCheckApproval(),
+			"betterado_check_branch_control":     approvalsandchecks.ResourceCheckBranchControl(),
+			"betterado_check_business_hours":     approvalsandchecks.ResourceCheckBusinessHours(),
+			"betterado_check_exclusive_lock":     approvalsandchecks.ResourceCheckExclusiveLock(),
+			"betterado_check_required_template":  approvalsandchecks.ResourceCheckRequiredTemplate(),
+			"betterado_check_rest_api":           approvalsandchecks.ResourceCheckRestAPI(),
 			// betterado_dashboard is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
