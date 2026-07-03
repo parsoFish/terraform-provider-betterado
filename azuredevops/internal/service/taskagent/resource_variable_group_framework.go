@@ -450,6 +450,7 @@ func (r *VariableGroupResource) Delete(ctx context.Context, req resource.DeleteR
 		Name:       &emptyName,
 		Id:         &idStr,
 	}}
+	//nolint:errcheck // best-effort: unauthorize before delete; ignore failure
 	_, _ = r.client.BuildClient.AuthorizeProjectResources(ctx, build.AuthorizeProjectResourcesArgs{
 		Resources: &defRef,
 		Project:   &projectID,
@@ -635,10 +636,8 @@ func (r *VariableGroupResource) flattenToModel(ctx context.Context, vg *taskagen
 			if isSecret {
 				// API never returns secret values — recover from prior state
 				secretValStr = priorSecrets[varName]
-			} else {
-				if apiVar.Value != nil {
-					valStr = *apiVar.Value
-				}
+			} else if apiVar.Value != nil {
+				valStr = *apiVar.Value
 			}
 			vm = variableModel{
 				Name:        types.StringValue(varName),

@@ -289,21 +289,21 @@ func captureVariableGroupEvidence(tfNode string) resource.TestCheckFunc {
 			return nil
 		}
 		vgIDStr := res.Primary.ID
-		vgID, err := strconv.Atoi(vgIDStr)
-		if err != nil {
-			return nil
+		vgID, parseErr := strconv.Atoi(vgIDStr)
+		if parseErr != nil {
+			return nil //nolint:nilerr // best-effort evidence capture
 		}
 		projectID := res.Primary.Attributes["project_id"]
-		clients, err := testutils.GetDirectClient()
-		if err != nil {
-			return nil // best-effort: client build failure does not fail the test
+		clients, clientErr := testutils.GetDirectClient()
+		if clientErr != nil {
+			return nil //nolint:nilerr // best-effort evidence capture
 		}
-		vg, err := clients.TaskAgentClient.GetVariableGroup(clients.Ctx, taskagent.GetVariableGroupArgs{
+		vg, getErr := clients.TaskAgentClient.GetVariableGroup(clients.Ctx, taskagent.GetVariableGroupArgs{
 			GroupId: &vgID,
 			Project: &projectID,
 		})
-		if err != nil || vg == nil {
-			return nil
+		if getErr != nil || vg == nil {
+			return nil //nolint:nilerr // best-effort evidence capture
 		}
 		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
 		if len(orgURL) > 0 && orgURL[len(orgURL)-1] == '/' {
