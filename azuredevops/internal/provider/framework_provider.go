@@ -209,6 +209,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		permissions.NewReleaseDefinitionPermissionsResource,
 		memberentitlementmanagement.NewUserEntitlementResource,
 		memberentitlementmanagement.NewGroupEntitlementResource,
+		memberentitlementmanagement.NewServicePrincipalEntitlementResource,
 	}
 }
 

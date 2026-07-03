@@ -7,6 +7,15 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_service_principal_entitlement` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served through
+  the mux provider. CRUD operations target the Member Entitlement Management API at
+  `{org}/_apis/memberentitlementmanagement/serviceprincipals`; the schema is unchanged
+  (`origin_id`, `origin`, `account_license_type`, `licensing_source`, `display_name`,
+  `descriptor`). Verified by live acceptance test `TestAccServicePrincipalEntitlement_create`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

@@ -24,7 +24,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/graph"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
@@ -149,7 +148,8 @@ func Provider() *schema.Provider {
 			"betterado_servicehook_permissions":                     permissions.ResourceServiceHookPermissions(),
 			"betterado_servicehook_storage_queue_pipelines":         servicehook.ResourceServicehookStorageQueuePipelines(),
 			"betterado_servicehook_webhook_tfs":                     servicehook.ResourceServicehookWebhookTfs(),
-			"betterado_service_principal_entitlement":               memberentitlementmanagement.ResourceServicePrincipalEntitlement(),
+			// betterado_service_principal_entitlement is now a framework resource (registered in framework_provider.go)
+			// and is no longer in the SDKv2 provider resource map.
 			"betterado_tagging_permissions":                         permissions.ResourceTaggingPermissions(),
 			"betterado_team":                                        core.ResourceTeam(),
 			"betterado_team_administrators":                         core.ResourceTeamAdministrators(),
