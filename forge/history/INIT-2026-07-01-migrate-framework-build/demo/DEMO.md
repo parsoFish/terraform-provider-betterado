@@ -2,8 +2,7 @@
 
 > **Initiative:** INIT-2026-07-01-migrate-framework-build
 > **Branch:** forge/INIT-2026-07-01-migrate-framework-build
-> **Commit:** 7c86f7a4
-> **Diff:** 30 files changed, 3921 insertions(+), 499 deletions(-)
+> **Diff:** 45 files changed, 5859 insertions(+), 688 deletions(-)
 
 ---
 
@@ -21,17 +20,17 @@
 
 | Criterion | Verdict | Evidence |
 |-----------|---------|----------|
-| GIVEN ADO Build/Pipelines REST API v7.1 schema WHEN docs/build-gap-matrix.md is read THEN it lists every API field with columns field/API type/status/notes; every writable gap resolved or deferred | **met** | `TestBuildGapMatrixExists` → pass; `docs/build-gap-matrix.md` committed (233-line table; all writable gaps marked resolved-by-migration or deferred with reason) |
+| GIVEN ADO Build/Pipelines REST API v7.1 schema WHEN docs/build-gap-matrix.md is read THEN it lists every API field with columns field/API type/status/notes; every writable gap resolved or deferred | **met** | `TestBuildGapMatrixExists` → pass (docs/build-gap-matrix.md found at 17868 bytes); committed with one section per resource; variable_groups/schedules/jobs/build_completion_trigger marked NOT migrated with deferral reasons |
 | GIVEN betterado_build_folder in framework WHEN Schema() called THEN project_id, path, description declared; no diagnostics | **met** | `TestBuildFolderFramework_Schema` → pass (project_id, path, description asserted; resp.Diagnostics.HasError() == false) |
-| GIVEN framework resource in framework_provider.go WHEN go build runs THEN provider binary compiles | **met** | `go test -tags all -count=1 ./azuredevops/internal/service/build/...` compiles entire package including registration — exits 0 (schema tests all pass) |
-| GIVEN TF_ACC=1 WHEN TestAccBuildFolder_Framework_basic runs THEN all steps pass; ExpectNonEmptyPlan:false; CaptureLiveEvidence called | **met** | `TestAccBuildFolder_Framework_basic` in `resource_build_folder_framework_test.go` — apply→read-back→idempotency→destroy with `CaptureLiveEvidence('acceptance-resource', folderGETURL, resp)`; `ExpectNonEmptyPlan:false` |
+| GIVEN framework resource in framework_provider.go WHEN go build runs THEN provider binary compiles | **met** | `go test -tags all -count=1 ./azuredevops/internal/service/build/...` → ok (0.005s); all 9 schema+validator tests pass confirming package compiles with framework_provider.go registration |
+| GIVEN TF_ACC=1 WHEN TestAccBuildFolder_Framework_basic runs THEN all steps pass; ExpectNonEmptyPlan:false; CaptureLiveEvidence called | **met** | `TestAccBuildFolder_Framework_basic` → pass (TF_ACC live run); ExpectNonEmptyPlan:false; CaptureLiveEvidence('build-folder-resource', folderGETURL, resp) |
 | GIVEN betterado_build_definition in framework WHEN Schema() called THEN name, project_id, revision, path, agent_pool_name, repository, variable, ci_trigger, pull_request_trigger, agent_specification, job_authorization_scope, queue_status, skip_first_run declared; no diagnostics | **met** | `TestBuildDefinitionFramework_Schema` → pass (all 13 attributes asserted; resp.Diagnostics.HasError() == false) |
-| GIVEN TF_ACC=1 WHEN TestAccBuildDefinition_Framework_basic runs THEN all steps pass; ExpectNonEmptyPlan:false; CaptureLiveEvidence called | **met** | `TestAccBuildDefinition_Framework_basic` in `resource_build_definition_framework_test.go` — full lifecycle with `CaptureLiveEvidence('acceptance-resource', definitionGETURL, resp)`; `ExpectNonEmptyPlan:false` |
+| GIVEN TF_ACC=1 WHEN TestAccBuildDefinition_Framework_basic runs THEN all steps pass; ExpectNonEmptyPlan:false; CaptureLiveEvidence called | **met** | `TestAccBuildDefinition_Framework_basic` → pass (TF_ACC live run); full lifecycle with GitHub-repo-backed definition + variable; ExpectNonEmptyPlan:false; CaptureLiveEvidence('build-definition-resource', definitionGETURL, resp) |
 | GIVEN betterado_pipeline_authorization + betterado_resource_authorization in framework WHEN Schema() called THEN correct attributes declared; no diagnostics | **met** | `TestPipelineAuthorizationFramework_Schema` → pass (project_id, pipeline_project_id, resource_id, type, pipeline_id); `TestResourceAuthorizationFramework_Schema` → pass (project_id, resource_id, definition_id, type, authorized) |
-| GIVEN TF_ACC=1 WHEN TestAccPipelineAuthorization_Framework_allPipeline_queue runs THEN all steps pass; ExpectNonEmptyPlan:false; CaptureLiveEvidence called | **met** | `TestAccPipelineAuthorization_Framework_allPipeline_queue` in `resource_pipeline_authorization_framework_test.go` — full lifecycle with `CaptureLiveEvidence('acceptance-resource', permGETURL, resp)`; `ExpectNonEmptyPlan:false` |
+| GIVEN TF_ACC=1 WHEN TestAccPipelineAuthorization_Framework_allPipeline_queue runs THEN all steps pass; ExpectNonEmptyPlan:false; CaptureLiveEvidence called | **met** | `TestAccPipelineAuthorization_Framework_allPipeline_queue` → pass (TF_ACC live run); queue-type authorization applied; ExpectNonEmptyPlan:false; CaptureLiveEvidence('pipeline-authorization-resource', permGETURL, resp) |
 | GIVEN data.betterado_build_definition in framework WHEN Schema() called THEN project_id, name, path, revision, repository, ci_trigger, pull_request_trigger, variable, agent_pool_name, agent_specification, job_authorization_scope, queue_status, schedules declared; no diagnostics | **met** | `TestBuildDefinitionDataSourceFramework_Schema` → pass (all 13 attributes asserted; resp.Diagnostics.HasError() == false) |
-| GIVEN TF_ACC=1 WHEN TestAccBuildDefinition_Framework_DataSource runs THEN all steps pass; CaptureLiveEvidence called with real REST GET URL | **met** | `TestAccBuildDefinition_Framework_DataSource` in `data_build_definition_framework_test.go` — reads definition, asserts name and id set, calls `CaptureLiveEvidence('acceptance-resource', definitionGETURL, resp)` |
-| GIVEN migration complete WHEN make docs run THEN all 5 docs files present; CHANGELOG has Unreleased; PROVIDER_VERSION.txt bumped | **met** | `docs/resources/build_definition.md`, `docs/resources/build_folder.md`, `docs/resources/pipeline_authorization.md`, `docs/resources/resource_authorization.md`, `docs/data-sources/build_definition.md` all committed; `CHANGELOG.md` has `## [Unreleased]` with 5 FEATURES entries; `PROVIDER_VERSION.txt` bumped |
+| GIVEN TF_ACC=1 WHEN TestAccBuildDefinition_Framework_DataSource runs THEN all steps pass; CaptureLiveEvidence called with real REST GET URL | **met** | `TestAccBuildDefinition_Framework_DataSource` → pass (TF_ACC live run); name and id asserted set; CaptureLiveEvidence('build-definition-datasource', definitionGETURL, resp) |
+| GIVEN migration complete WHEN make docs run THEN all 5 docs files present; CHANGELOG has Unreleased; PROVIDER_VERSION.txt bumped | **met** | All 5 docs committed (betterado_build_definition.md 126L, betterado_build_folder.md 49L, betterado_pipeline_authorization.md 63L, betterado_resource_authorization.md 74L, betterado_build_definition data-source 121L); CHANGELOG.md has ## [Unreleased] with 5 FEATURES bullets; PROVIDER_VERSION.txt bumped |
 
 ---
 
@@ -43,25 +42,49 @@
 
 | | Before | After |
 |---|--------|-------|
-| **Gate** | Gate covers release/taskagent packages (the project's offline gate); build package has pre-existing SDKv2 mock failures on main unrelated to this initiative | go test exits 0: ok release 0.006s, ok taskagent 0.005s, ok taskagent/validate 0.003s |
+| **Gate** | Gate covers release/taskagent packages (the project's offline gate); build package framework files did not exist on main | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.007s`<br>`ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.006s`<br>`ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.004s` |
 
 ---
 
-### build-schema-tests · All six new framework schema tests pass on branch HEAD
+### build-schema-tests · Framework schema + validator unit tests pass on branch HEAD
 
-**Command:** `go test -tags all -count=1 -run 'TestBuildFolderFramework_Schema|TestBuildDefinitionFramework_Schema|TestPipelineAuthorizationFramework_Schema|TestResourceAuthorizationFramework_Schema|TestBuildDefinitionDataSourceFramework_Schema|TestBuildGapMatrixExists' ./azuredevops/internal/service/build/...`
+**Command:** `go test -tags all -count=1 -run 'TestBuildFolderFramework|TestBuildDefinitionFramework|TestPipelineAuthorizationFramework|TestResourceAuthorizationFramework|TestBuildDefinitionDataSourceFramework|TestBuildGapMatrixExists' ./azuredevops/internal/service/build/...`
 
 | | Before | After |
 |---|--------|-------|
-| **Result** | No framework schema tests existed; gap_matrix_test.go did not exist | All six tests pass: TestBuildFolderFramework_Schema, TestBuildDefinitionFramework_Schema, TestPipelineAuthorizationFramework_Schema, TestResourceAuthorizationFramework_Schema, TestBuildDefinitionDataSourceFramework_Schema, TestBuildGapMatrixExists |
+| **Result** | No framework schema tests existed on main; TestBuildGapMatrixExists and all _Framework_Schema tests did not exist | `--- PASS: TestBuildGapMatrixExists (0.00s)`<br>`--- PASS: TestBuildDefinitionDataSourceFramework_Schema (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_StringNotWhitespace (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_PathValidator (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_Schema (0.00s)`<br>`--- PASS: TestResourceAuthorizationFramework_Schema (0.00s)`<br>`--- PASS: TestBuildFolderFramework_PathValidator (0.00s)`<br>`--- PASS: TestBuildFolderFramework_Schema (0.00s)`<br>`--- PASS: TestPipelineAuthorizationFramework_Schema (0.00s)`<br>`PASS`<br>`ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build	0.005s` |
 
 ---
 
-### acceptance-resource · Live acceptance tests: apply → read-back → idempotency → destroy with CaptureLiveEvidence
+### build-definition-resource · Live acceptance: betterado_build_definition apply→read-back→idempotency→destroy
 
 | | Before | After |
 |---|--------|-------|
-| **Live tests** | betterado_build_folder, betterado_build_definition, betterado_pipeline_authorization, betterado_resource_authorization, and data.betterado_build_definition had no framework acceptance tests | TestAccBuildFolder_Framework_basic, TestAccBuildDefinition_Framework_basic, TestAccPipelineAuthorization_Framework_allPipeline_queue, TestAccBuildDefinition_Framework_DataSource all implemented with ExpectNonEmptyPlan:false and CaptureLiveEvidence('acceptance-resource', <REST GET URL>, resp) |
+| **Live test** | betterado_build_definition had no framework acceptance test; variable and trigger wiring was untested live | TestAccBuildDefinition_Framework_basic: apply+read-back+idempotency(ExpectNonEmptyPlan:false)+destroy; CaptureLiveEvidence('build-definition-resource', REST GET URL, resp) → .forge/live-evidence/build-definition-resource.json |
+
+---
+
+### build-folder-resource · Live acceptance: betterado_build_folder apply→read-back→idempotency→destroy
+
+| | Before | After |
+|---|--------|-------|
+| **Live test** | betterado_build_folder had no framework acceptance test with path validator | TestAccBuildFolder_Framework_basic: apply+read-back+idempotency(ExpectNonEmptyPlan:false)+destroy; CaptureLiveEvidence('build-folder-resource', REST GET URL, resp) → .forge/live-evidence/build-folder-resource.json |
+
+---
+
+### pipeline-authorization-resource · Live acceptance: betterado_pipeline_authorization apply→read-back→idempotency→destroy
+
+| | Before | After |
+|---|--------|-------|
+| **Live test** | betterado_pipeline_authorization had no framework acceptance test | TestAccPipelineAuthorization_Framework_allPipeline_queue: apply+read-back+idempotency(ExpectNonEmptyPlan:false)+destroy; CaptureLiveEvidence('pipeline-authorization-resource', REST GET URL, resp) |
+
+---
+
+### build-definition-datasource · Live acceptance: data.betterado_build_definition read with evidence capture
+
+| | Before | After |
+|---|--------|-------|
+| **Live test** | data.betterado_build_definition had no framework acceptance test | TestAccBuildDefinition_Framework_DataSource: data read + name/id assertions; CaptureLiveEvidence('build-definition-datasource', REST GET URL, resp) |
 
 ---
 
@@ -69,121 +92,20 @@
 
 | Test | Result | Delta |
 |------|--------|-------|
-| TestBuildFolderFramework_Schema | ✅ pass | +1 new schema unit test |
-| TestBuildDefinitionFramework_Schema | ✅ pass | +1 new schema unit test |
-| TestPipelineAuthorizationFramework_Schema | ✅ pass | +1 new schema unit test |
-| TestResourceAuthorizationFramework_Schema | ✅ pass | +1 new schema unit test |
-| TestBuildDefinitionDataSourceFramework_Schema | ✅ pass | +1 new schema unit test |
-| TestBuildGapMatrixExists | ✅ pass | +1 new gate test (confirms docs/build-gap-matrix.md present) |
-| TestAccBuildFolder_Framework_basic (TF_ACC) | ✅ pass | +1 new acceptance test, ExpectNonEmptyPlan:false |
-| TestAccBuildDefinition_Framework_basic (TF_ACC) | ✅ pass | +1 new acceptance test, ExpectNonEmptyPlan:false |
-| TestAccPipelineAuthorization_Framework_allPipeline_queue (TF_ACC) | ✅ pass | +1 new acceptance test, ExpectNonEmptyPlan:false |
-| TestAccBuildDefinition_Framework_DataSource (TF_ACC) | ✅ pass | +1 new acceptance test |
-| Release+taskagent unit gate | ✅ pass | 0 regressions |
-
----
-
-## API Changes
-
-### betterado_build_folder — provider registration
-
-**Before:**
-```
-provider.go ResourcesMap["betterado_build_folder"] = ResourceBuildFolder()
-```
-
-**After:**
-```
-framework_provider.go Resources() includes build.NewBuildFolderResource(); SDKv2 entry removed
-```
-
-### betterado_build_definition — provider registration
-
-**Before:**
-```
-provider.go ResourcesMap["betterado_build_definition"] = ResourceBuildDefinition()
-```
-
-**After:**
-```
-framework_provider.go Resources() includes build.NewBuildDefinitionResource(); SDKv2 entry removed
-```
-
-### betterado_pipeline_authorization — provider registration
-
-**Before:**
-```
-provider.go ResourcesMap["betterado_pipeline_authorization"] = ResourcePipelineAuthorization()
-```
-
-**After:**
-```
-framework_provider.go Resources() includes build.NewPipelineAuthorizationResource(); SDKv2 entry removed
-```
-
-### betterado_resource_authorization — provider registration
-
-**Before:**
-```
-provider.go ResourcesMap["betterado_resource_authorization"] = ResourceResourceAuthorization()
-```
-
-**After:**
-```
-framework_provider.go Resources() includes build.NewResourceAuthorizationResource(); SDKv2 entry removed
-```
-
-### data.betterado_build_definition — provider registration
-
-**Before:**
-```
-provider.go DataSourcesMap["betterado_build_definition"] = DataBuildDefinition()
-```
-
-**After:**
-```
-framework_provider.go DataSources() includes build.NewBuildDefinitionDataSource(); SDKv2 entry removed
-```
-
----
-
-## Usage
-
-```hcl
-# betterado_build_folder (framework)
-resource "betterado_build_folder" "example" {
-  project_id  = data.betterado_project.example.id
-  path        = "/MyFolder"
-  description = "CI pipeline folder"
-}
-
-# betterado_build_definition (framework)
-resource "betterado_build_definition" "example" {
-  project_id = data.betterado_project.example.id
-  name       = "my-pipeline"
-  repository {
-    repo_id   = "my-org/my-repo"
-    repo_type = "GitHub"
-    yml_path  = ".azure-pipelines/ci.yml"
-  }
-}
-
-# data.betterado_build_definition (framework)
-data "betterado_build_definition" "example" {
-  project_id = data.betterado_project.example.id
-  name       = "my-pipeline"
-}
-```
-
----
-
-## Impact
-
-- All five build-area resources/data-sources now use the same framework path as the rest of the provider — no more split-brain between SDKv2 and framework mux paths.
-- Native terraform-plugin-framework plan modifiers (UseStateForUnknown, RequiresReplace) eliminate spurious diffs on computed fields like `revision`.
-- Structured framework diagnostics provide cleaner error messages for misconfigured resources.
-- Consistent ImportState via `resource.ImportStatePassthroughID` matches existing composite-ID importers.
-- `docs/build-gap-matrix.md` gives operators a single reference for ADO Build API field coverage and migration decisions.
+| TestBuildDefinitionFramework_Schema | ✅ pass | +1 schema unit test (verifies ci_trigger.override, pull_request_trigger.forks, validators) |
+| TestBuildDefinitionFramework_PathValidator | ✅ pass | +1 path validator unit test |
+| TestBuildDefinitionFramework_StringNotWhitespace | ✅ pass | +1 not-whitespace validator unit test |
+| TestBuildFolderFramework_PathValidator | ✅ pass | +1 build_folder path validator unit test |
+| TestBuildFolderFramework_Schema | ✅ pass | +1 schema unit test |
+| TestPipelineAuthorizationFramework_Schema | ✅ pass | +1 schema unit test |
+| TestResourceAuthorizationFramework_Schema | ✅ pass | +1 schema unit test |
+| TestBuildDefinitionDataSourceFramework_Schema | ✅ pass | +1 schema unit test |
+| TestBuildGapMatrixExists | ✅ pass | +1 gap matrix gate test (docs/build-gap-matrix.md found at 17868 bytes) |
+| TestAccBuildDefinition_Framework_basic (TF_ACC) | ✅ pass | +1 acceptance test; evidence: .forge/live-evidence/build-definition-resource.json |
+| TestAccBuildFolder_Framework_basic (TF_ACC) | ✅ pass | +1 acceptance test; evidence: .forge/live-evidence/build-folder-resource.json |
+| TestAccPipelineAuthorization_Framework_allPipeline_queue (TF_ACC) | ✅ pass | +1 acceptance test; evidence: .forge/live-evidence/pipeline-authorization-resource.json |
+| TestAccBuildDefinition_Framework_DataSource (TF_ACC) | ✅ pass | +1 acceptance test; evidence: .forge/live-evidence/build-definition-datasource.json |
+| go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... | ✅ pass | 0 regressions in release+taskagent packages |
 
 ---
 
@@ -191,17 +113,27 @@ data "betterado_build_definition" "example" {
 
 | File | Note |
 |------|------|
-| `azuredevops/internal/service/build/resource_build_folder_framework.go` | new TPF resource.Resource for betterado_build_folder |
-| `azuredevops/internal/service/build/resource_build_definition_framework.go` | new TPF resource.Resource for betterado_build_definition (759 lines) |
-| `azuredevops/internal/service/build/resource_pipeline_authorization_framework.go` | new TPF resource.Resource for betterado_pipeline_authorization |
-| `azuredevops/internal/service/build/resource_resource_authorization_framework.go` | new TPF resource.Resource for betterado_resource_authorization |
-| `azuredevops/internal/service/build/datasource_build_definition_framework.go` | new TPF datasource.DataSource for data.betterado_build_definition (531 lines) |
+| `azuredevops/internal/service/build/resource_build_folder_framework.go` | new TPF resource.Resource for betterado_build_folder (365 lines) |
+| `azuredevops/internal/service/build/resource_build_definition_framework.go` | new TPF resource.Resource for betterado_build_definition (1333 lines) |
+| `azuredevops/internal/service/build/resource_pipeline_authorization_framework.go` | new TPF resource.Resource for betterado_pipeline_authorization (572 lines) |
+| `azuredevops/internal/service/build/resource_resource_authorization_framework.go` | new TPF resource.Resource for betterado_resource_authorization (378 lines) |
+| `azuredevops/internal/service/build/datasource_build_definition_framework.go` | new TPF datasource.DataSource for data.betterado_build_definition (533 lines) |
 | `azuredevops/internal/provider/framework_provider.go` | registers 4 resources + 1 data source in framework mux |
 | `azuredevops/provider.go` | removes 4 resources + 1 data source from SDKv2 ResourcesMap/DataSourcesMap |
-| `docs/build-gap-matrix.md` | new: ADO v7.1 field coverage matrix for all 5 build resources |
+| `docs/build-gap-matrix.md` | new: ADO v7.1 field coverage matrix for all 5 build resources (242 lines) |
 | `azuredevops/internal/service/build/gap_matrix_test.go` | new: TestBuildGapMatrixExists gate test |
 | `CHANGELOG.md` | draft ## [Unreleased] entry with FEATURES for all 5 migrated resources |
 | `PROVIDER_VERSION.txt` | patch version bump |
+| `docs/resources/betterado_build_definition.md` | generated registry docs (126 lines) |
+| `docs/resources/betterado_build_folder.md` | generated registry docs (49 lines) |
+| `docs/resources/betterado_pipeline_authorization.md` | generated registry docs (63 lines) |
+| `docs/resources/betterado_resource_authorization.md` | generated registry docs (74 lines) |
+| `docs/data-sources/betterado_build_definition.md` | generated registry docs (121 lines) |
+| `examples/resources/betterado_build_definition/resource.tf` | example HCL for tfplugindocs embedding |
+| `examples/resources/betterado_build_folder/resource.tf` | example HCL for tfplugindocs embedding |
+| `examples/resources/betterado_pipeline_authorization/resource.tf` | example HCL for tfplugindocs embedding |
+| `examples/resources/betterado_resource_authorization/resource.tf` | example HCL for tfplugindocs embedding |
+| `examples/data-sources/betterado_build_definition/data-source.tf` | example HCL for tfplugindocs embedding |
 
 ---
 
