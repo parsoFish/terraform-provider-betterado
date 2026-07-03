@@ -38,10 +38,11 @@
 
 ### CI-equivalent unit tests green after all WI commits merged
 
-Command: `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...`
-
 - **Before:** All tests passed before migration; the gate verifies composed WI commits haven't regressed adjacent packages.
-- **After:**
+- **After:** All three packages pass: release (ok), taskagent (ok), taskagent/validate (ok)
+- **Command:** `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...`
+
+**After output:**
 ```
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.007s
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.006s
@@ -52,29 +53,29 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 
 - **Before:** Feed resource served via SDKv2 path; no terraform-plugin-framework implementation existed; provider.go ResourcesMap contained 'betterado_feed': feed.ResourceFeed().
 - **After:** Feed resource served via mux ProtoV6 framework path; live REST GET confirms ADO created feed c7b212a0-eec5-4f90-8729-f19323788018 (name=test-acc-9vx96c31px) at dev.azure.com/davidgparsonson.
-- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/_apis/packaging/feeds/c7b212a0-eec5-4f90-8729-f19323788018?api-version=7.1` _(captured 2026-07-03T00:36:43Z)_
+- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/_apis/packaging/feeds/4100079c-5449-4894-aa3d-13f620754a16?api-version=7.1` _(captured 2026-07-03T02:41:29Z)_
 
 ```json
 {
   "capabilities": "defaultCapabilities",
-  "fullyQualifiedId": "c7b212a0-eec5-4f90-8729-f19323788018",
-  "fullyQualifiedName": "test-acc-9vx96c31px",
-  "id": "c7b212a0-eec5-4f90-8729-f19323788018",
-  "name": "test-acc-9vx96c31px",
+  "fullyQualifiedId": "4100079c-5449-4894-aa3d-13f620754a16",
+  "fullyQualifiedName": "test-acc-kiov16y63w",
+  "id": "4100079c-5449-4894-aa3d-13f620754a16",
+  "name": "test-acc-kiov16y63w",
   "upstreamSources": [],
   "_links": {
     "packages": {
-      "href": "https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/c7b212a0-eec5-4f90-8729-f19323788018/Packages"
+      "href": "https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/4100079c-5449-4894-aa3d-13f620754a16/Packages"
     },
     "permissions": {
-      "href": "https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/c7b212a0-eec5-4f90-8729-f19323788018/Permissions"
+      "href": "https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/4100079c-5449-4894-aa3d-13f620754a16/Permissions"
     },
     "self": {
-      "href": "https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/c7b212a0-eec5-4f90-8729-f19323788018"
+      "href": "https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/4100079c-5449-4894-aa3d-13f620754a16"
     }
   },
-  "defaultViewId": "886547e9-10b7-4c6f-8ba0-0bb3e4a1e65a",
-  "url": "https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/c7b212a0-eec5-4f90-8729-f19323788018"
+  "defaultViewId": "77c67201-bf85-43fa-b272-74f58c0ca498",
+  "url": "https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/4100079c-5449-4894-aa3d-13f620754a16"
 }
 ```
 
@@ -191,7 +192,7 @@ feed.NewFeedDataSource()
 - `acceptancetests.test` — changed — compiled test binary
 
 ```
-26 files changed, 3010 insertions(+), 106 deletions(-)
+69 files changed, 3604 insertions(+), 446 deletions(-)
 ```
 
 ## Usage

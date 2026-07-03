@@ -3,7 +3,7 @@
   "essence": "All four feed surfaces (betterado_feed, betterado_feed_permission, betterado_feed_retention_policy, data.betterado_feed) previously served via terraform-plugin-sdk/v2 are now served through the mux ProtoV6 provider path using terraform-plugin-framework. The SDKv2 registrations are deregistered; live acceptance tests prove apply → read-back → idempotency → destroy against real ADO; provider docs are regenerated, changelog and version bumped.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-feed",
-  "diffStat": "26 files changed, 3010 insertions(+), 106 deletions(-)",
+  "diffStat": "69 files changed, 3604 insertions(+), 446 deletions(-)",
   "summary": {
     "bullets": [
       "betterado_feed, betterado_feed_permission, betterado_feed_retention_policy, and data.betterado_feed are now served via terraform-plugin-framework through the mux ProtoV6 provider.",
@@ -36,9 +36,9 @@
       "beforeNote": "Feed resource served via SDKv2 path; no terraform-plugin-framework implementation existed; provider.go ResourcesMap contained 'betterado_feed': feed.ResourceFeed().",
       "afterNote": "Feed resource served via mux ProtoV6 framework path; live REST GET confirms ADO created feed c7b212a0-eec5-4f90-8729-f19323788018 (name=test-acc-9vx96c31px) at dev.azure.com/davidgparsonson.",
       "liveEvidence": {
-        "url": "https://dev.azure.com/davidgparsonson/_apis/packaging/feeds/c7b212a0-eec5-4f90-8729-f19323788018?api-version=7.1",
-        "capturedAt": "2026-07-03T00:36:43Z",
-        "response": "{\n  \"capabilities\": \"defaultCapabilities\",\n  \"fullyQualifiedId\": \"c7b212a0-eec5-4f90-8729-f19323788018\",\n  \"fullyQualifiedName\": \"test-acc-9vx96c31px\",\n  \"id\": \"c7b212a0-eec5-4f90-8729-f19323788018\",\n  \"name\": \"test-acc-9vx96c31px\",\n  \"upstreamSources\": [],\n  \"_links\": {\n    \"packages\": {\n      \"href\": \"https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/c7b212a0-eec5-4f90-8729-f19323788018/Packages\"\n    },\n    \"permissions\": {\n      \"href\": \"https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/c7b212a0-eec5-4f90-8729-f19323788018/Permissions\"\n    },\n    \"self\": {\n      \"href\": \"https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/c7b212a0-eec5-4f90-8729-f19323788018\"\n    }\n  },\n  \"defaultViewId\": \"886547e9-10b7-4c6f-8ba0-0bb3e4a1e65a\",\n  \"url\": \"https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/c7b212a0-eec5-4f90-8729-f19323788018\"\n}"
+        "url": "https://dev.azure.com/davidgparsonson/_apis/packaging/feeds/4100079c-5449-4894-aa3d-13f620754a16?api-version=7.1",
+        "capturedAt": "2026-07-03T02:41:29Z",
+        "response": "{\n  \"capabilities\": \"defaultCapabilities\",\n  \"fullyQualifiedId\": \"4100079c-5449-4894-aa3d-13f620754a16\",\n  \"fullyQualifiedName\": \"test-acc-kiov16y63w\",\n  \"id\": \"4100079c-5449-4894-aa3d-13f620754a16\",\n  \"name\": \"test-acc-kiov16y63w\",\n  \"upstreamSources\": [],\n  \"_links\": {\n    \"packages\": {\n      \"href\": \"https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/4100079c-5449-4894-aa3d-13f620754a16/Packages\"\n    },\n    \"permissions\": {\n      \"href\": \"https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/4100079c-5449-4894-aa3d-13f620754a16/Permissions\"\n    },\n    \"self\": {\n      \"href\": \"https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/4100079c-5449-4894-aa3d-13f620754a16\"\n    }\n  },\n  \"defaultViewId\": \"77c67201-bf85-43fa-b272-74f58c0ca498\",\n  \"url\": \"https://feeds.dev.azure.com/davidgparsonson/_apis/Packaging/Feeds/4100079c-5449-4894-aa3d-13f620754a16\"\n}"
       }
     }
   ],
