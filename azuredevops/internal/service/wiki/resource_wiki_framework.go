@@ -303,13 +303,20 @@ func (r *WikiResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	wikiResp, err := r.client.WikiClient.GetWiki(r.client.Ctx, azwiki.GetWikiArgs{WikiIdentifier: converter.String(model.ID.ValueString())})
+	wikiResp, err := r.client.WikiClient.GetWiki(ctx, azwiki.GetWikiArgs{WikiIdentifier: converter.String(model.ID.ValueString())})
 	if err != nil {
 		if utils.ResponseWasNotFound(err) {
 			resp.State.RemoveResource(ctx)
 			return
 		}
 		resp.Diagnostics.AddError("Error reading wiki", err.Error())
+		return
+	}
+
+	// Treat a disabled wiki as deleted: ADO marks wikis as disabled when their
+	// backing repository is soft-deleted (e.g. after a previous destroy cycle).
+	if wikiResp != nil && wikiResp.IsDisabled != nil && *wikiResp.IsDisabled {
+		resp.State.RemoveResource(ctx)
 		return
 	}
 
@@ -432,6 +439,8 @@ func (r *WikiResource) deleteProjectWiki(ctx context.Context, resp *resource.Del
 	// ── Strategy 3: poll until wiki disappears (eventual consistency) ─────────
 	// After repository deletion, ADO may take a few seconds to reflect the change
 	// in the wiki REST API. Poll for up to 60 s before giving up.
+	// A wiki is considered "gone" if GetWiki returns 404, or if IsDisabled=true
+	// (ADO marks the wiki disabled when its backing repo is soft-deleted).
 	for attempt := 0; attempt < 12; attempt++ {
 		time.Sleep(5 * time.Second)
 
@@ -439,11 +448,15 @@ func (r *WikiResource) deleteProjectWiki(ctx context.Context, resp *resource.Del
 			break
 		}
 
-		_, checkErr := r.client.WikiClient.GetWiki(ctx, azwiki.GetWikiArgs{
+		w, checkErr := r.client.WikiClient.GetWiki(ctx, azwiki.GetWikiArgs{
 			WikiIdentifier: converter.String(wikiID),
 		})
-		if checkErr != nil && utils.ResponseWasNotFound(checkErr) {
-			// Wiki is gone — success.
+		if checkErr != nil {
+			// Any error (especially 404) means the wiki is gone.
+			return
+		}
+		if w != nil && w.IsDisabled != nil && *w.IsDisabled {
+			// Wiki is disabled (backing repo deleted) — treat as gone.
 			return
 		}
 	}

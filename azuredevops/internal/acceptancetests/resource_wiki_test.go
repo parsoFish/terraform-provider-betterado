@@ -126,15 +126,23 @@ func checkWikiDestroyedFramework(s *terraform.State) error {
 		// ADO wiki deletion (especially for projectWiki via repo deletion) can be
 		// eventually consistent: GetWiki may still return the wiki for a few seconds
 		// after the backing repository has been removed. Retry for up to 30 s.
+		// Also treat a disabled wiki (IsDisabled=true) as effectively deleted — ADO
+		// sometimes marks wikis as disabled when the backing repository is soft-deleted
+		// rather than returning 404 immediately.
 		wikiID := res.Primary.ID
 		gone := false
 		for attempt := 0; attempt < 7; attempt++ {
 			if attempt > 0 {
 				time.Sleep(5 * time.Second)
 			}
-			_, getErr := clients.WikiClient.GetWiki(clients.Ctx, azwiki.GetWikiArgs{WikiIdentifier: converter.String(wikiID)})
+			w, getErr := clients.WikiClient.GetWiki(clients.Ctx, azwiki.GetWikiArgs{WikiIdentifier: converter.String(wikiID)})
 			if getErr != nil {
 				// Any error (expected: 404 Not Found) means the wiki is no longer accessible.
+				gone = true
+				break
+			}
+			if w != nil && w.IsDisabled != nil && *w.IsDisabled {
+				// Wiki's backing repo was deleted; ADO marks it disabled instead of 404.
 				gone = true
 				break
 			}
