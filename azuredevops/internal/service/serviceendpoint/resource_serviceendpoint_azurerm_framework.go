@@ -3,13 +3,16 @@ package serviceendpoint
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -226,6 +229,9 @@ func (r *ServiceEndpointAzureRMResource) Schema(_ context.Context, _ resource.Sc
 				PlanModifiers: []planmodifier.String{
 					seAzureRMRequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringvalidator.OneOf("AzureCloud", "AzureChinaCloud", "AzureUSGovernment", "AzureGermanCloud", "AzureStack"),
+				},
 			},
 			"service_endpoint_authentication_scheme": schema.StringAttribute{
 				Optional:    true,
@@ -235,6 +241,9 @@ func (r *ServiceEndpointAzureRMResource) Schema(_ context.Context, _ resource.Sc
 				PlanModifiers: []planmodifier.String{
 					seAzureRMRequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringvalidator.OneOf("WorkloadIdentityFederation", "ManagedServiceIdentity", "ServicePrincipal"),
+				},
 			},
 			"server_url": schema.StringAttribute{
 				Optional:    true,
@@ -243,6 +252,12 @@ func (r *ServiceEndpointAzureRMResource) Schema(_ context.Context, _ resource.Sc
 				PlanModifiers: []planmodifier.String{
 					seAzureRMRequiresReplace(),
 					seAzureRMUseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^https?://`),
+						"must be a valid URL beginning with http:// or https://",
+					),
 				},
 			},
 			"workload_identity_federation_issuer": schema.StringAttribute{
@@ -275,6 +290,9 @@ func (r *ServiceEndpointAzureRMResource) Schema(_ context.Context, _ resource.Sc
 						"serviceprincipalid": schema.StringAttribute{
 							Required:    true,
 							Description: "The service principal id which should be used.",
+							Validators: []validator.String{
+								stringvalidator.LengthAtLeast(1),
+							},
 						},
 						"serviceprincipalkey": schema.StringAttribute{
 							Optional:    true,
