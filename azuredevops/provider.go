@@ -107,7 +107,7 @@ func Provider() *schema.Provider {
 			"betterado_serviceendpoint_artifactory":            serviceendpoint.ResourceServiceEndpointArtifactory(),
 			// betterado_serviceendpoint_aws is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_azure_service_bus is registered in framework_provider.go (migrated to terraform-plugin-framework)
-			"betterado_serviceendpoint_azurecr":     serviceendpoint.ResourceServiceEndpointAzureCR(),
+			// betterado_serviceendpoint_azurecr is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			"betterado_serviceendpoint_azuredevops": serviceendpoint.ResourceServiceEndpointAzureDevOps(),
 			// betterado_serviceendpoint_azurerm is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			"betterado_serviceendpoint_bitbucket":                   serviceendpoint.ResourceServiceEndpointBitBucket(),
@@ -115,7 +115,7 @@ func Provider() *schema.Provider {
 			"betterado_serviceendpoint_checkmarx_one":               serviceendpoint.ResourceServiceEndpointCheckMarxOneService(),
 			"betterado_serviceendpoint_checkmarx_sca":               serviceendpoint.ResourceServiceEndpointCheckMarxSCA(),
 			"betterado_serviceendpoint_checkmarx_sast":              serviceendpoint.ResourceServiceEndpointCheckMarxSAST(),
-			"betterado_serviceendpoint_dockerregistry":              serviceendpoint.ResourceServiceEndpointDockerRegistry(),
+			// betterado_serviceendpoint_dockerregistry is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			"betterado_serviceendpoint_dynamics_lifecycle_services": serviceendpoint.ResourceServiceEndpointDynamicsLifecycleServices(),
 			"betterado_serviceendpoint_externaltfs":                 serviceendpoint.ResourceServiceEndpointExternalTFS(),
 			// betterado_serviceendpoint_gcp_terraform is registered in framework_provider.go (migrated to terraform-plugin-framework)
@@ -210,10 +210,10 @@ func Provider() *schema.Provider {
 			"betterado_security_namespaces":        security.DataSecurityNamespaces(),
 			"betterado_securityrole_definitions":   securityroles.DataSecurityRoleDefinitions(),
 			"betterado_serviceendpoint_generic_v2": serviceendpoint.DataServiceEndpointGenericV2(),
-			"betterado_serviceendpoint_azurecr":    serviceendpoint.DataResourceServiceEndpointAzureCR(),
+			// betterado_serviceendpoint_azurecr data source is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_azurerm data source is registered in framework_provider.go (migrated to terraform-plugin-framework)
-			"betterado_serviceendpoint_bitbucket":             serviceendpoint.DataResourceServiceEndpointBitbucket(),
-			"betterado_serviceendpoint_dockerregistry":        serviceendpoint.DataResourceServiceEndpointDockerRegistry(),
+			"betterado_serviceendpoint_bitbucket": serviceendpoint.DataResourceServiceEndpointBitbucket(),
+			// betterado_serviceendpoint_dockerregistry data source is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			"betterado_serviceendpoint_github":                serviceendpoint.DataServiceEndpointGithub(),
 			"betterado_serviceendpoint_npm":                   serviceendpoint.DataResourceServiceEndpointNpm(),
 			"betterado_serviceendpoint_sonarcloud":            serviceendpoint.DataResourceServiceEndpointSonarCloud(),
