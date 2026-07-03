@@ -35,7 +35,6 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_dashboard",
 		"betterado_deployment_group",
 		"betterado_elastic_pool",
-		"betterado_environment_resource_kubernetes",
 		"betterado_extension",
 		"betterado_feed",
 		"betterado_feed_permission",

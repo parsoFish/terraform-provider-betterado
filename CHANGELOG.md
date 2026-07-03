@@ -21,6 +21,14 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   by live acceptance tests `TestAccAgentPoolDataSource_basic` and
   `TestAccAgentPoolsDataSource_Basic`.
 
+- **`betterado_environment_resource_kubernetes` resource migrated to
+  terraform-plugin-framework.** The resource now uses the framework implementation
+  served through the mux provider; SDKv2 source files removed. Schema is unchanged
+  (`project_id`, `environment_id`, `service_endpoint_id`, `name`, `namespace`,
+  `cluster_name`, `tags`). Verified by live acceptance test
+  `TestAccEnvironmentResourceKubernetes_createUpdate` with idempotency re-plan
+  and clean destroy.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

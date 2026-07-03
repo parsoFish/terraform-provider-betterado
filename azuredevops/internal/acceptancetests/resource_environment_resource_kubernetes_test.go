@@ -2,7 +2,9 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,7 +14,10 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
-func TestAccEnvironmentKubernetes_createUpdate(t *testing.T) {
+// TestAccEnvironmentResourceKubernetes_createUpdate verifies the full lifecycle
+// (create, read-back with idempotency check, update name, destroy) of a
+// betterado_environment_resource_kubernetes resource via the framework provider.
+func TestAccEnvironmentResourceKubernetes_createUpdate(t *testing.T) {
 	environmentName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 	resourceNameFirst := testutils.GenerateResourceName()
@@ -31,8 +36,12 @@ func TestAccEnvironmentKubernetes_createUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "environment_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "service_endpoint_id"),
+					resource.TestCheckResourceAttr(tfNode, "namespace", "test"),
+					resource.TestCheckResourceAttr(tfNode, "cluster_name", "k8scluster"),
 					checkEnvironmentKubernetesExists(tfNode, resourceNameFirst),
+					captureEnvironmentKubernetesEvidence(tfNode),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
 				Config: hclEnvironmentKubernetes(environmentName, serviceEndpointName, resourceNameSecond),
@@ -41,15 +50,19 @@ func TestAccEnvironmentKubernetes_createUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "environment_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "service_endpoint_id"),
+					resource.TestCheckResourceAttr(tfNode, "namespace", "test"),
+					resource.TestCheckResourceAttr(tfNode, "cluster_name", "k8scluster"),
 					checkEnvironmentKubernetesExists(tfNode, resourceNameSecond),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})
 }
 
-// Given the name of a resource, this will return a function that will check whether
-// the resource (1) exists in the state and (2) exist in AzDO and (3) has the correct name
+// checkEnvironmentKubernetesExists verifies that the resource:
+// (1) exists in the Terraform state and
+// (2) exists in AzDO with the correct name.
 func checkEnvironmentKubernetesExists(tfNode string, expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		res, ok := s.RootModule().Resources[tfNode]
@@ -84,17 +97,16 @@ func checkEnvironmentKubernetesExists(tfNode string, expectedName string) resour
 	}
 }
 
-// verifies that environment referenced in the state is destroyed. This will be invoked
-// *after* terraform destroys the resource but *before* the state is wiped clean.
+// checkEnvironmentKubernetesDestroyed verifies that every kubernetes resource
+// referenced in the state is gone after destroy.
 func checkEnvironmentKubernetesDestroyed(s *terraform.State) error {
 	clients, err := testutils.GetDirectClient()
 	if err != nil {
 		return fmt.Errorf("building direct client: %v", err)
 	}
 
-	// verify that every environment referenced in the state does not exist in AzDO
 	for _, res := range s.RootModule().Resources {
-		if res.Type != "betterado_environment_kubernetes" {
+		if res.Type != "betterado_environment_resource_kubernetes" {
 			continue
 		}
 
@@ -117,7 +129,7 @@ func checkEnvironmentKubernetesDestroyed(s *terraform.State) error {
 	return nil
 }
 
-// Lookup an Environment using the ID and the project ID.
+// readEnvironmentKubernetes looks up a KubernetesResource by project, environment, and resource ID.
 func readEnvironmentKubernetes(clients *client.AggregatedClient, projectId string, environmentId int, resourceId int) (*taskagent.KubernetesResource, error) {
 	return clients.TaskAgentClient.GetKubernetesResource(clients.Ctx,
 		taskagent.GetKubernetesResourceArgs{
@@ -126,6 +138,49 @@ func readEnvironmentKubernetes(clients *client.AggregatedClient, projectId strin
 			ResourceId:    &resourceId,
 		},
 	)
+}
+
+// captureEnvironmentKubernetesEvidence performs a live API GET of the Kubernetes resource
+// and writes forge demo live-evidence to
+// .forge/live-evidence/acceptance-resource-environment-kubernetes.json (AC3).
+// Best-effort: a capture failure never fails the test.
+func captureEnvironmentKubernetesEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		resourceIDStr := res.Primary.ID
+		projectID := res.Primary.Attributes["project_id"]
+		environmentIDStr := res.Primary.Attributes["environment_id"]
+
+		resourceID, parseErr := strconv.Atoi(resourceIDStr)
+		if parseErr != nil {
+			return nil //nolint:nilerr // best-effort: parse failure must not fail the test
+		}
+		environmentID, envParseErr := strconv.Atoi(environmentIDStr)
+		if envParseErr != nil {
+			return nil //nolint:nilerr // best-effort: parse failure must not fail the test
+		}
+
+		clients, clientErr := testutils.GetDirectClient()
+		if clientErr != nil {
+			return nil //nolint:nilerr // best-effort: client failure must not fail the test
+		}
+
+		k8sResource, readErr := readEnvironmentKubernetes(clients, projectID, environmentID, resourceID)
+		if readErr != nil || k8sResource == nil {
+			return nil //nolint:nilerr // best-effort: API failure must not fail the test
+		}
+
+		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+		url := fmt.Sprintf(
+			"%s/%s/_apis/distributedtask/environments/%s/providers/kubernetes/%s?api-version=7.1",
+			orgURL, projectID, environmentIDStr, resourceIDStr,
+		)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-environment-kubernetes", url, k8sResource)
+		return nil
+	}
 }
 
 // hclEnvironmentKubernetes creates a Kubernetes environment resource in the standing
