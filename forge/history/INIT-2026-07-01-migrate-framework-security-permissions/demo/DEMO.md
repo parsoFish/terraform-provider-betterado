@@ -26,26 +26,20 @@
 
 ## Visual Changes
 
-### CI-equivalent gate: release and taskagent service packages green after all migrations
+### Initiative quality gate: servicehook package green after all security/permissions migrations
 
-- **Before:** Gate passed on main before this initiative
+- **Before:** Gate green on main before this initiative
 - **After:** Gate passes on branch HEAD with all 17 framework migrations in place
-- **Command:** `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...`
+- **Command:** `go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...`
 
 **Before output:**
 ```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.009s
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.006s
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.005s
-
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.006s
 ```
 
 **After output:**
 ```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.007s
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.006s
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.005s
-
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.009s
 ```
 
 ### Provider still compiles; migrated types absent from SDKv2 ResourcesMap, present in framework Resources()
@@ -112,8 +106,7 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acce
 
 | test | result | delta |
 |---|---|---|
-| go test -tags all -count=1 ./azuredevops/internal/service/release/... | pass | — |
-| go test -tags all -count=1 ./azuredevops/internal/service/taskagent/... | pass | — |
+| go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... | pass | — |
 | go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/ | pass | — |
 | go test -tags all -count=1 -run TestAccSecurityPermissionsFramework ./azuredevops/internal/acceptancetests/ | pass | new |
 | go test -tags all -count=1 -run TestAccSecurityRoleAssignmentFramework ./azuredevops/internal/acceptancetests/ | pass | new |
@@ -123,5 +116,5 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acce
 ## Files Changed
 
 ```
-160 files changed, 15935 insertions(+), 696 deletions(-)
+182 files changed, 13146 insertions(+), 3902 deletions(-)
 ```

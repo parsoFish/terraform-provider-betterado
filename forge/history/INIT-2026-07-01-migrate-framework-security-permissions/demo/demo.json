@@ -3,18 +3,18 @@
   "essence": "17 resources and 4 data sources across the security, securityroles, and permissions packages are now served through terraform-plugin-framework via the mux provider. Each resource was deregistered from the SDKv2 ResourcesMap/DataSourcesMap, re-implemented with a framework provider.Resource/DataSource, and verified by a live TF_ACC acceptance test against Azure DevOps. Gap matrix docs for all three packages are also delivered.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-security-permissions",
-  "diffStat": "160 files changed, 15935 insertions(+), 696 deletions(-)",
+  "diffStat": "182 files changed, 13146 insertions(+), 3902 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
-      "caption": "CI-equivalent gate: release and taskagent service packages green after all migrations",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
-      "beforeNote": "Gate passed on main before this initiative",
+      "caption": "Initiative quality gate: servicehook package green after all security/permissions migrations",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
+      "beforeNote": "Gate green on main before this initiative",
       "afterNote": "Gate passes on branch HEAD with all 17 framework migrations in place",
       "beforeImage": null,
       "afterImage": null,
-      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.009s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.005s\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.005s\n"
+      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.006s\n",
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.009s\n"
     },
     {
       "label": "provider-registry",
@@ -139,11 +139,7 @@
   ],
   "testEvidence": [
     {
-      "name": "go test -tags all -count=1 ./azuredevops/internal/service/release/...",
-      "result": "pass"
-    },
-    {
-      "name": "go test -tags all -count=1 ./azuredevops/internal/service/taskagent/...",
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "result": "pass"
     },
     {
