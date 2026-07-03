@@ -8,22 +8,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	taskagentsvc "github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 )
 
 func TestAccVariableGroupVariable_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	vgName := testutils.GenerateResourceName()
 	node := "betterado_variable_group_variable.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkVariableGroupVariableDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkVariableGroupVariableDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclVariableGroupVariableBasic(projectName, vgName, "foo"),
+				Config: hclVariableGroupVariableBasic(vgName, "foo"),
 				Check: resource.ComposeTestCheckFunc(
 					checkVariableGroupVariableExists(node),
 				),
@@ -34,7 +32,7 @@ func TestAccVariableGroupVariable_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: hclVariableGroupVariableBasic(projectName, vgName, "bar"),
+				Config: hclVariableGroupVariableBasic(vgName, "bar"),
 				Check: resource.ComposeTestCheckFunc(
 					checkVariableGroupVariableExists(node),
 				),
@@ -49,17 +47,16 @@ func TestAccVariableGroupVariable_basic(t *testing.T) {
 }
 
 func TestAccVariableGroupVariable_secret(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	vgName := testutils.GenerateResourceName()
 	node := "betterado_variable_group_variable.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkVariableGroupVariableDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkVariableGroupVariableDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclVariableGroupVariableSecret(projectName, vgName, "foo"),
+				Config: hclVariableGroupVariableSecret(vgName, "foo"),
 				Check: resource.ComposeTestCheckFunc(
 					checkVariableGroupVariableExists(node),
 				),
@@ -71,7 +68,7 @@ func TestAccVariableGroupVariable_secret(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"secret_value"},
 			},
 			{
-				Config: hclVariableGroupVariableSecret(projectName, vgName, "bar"),
+				Config: hclVariableGroupVariableSecret(vgName, "bar"),
 				Check: resource.ComposeTestCheckFunc(
 					checkVariableGroupVariableExists(node),
 				),
@@ -119,13 +116,17 @@ func checkVariableGroupVariableExists(node string) resource.TestCheckFunc {
 	}
 }
 
-func checkVariableGroupVariableFromState(resource *terraform.ResourceState) (bool, error) {
-	projectId, groupId, name, err := taskagentsvc.ResourceVariableGroupVariableParseId(resource.Primary.ID)
+func checkVariableGroupVariableFromState(res *terraform.ResourceState) (bool, error) {
+	projectId, groupId, name, err := taskagentsvc.ResourceVariableGroupVariableParseId(res.Primary.ID)
 	if err != nil {
 		return false, err
 	}
 
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+	clients, err := testutils.GetDirectClient()
+	if err != nil {
+		return false, fmt.Errorf("GetDirectClient: %v", err)
+	}
+
 	resp, err := clients.TaskAgentClient.GetVariableGroup(
 		clients.Ctx,
 		taskagent.GetVariableGroupArgs{
@@ -147,7 +148,6 @@ func checkVariableGroupVariableFromState(resource *terraform.ResourceState) (boo
 }
 
 func TestAccVariableGroupVariable_ForEach_ConcurrentCreate(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	vgName := testutils.GenerateResourceName()
 
 	var nodes []string
@@ -163,26 +163,29 @@ func TestAccVariableGroupVariable_ForEach_ConcurrentCreate(t *testing.T) {
 
 	steps := []resource.TestStep{
 		{
-			Config: hclVariableGroupVariableForEach(projectName, vgName),
+			Config: hclVariableGroupVariableForEach(vgName),
 			Check:  resource.ComposeTestCheckFunc(checks...),
 		},
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
-		Steps:     steps,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		Steps:                    steps,
 	})
 }
 
-func hclVariableGroupVariableBasic(projectName, variableGroupName, val string) string {
+// ── HCL fixtures using the standing fixture project ───────────────────────────
+
+func hclVariableGroupVariableBasic(variableGroupName, val string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "fixture" {
+  name = %[3]q
 }
+
 resource "betterado_variable_group" "test" {
-  project_id   = betterado_project.test.id
-  name         = "%s"
+  project_id   = data.betterado_project.fixture.id
+  name         = %[1]q
   description  = "test description"
   allow_access = false
   variable {
@@ -199,22 +202,23 @@ resource "betterado_variable_group" "test" {
   }
 }
 resource "betterado_variable_group_variable" "test" {
-  project_id        = betterado_project.test.id
+  project_id        = data.betterado_project.fixture.id
   variable_group_id = betterado_variable_group.test.id
   name              = "test-key"
-  value             = "%s"
+  value             = %[2]q
 }
-`, projectName, variableGroupName, val)
+`, variableGroupName, val, SharedFixtureProjectName)
 }
 
-func hclVariableGroupVariableSecret(projectName, variableGroupName, val string) string {
+func hclVariableGroupVariableSecret(variableGroupName, val string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "fixture" {
+  name = %[3]q
 }
+
 resource "betterado_variable_group" "test" {
-  project_id   = betterado_project.test.id
-  name         = "%s"
+  project_id   = data.betterado_project.fixture.id
+  name         = %[1]q
   description  = "test description"
   allow_access = false
   variable {
@@ -231,23 +235,23 @@ resource "betterado_variable_group" "test" {
   }
 }
 resource "betterado_variable_group_variable" "test" {
-  project_id        = betterado_project.test.id
+  project_id        = data.betterado_project.fixture.id
   variable_group_id = betterado_variable_group.test.id
   name              = "test-key"
-  secret_value      = "%s"
+  secret_value      = %[2]q
 }
-`, projectName, variableGroupName, val)
+`, variableGroupName, val, SharedFixtureProjectName)
 }
 
-func hclVariableGroupVariableForEach(projectName, variableGroupName string) string {
+func hclVariableGroupVariableForEach(variableGroupName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "fixture" {
+  name = %[2]q
 }
 
 resource "betterado_variable_group" "test" {
-  project_id   = betterado_project.test.id
-  name         = "%s"
+  project_id   = data.betterado_project.fixture.id
+  name         = %[1]q
   description  = "test description"
   allow_access = false
 
@@ -262,10 +266,10 @@ resource "betterado_variable_group" "test" {
 
 resource "betterado_variable_group_variable" "test" {
   count             = 20
-  project_id        = betterado_project.test.id
+  project_id        = data.betterado_project.fixture.id
   variable_group_id = betterado_variable_group.test.id
   name              = "key${count.index}"
   value             = "val${count.index}"
 }
-`, projectName, variableGroupName)
+`, variableGroupName, SharedFixtureProjectName)
 }

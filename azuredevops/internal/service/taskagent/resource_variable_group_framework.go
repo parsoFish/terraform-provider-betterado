@@ -352,9 +352,9 @@ func (r *VariableGroupResource) Read(ctx context.Context, req resource.ReadReque
 	resourceRefType := "variablegroup"
 	varGroupIDStr := strconv.Itoa(*vg.Id)
 	projectResources, err := r.client.BuildClient.GetProjectResources(ctx, build.GetProjectResourcesArgs{
-		Project:  &projectID,
-		Type:     &resourceRefType,
-		Id:       &varGroupIDStr,
+		Project: &projectID,
+		Type:    &resourceRefType,
+		Id:      &varGroupIDStr,
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error reading allow_access", err.Error())
@@ -776,4 +776,3 @@ func splitImportID(id string) []string {
 	}
 	return []string{id}
 }
-

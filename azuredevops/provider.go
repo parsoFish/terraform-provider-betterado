@@ -232,9 +232,9 @@ func Provider() *schema.Provider {
 			// betterado_task_group is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a data source type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_teams":                                 core.DataTeams(),
-			"betterado_user":                                  graph.DataUser(),
-			"betterado_users":                                 graph.DataUsers(),
+			"betterado_teams": core.DataTeams(),
+			"betterado_user":  graph.DataUser(),
+			"betterado_users": graph.DataUsers(),
 			// betterado_variable_group data source is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a data source type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
