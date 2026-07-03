@@ -17,7 +17,7 @@ import (
 
 // Ensure interface compliance at compile time.
 var (
-	_ datasource.DataSource              = &feedDataSource{}
+	_ datasource.DataSource                     = &feedDataSource{}
 	_ datasource.DataSourceWithConfigValidators = &feedDataSource{}
 )
 
