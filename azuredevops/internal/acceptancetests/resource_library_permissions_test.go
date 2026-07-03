@@ -22,9 +22,9 @@ func TestAccLibraryPermissions_SetPermissions(t *testing.T) {
 	tfNode := "betterado_library_permissions.permissions"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -67,9 +67,9 @@ func TestAccLibraryPermissions_UpdatePermissions(t *testing.T) {
 	tfNode := "betterado_library_permissions.permissions"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: config1,

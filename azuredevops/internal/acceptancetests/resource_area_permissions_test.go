@@ -22,9 +22,9 @@ func TestAccAreaPermissions_SetPermissions(t *testing.T) {
 	tfNodeRoot := "betterado_area_permissions.root-permissions"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -65,9 +65,9 @@ func TestAccAreaPermissions_UpdatePermissions(t *testing.T) {
 	tfNodeRoot := "betterado_area_permissions.root-permissions"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: config1,

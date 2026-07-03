@@ -12,7 +12,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 	expectedResources := []string{
 		"betterado_agent_pool",
 		"betterado_agent_queue",
-		"betterado_area_permissions",
+		// betterado_area_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_branch_policy_auto_reviewers",
 		"betterado_branch_policy_build_validation",
 		"betterado_branch_policy_comment_resolution",
@@ -21,9 +21,9 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_branch_policy_status_check",
 		"betterado_branch_policy_work_item_linking",
 		"betterado_build_definition",
-		"betterado_build_definition_permissions",
+		// betterado_build_definition_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_build_folder",
-		"betterado_build_folder_permissions",
+		// betterado_build_folder_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_check_approval",
 		"betterado_check_branch_control",
 		"betterado_check_business_hours",
@@ -39,15 +39,15 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_feed",
 		"betterado_feed_permission",
 		"betterado_feed_retention_policy",
-		"betterado_git_permissions",
+		// betterado_git_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_git_repository",
 		"betterado_git_repository_branch",
 		"betterado_git_repository_file",
 		"betterado_group",
 		"betterado_group_entitlement",
 		"betterado_group_membership",
-		"betterado_iteration_permissions",
-		"betterado_library_permissions",
+		// betterado_iteration_permissions — migrated to framework (framework_provider.go Resources())
+		// betterado_library_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_pipeline_authorization",
 		"betterado_project",
 		"betterado_project_features",
@@ -103,7 +103,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_serviceendpoint_nuget",
 		"betterado_serviceendpoint_octopusdeploy",
 		"betterado_serviceendpoint_openshift",
-		"betterado_serviceendpoint_permissions",
+		// betterado_serviceendpoint_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_serviceendpoint_runpipeline",
 		"betterado_serviceendpoint_servicefabric",
 		"betterado_serviceendpoint_snyk",
@@ -111,17 +111,17 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_serviceendpoint_sonarqube",
 		"betterado_serviceendpoint_ssh",
 		"betterado_serviceendpoint_visualstudiomarketplace",
-		"betterado_servicehook_permissions",
+		// betterado_servicehook_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_servicehook_storage_queue_pipelines",
 		"betterado_servicehook_webhook_tfs",
 		"betterado_service_principal_entitlement",
-		"betterado_tagging_permissions",
+		// betterado_tagging_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_team",
 		"betterado_team_administrators",
 		"betterado_team_members",
 		"betterado_user_entitlement",
 		"betterado_variable_group",
-		"betterado_variable_group_permissions",
+		// betterado_variable_group_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_variable_group_variable",
 		"betterado_wiki",
 		"betterado_wiki_page",
@@ -129,7 +129,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_workitemtracking_field",
 		"betterado_workitemquery",
 		"betterado_workitemquery_folder",
-		"betterado_workitemquery_permissions",
+		// betterado_workitemquery_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_workitemtrackingprocess_control",
 		"betterado_workitemtrackingprocess_field",
 		"betterado_workitemtrackingprocess_group",
@@ -139,7 +139,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_workitemtrackingprocess_list",
 		"betterado_workitemtrackingprocess_page",
 		"betterado_workitemtrackingprocess_process",
-		"betterado_workitemtrackingprocess_process_permissions",
+		// betterado_workitemtrackingprocess_process_permissions — migrated to framework (framework_provider.go Resources())
 		"betterado_workitemtrackingprocess_rule",
 		"betterado_workitemtrackingprocess_state",
 		"betterado_workitemtrackingprocess_system_control",

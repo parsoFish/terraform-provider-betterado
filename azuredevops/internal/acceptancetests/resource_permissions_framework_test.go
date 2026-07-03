@@ -129,8 +129,8 @@ data "betterado_group" "readers" {
 }
 
 resource "betterado_project_permissions" "fw_permissions" {
-  project_id  = %[1]q
-  principal   = data.betterado_group.readers.descriptor
+  project_id = %[1]q
+  principal  = data.betterado_group.readers.descriptor
   permissions = {
     DELETE              = "deny"
     EDIT_BUILD_STATUS   = "notset"

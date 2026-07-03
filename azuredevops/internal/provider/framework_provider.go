@@ -211,6 +211,19 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		security.NewSecurityPermissionsResource,         // migrated from SDKv2
 		securityroles.NewSecurityRoleAssignmentResource, // migrated from SDKv2
 		permissions.NewProjectPermissionsResource,       // migrated from SDKv2
+		// permissions package — all 12 remaining resources migrated from SDKv2 (WI-4)
+		permissions.NewAreaPermissionsResource,
+		permissions.NewBuildDefinitionPermissionsResource,
+		permissions.NewBuildFolderPermissionsResource,
+		permissions.NewGitPermissionsResource,
+		permissions.NewIterationPermissionsResource,
+		permissions.NewLibraryPermissionsResource,
+		permissions.NewServiceEndpointPermissionsResource,
+		permissions.NewServiceHookPermissionsResource,
+		permissions.NewTaggingPermissionsResource,
+		permissions.NewVariableGroupPermissionsResource,
+		permissions.NewWorkItemQueryPermissionsResource,
+		permissions.NewWorkItemTrackingProcessPermissionsResource,
 	}
 }
 
