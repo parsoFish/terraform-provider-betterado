@@ -7,6 +7,8 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-07-03
+
 ### FEATURES
 
 - **`betterado_wiki` migrated to terraform-plugin-framework.** The resource now
@@ -26,10 +28,12 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   ADO's "page already updated by another client" conflict. Verified by live
   acceptance tests `TestAccWikiPageResource_basic` and
   `TestAccWikiPageResource_update`.
+
 ### Changed
 
 - Migrated `betterado_servicehook_storage_queue_pipelines` to terraform-plugin-framework (schema and behaviour unchanged).
 - Migrated `betterado_servicehook_webhook_tfs` to terraform-plugin-framework (schema and behaviour unchanged).
+
 ### ENHANCEMENTS
 
 - **`betterado_git_repository` resource migrated to terraform-plugin-framework.**
@@ -64,6 +68,7 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   Reads a file from an Azure DevOps Git repository by `repository_id`, `file`, and
   optional `branch`. Served through the mux provider. Verified by live acceptance
   test `TestAccDataGitRepositoryFileFramework`.
+
 ## [1.3.0] - 2026-07-01
 
 ### Added
