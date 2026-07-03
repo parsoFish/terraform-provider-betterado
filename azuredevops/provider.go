@@ -119,7 +119,7 @@ func Provider() *schema.Provider {
 			"betterado_serviceendpoint_dynamics_lifecycle_services": serviceendpoint.ResourceServiceEndpointDynamicsLifecycleServices(),
 			"betterado_serviceendpoint_externaltfs":                 serviceendpoint.ResourceServiceEndpointExternalTFS(),
 			"betterado_serviceendpoint_gcp_terraform":               serviceendpoint.ResourceServiceEndpointGcp(),
-			"betterado_serviceendpoint_generic":                     serviceendpoint.ResourceServiceEndpointGeneric(),
+			// betterado_serviceendpoint_generic is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			"betterado_serviceendpoint_generic_git":                 serviceendpoint.ResourceServiceEndpointGenericGit(),
 			"betterado_serviceendpoint_github":                      serviceendpoint.ResourceServiceEndpointGitHub(),
 			"betterado_serviceendpoint_github_enterprise":           serviceendpoint.ResourceServiceEndpointGitHubEnterprise(),

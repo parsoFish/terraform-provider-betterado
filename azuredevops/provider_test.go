@@ -85,7 +85,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_serviceendpoint_dynamics_lifecycle_services",
 		"betterado_serviceendpoint_externaltfs",
 		"betterado_serviceendpoint_gcp_terraform",
-		"betterado_serviceendpoint_generic",
+		// betterado_serviceendpoint_generic migrated to framework (registered in framework_provider.go)
 		"betterado_serviceendpoint_generic_git",
 		"betterado_serviceendpoint_github",
 		"betterado_serviceendpoint_github_enterprise",
