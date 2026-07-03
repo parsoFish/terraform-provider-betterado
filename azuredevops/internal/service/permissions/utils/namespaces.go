@@ -536,7 +536,7 @@ func (sn *SecurityNamespace) GetPrincipalPermissions(principal *[]string) (*[]Pr
 		}
 
 		subjectPerm := PrincipalPermission{
-			SubjectDescriptor: *(subject.SubjectDescriptor),
+			SubjectDescriptor: *subject.SubjectDescriptor,
 			Permissions:       map[ActionName]PermissionType{},
 		}
 		for actionName, actionDef := range *actions {

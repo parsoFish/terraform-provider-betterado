@@ -75,7 +75,8 @@ func TestGitRepositoryFileDataSource_ReadBranch(t *testing.T) {
 						VersionType: &git.GitVersionTypeValues.Branch,
 					},
 				}).
-				Return(&gitItem, nil))
+				Return(&gitItem, nil),
+		)
 
 	resourceData := schema.TestResourceDataRaw(t, DataGitRepositoryFile().Schema, nil)
 	resourceData.Set("repository_id", gitFileRepo.Id.String())
@@ -119,7 +120,8 @@ func TestGitRepositoryFileDataSource_ReadTag(t *testing.T) {
 						VersionType: &git.GitVersionTypeValues.Tag,
 					},
 				}).
-				Return(&gitItem, nil))
+				Return(&gitItem, nil),
+		)
 
 	resourceData := schema.TestResourceDataRaw(t, DataGitRepositoryFile().Schema, nil)
 	resourceData.Set("repository_id", gitFileRepo.Id.String())
@@ -163,7 +165,8 @@ func TestGitRepositoryFileDataSource_ReadCommitFail(t *testing.T) {
 						VersionType: &git.GitVersionTypeValues.Branch,
 					},
 				}).
-				Return(&gitItem, nil))
+				Return(&gitItem, nil),
+		)
 
 	resourceData := schema.TestResourceDataRaw(t, DataGitRepositoryFile().Schema, nil)
 	resourceData.Set("repository_id", gitFileRepo.Id.String())

@@ -20,7 +20,8 @@ func TestAccBranchPolicyStatusCheck_basic(t *testing.T) {
 			{
 				Config: hclBranchPolicyStatusCheckResourceBasic(projectName, repoName, "update"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(statusCheckTfNode, "settings.0.name", "update")),
+					resource.TestCheckResourceAttr(statusCheckTfNode, "settings.0.name", "update"),
+				),
 			}, {
 				ResourceName:      statusCheckTfNode,
 				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(statusCheckTfNode),
@@ -167,7 +168,8 @@ resource "betterado_branch_policy_status_check" "p" {
     }
   }
 }
-`)
+`,
+	)
 }
 
 func hclBranchPolicyStatusCheckResourceUpdate(projectName string, repoName string,
@@ -205,5 +207,6 @@ resource "betterado_branch_policy_status_check" "p" {
 	return fmt.Sprintf(
 		`%s %s`,
 		hclBranchPolicyStatusCheckResourceTemplate(projectName, repoName),
-		statusCheck)
+		statusCheck,
+	)
 }
