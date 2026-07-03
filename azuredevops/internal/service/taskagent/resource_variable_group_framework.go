@@ -523,19 +523,19 @@ func (r *VariableGroupResource) Delete(ctx context.Context, req resource.DeleteR
 	// resource is no longer found before returning, so that CheckDestroy in
 	// acceptance tests does not race against the API.
 	//
-	// We require 2 consecutive "not found" responses (ContinuousTargetOccurence: 2)
-	// to guard against transient ADO API errors being misinterpreted as deletion.
-	// The 60 s timeout is intentionally short — all VG acceptance tests now run in
-	// parallel (resource.ParallelTest), so the per-test wait does not accumulate
-	// across the test suite. CheckDestroy adds its own 120 s safety window for the
-	// remaining propagation across ADO's distributed backend.
+	// We require 4 consecutive "not found" responses (ContinuousTargetOccurence: 4)
+	// to guard against ADO's transient flicker where a deleted VG briefly resurfaces
+	// on some backend nodes. Each poll is ~5 s, so 4 consecutive = ~20 s of stable
+	// "gone" confirmation before the provider declares the delete complete.
+	// CheckDestroy adds its own 300 s safety window for the remaining propagation
+	// across ADO's distributed backend.
 	deleteConf := &retry.StateChangeConf{
 		Pending:                   []string{"deleting"},
 		Target:                    []string{"deleted"},
-		ContinuousTargetOccurence: 2,
+		ContinuousTargetOccurence: 4,
 		Delay:                     2 * time.Second,
-		MinTimeout:                3 * time.Second,
-		Timeout:                   60 * time.Second,
+		MinTimeout:                5 * time.Second,
+		Timeout:                   90 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			vg, getErr := r.client.TaskAgentClient.GetVariableGroup(ctx, taskagent.GetVariableGroupArgs{
 				GroupId: &vgID,
