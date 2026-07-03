@@ -23,8 +23,10 @@ func TestAccGraphSimpleDataSources_Framework(t *testing.T) {
 // TestAccDescriptorDataSource_Framework_Read verifies that data.betterado_descriptor
 // populates the descriptor attribute when given a project's storage key UUID,
 // using the muxed (framework) provider. The idempotency re-plan must be clean.
+//
+// Uses the persistent shared project (betterado-standing-demo) — the ADO org is
+// at the 1000-project cap so resource "betterado_project" creates fail.
 func TestAccDescriptorDataSource_Framework_Read(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	tfNode := "data.betterado_descriptor.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -32,7 +34,7 @@ func TestAccDescriptorDataSource_Framework_Read(t *testing.T) {
 		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclDescriptorFrameworkRead(projectName),
+				Config: hclDescriptorFrameworkRead(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "descriptor"),
 					resource.TestCheckResourceAttrSet(tfNode, "storage_key"),
@@ -40,7 +42,7 @@ func TestAccDescriptorDataSource_Framework_Read(t *testing.T) {
 			},
 			// Idempotency: re-plan must produce no diff.
 			{
-				Config:             hclDescriptorFrameworkRead(projectName),
+				Config:             hclDescriptorFrameworkRead(),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -50,8 +52,10 @@ func TestAccDescriptorDataSource_Framework_Read(t *testing.T) {
 
 // TestAccStorageKeyDataSource_Framework_Read verifies that data.betterado_storage_key
 // populates the storage_key attribute when given a descriptor, using the muxed provider.
+//
+// Uses the persistent shared project (betterado-standing-demo) — the ADO org is
+// at the 1000-project cap so resource "betterado_project" creates fail.
 func TestAccStorageKeyDataSource_Framework_Read(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	tfNode := "data.betterado_storage_key.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,7 +63,7 @@ func TestAccStorageKeyDataSource_Framework_Read(t *testing.T) {
 		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclStorageKeyFrameworkRead(projectName),
+				Config: hclStorageKeyFrameworkRead(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "storage_key"),
 					resource.TestCheckResourceAttrSet(tfNode, "descriptor"),
@@ -67,7 +71,7 @@ func TestAccStorageKeyDataSource_Framework_Read(t *testing.T) {
 			},
 			// Idempotency: re-plan must produce no diff.
 			{
-				Config:             hclStorageKeyFrameworkRead(projectName),
+				Config:             hclStorageKeyFrameworkRead(),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -78,8 +82,10 @@ func TestAccStorageKeyDataSource_Framework_Read(t *testing.T) {
 // TestAccGroupDataSource_Framework_Read verifies that data.betterado_group
 // populates all attributes (descriptor, origin, origin_id, group_id) when given
 // a group name and project_id, using the muxed provider.
+//
+// Uses the persistent shared project (betterado-standing-demo) — the ADO org is
+// at the 1000-project cap so resource "betterado_project" creates fail.
 func TestAccGroupDataSource_Framework_Read(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	groupName := "Build Administrators"
 	tfNode := "data.betterado_group.test"
 
@@ -88,7 +94,7 @@ func TestAccGroupDataSource_Framework_Read(t *testing.T) {
 		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclGroupFrameworkRead(projectName, groupName),
+				Config: hclGroupFrameworkRead(groupName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "descriptor"),
 					resource.TestCheckResourceAttrSet(tfNode, "origin"),
@@ -99,7 +105,7 @@ func TestAccGroupDataSource_Framework_Read(t *testing.T) {
 			},
 			// Idempotency: re-plan must produce no diff.
 			{
-				Config:             hclGroupFrameworkRead(projectName, groupName),
+				Config:             hclGroupFrameworkRead(groupName),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -109,8 +115,10 @@ func TestAccGroupDataSource_Framework_Read(t *testing.T) {
 
 // TestAccGroupMembershipDataSource_Framework_Read verifies that data.betterado_group_membership
 // populates the members list when given a group descriptor, using the muxed provider.
+//
+// Uses the persistent shared project (betterado-standing-demo) — the ADO org is
+// at the 1000-project cap so resource "betterado_project" creates fail.
 func TestAccGroupMembershipDataSource_Framework_Read(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	groupName := testutils.GenerateResourceName()
 	tfNode := "data.betterado_group_membership.test"
 
@@ -119,14 +127,14 @@ func TestAccGroupMembershipDataSource_Framework_Read(t *testing.T) {
 		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclGroupMembershipFrameworkRead(projectName, groupName),
+				Config: hclGroupMembershipFrameworkRead(groupName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "members.#", "2"),
 				),
 			},
 			// Idempotency: re-plan must produce no diff.
 			{
-				Config:             hclGroupMembershipFrameworkRead(projectName, groupName),
+				Config:             hclGroupMembershipFrameworkRead(groupName),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -134,86 +142,78 @@ func TestAccGroupMembershipDataSource_Framework_Read(t *testing.T) {
 	})
 }
 
-// hclDescriptorFrameworkRead builds a config that creates a project and then
+// hclDescriptorFrameworkRead builds a config that looks up the shared project and
 // reads its descriptor via data.betterado_descriptor (framework provider).
-func hclDescriptorFrameworkRead(projectName string) string {
+// Uses the persistent shared project — the ADO org is at the 1000-project cap.
+func hclDescriptorFrameworkRead() string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = %[1]q
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "shared" {
+  name = %[1]q
 }
 
 data "betterado_descriptor" "test" {
-  storage_key = betterado_project.test.id
+  storage_key = data.betterado_project.shared.id
 }
-`, projectName)
+`, SharedFixtureProjectName)
 }
 
-// hclStorageKeyFrameworkRead builds a config that creates a project, reads its
-// descriptor, then resolves the storage key back via data.betterado_storage_key.
-func hclStorageKeyFrameworkRead(projectName string) string {
+// hclStorageKeyFrameworkRead builds a config that looks up the shared project,
+// reads its descriptor, then resolves the storage key back via data.betterado_storage_key.
+// Uses the persistent shared project — the ADO org is at the 1000-project cap.
+func hclStorageKeyFrameworkRead() string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = %[1]q
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "shared" {
+  name = %[1]q
 }
 
 data "betterado_descriptor" "project" {
-  storage_key = betterado_project.test.id
+  storage_key = data.betterado_project.shared.id
 }
 
 data "betterado_storage_key" "test" {
   descriptor = data.betterado_descriptor.project.descriptor
 }
-`, projectName)
+`, SharedFixtureProjectName)
 }
 
-// hclGroupFrameworkRead builds a config that creates a project and looks up one
-// of its built-in groups via data.betterado_group (framework provider).
-func hclGroupFrameworkRead(projectName, groupName string) string {
+// hclGroupFrameworkRead builds a config that looks up the shared project and then
+// looks up one of its built-in groups via data.betterado_group (framework provider).
+// Uses the persistent shared project — the ADO org is at the 1000-project cap.
+func hclGroupFrameworkRead(groupName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = %[1]q
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "shared" {
+  name = %[2]q
 }
 
 data "betterado_group" "test" {
-  project_id = betterado_project.test.id
-  name       = %[2]q
+  project_id = data.betterado_project.shared.id
+  name       = %[1]q
 }
-`, projectName, groupName)
+`, groupName, SharedFixtureProjectName)
 }
 
-// hclGroupMembershipFrameworkRead creates a group with two members, then reads
-// the membership back via data.betterado_group_membership (framework provider).
-func hclGroupMembershipFrameworkRead(projectName, groupName string) string {
+// hclGroupMembershipFrameworkRead creates a group (in the shared project) with two members,
+// then reads the membership back via data.betterado_group_membership (framework provider).
+// Uses the persistent shared project — the ADO org is at the 1000-project cap.
+func hclGroupMembershipFrameworkRead(groupName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = %[1]q
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "shared" {
+  name = %[2]q
 }
 
 data "betterado_group" "admin" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.shared.id
   name       = "Build Administrators"
 }
 
 data "betterado_group" "contributors" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.shared.id
   name       = "Contributors"
 }
 
 resource "betterado_group" "test" {
-  scope        = betterado_project.test.id
-  display_name = %[2]q
+  scope        = data.betterado_project.shared.id
+  display_name = %[1]q
 
   members = [
     data.betterado_group.admin.descriptor,
@@ -224,5 +224,5 @@ resource "betterado_group" "test" {
 data "betterado_group_membership" "test" {
   group_descriptor = betterado_group.test.descriptor
 }
-`, projectName, groupName)
+`, groupName, SharedFixtureProjectName)
 }
