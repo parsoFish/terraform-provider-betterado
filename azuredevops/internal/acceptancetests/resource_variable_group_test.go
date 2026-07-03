@@ -272,11 +272,15 @@ func checkVariableGroupDestroyedMux(s *terraform.State) error {
 		}
 		projectID := res.Primary.Attributes["project_id"]
 
-		// Poll for up to 45 seconds: the provider's Delete already waits for
-		// the VG to disappear before returning, so this is a short safety-net
-		// for any remaining ADO cache inconsistency.
+		// Poll for up to 120 seconds: the provider's Delete waits for a first
+		// not-found signal, but ADO's distributed backend can take up to ~60 s
+		// for the deletion to propagate across all nodes. Using 120 s here
+		// ensures CheckDestroy doesn't race against that propagation window.
+		// Since all VG tests now run in parallel (resource.ParallelTest), the
+		// 120 s window does NOT multiply across test count — it is only the
+		// wall-clock cost of the longest single test.
 		const pollInterval = 5 * time.Second
-		const timeout = 45 * time.Second
+		const timeout = 120 * time.Second
 		deadline := time.Now().Add(timeout)
 		for {
 			_, getErr := clients.TaskAgentClient.GetVariableGroup(

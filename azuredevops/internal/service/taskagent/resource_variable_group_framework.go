@@ -523,14 +523,16 @@ func (r *VariableGroupResource) Delete(ctx context.Context, req resource.DeleteR
 	// resource is no longer found before returning, so that CheckDestroy in
 	// acceptance tests does not race against the API.
 	//
-	// We wait up to 60 seconds for a single "not found" response. ContinuousTargetOccurence
-	// of 1 is sufficient here because the CheckDestroy function in acceptance tests adds
-	// its own retry window. Using a short timeout avoids accumulating parallel-test wait
-	// time that can exceed the go test 10-minute default timeout.
+	// We require 2 consecutive "not found" responses (ContinuousTargetOccurence: 2)
+	// to guard against transient ADO API errors being misinterpreted as deletion.
+	// The 60 s timeout is intentionally short — all VG acceptance tests now run in
+	// parallel (resource.ParallelTest), so the per-test wait does not accumulate
+	// across the test suite. CheckDestroy adds its own 120 s safety window for the
+	// remaining propagation across ADO's distributed backend.
 	deleteConf := &retry.StateChangeConf{
 		Pending:                   []string{"deleting"},
 		Target:                    []string{"deleted"},
-		ContinuousTargetOccurence: 1,
+		ContinuousTargetOccurence: 2,
 		Delay:                     2 * time.Second,
 		MinTimeout:                3 * time.Second,
 		Timeout:                   60 * time.Second,
