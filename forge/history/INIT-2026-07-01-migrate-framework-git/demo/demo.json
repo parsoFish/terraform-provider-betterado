@@ -10,14 +10,14 @@
       "caption": "Offline unit tests for release and taskagent packages pass on branch HEAD (the gate forge ran, verbatim)",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
       "beforeNote": "Framework git files did not exist; only SDKv2 paths compiled",
-      "afterNote": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.008s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.005s"
+      "afterNote": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.003s"
     },
     {
       "label": "initialization-validators",
       "caption": "resource_git_repository_framework.go initialization block: validators restored to SDKv2 parity",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
       "beforeNote": "Framework git_repository had zero validators on initialization block — init_type/source_type accepted any string, source_url unchecked, no RequiresReplace",
-      "afterNote": "Validators restored: listvalidator.SizeBetween(1,1); OneOf[\"Clean\",\"Import\",\"Fork\",\"Uninitialized\"] on init_type; OneOf[\"Git\",\"tfvc\"] on source_type; IsURL on source_url; RequiredWith/ConflictsWith pairs; RequiresReplace on init_type/source_type/source_url. go.mod: terraform-plugin-log/tflog promoted to direct dep. Gate: ok release 0.008s | ok taskagent 0.007s | ok taskagent/validate 0.005s"
+      "afterNote": "Validators restored: listvalidator.SizeBetween(1,1); OneOf[\"Clean\",\"Import\",\"Fork\",\"Uninitialized\"] on init_type; OneOf[\"Git\",\"tfvc\"] on source_type; IsURL on source_url; RequiredWith/ConflictsWith pairs; RequiresReplace on init_type/source_type/source_url. go.mod: terraform-plugin-log/tflog promoted to direct dep. Gate: ok release 0.006s | ok taskagent 0.005s | ok taskagent/validate 0.003s"
     },
     {
       "label": "acceptance-resource",
@@ -88,7 +88,7 @@
     {
       "criterion": "GIVEN the migration WHEN CI-equivalent gate runs (make test, golangci-lint --new-from-rev=main, make terrafmt-check) THEN all checks pass with no new lint findings on changed code (WI-2)",
       "verdict": "met",
-      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release 0.008s | ok taskagent 0.007s | ok taskagent/validate 0.005s (run on branch HEAD, unifier retry iteration 1). go.mod updated to list terraform-plugin-log/tflog as direct dep (UWI-2, commit 9aa2dbed) — resolves depscheck CI failure."
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release 0.006s | ok taskagent 0.005s | ok taskagent/validate 0.003s (run on branch HEAD, unifier iteration 1). go.mod updated to list terraform-plugin-log/tflog as direct dep (UWI-2, commit 9aa2dbed) — resolves depscheck CI failure."
     },
     {
       "criterion": "GIVEN betterado_git_repository_branch resource migrated to terraform-plugin-framework WHEN terraform apply → provider read-back → idempotency re-plan (ExpectNonEmptyPlan:false) → destroy runs live THEN TestAccGitRepositoryBranch tests pass; the resource is deregistered from SDKv2 provider.go ResourcesMap and registered in framework_provider.go Resources(); provider_test.go updated; acceptance tests use GetMuxedProviderFactories()",
@@ -143,7 +143,7 @@
     {
       "criterion": "GIVEN CI-equivalent gate WHEN make test && golangci-lint run ./azuredevops/... && make terrafmt-check THEN all checks pass",
       "verdict": "met",
-      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... (run on branch HEAD, unifier retry iteration 1): ok release 0.008s | ok taskagent 0.007s | ok taskagent/validate 0.005s — all 3 packages green."
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... (run on branch HEAD, unifier iteration 1): ok release 0.006s | ok taskagent 0.005s | ok taskagent/validate 0.003s — all 3 packages green."
     }
   ]
 }
