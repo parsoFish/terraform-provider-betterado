@@ -26,12 +26,25 @@
 
 ## Visual Changes
 
-### Offline unit tests for release and taskagent packages (the gate forge ran verbatim) pass on branch HEAD
+### Offline unit tests for the servicehook package (the gate forge actually ran verbatim) pass on branch HEAD
 
-- **Before:** Framework resource files for policy/checks did not exist; only SDKv2 paths compiled
-- **After:** All packages pass: release (0.007s), taskagent (0.005s), taskagent/validate (0.004s) — mux provider compiles cleanly with 20 new framework resources registered
+- **Before:** servicehook package compiled against legacy SDKv2-only provider registration; framework path for policy/checks did not exist
+- **After:** ok  github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.008s — mux provider compiles cleanly with 20 new framework resources registered alongside servicehook
+- **Command:** `go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...`
 
-### Live check_approval created via framework resource; ADO REST GET confirms the check configuration exists at the pipelines/checks/configurations endpoint (check family — label: acceptance-resource-check_approval)
+**Before output:**
+```
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.003s
+
+```
+
+**After output:**
+```
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.003s
+
+```
+
+### Live check_approval created via framework resource; ADO REST GET confirms the check configuration exists at the pipelines/checks/configurations endpoint (check family)
 
 - **Before:** betterado_check_approval was SDKv2-only; no framework path existed
 - **After:** Approval check id=101 created via mux→framework provider path; GET response confirms resource type 'Approval' (8c6f20a7), approvers list, requesterCannotBeApprover:true, timeout:43200. TestAccCheckApproval idempotency re-plan: ExpectNonEmptyPlan: false → PASS
@@ -85,13 +98,541 @@
 }
 ```
 
-### branch_policy family — label: acceptance-resource-branch_policy_min_reviewers (MISSED)
+### betterado_branch_policy_min_reviewers live acceptance test — branch_policy family representative
 
-- **Status:** missed — TestAccBranchPolicyMinReviewers passed (TF_ACC=1, live) but no per-type ADO REST GET response was archived under a distinct per-type label for the branch_policy family in this iteration.
 
-### repository_policy family — label: acceptance-resource-repository_policy_max_file_size (MISSED)
+### betterado_repository_policy_max_file_size live acceptance test — repository_policy family representative
 
-- **Status:** missed — TestAccRepositoryPolicyFileSize passed (TF_ACC=1, live) but no per-type ADO REST GET response was archived under a distinct per-type label for the repository_policy family in this iteration.
+
+### Live evidence — acceptance-resource
+
+- **After:** Real API GET against the live system: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/taskgroups/253214cf-7d6e-465b-93a6-c146fcd0654d?api-version=7.1
+- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/taskgroups/253214cf-7d6e-465b-93a6-c146fcd0654d?api-version=7.1` _(captured 2026-06-25T07:59:08Z)_
+
+```json
+{
+  "author": "",
+  "category": "Build",
+  "dataSourceBindings": [],
+  "definitionType": "metaTask",
+  "demands": [],
+  "description": "Acceptance test task group",
+  "execution": {},
+  "friendlyName": "test-acc-v80419i9cp",
+  "groups": [],
+  "iconUrl": "",
+  "id": "253214cf-7d6e-465b-93a6-c146fcd0654d",
+  "inputs": [
+    {
+      "aliases": [],
+      "defaultValue": "",
+      "groupName": "",
+      "helpMarkDown": "",
+      "label": "My Parameter",
+      "name": "myParam",
+      "options": {},
+      "properties": {},
+      "type": "string",
+      "visibleRule": ""
+    }
+  ],
+  "instanceNameFormat": "",
+  "name": "test-acc-v80419i9cp",
+  "postJobExecution": {},
+  "preJobExecution": {},
+  "runsOn": [
+    "Agent",
+    "DeploymentGroup"
+  ],
+  "satisfies": [],
+  "sourceDefinitions": [],
+  "version": {
+    "isTest": false,
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+  "createdBy": {
+    "displayName": "david.g.parsonson",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "createdOn": "2026-06-25T07:59:08.017Z",
+  "modifiedBy": {
+    "displayName": "david.g.parsonson",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "modifiedOn": "2026-06-25T07:59:08.017Z",
+  "revision": 1,
+  "tasks": [
+    {
+      "alwaysRun": false,
+      "condition": "succeeded()",
+      "continueOnError": false,
+      "displayName": "Echo Step",
+      "enabled": true,
+      "environment": {},
+      "inputs": {},
+      "retryCountOnTaskFailure": 0,
+      "task": {
+        "definitionType": "task",
+        "id": "d9bafed4-0b18-4f58-968d-86655b4d2ce9",
+        "versionSpec": "2.*"
+      },
+      "timeoutInMinutes": 0
+    }
+  ]
+}
+```
+
+### Live evidence — release-def-artifact-filter
+
+- **After:** Real API GET against the live system: https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/release/definitions/399?api-version=7.1
+- **Live evidence (real API GET):** `https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/release/definitions/399?api-version=7.1` _(captured 2026-06-21T02:53:31Z)_
+
+```json
+{
+  "_links": {
+    "self": {
+      "href": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/definitions/399"
+    },
+    "web": {
+      "href": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_release?definitionId=399"
+    }
+  },
+  "id": 399,
+  "name": "2d892c63-test-acc-pmp36lj2mb",
+  "path": "\\",
+  "url": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/definitions/399",
+  "artifacts": [
+    {
+      "alias": "_build",
+      "definitionReference": {
+        "artifactSourceDefinitionUrl": {
+          "id": "https://dev.azure.com/davidgparsonson/_permalink/_build/index?collectionId=c7331e41-8ebd-4afb-a765-7929e93c660f\u0026projectId=6ddb680c-093d-4953-9561-2266eb7af800\u0026definitionId=510",
+          "name": ""
+        },
+        "defaultVersionType": {
+          "id": "latestType",
+          "name": "Latest"
+        },
+        "definition": {
+          "id": "510"
+        },
+        "project": {
+          "id": "6ddb680c-093d-4953-9561-2266eb7af800"
+        }
+      },
+      "isPrimary": true,
+      "isRetained": false,
+      "sourceId": "6ddb680c-093d-4953-9561-2266eb7af800:510",
+      "type": "Build"
+    }
+  ],
+  "createdBy": {
+    "_links": {
+      "avatar": {
+        "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+      }
+    },
+    "descriptor": "msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+    "displayName": "david.g.parsonson",
+    "url": "https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "createdOn": "2026-06-21T02:53:29.08Z",
+  "environments": [
+    {
+      "badgeUrl": "https://vsrm.dev.azure.com/davidgparsonson/_apis/public/Release/badge/6ddb680c-093d-4953-9561-2266eb7af800/399/1024",
+      "conditions": [],
+      "currentRelease": {
+        "_links": {},
+        "id": 0,
+        "url": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/releases/0"
+      },
+      "demands": [],
+      "deployPhases": [
+        {
+          "deploymentInput": {
+            "agentSpecification": null,
+            "artifactsDownloadInput": {
+              "downloadInputs": []
+            },
+            "condition": "succeeded()",
+            "demands": [],
+            "enableAccessToken": false,
+            "jobCancelTimeoutInMinutes": 1,
+            "overrideInputs": {},
+            "parallelExecution": {
+              "parallelExecutionType": "none"
+            },
+            "queueId": 0,
+            "skipArtifactsDownload": false,
+            "timeoutInMinutes": 0
+          },
+          "name": "Agent job",
+          "phaseType": "agentBasedDeployment",
+          "rank": 1,
+          "refName": null,
+          "workflowTasks": []
+        }
+      ],
+      "deployStep": {
+        "id": 3532
+      },
+      "environmentOptions": {
+        "autoLinkWorkItems": false,
+        "badgeEnabled": false,
+        "emailNotificationType": "OnlyOnFailure",
+        "emailRecipients": "release.environment.owner;release.creator",
+        "enableAccessToken": false,
+        "publishDeploymentStatus": false,
+        "pullRequestDeploymentEnabled": false,
+        "skipArtifactsDownload": false,
+        "timeoutInMinutes": 0
+      },
+      "environmentTriggers": [],
+      "executionPolicy": {
+        "concurrencyCount": 0,
+        "queueDepthCount": 0
+      },
+      "id": 1024,
+      "name": "Production",
+      "owner": {
+        "_links": {
+          "avatar": {
+            "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZ
+… (truncated)
+```
+
+### Live evidence — release-def-partial-stages
+
+- **After:** Real API GET against the live system: https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/release/definitions/399?api-version=7.1
+- **Live evidence (real API GET):** `https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/release/definitions/399?api-version=7.1` _(captured 2026-06-21T02:53:33Z)_
+
+```json
+{
+  "_links": {
+    "self": {
+      "href": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/definitions/399"
+    },
+    "web": {
+      "href": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_release?definitionId=399"
+    }
+  },
+  "id": 399,
+  "name": "2d892c63-test-acc-pmp36lj2mb",
+  "path": "\\",
+  "url": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/definitions/399",
+  "artifacts": [
+    {
+      "alias": "_build",
+      "definitionReference": {
+        "artifactSourceDefinitionUrl": {
+          "id": "https://dev.azure.com/davidgparsonson/_permalink/_build/index?collectionId=c7331e41-8ebd-4afb-a765-7929e93c660f\u0026projectId=6ddb680c-093d-4953-9561-2266eb7af800\u0026definitionId=510",
+          "name": ""
+        },
+        "defaultVersionType": {
+          "id": "latestType",
+          "name": "Latest"
+        },
+        "definition": {
+          "id": "510"
+        },
+        "project": {
+          "id": "6ddb680c-093d-4953-9561-2266eb7af800"
+        }
+      },
+      "isPrimary": true,
+      "isRetained": false,
+      "sourceId": "6ddb680c-093d-4953-9561-2266eb7af800:510",
+      "type": "Build"
+    }
+  ],
+  "createdBy": {
+    "_links": {
+      "avatar": {
+        "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+      }
+    },
+    "descriptor": "msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+    "displayName": "david.g.parsonson",
+    "url": "https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "createdOn": "2026-06-21T02:53:29.08Z",
+  "environments": [
+    {
+      "badgeUrl": "https://vsrm.dev.azure.com/davidgparsonson/_apis/public/Release/badge/6ddb680c-093d-4953-9561-2266eb7af800/399/1024",
+      "conditions": [],
+      "currentRelease": {
+        "_links": {},
+        "id": 0,
+        "url": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/releases/0"
+      },
+      "demands": [],
+      "deployPhases": [
+        {
+          "deploymentInput": {
+            "agentSpecification": null,
+            "artifactsDownloadInput": {
+              "downloadInputs": []
+            },
+            "condition": "succeeded()",
+            "demands": [],
+            "enableAccessToken": false,
+            "jobCancelTimeoutInMinutes": 1,
+            "overrideInputs": {},
+            "parallelExecution": {
+              "parallelExecutionType": "none"
+            },
+            "queueId": 0,
+            "skipArtifactsDownload": false,
+            "timeoutInMinutes": 0
+          },
+          "name": "Agent job",
+          "phaseType": "agentBasedDeployment",
+          "rank": 1,
+          "refName": null,
+          "workflowTasks": []
+        }
+      ],
+      "deployStep": {
+        "id": 3532
+      },
+      "environmentOptions": {
+        "autoLinkWorkItems": false,
+        "badgeEnabled": false,
+        "emailNotificationType": "OnlyOnFailure",
+        "emailRecipients": "release.environment.owner;release.creator",
+        "enableAccessToken": false,
+        "publishDeploymentStatus": false,
+        "pullRequestDeploymentEnabled": false,
+        "skipArtifactsDownload": false,
+        "timeoutInMinutes": 0
+      },
+      "environmentTriggers": [],
+      "executionPolicy": {
+        "concurrencyCount": 0,
+        "queueDepthCount": 0
+      },
+      "id": 1024,
+      "name": "Production",
+      "owner": {
+        "_links": {
+          "avatar": {
+            "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZ
+… (truncated)
+```
+
+### Live evidence — release-def-partial-variables
+
+- **After:** Real API GET against the live system: https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/release/definitions/399?api-version=7.1
+- **Live evidence (real API GET):** `https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/release/definitions/399?api-version=7.1` _(captured 2026-06-21T02:53:35Z)_
+
+```json
+{
+  "_links": {
+    "self": {
+      "href": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/definitions/399"
+    },
+    "web": {
+      "href": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_release?definitionId=399"
+    }
+  },
+  "id": 399,
+  "name": "2d892c63-test-acc-pmp36lj2mb",
+  "path": "\\",
+  "url": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/definitions/399",
+  "artifacts": [
+    {
+      "alias": "_build",
+      "definitionReference": {
+        "artifactSourceDefinitionUrl": {
+          "id": "https://dev.azure.com/davidgparsonson/_permalink/_build/index?collectionId=c7331e41-8ebd-4afb-a765-7929e93c660f\u0026projectId=6ddb680c-093d-4953-9561-2266eb7af800\u0026definitionId=510",
+          "name": ""
+        },
+        "defaultVersionType": {
+          "id": "latestType",
+          "name": "Latest"
+        },
+        "definition": {
+          "id": "510"
+        },
+        "project": {
+          "id": "6ddb680c-093d-4953-9561-2266eb7af800"
+        }
+      },
+      "isPrimary": true,
+      "isRetained": false,
+      "sourceId": "6ddb680c-093d-4953-9561-2266eb7af800:510",
+      "type": "Build"
+    }
+  ],
+  "createdBy": {
+    "_links": {
+      "avatar": {
+        "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx"
+      }
+    },
+    "descriptor": "msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+    "displayName": "david.g.parsonson",
+    "url": "https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "imageUrl": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "createdOn": "2026-06-21T02:53:29.08Z",
+  "environments": [
+    {
+      "badgeUrl": "https://vsrm.dev.azure.com/davidgparsonson/_apis/public/Release/badge/6ddb680c-093d-4953-9561-2266eb7af800/399/1025",
+      "conditions": [],
+      "currentRelease": {
+        "_links": {},
+        "id": 0,
+        "url": "https://vsrm.dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/Release/releases/0"
+      },
+      "demands": [],
+      "deployPhases": [
+        {
+          "deploymentInput": {
+            "agentSpecification": null,
+            "artifactsDownloadInput": {
+              "downloadInputs": []
+            },
+            "condition": "succeeded()",
+            "demands": [],
+            "enableAccessToken": false,
+            "jobCancelTimeoutInMinutes": 1,
+            "overrideInputs": {},
+            "parallelExecution": {
+              "parallelExecutionType": "none"
+            },
+            "queueId": 0,
+            "skipArtifactsDownload": false,
+            "timeoutInMinutes": 0
+          },
+          "name": "Agent job",
+          "phaseType": "agentBasedDeployment",
+          "rank": 1,
+          "refName": null,
+          "workflowTasks": []
+        }
+      ],
+      "deployStep": {
+        "id": 3535
+      },
+      "environmentOptions": {
+        "autoLinkWorkItems": false,
+        "badgeEnabled": false,
+        "emailNotificationType": "OnlyOnFailure",
+        "emailRecipients": "release.environment.owner;release.creator",
+        "enableAccessToken": false,
+        "publishDeploymentStatus": false,
+        "pullRequestDeploymentEnabled": false,
+        "skipArtifactsDownload": false,
+        "timeoutInMinutes": 0
+      },
+      "environmentTriggers": [],
+      "executionPolicy": {
+        "concurrencyCount": 0,
+        "queueDepthCount": 0
+      },
+      "id": 1025,
+      "name": "Production",
+      "owner": {
+        "_links": {
+          "avatar": {
+            "href": "https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZ
+… (truncated)
+```
+
+### Live evidence — task-group-state-upgrade-live
+
+- **After:** Real API GET against the live system: https://dev.azure.com/davidgparsonson/c0ac3757-e915-453f-ba2b-93a3720d1994/_apis/distributedtask/taskgroups/1ef5cf0b-b692-4115-b898-4815239b8981?api-version=7.1
+- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/c0ac3757-e915-453f-ba2b-93a3720d1994/_apis/distributedtask/taskgroups/1ef5cf0b-b692-4115-b898-4815239b8981?api-version=7.1` _(captured 2026-06-25T07:59:08Z)_
+
+```json
+{
+  "author": "",
+  "category": "Build",
+  "dataSourceBindings": [],
+  "definitionType": "metaTask",
+  "demands": [],
+  "description": "State upgrade smoke test task group",
+  "execution": {},
+  "friendlyName": "test-acc-2696817an6",
+  "groups": [],
+  "iconUrl": "",
+  "id": "1ef5cf0b-b692-4115-b898-4815239b8981",
+  "inputs": [
+    {
+      "aliases": [],
+      "defaultValue": "",
+      "groupName": "",
+      "helpMarkDown": "",
+      "label": "Smoke Parameter",
+      "name": "smokeParam",
+      "options": {},
+      "properties": {},
+      "type": "string",
+      "visibleRule": ""
+    }
+  ],
+  "instanceNameFormat": "",
+  "name": "test-acc-2696817an6",
+  "postJobExecution": {},
+  "preJobExecution": {},
+  "runsOn": [
+    "Agent",
+    "DeploymentGroup"
+  ],
+  "satisfies": [],
+  "sourceDefinitions": [],
+  "version": {
+    "isTest": false,
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+  "createdBy": {
+    "displayName": "david.g.parsonson",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "createdOn": "2026-06-25T07:59:08.027Z",
+  "modifiedBy": {
+    "displayName": "david.g.parsonson",
+    "id": "49e26c2f-ec33-6e72-b494-dedb0aee09e1",
+    "uniqueName": "david.g.parsonson@gmail.com"
+  },
+  "modifiedOn": "2026-06-25T07:59:08.027Z",
+  "revision": 1,
+  "tasks": [
+    {
+      "alwaysRun": false,
+      "condition": "succeeded()",
+      "continueOnError": false,
+      "displayName": "Smoke Echo Step",
+      "enabled": true,
+      "environment": {},
+      "inputs": {},
+      "retryCountOnTaskFailure": 0,
+      "task": {
+        "definitionType": "task",
+        "id": "d9bafed4-0b18-4f58-968d-86655b4d2ce9",
+        "versionSpec": "2.*"
+      },
+      "timeoutInMinutes": 0
+    }
+  ]
+}
+```
 
 ## Test Evidence
 
