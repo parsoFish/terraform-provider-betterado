@@ -40,14 +40,14 @@ func NewProjectPipelineSettingsResource() resource.Resource {
 // projectPipelineSettingsModel is the Terraform state model for
 // betterado_project_pipeline_settings.
 type projectPipelineSettingsModel struct {
-	ID                              types.String `tfsdk:"id"`
-	ProjectID                       types.String `tfsdk:"project_id"`
-	EnforceJobScope                 types.Bool   `tfsdk:"enforce_job_scope"`
-	EnforceReferencedRepoScopedToken types.Bool  `tfsdk:"enforce_referenced_repo_scoped_token"`
-	EnforceSettableVar              types.Bool   `tfsdk:"enforce_settable_var"`
-	PublishPipelineMetadata         types.Bool   `tfsdk:"publish_pipeline_metadata"`
-	StatusBadgesArePrivate          types.Bool   `tfsdk:"status_badges_are_private"`
-	EnforceJobScopeForRelease       types.Bool   `tfsdk:"enforce_job_scope_for_release"`
+	ID                               types.String `tfsdk:"id"`
+	ProjectID                        types.String `tfsdk:"project_id"`
+	EnforceJobScope                  types.Bool   `tfsdk:"enforce_job_scope"`
+	EnforceReferencedRepoScopedToken types.Bool   `tfsdk:"enforce_referenced_repo_scoped_token"`
+	EnforceSettableVar               types.Bool   `tfsdk:"enforce_settable_var"`
+	PublishPipelineMetadata          types.Bool   `tfsdk:"publish_pipeline_metadata"`
+	StatusBadgesArePrivate           types.Bool   `tfsdk:"status_badges_are_private"`
+	EnforceJobScopeForRelease        types.Bool   `tfsdk:"enforce_job_scope_for_release"`
 }
 
 // ── Metadata ──────────────────────────────────────────────────────────────────

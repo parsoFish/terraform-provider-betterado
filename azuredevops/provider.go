@@ -85,7 +85,7 @@ func Provider() *schema.Provider {
 			// betterado_project_features is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_project_permissions":       permissions.ResourceProjectPermissions(),
+			"betterado_project_permissions": permissions.ResourceProjectPermissions(),
 			// betterado_project_pipeline_settings is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
@@ -196,11 +196,11 @@ func Provider() *schema.Provider {
 			// betterado_release_definition_revision, betterado_release_definitions, and
 			// betterado_release_folder have been migrated to the terraform-plugin-framework
 			// provider (framework_provider.go) and are no longer registered here.
-			"betterado_agent_pool":          taskagent.DataAgentPool(),
-			"betterado_agent_pools":         taskagent.DataAgentPools(),
-			"betterado_agent_queue":         taskagent.DataAgentQueue(),
-			"betterado_area":                workitemtracking.DataArea(),
-			"betterado_build_definition":    build.DataBuildDefinition(),
+			"betterado_agent_pool":       taskagent.DataAgentPool(),
+			"betterado_agent_pools":      taskagent.DataAgentPools(),
+			"betterado_agent_queue":      taskagent.DataAgentQueue(),
+			"betterado_area":             workitemtracking.DataArea(),
+			"betterado_build_definition": build.DataBuildDefinition(),
 			// betterado_client_config is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
@@ -221,24 +221,24 @@ func Provider() *schema.Provider {
 			// the framework provider (framework_provider.go) and must NOT be listed here —
 			// duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_security_namespace":                    security.DataSecurityNamespace(),
-			"betterado_security_namespace_token":              security.DataSecurityNamespaceToken(),
-			"betterado_security_namespaces":                   security.DataSecurityNamespaces(),
-			"betterado_securityrole_definitions":              securityroles.DataSecurityRoleDefinitions(),
-			"betterado_serviceendpoint_generic_v2":            serviceendpoint.DataServiceEndpointGenericV2(),
-			"betterado_serviceendpoint_azurecr":               serviceendpoint.DataResourceServiceEndpointAzureCR(),
-			"betterado_serviceendpoint_azurerm":               serviceendpoint.DataServiceEndpointAzureRM(),
-			"betterado_serviceendpoint_bitbucket":             serviceendpoint.DataResourceServiceEndpointBitbucket(),
-			"betterado_serviceendpoint_dockerregistry":        serviceendpoint.DataResourceServiceEndpointDockerRegistry(),
-			"betterado_serviceendpoint_github":                serviceendpoint.DataServiceEndpointGithub(),
-			"betterado_serviceendpoint_npm":                   serviceendpoint.DataResourceServiceEndpointNpm(),
-			"betterado_serviceendpoint_sonarcloud":            serviceendpoint.DataResourceServiceEndpointSonarCloud(),
-			"betterado_service_principal":                     graph.DataServicePrincipal(),
-			"betterado_storage_key":                           graph.DataStorageKey(),
+			"betterado_security_namespace":             security.DataSecurityNamespace(),
+			"betterado_security_namespace_token":       security.DataSecurityNamespaceToken(),
+			"betterado_security_namespaces":            security.DataSecurityNamespaces(),
+			"betterado_securityrole_definitions":       securityroles.DataSecurityRoleDefinitions(),
+			"betterado_serviceendpoint_generic_v2":     serviceendpoint.DataServiceEndpointGenericV2(),
+			"betterado_serviceendpoint_azurecr":        serviceendpoint.DataResourceServiceEndpointAzureCR(),
+			"betterado_serviceendpoint_azurerm":        serviceendpoint.DataServiceEndpointAzureRM(),
+			"betterado_serviceendpoint_bitbucket":      serviceendpoint.DataResourceServiceEndpointBitbucket(),
+			"betterado_serviceendpoint_dockerregistry": serviceendpoint.DataResourceServiceEndpointDockerRegistry(),
+			"betterado_serviceendpoint_github":         serviceendpoint.DataServiceEndpointGithub(),
+			"betterado_serviceendpoint_npm":            serviceendpoint.DataResourceServiceEndpointNpm(),
+			"betterado_serviceendpoint_sonarcloud":     serviceendpoint.DataResourceServiceEndpointSonarCloud(),
+			"betterado_service_principal":              graph.DataServicePrincipal(),
+			"betterado_storage_key":                    graph.DataStorageKey(),
 			// betterado_team is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_task_group":                            taskagent.DataTaskGroup(),
+			"betterado_task_group": taskagent.DataTaskGroup(),
 			// betterado_teams is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
