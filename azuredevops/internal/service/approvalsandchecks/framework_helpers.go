@@ -54,8 +54,8 @@ var approvalAndCheckType = approvalAndCheckTypes{
 const (
 	evaluateBranchProtectionDefVersion = "0.0.1"
 	evaluateBranchProtectionDefId      = "86b05a0c-73e6-4f7d-b3cf-e38f3b39a75b"
-	evaluateBusinessHoursDefVersion     = "0.0.1"
-	evaluateBusinessHoursDefId          = "445fde2f-6c39-441c-807f-8a59ff2e075f"
+	evaluateBusinessHoursDefVersion    = "0.0.1"
+	evaluateBusinessHoursDefId         = "445fde2f-6c39-441c-807f-8a59ff2e075f"
 )
 
 var evaluateBranchProtectionDef = map[string]interface{}{
