@@ -205,6 +205,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 	return []func() resource.Resource{
 		feed.NewFeedResource,
 		feed.NewFeedPermissionResource,
+		feed.NewFeedRetentionPolicyResource,
 		taskagent.NewTaskGroupResource,
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,

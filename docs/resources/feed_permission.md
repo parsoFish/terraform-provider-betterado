@@ -3,12 +3,12 @@
 page_title: "betterado_feed_permission Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages feed permissions in Azure DevOps Artifacts.
 ---
 
 # betterado_feed_permission (Resource)
 
-
+Manages feed permissions in Azure DevOps Artifacts.
 
 
 
@@ -17,27 +17,16 @@ description: |-
 
 ### Required
 
-- `feed_id` (String)
-- `identity_descriptor` (String)
-- `role` (String)
+- `feed_id` (String) The ID of the feed.
+- `identity_descriptor` (String) The identity descriptor of the group or user.
+- `role` (String) The role to assign: reader, contributor, administrator, or collaborator.
 
 ### Optional
 
-- `display_name` (String)
-- `project_id` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `display_name` (String) The display name for the permission entry.
+- `project_id` (String) The project ID (UUID) for a project-scoped feed. Omit for org-scoped feeds.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-- `identity_id` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `id` (String) The unique identifier of this feed permission resource.
+- `identity_id` (String) The identity ID resolved from the descriptor.

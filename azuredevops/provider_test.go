@@ -40,7 +40,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// and is no longer in the SDKv2 provider resource map.
 		// betterado_feed_permission is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
-		"betterado_feed_retention_policy",
+		// betterado_feed_retention_policy is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_git_permissions",
 		"betterado_git_repository",
 		"betterado_git_repository_branch",

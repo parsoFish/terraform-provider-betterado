@@ -3,12 +3,12 @@
 page_title: "betterado_feed Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an Azure DevOps Artifacts feed.
 ---
 
 # betterado_feed (Resource)
 
-
+Manages an Azure DevOps Artifacts feed.
 
 
 
@@ -17,33 +17,21 @@ description: |-
 
 ### Required
 
-- `name` (String)
+- `name` (String) The name of the feed.
 
 ### Optional
 
-- `features` (Block List) (see [below for nested schema](#nestedblock--features))
-- `project_id` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `features` (Block List) Optional feature flags for the feed. (see [below for nested schema](#nestedblock--features))
+- `project_id` (String) The ID of the project the feed belongs to. Omit for an org-scoped feed.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the feed.
 
 <a id="nestedblock--features"></a>
 ### Nested Schema for `features`
 
 Optional:
 
-- `permanent_delete` (Boolean)
-- `restore` (Boolean)
-
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `permanent_delete` (Boolean) If true, permanently delete the feed on destroy.
+- `restore` (Boolean) If true, restore a soft-deleted feed with the same name instead of creating.

@@ -7,6 +7,18 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_feed_retention_policy` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served
+  through the mux provider alongside the existing SDKv2 path. CRUD operations
+  target the ADO Packaging Feeds retention-policy API
+  (`_apis/packaging/feeds/{feedId}/retentionpolicies`). Schema is unchanged
+  (`feed_id`, `project_id`, `count_limit`,
+  `days_to_keep_recently_downloaded_packages`). Verified by live acceptance
+  tests `TestAccFeedRetentionPolicyFramework_projectBasic` and
+  `TestAccFeedRetentionPolicyFramework_update`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

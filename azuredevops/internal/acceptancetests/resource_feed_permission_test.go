@@ -1,3 +1,5 @@
+//go:build (all || resource_feed_permission) && !exclude_feed_permission
+
 package acceptancetests
 
 import (
