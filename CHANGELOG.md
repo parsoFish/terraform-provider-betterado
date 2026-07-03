@@ -15,6 +15,13 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   (`resource_workitem.go`) has been removed. CRUD operations target the Work
   Item Tracking REST API; the schema is unchanged. Verified by live acceptance
   test `TestAccWorkItem_basic`.
+- **`betterado_workitemtracking_field` migrated to terraform-plugin-framework.**
+  The resource is now served through the mux provider using the framework
+  implementation (`resource_field_framework.go`). The SDKv2 implementation
+  (`resource_field.go`) has been removed. All schema attributes are preserved
+  including computed attributes (`can_sort_by`, `is_queryable`, `is_identity`,
+  `is_picklist`, `supported_operations`) and the `restore`/`WriteOnly` field.
+  Verified by live acceptance test `TestAccWorkItemTrackingField_Basic`.
 
 ## [1.2.0] - 2026-07-01
 

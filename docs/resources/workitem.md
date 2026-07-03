@@ -31,24 +31,12 @@ description: |-
 - `parent_id` (Number)
 - `state` (String)
 - `tags` (Set of String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `relations` (List of Object) (see [below for nested schema](#nestedatt--relations))
+- `relations` (Attributes List) (see [below for nested schema](#nestedatt--relations))
 - `url` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
-
 
 <a id="nestedatt--relations"></a>
 ### Nested Schema for `relations`
