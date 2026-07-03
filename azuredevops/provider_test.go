@@ -58,6 +58,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// and is no longer in the SDKv2 provider resource map.
 		// betterado_release_folder is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
+		// betterado_servicehook_storage_queue_pipelines is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_repository_policy_author_email_pattern",
 		"betterado_repository_policy_case_enforcement",
 		"betterado_repository_policy_check_credentials",
@@ -112,7 +114,6 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_serviceendpoint_ssh",
 		"betterado_serviceendpoint_visualstudiomarketplace",
 		"betterado_servicehook_permissions",
-		"betterado_servicehook_storage_queue_pipelines",
 		"betterado_servicehook_webhook_tfs",
 		"betterado_service_principal_entitlement",
 		"betterado_tagging_permissions",

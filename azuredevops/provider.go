@@ -146,7 +146,6 @@ func Provider() *schema.Provider {
 			"betterado_serviceendpoint_ssh":                         serviceendpoint.ResourceServiceEndpointSSH(),
 			"betterado_serviceendpoint_visualstudiomarketplace":     serviceendpoint.ResourceServiceEndpointMarketplace(),
 			"betterado_servicehook_permissions":                     permissions.ResourceServiceHookPermissions(),
-			"betterado_servicehook_storage_queue_pipelines":         servicehook.ResourceServicehookStorageQueuePipelines(),
 			"betterado_servicehook_webhook_tfs":                     servicehook.ResourceServicehookWebhookTfs(),
 			"betterado_service_principal_entitlement":               memberentitlementmanagement.ResourceServicePrincipalEntitlement(),
 			"betterado_tagging_permissions":                         permissions.ResourceTaggingPermissions(),
