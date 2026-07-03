@@ -9,8 +9,10 @@
       "label": "quality-gate",
       "caption": "Offline unit gate green (servicehook packages)",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
-      "beforeNote": "Tests pass on main (SDKv2 servicehook resources in provider)",
-      "afterNote": "Tests pass on branch HEAD with framework resources registered under mux; SDKv2 files deleted"
+      "beforeNote": "On main: SDKv2 servicehook resources in provider; no framework test files exist",
+      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s",
+      "afterNote": "On branch HEAD: framework resources registered under mux; SDKv2 acceptance test files deleted; unit tests pass",
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s"
     },
     {
       "label": "configure-storage-queue",
