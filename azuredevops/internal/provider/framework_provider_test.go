@@ -35,6 +35,29 @@ func TestFrameworkProvider_HasReleaseFolderResource(t *testing.T) {
 	require.True(t, found, "framework provider must register betterado_release_folder")
 }
 
+func TestFrameworkProvider_HasUserEntitlementResource(t *testing.T) {
+	p := frameworkprovider.NewFrameworkProvider()
+	provWithResources, ok := p.(interface {
+		Resources(context.Context) []func() resource.Resource
+	})
+	require.True(t, ok, "framework provider must implement Resources()")
+
+	factories := provWithResources.Resources(context.Background())
+	require.NotEmpty(t, factories, "framework provider must have at least one resource factory")
+
+	found := false
+	for _, factory := range factories {
+		r := factory()
+		var metaResp resource.MetadataResponse
+		r.Metadata(context.Background(), resource.MetadataRequest{ProviderTypeName: "betterado"}, &metaResp)
+		if metaResp.TypeName == "betterado_user_entitlement" {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "framework provider must register betterado_user_entitlement")
+}
+
 func TestFrameworkProvider_HasTaskGroupResource(t *testing.T) {
 	p := frameworkprovider.NewFrameworkProvider()
 	provWithResources, ok := p.(interface {
@@ -56,6 +79,52 @@ func TestFrameworkProvider_HasTaskGroupResource(t *testing.T) {
 		}
 	}
 	require.True(t, found, "framework provider must register betterado_task_group")
+}
+
+func TestFrameworkProvider_HasGroupEntitlementResource(t *testing.T) {
+	p := frameworkprovider.NewFrameworkProvider()
+	provWithResources, ok := p.(interface {
+		Resources(context.Context) []func() resource.Resource
+	})
+	require.True(t, ok, "framework provider must implement Resources()")
+
+	factories := provWithResources.Resources(context.Background())
+	require.NotEmpty(t, factories, "framework provider must have at least one resource factory")
+
+	found := false
+	for _, factory := range factories {
+		r := factory()
+		var metaResp resource.MetadataResponse
+		r.Metadata(context.Background(), resource.MetadataRequest{ProviderTypeName: "betterado"}, &metaResp)
+		if metaResp.TypeName == "betterado_group_entitlement" {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "framework provider must register betterado_group_entitlement")
+}
+
+func TestFrameworkProvider_HasServicePrincipalEntitlementResource(t *testing.T) {
+	p := frameworkprovider.NewFrameworkProvider()
+	provWithResources, ok := p.(interface {
+		Resources(context.Context) []func() resource.Resource
+	})
+	require.True(t, ok, "framework provider must implement Resources()")
+
+	factories := provWithResources.Resources(context.Background())
+	require.NotEmpty(t, factories, "framework provider must have at least one resource factory")
+
+	found := false
+	for _, factory := range factories {
+		r := factory()
+		var metaResp resource.MetadataResponse
+		r.Metadata(context.Background(), resource.MetadataRequest{ProviderTypeName: "betterado"}, &metaResp)
+		if metaResp.TypeName == "betterado_service_principal_entitlement" {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "framework provider must register betterado_service_principal_entitlement")
 }
 
 func TestFrameworkProvider_HasPipelineResource(t *testing.T) {
