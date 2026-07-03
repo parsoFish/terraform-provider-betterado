@@ -7,11 +7,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
@@ -36,9 +39,10 @@ var systemFieldMapping = map[string]string{
 
 // Compile-time interface checks.
 var (
-	_ resource.Resource                = (*WorkItemResource)(nil)
-	_ resource.ResourceWithConfigure   = (*WorkItemResource)(nil)
-	_ resource.ResourceWithImportState = (*WorkItemResource)(nil)
+	_ resource.Resource                     = (*WorkItemResource)(nil)
+	_ resource.ResourceWithConfigure        = (*WorkItemResource)(nil)
+	_ resource.ResourceWithImportState      = (*WorkItemResource)(nil)
+	_ resource.ResourceWithConfigValidators = (*WorkItemResource)(nil)
 )
 
 // WorkItemResource is the terraform-plugin-framework implementation of betterado_workitem.
@@ -107,6 +111,135 @@ func (m workItemStringUseStateForUnknown) PlanModifyString(_ context.Context, re
 	resp.PlanValue = req.StateValue
 }
 
+// ── Validators ────────────────────────────────────────────────────────────────
+
+// wiIsUUIDValidator validates that a string value is a valid UUID.
+type wiIsUUIDValidator struct{}
+
+func (v wiIsUUIDValidator) Description(_ context.Context) string {
+	return "value must be a valid UUID"
+}
+
+func (v wiIsUUIDValidator) MarkdownDescription(_ context.Context) string {
+	return "value must be a valid UUID"
+}
+
+func (v wiIsUUIDValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if _, err := uuid.Parse(req.ConfigValue.ValueString()); err != nil {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid UUID",
+			fmt.Sprintf("%q is not a valid UUID", req.ConfigValue.ValueString()))
+	}
+}
+
+// wiNotWhitespaceValidator validates that a string value is not empty or whitespace.
+type wiNotWhitespaceValidator struct{}
+
+func (v wiNotWhitespaceValidator) Description(_ context.Context) string {
+	return "value must not be empty or whitespace"
+}
+
+func (v wiNotWhitespaceValidator) MarkdownDescription(_ context.Context) string {
+	return "value must not be empty or whitespace"
+}
+
+func (v wiNotWhitespaceValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if strings.TrimSpace(req.ConfigValue.ValueString()) == "" {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid value",
+			"value must not be empty or whitespace")
+	}
+}
+
+// wiTagsSizeFloorValidator validates that a set attribute has at least 1 element.
+// Mirrors SDKv2 MinItems: 1 behaviour on tags.
+type wiTagsSizeFloorValidator struct{}
+
+func (v wiTagsSizeFloorValidator) Description(_ context.Context) string {
+	return "set must contain at least 1 element"
+}
+
+func (v wiTagsSizeFloorValidator) MarkdownDescription(_ context.Context) string {
+	return "set must contain at least 1 element"
+}
+
+func (v wiTagsSizeFloorValidator) ValidateSet(_ context.Context, req validator.SetRequest, resp *validator.SetResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if len(req.ConfigValue.Elements()) < 1 {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid tags",
+			"tags must contain at least 1 element when specified")
+	}
+}
+
+// wiParentIDAtLeastValidator validates that parent_id is >= 1 when specified.
+// Mirrors SDKv2 ValidateFunc: validation.IntAtLeast(1).
+type wiParentIDAtLeastValidator struct{}
+
+func (v wiParentIDAtLeastValidator) Description(_ context.Context) string {
+	return "value must be at least 1"
+}
+
+func (v wiParentIDAtLeastValidator) MarkdownDescription(_ context.Context) string {
+	return "value must be at least 1"
+}
+
+func (v wiParentIDAtLeastValidator) ValidateInt64(_ context.Context, req validator.Int64Request, resp *validator.Int64Response) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if req.ConfigValue.ValueInt64() < 1 {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid parent_id",
+			fmt.Sprintf("parent_id must be at least 1, got %d", req.ConfigValue.ValueInt64()))
+	}
+}
+
+// wiConflictingFieldsValidator implements resource.ConfigValidator to enforce
+// that custom_fields and additional_fields_json are mutually exclusive.
+// This mirrors the SDKv2 ConflictsWith constraint (resourcevalidator.Conflicting).
+type wiConflictingFieldsValidator struct{}
+
+func (v wiConflictingFieldsValidator) Description(_ context.Context) string {
+	return "custom_fields and additional_fields_json are mutually exclusive"
+}
+
+func (v wiConflictingFieldsValidator) MarkdownDescription(_ context.Context) string {
+	return "custom_fields and additional_fields_json are mutually exclusive"
+}
+
+func (v wiConflictingFieldsValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var customFields types.Map
+	var additionalFieldsJSON types.String
+
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("custom_fields"), &customFields)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("additional_fields_json"), &additionalFieldsJSON)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	customFieldsSet := !customFields.IsNull() && !customFields.IsUnknown()
+	additionalFieldsSet := !additionalFieldsJSON.IsNull() && !additionalFieldsJSON.IsUnknown()
+
+	if customFieldsSet && additionalFieldsSet {
+		resp.Diagnostics.AddError(
+			"Conflicting attributes",
+			"'custom_fields' and 'additional_fields_json' are mutually exclusive; only one may be set",
+		)
+	}
+}
+
+// ConfigValidators returns resource-level config validators.
+func (r *WorkItemResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		wiConflictingFieldsValidator{},
+	}
+}
+
 // ── Schema ────────────────────────────────────────────────────────────────────
 
 func (r *WorkItemResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
@@ -120,6 +253,9 @@ func (r *WorkItemResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			},
 			"title": schema.StringAttribute{
 				Required: true,
+				Validators: []validator.String{
+					wiNotWhitespaceValidator{},
+				},
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -134,11 +270,17 @@ func (r *WorkItemResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				PlanModifiers: []planmodifier.String{
 					workItemRequiresReplace(),
 				},
+				Validators: []validator.String{
+					wiIsUUIDValidator{},
+				},
 			},
 			"type": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					workItemRequiresReplace(),
+				},
+				Validators: []validator.String{
+					wiNotWhitespaceValidator{},
 				},
 			},
 			"state": schema.StringAttribute{
@@ -146,6 +288,9 @@ func (r *WorkItemResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					workItemUseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					wiNotWhitespaceValidator{},
 				},
 			},
 			"custom_fields": schema.MapAttribute{
@@ -160,12 +305,18 @@ func (r *WorkItemResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			"tags": schema.SetAttribute{
 				Optional:    true,
 				ElementType: types.StringType,
+				Validators: []validator.Set{
+					wiTagsSizeFloorValidator{},
+				},
 			},
 			"area_path": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
 				PlanModifiers: []planmodifier.String{
 					workItemUseStateForUnknown(),
+				},
+				Validators: []validator.String{
+					wiNotWhitespaceValidator{},
 				},
 			},
 			"iteration_path": schema.StringAttribute{
@@ -174,9 +325,15 @@ func (r *WorkItemResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				PlanModifiers: []planmodifier.String{
 					workItemUseStateForUnknown(),
 				},
+				Validators: []validator.String{
+					wiNotWhitespaceValidator{},
+				},
 			},
 			"parent_id": schema.Int64Attribute{
 				Optional: true,
+				Validators: []validator.Int64{
+					wiParentIDAtLeastValidator{},
+				},
 			},
 			"url": schema.StringAttribute{
 				Computed: true,

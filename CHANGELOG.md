@@ -11,12 +11,17 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 - **`betterado_area` and `betterado_iteration` data sources migrated to terraform-plugin-framework.** Both data sources are now served through the mux provider using framework implementations (`data_area_framework.go`, `data_iteration_framework.go`). The SDKv2 implementations (`data_area.go`, `data_iteration.go`) have been removed. Schema is unchanged: `project_id`, `path`, `fetch_children`, `name`, `has_children`, `children`. Verified by live acceptance tests `TestAccAreaDataSource_Read` and `TestAccIterationDataSource_Read`.
 - **`betterado_workitemquery` and `betterado_workitemquery_folder` migrated to terraform-plugin-framework.** Both resources are now served through the mux provider using framework implementations (`resource_workitemquery_framework.go`, `resource_workitemquery_folder_framework.go`). The SDKv2 implementations have been removed. All schema attributes are preserved including the `ExactlyOneOf(parent_id, area)` constraint and `ForceNew` fields. Verified by live acceptance tests `TestAccWorkItemQuery_UnderArea` and `TestAccWorkItemQueryFolder_UnderArea`.
-- **`betterado_workitem` migrated to terraform-plugin-framework.** The resource
+- **`betterado_workitem` migrated to terraform-plugin-framework with full validator parity.** The resource
   is now served through the mux provider using the terraform-plugin-framework
   implementation (`resource_workitem_framework.go`). The SDKv2 implementation
   (`resource_workitem.go`) has been removed. CRUD operations target the Work
-  Item Tracking REST API; the schema is unchanged. Verified by live acceptance
-  test `TestAccWorkItem_basic`.
+  Item Tracking REST API; the schema is unchanged. Validators restored to SDKv2
+  parity: UUID pattern on `project_id`, non-whitespace on `title`/`type`/`state`/
+  `area_path`/`iteration_path`, `ConflictsWith` between `custom_fields` and
+  `additional_fields_json`, size floor on `tags`, and `AtLeast(1)` on `parent_id`.
+  Orphaned SDKv2 helper (`utils/classification.go`) deleted. All 8 acceptance
+  tests converted to use `SharedFixtureProjectName` (no ad-hoc project creation).
+  Verified by live acceptance test `TestAccWorkItem_basic`.
 - **`betterado_workitemtracking_field` migrated to terraform-plugin-framework.**
   The resource is now served through the mux provider using the framework
   implementation (`resource_field_framework.go`). The SDKv2 implementation

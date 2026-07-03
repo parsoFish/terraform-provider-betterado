@@ -130,7 +130,6 @@ func TestAccWorkItem_basic(t *testing.T) {
 func TestAccWorkItem_titleUpdate(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
 	workItemTitleUpdated := testutils.GenerateResourceName()
-	projectName := testutils.GenerateResourceName()
 	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -139,7 +138,7 @@ func TestAccWorkItem_titleUpdate(t *testing.T) {
 		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: workItemBasic(projectName, workItemTitle),
+				Config: workItemBasicShared(workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 				),
@@ -151,7 +150,7 @@ func TestAccWorkItem_titleUpdate(t *testing.T) {
 				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfNode),
 			},
 			{
-				Config: workItemBasic(projectName, workItemTitleUpdated),
+				Config: workItemBasicShared(workItemTitleUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitleUpdated),
 				),
@@ -168,7 +167,6 @@ func TestAccWorkItem_titleUpdate(t *testing.T) {
 
 func TestAccWorkItem_tagUpdate(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
-	projectName := testutils.GenerateResourceName()
 	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -177,7 +175,7 @@ func TestAccWorkItem_tagUpdate(t *testing.T) {
 		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: workItemBasic(projectName, workItemTitle),
+				Config: workItemBasicShared(workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 				),
@@ -189,7 +187,7 @@ func TestAccWorkItem_tagUpdate(t *testing.T) {
 				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfNode),
 			},
 			{
-				Config: workItemTagUpdate(projectName, workItemTitle),
+				Config: workItemTagUpdateShared(workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 				),
@@ -201,7 +199,7 @@ func TestAccWorkItem_tagUpdate(t *testing.T) {
 				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfNode),
 			},
 			{
-				Config: workItemBasic(projectName, workItemTitle),
+				Config: workItemBasicShared(workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 				),
@@ -218,7 +216,6 @@ func TestAccWorkItem_tagUpdate(t *testing.T) {
 
 func TestAccWorkItem_parent(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
-	projectName := testutils.GenerateResourceName()
 	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -227,7 +224,7 @@ func TestAccWorkItem_parent(t *testing.T) {
 		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: workItemParent(projectName, workItemTitle),
+				Config: workItemParentShared(workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
@@ -248,7 +245,6 @@ func TestAccWorkItem_parent(t *testing.T) {
 
 func TestAccWorkItem_parentUpdate(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
-	projectName := testutils.GenerateResourceName()
 	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -257,7 +253,7 @@ func TestAccWorkItem_parentUpdate(t *testing.T) {
 		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: workItemParent(projectName, workItemTitle),
+				Config: workItemParentShared(workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
@@ -273,7 +269,7 @@ func TestAccWorkItem_parentUpdate(t *testing.T) {
 				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfNode),
 			},
 			{
-				Config: workItemParentUpdate(projectName, workItemTitle),
+				Config: workItemParentUpdateShared(workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
@@ -294,7 +290,6 @@ func TestAccWorkItem_parentUpdate(t *testing.T) {
 
 func TestAccWorkItem_parentDelete(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
-	projectName := testutils.GenerateResourceName()
 	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -303,7 +298,7 @@ func TestAccWorkItem_parentDelete(t *testing.T) {
 		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: workItemParent(projectName, workItemTitle),
+				Config: workItemParentShared(workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
@@ -319,7 +314,7 @@ func TestAccWorkItem_parentDelete(t *testing.T) {
 				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfNode),
 			},
 			{
-				Config: workItemParentDelete(projectName, workItemTitle),
+				Config: workItemParentDeleteShared(workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
@@ -341,7 +336,6 @@ func TestAccWorkItem_parentDelete(t *testing.T) {
 
 func TestAccWorkItem_additionalFieldsJson(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
-	projectName := testutils.GenerateResourceName()
 	tfNode := "betterado_workitem.test"
 	storyPoints := 5.00
 	risk := "3 - Low"
@@ -356,7 +350,7 @@ func TestAccWorkItem_additionalFieldsJson(t *testing.T) {
 		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: workItemAdditionalFields(projectName, workItemTitle, jsonString),
+				Config: workItemAdditionalFieldsShared(workItemTitle, jsonString),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
@@ -379,7 +373,7 @@ func TestAccWorkItem_additionalFieldsJson(t *testing.T) {
 				),
 			},
 			{
-				Config: workItemAdditionalFields(projectName, workItemTitle, jsonStringUpdateAddRemove),
+				Config: workItemAdditionalFieldsShared(workItemTitle, jsonStringUpdateAddRemove),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
@@ -419,7 +413,6 @@ func TestAccWorkItem_additionalFieldsJson(t *testing.T) {
 
 func TestAccWorkItem_description(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
-	projectName := testutils.GenerateResourceName()
 	tfNode := "betterado_workitem.test"
 	description := testutils.GenerateResourceName()
 	descriptionUpdate := testutils.GenerateResourceName()
@@ -432,7 +425,7 @@ func TestAccWorkItem_description(t *testing.T) {
 		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: workItemDescriptionNone(projectName, workItemTitle, itemType),
+				Config: workItemDescriptionNoneShared(workItemTitle, itemType),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
@@ -442,7 +435,7 @@ func TestAccWorkItem_description(t *testing.T) {
 				),
 			},
 			{
-				Config: workItemDescription(projectName, workItemTitle, itemType, description),
+				Config: workItemDescriptionShared(workItemTitle, itemType, description),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
@@ -453,7 +446,7 @@ func TestAccWorkItem_description(t *testing.T) {
 				),
 			},
 			{
-				Config: workItemDescription(projectName, workItemTitle, itemType, descriptionUpdate),
+				Config: workItemDescriptionShared(workItemTitle, itemType, descriptionUpdate),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
@@ -464,7 +457,7 @@ func TestAccWorkItem_description(t *testing.T) {
 				),
 			},
 			{
-				Config: workItemDescription(projectName, workItemTitle, itemType, descriptionEmpty),
+				Config: workItemDescriptionShared(workItemTitle, itemType, descriptionEmpty),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
@@ -485,6 +478,19 @@ func TestAccWorkItem_description(t *testing.T) {
 	})
 }
 
+// ── Shared-fixture Terraform config helpers ────────────────────────────────────
+// All helpers below use the persistent SharedFixtureProjectName project to avoid
+// the 1000-project org cap. No ad-hoc betterado_project resources are created.
+
+// sharedProjectDataSource returns the data source block for the shared fixture project.
+func sharedProjectDataSource() string {
+	return fmt.Sprintf(`
+data "betterado_project" "test" {
+  name = %q
+}
+`, SharedFixtureProjectName)
+}
+
 // workItemBasicShared creates a work item in the PERSISTENT shared fixture project
 // (SharedFixtureProjectName) to avoid the 1000-project ADO org cap.
 func workItemBasicShared(title string) string {
@@ -501,147 +507,130 @@ resource "betterado_workitem" "test" {
 `, SharedFixtureProjectName, title)
 }
 
-func workItemTemplate(name string) string {
+func workItemTagUpdateShared(title string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "project" {
-  name               = "%[1]s"
-  description        = "%[1]s-description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}`, name)
+data "betterado_project" "test" {
+  name = %[1]q
 }
-
-func workItemBasic(projectName string, title string) string {
-	template := workItemTemplate(projectName)
-	return fmt.Sprintf(`
-%s
 
 resource "betterado_workitem" "test" {
-  title      = "%s"
-  project_id = betterado_project.project.id
-  type       = "Issue"
-}
-`, template, title)
-}
-
-func workItemTagUpdate(projectName string, title string) string {
-	template := workItemTemplate(projectName)
-	return fmt.Sprintf(`
-%s
-
-resource "betterado_workitem" "test" {
-  title      = "%s"
-  project_id = betterado_project.project.id
+  title      = %[2]q
+  project_id = data.betterado_project.test.id
   type       = "Issue"
   state      = "Active"
   tags       = ["tag1", "tag2"]
 }
-`, template, title)
+`, SharedFixtureProjectName, title)
 }
 
-func workItemParent(projectName string, title string) string {
-	template := workItemTemplate(projectName)
+func workItemParentShared(title string) string {
 	return fmt.Sprintf(`
-%[1]s
+data "betterado_project" "test" {
+  name = %[1]q
+}
 
 resource "betterado_workitem" "parent" {
-  title      = "%[2]s Parent"
-  project_id = betterado_project.project.id
+  title      = %[2]q
+  project_id = data.betterado_project.test.id
   type       = "Issue"
 }
 
 resource "betterado_workitem" "test" {
-  title      = "%[2]s"
-  project_id = betterado_project.project.id
+  title      = %[2]q
+  project_id = data.betterado_project.test.id
   type       = "Issue"
   parent_id  = betterado_workitem.parent.id
 }
-`, template, title)
+`, SharedFixtureProjectName, title)
 }
 
-func workItemParentDelete(projectName string, title string) string {
-	template := workItemTemplate(projectName)
+func workItemParentDeleteShared(title string) string {
 	return fmt.Sprintf(`
-%[1]s
+data "betterado_project" "test" {
+  name = %[1]q
+}
 
 resource "betterado_workitem" "parent" {
-  title      = "%[2]s Parent"
-  project_id = betterado_project.project.id
+  title      = %[2]q
+  project_id = data.betterado_project.test.id
   type       = "Issue"
 }
 
 resource "betterado_workitem" "test" {
-  title      = "%[2]s"
-  project_id = betterado_project.project.id
+  title      = %[2]q
+  project_id = data.betterado_project.test.id
   type       = "Issue"
 }
-`, template, title)
+`, SharedFixtureProjectName, title)
 }
 
-func workItemParentUpdate(projectName string, title string) string {
-	template := workItemTemplate(projectName)
+func workItemParentUpdateShared(title string) string {
 	return fmt.Sprintf(`
-%[1]s
+data "betterado_project" "test" {
+  name = %[1]q
+}
 
 resource "betterado_workitem" "parent" {
   title      = "%[2]s Parent"
-  project_id = betterado_project.project.id
+  project_id = data.betterado_project.test.id
   type       = "Issue"
 }
 
 resource "betterado_workitem" "parent2" {
   title      = "%[2]s Parent2"
-  project_id = betterado_project.project.id
+  project_id = data.betterado_project.test.id
   type       = "Issue"
 }
 
 resource "betterado_workitem" "test" {
-  project_id = betterado_project.project.id
-  title      = "%[2]s"
+  project_id = data.betterado_project.test.id
+  title      = %[2]q
   type       = "Issue"
   parent_id  = betterado_workitem.parent2.id
 }
-`, template, title)
+`, SharedFixtureProjectName, title)
 }
 
-func workItemDescription(projectName string, title string, itemType string, description string) string {
-	template := workItemTemplate(projectName)
+func workItemDescriptionShared(title string, itemType string, description string) string {
 	return fmt.Sprintf(`
-%s
+data "betterado_project" "test" {
+  name = %[1]q
+}
 
 resource "betterado_workitem" "test" {
-  title       = "%s"
-  project_id  = betterado_project.project.id
-  type        = "%s"
-  description = "%s"
+  title       = %[2]q
+  project_id  = data.betterado_project.test.id
+  type        = %[3]q
+  description = %[4]q
 }
-`, template, title, itemType, description)
+`, SharedFixtureProjectName, title, itemType, description)
 }
 
-func workItemDescriptionNone(projectName string, title string, itemType string) string {
-	template := workItemTemplate(projectName)
+func workItemDescriptionNoneShared(title string, itemType string) string {
 	return fmt.Sprintf(`
-%s
+data "betterado_project" "test" {
+  name = %[1]q
+}
 
 resource "betterado_workitem" "test" {
-  title      = "%s"
-  project_id = betterado_project.project.id
-  type       = "%s"
+  title      = %[2]q
+  project_id = data.betterado_project.test.id
+  type       = %[3]q
 }
-`, template, title, itemType)
+`, SharedFixtureProjectName, title, itemType)
 }
 
-func workItemAdditionalFields(projectName string, title string, jsonString string) string {
-	template := workItemTemplate(projectName)
+func workItemAdditionalFieldsShared(title string, jsonString string) string {
 	return fmt.Sprintf(`
-%s
+data "betterado_project" "test" {
+  name = %[1]q
+}
 
 resource "betterado_workitem" "test" {
-  title                  = "%s"
-  project_id             = betterado_project.project.id
+  title                  = %[2]q
+  project_id             = data.betterado_project.test.id
   type                   = "User Story"
-  additional_fields_json = jsonencode(%s)
+  additional_fields_json = jsonencode(%[3]s)
 }
-`, template, title, jsonString)
+`, SharedFixtureProjectName, title, jsonString)
 }
