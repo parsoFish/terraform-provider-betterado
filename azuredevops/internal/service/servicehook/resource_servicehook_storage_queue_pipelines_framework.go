@@ -384,21 +384,32 @@ func (r *servicehookStorageQueuePipelinesResource) flattenSubscription(sub *serv
 		switch *sub.EventType {
 		case "ms.vss-pipelines.stage-state-changed-event":
 			model.StageStateChangedEvent = []stageStateChangedEventModel{{
-				PipelineID:        types.StringValue(pi["pipelineId"]),
-				StageName:         types.StringValue(pi["stageNameId"]),
-				StageStateFilter:  types.StringValue(pi["stageStateId"]),
-				StageResultFilter: types.StringValue(pi["stageResultId"]),
+				PipelineID:        sqpOptionalString(pi["pipelineId"]),
+				StageName:         sqpOptionalString(pi["stageNameId"]),
+				StageStateFilter:  sqpOptionalString(pi["stageStateId"]),
+				StageResultFilter: sqpOptionalString(pi["stageResultId"]),
 			}}
 			model.RunStateChangedEvent = []runStateChangedEventModel{}
 		case "ms.vss-pipelines.run-state-changed-event":
 			model.RunStateChangedEvent = []runStateChangedEventModel{{
-				PipelineID:      types.StringValue(pi["pipelineId"]),
-				RunStateFilter:  types.StringValue(pi["runStateId"]),
-				RunResultFilter: types.StringValue(pi["runResultId"]),
+				PipelineID:      sqpOptionalString(pi["pipelineId"]),
+				RunStateFilter:  sqpOptionalString(pi["runStateId"]),
+				RunResultFilter: sqpOptionalString(pi["runResultId"]),
 			}}
 			model.StageStateChangedEvent = []stageStateChangedEventModel{}
 		}
 	}
+}
+
+// sqpOptionalString converts an ADO string value to types.String.
+// ADO returns "" for unset optional fields; we preserve null so that the plan
+// (which holds null for unset Optional attributes) matches the read-back state
+// and Terraform does not report a "Provider produced inconsistent result" error.
+func sqpOptionalString(v string) types.String {
+	if v == "" {
+		return types.StringNull()
+	}
+	return types.StringValue(v)
 }
 
 // ── Inline plan modifiers / defaults (servicehook package) ────────────────────
