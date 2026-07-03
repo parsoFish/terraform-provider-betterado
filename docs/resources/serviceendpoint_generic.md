@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_generic Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a Generic Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_generic (Resource)
 
-
+Manages a Generic Service Connection within Azure DevOps.
 
 
 
@@ -17,28 +17,17 @@ description: |-
 
 ### Required
 
-- `project_id` (String)
+- `project_id` (String) The ID of the project.
 - `server_url` (String) The server URL of the generic service connection.
-- `service_endpoint_name` (String)
+- `service_endpoint_name` (String) The Service Endpoint name.
 
 ### Optional
 
-- `description` (String)
+- `description` (String) The Service Endpoint description.
 - `password` (String, Sensitive) The password or token key to use for the generic service connection.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `username` (String) The username to use for the generic service connection.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.

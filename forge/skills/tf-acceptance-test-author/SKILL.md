@@ -47,9 +47,15 @@ During the live read-back, BEFORE destroy, call
 `_ = testutils.CaptureLiveEvidence(label, url, apiResponse)` (template:
 `resource_task_group_test.go` `captureTaskGroupEvidence`) so
 `.forge/live-evidence/<label>.json` is written and `forge demo render` back-fills
-it into `demo.json`. Use label `acceptance-resource` to match the unifier's
-checkpoint. For release resources, build the **vsrm-host** GET URL with the release
-client (release API lives on `vsrm.dev.azure.com`, not `dev.azure.com`).
+it into `demo.json`. Use label `acceptance-resource-<type>` with the resource's
+short type name (e.g. `acceptance-resource-azurerm`, `acceptance-resource-dashboard`)
+— evidence files are keyed by label, so a shared label means each capture
+OVERWRITES the previous one and a multi-resource initiative ships evidence for
+only its last-run resource. The demo compiler picks up every
+`.forge/live-evidence/*.json`; unmatched labels surface as extra harness
+checkpoints, so per-type labels lose nothing. For release resources, build the
+**vsrm-host** GET URL with the release client (release API lives on
+`vsrm.dev.azure.com`, not `dev.azure.com`).
 
 ## Gotchas (paid for in prior cycles)
 

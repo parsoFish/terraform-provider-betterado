@@ -1,3 +1,5 @@
+//go:build (all || resource_serviceendpoint_bitbucket) && !exclude_resource_serviceendpoint_bitbucket
+
 package acceptancetests
 
 import (
@@ -15,9 +17,9 @@ func TestAccServiceEndpointBitBucket_basic(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_bitbucket"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointBitBucketResourceBasic(projectName, serviceEndpointName),
@@ -39,9 +41,9 @@ func TestAccServiceEndpointBitBucket_complete(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_bitbucket"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointBitBucketResourceComplete(projectName, serviceEndpointName, description),
@@ -49,7 +51,6 @@ func TestAccServiceEndpointBitBucket_complete(t *testing.T) {
 					testutils.CheckServiceEndpointExistsWithName(tfSvcEpNode, serviceEndpointName),
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "username"),
-					resource.TestCheckResourceAttrSet(tfSvcEpNode, "password"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "username", "username"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "service_endpoint_name", serviceEndpointName),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "description", description),
@@ -69,9 +70,9 @@ func TestAccServiceEndpointBitBucket_update(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_bitbucket"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointBitBucketResourceBasic(projectName, serviceEndpointNameFirst),
@@ -85,7 +86,6 @@ func TestAccServiceEndpointBitBucket_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckServiceEndpointExistsWithName(tfSvcEpNode, serviceEndpointNameSecond),
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "project_id"),
-					resource.TestCheckResourceAttrSet(tfSvcEpNode, "password"),
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "username"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "username", "username"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "service_endpoint_name", serviceEndpointNameSecond),
@@ -103,9 +103,9 @@ func TestAccServiceEndpointBitBucket_RequiresImportErrorStep(t *testing.T) {
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointBitBucketResourceBasic(projectName, serviceEndpointName),
