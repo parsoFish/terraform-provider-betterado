@@ -423,11 +423,41 @@ func (r *processResource) flattenProcess(model *processResourceModel, process *w
 	}
 	if process.IsDefault != nil {
 		model.IsDefault = types.BoolValue(*process.IsDefault)
+	} else {
+		model.IsDefault = types.BoolValue(false)
 	}
 	if process.IsEnabled != nil {
 		model.IsEnabled = types.BoolValue(*process.IsEnabled)
+	} else {
+		// The ADO API omits isEnabled when it is false (omitempty). When the list
+		// API returns nil for IsEnabled it means the process is disabled.
+		model.IsEnabled = types.BoolValue(false)
 	}
 	if process.CustomizationType != nil {
 		model.CustomizationType = types.StringValue(string(*process.CustomizationType))
 	}
+}
+
+// getProcessByID retrieves a process by ID via the list API. It is kept as a
+// fallback helper for cases where the single-get endpoint does not reliably
+// return all fields. Currently unused in Read/ImportState — those paths use
+// GetProcessByItsId directly with flattenProcess's nil-to-false defaulting for
+// IsEnabled. Returns (process, found, error).
+func (r *processResource) getProcessByID(ctx context.Context, processID string) (*workitemtrackingprocess.ProcessInfo, bool, error) {
+	processes, err := r.client.WorkItemTrackingProcessClient.GetListOfProcesses(ctx, workitemtrackingprocess.GetListOfProcessesArgs{
+		Expand: &workitemtrackingprocess.GetProcessExpandLevelValues.None,
+	})
+	if err != nil {
+		return nil, false, fmt.Errorf("listing processes: %w", err)
+	}
+	if processes == nil {
+		return nil, false, nil
+	}
+	for i := range *processes {
+		p := (*processes)[i]
+		if p.TypeId != nil && p.TypeId.String() == processID {
+			return &p, true, nil
+		}
+	}
+	return nil, false, nil
 }
