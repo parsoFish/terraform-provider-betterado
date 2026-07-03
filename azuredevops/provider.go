@@ -104,7 +104,7 @@ func Provider() *schema.Provider {
 			"betterado_securityrole_assignment":                securityroles.ResourceSecurityRoleAssignment(),
 			"betterado_serviceendpoint_generic_v2":             serviceendpoint.ResourceServiceEndpointGenericV2(),
 			// betterado_serviceendpoint_argocd is registered in framework_provider.go (migrated to terraform-plugin-framework)
-			"betterado_serviceendpoint_artifactory": serviceendpoint.ResourceServiceEndpointArtifactory(),
+			// betterado_serviceendpoint_artifactory is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_aws is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_azure_service_bus is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_azurecr is registered in framework_provider.go (migrated to terraform-plugin-framework)
@@ -116,7 +116,7 @@ func Provider() *schema.Provider {
 			// betterado_serviceendpoint_checkmarx_sca is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_checkmarx_sast is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_dockerregistry is registered in framework_provider.go (migrated to terraform-plugin-framework)
-			"betterado_serviceendpoint_dynamics_lifecycle_services": serviceendpoint.ResourceServiceEndpointDynamicsLifecycleServices(),
+			// betterado_serviceendpoint_dynamics_lifecycle_services is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_externaltfs is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_gcp_terraform is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_generic is registered in framework_provider.go (migrated to terraform-plugin-framework)

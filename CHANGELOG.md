@@ -48,6 +48,15 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   Deprecated: use `betterado_serviceendpoint_runpipeline` instead.
   Deregistered from the SDKv2 provider; served through the mux provider.
 
+- **`betterado_serviceendpoint_artifactory` resource migrated to terraform-plugin-framework.**
+  Supports both token (`authentication_token`) and basic (`authentication_basic`) authentication modes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_dynamics_lifecycle_services` resource migrated to terraform-plugin-framework.**
+  Uses `authorization_endpoint`, `lifecycle_services_api_endpoint`, `client_id`, `username`, and `password`
+  attributes with `UsernamePassword` authentication scheme.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

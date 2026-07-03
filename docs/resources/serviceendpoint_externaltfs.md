@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_externaltfs Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an External TFS Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_externaltfs (Resource)
 
-
+Manages an External TFS Service Connection within Azure DevOps.
 
 
 
@@ -17,35 +17,23 @@ description: |-
 
 ### Required
 
-- `auth_personal` (Block Set, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--auth_personal))
+- `auth_personal` (Attributes List) An auth_personal block as documented below. (see [below for nested schema](#nestedatt--auth_personal))
 - `connection_url` (String) URL of the Azure DevOps organization or the TFS Project Collection to connect to.
-- `project_id` (String)
-- `service_endpoint_name` (String)
+- `project_id` (String) The ID of the project.
+- `service_endpoint_name` (String) The Service Endpoint name.
 
 ### Optional
 
-- `description` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `description` (String) The Service Endpoint description.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.
 
-<a id="nestedblock--auth_personal"></a>
+<a id="nestedatt--auth_personal"></a>
 ### Nested Schema for `auth_personal`
 
 Required:
 
-- `personal_access_token` (String, Sensitive) Personal access tokens are applicable only for connections targeting Azure DevOps organization or TFS 2017 (and higher)
-
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `personal_access_token` (String, Sensitive) Personal access tokens are applicable only for connections targeting Azure DevOps organization or TFS 2017 (and higher).

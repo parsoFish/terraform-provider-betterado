@@ -227,6 +227,8 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		serviceendpoint.NewServiceEndpointCheckMarxOneResource,
 		serviceendpoint.NewServiceEndpointCheckMarxSCAResource,
 		serviceendpoint.NewServiceEndpointCheckMarxSASTResource,
+		serviceendpoint.NewServiceEndpointArtifactoryResource,
+		serviceendpoint.NewServiceEndpointDynamicsLifecycleServicesResource,
 	}
 }
 

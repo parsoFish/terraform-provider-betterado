@@ -70,7 +70,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_securityrole_assignment",
 		"betterado_serviceendpoint_generic_v2",
 		// betterado_serviceendpoint_argocd migrated to framework (registered in framework_provider.go)
-		"betterado_serviceendpoint_artifactory",
+		// betterado_serviceendpoint_artifactory migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_aws migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_azure_service_bus migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_azurecr migrated to framework (registered in framework_provider.go)
@@ -82,7 +82,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// betterado_serviceendpoint_checkmarx_sca migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_checkmarx_sast migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_dockerregistry migrated to framework (registered in framework_provider.go)
-		"betterado_serviceendpoint_dynamics_lifecycle_services",
+		// betterado_serviceendpoint_dynamics_lifecycle_services migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_externaltfs migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_gcp_terraform migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_generic migrated to framework (registered in framework_provider.go)
