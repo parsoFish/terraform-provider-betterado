@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -91,7 +92,7 @@ func (r *GroupMembershipResource) Schema(_ context.Context, _ resource.SchemaReq
 					groupRequiresReplace(),
 				},
 				Validators: []schemavalidator.String{
-					stringNotEmpty(),
+					stringvalidator.LengthAtLeast(1),
 				},
 			},
 			"mode": schema.StringAttribute{
@@ -99,7 +100,7 @@ func (r *GroupMembershipResource) Schema(_ context.Context, _ resource.SchemaReq
 				Computed: true,
 				Default:  staticModeDefault("add"),
 				Validators: []schemavalidator.String{
-					stringOneOfCaseInsensitive("add", "overwrite"),
+					stringvalidator.OneOfCaseInsensitive("add", "overwrite"),
 				},
 				Description: "The mode to use when managing memberships. Valid values are 'add' and 'overwrite'. Defaults to 'add'.",
 			},

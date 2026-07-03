@@ -5,8 +5,11 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -149,7 +152,7 @@ func (r *GroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					groupRequiresReplace(),
 				},
 				Validators: []schemavalidator.String{
-					stringNotEmpty(),
+					stringvalidator.LengthAtLeast(1),
 				},
 				Description: "The GUID (UUID) of the project that the group is scoped to. If not set, the group is global.",
 			},
@@ -161,7 +164,7 @@ func (r *GroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					groupUseStateForUnknown(),
 				},
 				Validators: []schemavalidator.String{
-					stringNotEmpty(),
+					stringvalidator.LengthAtLeast(1),
 				},
 				Description: "The OriginID for the group when creating from an external source. Conflicts with mail, display_name, and scope.",
 			},
@@ -173,7 +176,7 @@ func (r *GroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					groupUseStateForUnknown(),
 				},
 				Validators: []schemavalidator.String{
-					stringNotEmpty(),
+					stringvalidator.LengthAtLeast(1),
 				},
 				Description: "The mail address for the group when creating from an email address. Conflicts with origin_id, display_name, and scope.",
 			},
@@ -181,7 +184,7 @@ func (r *GroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Optional: true,
 				Computed: true,
 				Validators: []schemavalidator.String{
-					stringNotEmpty(),
+					stringvalidator.LengthAtLeast(1),
 				},
 				Description: "The display name of the group. Conflicts with origin_id and mail.",
 			},
@@ -232,14 +235,26 @@ func (r *GroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 
 // ConfigValidators returns resource-level validators that enforce SDKv2-parity
 // ConflictsWith constraints on origin_id, mail, and display_name:
-//   - origin_id conflicts with mail, display_name, and scope
-//   - mail conflicts with origin_id, display_name, and scope
-//   - display_name conflicts with origin_id and mail
+//   - origin_id, mail, and display_name all conflict with each other
+//   - origin_id conflicts with scope
+//   - mail conflicts with scope
 func (r *GroupResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
-		conflictingAttrs("origin_id", "mail", "display_name", "scope"),
-		conflictingAttrs("mail", "origin_id", "display_name", "scope"),
-		conflictingAttrs("display_name", "origin_id", "mail"),
+		// origin_id, mail, and display_name all conflict with each other.
+		resourcevalidator.Conflicting(
+			path.MatchRoot("origin_id"),
+			path.MatchRoot("mail"),
+			path.MatchRoot("display_name"),
+		),
+		// origin_id and mail additionally conflict with scope.
+		resourcevalidator.Conflicting(
+			path.MatchRoot("origin_id"),
+			path.MatchRoot("scope"),
+		),
+		resourcevalidator.Conflicting(
+			path.MatchRoot("mail"),
+			path.MatchRoot("scope"),
+		),
 	}
 }
 
