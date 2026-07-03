@@ -218,6 +218,11 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		serviceendpoint.NewServiceEndpointGitHubEnterpriseResource,
 		serviceendpoint.NewServiceEndpointGitLabResource,
 		serviceendpoint.NewServiceEndpointBitBucketResource,
+		serviceendpoint.NewServiceEndpointJenkinsResource,
+		serviceendpoint.NewServiceEndpointArgoCDResource,
+		serviceendpoint.NewServiceEndpointIncomingWebhookResource,
+		serviceendpoint.NewServiceEndpointExternalTFSResource,
+		serviceendpoint.NewServiceEndpointAzureDevOpsResource,
 	}
 }
 

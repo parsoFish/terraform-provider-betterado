@@ -103,12 +103,12 @@ func Provider() *schema.Provider {
 			"betterado_security_permissions":                   security.ResourceGenericPermissions(),
 			"betterado_securityrole_assignment":                securityroles.ResourceSecurityRoleAssignment(),
 			"betterado_serviceendpoint_generic_v2":             serviceendpoint.ResourceServiceEndpointGenericV2(),
-			"betterado_serviceendpoint_argocd":                 serviceendpoint.ResourceServiceEndpointArgoCD(),
-			"betterado_serviceendpoint_artifactory":            serviceendpoint.ResourceServiceEndpointArtifactory(),
+			// betterado_serviceendpoint_argocd is registered in framework_provider.go (migrated to terraform-plugin-framework)
+			"betterado_serviceendpoint_artifactory": serviceendpoint.ResourceServiceEndpointArtifactory(),
 			// betterado_serviceendpoint_aws is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_azure_service_bus is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_azurecr is registered in framework_provider.go (migrated to terraform-plugin-framework)
-			"betterado_serviceendpoint_azuredevops": serviceendpoint.ResourceServiceEndpointAzureDevOps(),
+			// betterado_serviceendpoint_azuredevops is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_azurerm is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_bitbucket is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			"betterado_serviceendpoint_black_duck":     serviceendpoint.ResourceServiceEndpointBlackDuck(),
@@ -117,15 +117,15 @@ func Provider() *schema.Provider {
 			"betterado_serviceendpoint_checkmarx_sast": serviceendpoint.ResourceServiceEndpointCheckMarxSAST(),
 			// betterado_serviceendpoint_dockerregistry is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			"betterado_serviceendpoint_dynamics_lifecycle_services": serviceendpoint.ResourceServiceEndpointDynamicsLifecycleServices(),
-			"betterado_serviceendpoint_externaltfs":                 serviceendpoint.ResourceServiceEndpointExternalTFS(),
+			// betterado_serviceendpoint_externaltfs is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_gcp_terraform is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_generic is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			"betterado_serviceendpoint_generic_git": serviceendpoint.ResourceServiceEndpointGenericGit(),
 			// betterado_serviceendpoint_github is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_github_enterprise is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_gitlab is registered in framework_provider.go (migrated to terraform-plugin-framework)
-			"betterado_serviceendpoint_incomingwebhook":             serviceendpoint.ResourceServiceEndpointIncomingWebhook(),
-			"betterado_serviceendpoint_jenkins":                     serviceendpoint.ResourceServiceEndpointJenkins(),
+			// betterado_serviceendpoint_incomingwebhook is registered in framework_provider.go (migrated to terraform-plugin-framework)
+			// betterado_serviceendpoint_jenkins is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			"betterado_serviceendpoint_jfrog_artifactory_v2":        serviceendpoint.ResourceServiceEndpointJFrogArtifactoryV2(),
 			"betterado_serviceendpoint_jfrog_distribution_v2":       serviceendpoint.ResourceServiceEndpointJFrogDistributionV2(),
 			"betterado_serviceendpoint_jfrog_platform_v2":           serviceendpoint.ResourceServiceEndpointJFrogPlatformV2(),

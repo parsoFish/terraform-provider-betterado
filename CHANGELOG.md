@@ -27,6 +27,27 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   Username + password basic authentication. Deregistered from the SDKv2 provider; served through
   the mux provider.
 
+- **`betterado_serviceendpoint_jenkins` resource migrated to terraform-plugin-framework.**
+  Supports username + password authentication with optional `accept_untrusted_certs` flag.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_argocd` resource migrated to terraform-plugin-framework.**
+  Supports both token (`authentication_token`) and basic (`authentication_basic`) authentication modes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_incomingwebhook` resource migrated to terraform-plugin-framework.**
+  Supports `webhook_name`, optional `secret`, and optional `http_header` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_externaltfs` resource migrated to terraform-plugin-framework.**
+  Uses `auth_personal` block with `personal_access_token` for Token authentication.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_azuredevops` resource migrated to terraform-plugin-framework.**
+  Supports `org_url`, `release_api_url`, and `personal_access_token` attributes.
+  Deprecated: use `betterado_serviceendpoint_runpipeline` instead.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

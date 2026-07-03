@@ -1,3 +1,5 @@
+//go:build (all || resource_serviceendpoint_externaltfs) && !exclude_resource_serviceendpoint_externaltfs
+
 package acceptancetests
 
 import (
@@ -14,9 +16,9 @@ func TestAccServiceEndpointExternalTFS_PersonalTokenBasic(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_externaltfs"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointExternalTFSResourceBasic(projectName, serviceEndpointName),
@@ -41,9 +43,9 @@ func TestAccServiceEndpointExternalTFS_PersonalTokenUpdate(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_externaltfs"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointExternalTFSResourceBasic(projectName, serviceEndpointNameFirst),
@@ -77,9 +79,9 @@ func TestAccServiceEndpointExternalTFS_CreateAndUpdate(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_externaltfs"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointExternalTFSResourceBasic(projectName, serviceEndpointNameFirst),
@@ -120,9 +122,9 @@ func TestAccServiceEndpointExternalTFS_RequiresImportErrorStep(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_externaltfs"
 	tfSvcEpNode := resourceType + ".serviceendpoint"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointExternalTFSResourceBasic(projectName, serviceEndpointName),
