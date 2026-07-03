@@ -7,7 +7,27 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### Changed
+
+- Migrated `betterado_feed`, `betterado_feed_permission`, `betterado_feed_retention_policy`, and `data.betterado_feed` from terraform-plugin-sdk/v2 to terraform-plugin-framework (mux provider).
+
 ### FEATURES
+
+- **`betterado_feed` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served
+  through the mux provider. CRUD operations target the ADO Packaging Feeds API
+  (`_apis/packaging/feeds`). Schema is unchanged (`name`, `project_id`, `id`,
+  `features`). Soft-deleted feeds are treated as destroyed and re-created on
+  next apply. Verified by live acceptance tests
+  `TestAccFeedFramework_projectScopedBasic` and
+  `TestAccFeedFramework_orgScopedBasic`.
+
+- **`betterado_feed_permission` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served
+  through the mux provider. Manages a single permission entry per resource
+  instance; `display_name`, `identity_id`, `identity_descriptor`, `role`,
+  `feed_id`, and `project_id` are all exposed. Verified by live acceptance tests
+  `TestAccFeedPermissionFramework_basic`.
 
 - **`data.betterado_feed` migrated to terraform-plugin-framework.**
   The data source now uses the terraform-plugin-framework implementation served
