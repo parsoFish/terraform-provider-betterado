@@ -527,9 +527,15 @@ func (r *GroupResource) readGroupIntoModel(descriptor string, current groupResou
 	} else {
 		m.DisplayName = types.StringNull()
 	}
-	if grp.Description != nil {
+	// description is Optional (not Computed): if ADO returns "" and the user
+	// did not set description, preserve null to avoid a plan-vs-state inconsistency.
+	switch {
+	case grp.Description != nil && *grp.Description != "":
 		m.Description = types.StringValue(*grp.Description)
-	} else {
+	case !current.Description.IsNull() && !current.Description.IsUnknown():
+		// User explicitly set description (possibly to ""); keep their value.
+		m.Description = current.Description
+	default:
 		m.Description = types.StringNull()
 	}
 	if grp.Url != nil {
