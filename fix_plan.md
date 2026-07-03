@@ -8,7 +8,10 @@
 
 ## Status
 
-All ACs implemented in iteration 0 (commit 0ee972ad). Gate-blocking issue was
-the 1000-project ADO org limit — fixed by switching tests to use the standing
-fixture project (`SharedFixtureProjectName`) with `ProtoV6ProviderFactories`.
-Offline gate (`make test` + golangci-lint + terrafmt-check) passes green.
+All ACs implemented in iteration 0 (commit 0ee972ad). Gate was blocked by:
+1. 1000-project limit → fixed (iteration 0): switched to standing fixture project.
+2. Classic pipelines disabled (iteration 3/commit 51f67ebe): expanded
+   `enableClassicPipelinesForFixtureProject` to also set
+   `disableClassicDeploymentPipelineCreation=false` (deployment groups need this,
+   not just `disableClassicBuildPipelineCreation`) and added org-level PATCH first
+   (non-fatal) before the project-level PATCH.
