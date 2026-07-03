@@ -3,7 +3,7 @@
   "essence": "All four feed surfaces (betterado_feed, betterado_feed_permission, betterado_feed_retention_policy, data.betterado_feed) previously served via terraform-plugin-sdk/v2 are now served through the mux ProtoV6 provider path using terraform-plugin-framework. The SDKv2 registrations are deregistered; live acceptance tests prove apply → read-back → idempotency → destroy against real ADO; provider docs are regenerated, changelog and version bumped.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-feed",
-  "diffStat": "24 files changed, 2471 insertions(+), 106 deletions(-)",
+  "diffStat": "26 files changed, 3010 insertions(+), 106 deletions(-)",
   "summary": {
     "bullets": [
       "betterado_feed, betterado_feed_permission, betterado_feed_retention_policy, and data.betterado_feed are now served via terraform-plugin-framework through the mux ProtoV6 provider.",
@@ -27,6 +27,7 @@
       "caption": "CI-equivalent unit tests green after all WI commits merged",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
       "beforeNote": "All tests passed before migration; the gate verifies composed WI commits haven't regressed adjacent packages.",
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s",
       "afterNote": "All three packages pass: release (ok), taskagent (ok), taskagent/validate (ok)"
     },
     {

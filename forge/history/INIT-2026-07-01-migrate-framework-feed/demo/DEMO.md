@@ -38,8 +38,15 @@
 
 ### CI-equivalent unit tests green after all WI commits merged
 
+Command: `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...`
+
 - **Before:** All tests passed before migration; the gate verifies composed WI commits haven't regressed adjacent packages.
-- **After:** All three packages pass: release (ok), taskagent (ok), taskagent/validate (ok)
+- **After:**
+```
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.007s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.006s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.004s
+```
 
 ### Live ADO REST GET of betterado_feed resource created via framework provider
 
@@ -184,7 +191,7 @@ feed.NewFeedDataSource()
 - `acceptancetests.test` — changed — compiled test binary
 
 ```
-24 files changed, 2471 insertions(+), 106 deletions(-)
+26 files changed, 3010 insertions(+), 106 deletions(-)
 ```
 
 ## Usage
