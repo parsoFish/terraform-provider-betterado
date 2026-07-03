@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_azurerm Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Use this data source to access information about an existing Azure RM service endpoint.
 ---
 
 # betterado_serviceendpoint_azurerm (Data Source)
 
-
+Use this data source to access information about an existing Azure RM service endpoint.
 
 
 
@@ -17,35 +17,24 @@ description: |-
 
 ### Required
 
-- `project_id` (String)
+- `project_id` (String) The project ID or project name.
 
 ### Optional
 
-- `service_endpoint_id` (String) The ID of the serviceendpoint
-- `service_endpoint_name` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `service_endpoint_id` (String) The service endpoint ID.
+- `service_endpoint_name` (String) The service endpoint name.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `azurerm_management_group_id` (String)
-- `azurerm_management_group_name` (String)
-- `azurerm_spn_tenantid` (String)
-- `azurerm_subscription_id` (String)
-- `azurerm_subscription_name` (String)
-- `description` (String)
-- `environment` (String)
-- `id` (String) The ID of this resource.
-- `resource_group` (String)
-- `server_url` (String)
-- `service_endpoint_authentication_scheme` (String)
-- `service_principal_id` (String)
-- `workload_identity_federation_issuer` (String)
-- `workload_identity_federation_subject` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `azurerm_management_group_id` (String) The Azure managementGroup Id.
+- `azurerm_management_group_name` (String) The Azure managementGroup name.
+- `azurerm_spn_tenantid` (String) The service principal tenant id.
+- `azurerm_subscription_id` (String) The Azure subscription Id.
+- `azurerm_subscription_name` (String) The Azure subscription name.
+- `environment` (String) Environment (Azure Cloud type).
+- `resource_group` (String) Scope Resource Group.
+- `server_url` (String) A URL to the server (for AzureStack environments).
+- `service_endpoint_authentication_scheme` (String) The AzureRM Service Endpoint Authentication Scheme.
+- `service_principal_id` (String) The service principal ID.
+- `workload_identity_federation_issuer` (String) The issuer of the workload identity federation service principal.
+- `workload_identity_federation_subject` (String) The subject of the workload identity federation service principal.

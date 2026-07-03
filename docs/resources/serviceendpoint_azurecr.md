@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_azurecr Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an Azure Container Registry Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_azurecr (Resource)
 
-
+Manages an Azure Container Registry Service Connection within Azure DevOps.
 
 
 
@@ -21,43 +21,23 @@ description: |-
 - `azurecr_spn_tenantid` (String) The service principal tenant id which should be used.
 - `azurecr_subscription_id` (String) The Azure subscription Id which should be used.
 - `azurecr_subscription_name` (String) The Azure subscription name which should be used.
-- `project_id` (String)
-- `service_endpoint_name` (String)
+- `project_id` (String) The ID of the project.
+- `service_endpoint_name` (String) The Service Endpoint name.
 
 ### Optional
 
-- `credentials` (Block List, Max: 1) (see [below for nested schema](#nestedblock--credentials))
-- `description` (String)
-- `resource_group` (String) Scope Resource Group
-- `service_endpoint_authentication_scheme` (String) The AzureCR Service Endpoint Authentication Scheme, this can be 'WorkloadIdentityFederation', 'ManagedServiceIdentity' or 'ServicePrincipal'.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `description` (String) The Service Endpoint description.
+- `resource_group` (String) Scope Resource Group.
+- `service_endpoint_authentication_scheme` (String) The AzureCR Service Endpoint Authentication Scheme: 'WorkloadIdentityFederation', 'ManagedServiceIdentity' or 'ServicePrincipal'.
 
 ### Read-Only
 
-- `app_object_id` (String)
-- `authorization` (Map of String)
-- `az_spn_role_assignment_id` (String)
-- `az_spn_role_permissions` (String)
-- `id` (String) The ID of this resource.
-- `service_principal_id` (String)
-- `spn_object_id` (String)
+- `app_object_id` (String) The object ID of the service principal's associated application.
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `az_spn_role_assignment_id` (String) The service principal role assignment ID.
+- `az_spn_role_permissions` (String) The service principal role permissions.
+- `id` (String) The ID of the service endpoint.
+- `service_principal_id` (String) The service principal id.
+- `spn_object_id` (String) The object ID of the service principal.
 - `workload_identity_federation_issuer` (String) The issuer of the workload identity federation service principal.
 - `workload_identity_federation_subject` (String) The subject of the workload identity federation service principal.
-
-<a id="nestedblock--credentials"></a>
-### Nested Schema for `credentials`
-
-Required:
-
-- `serviceprincipalid` (String) The service principal id which should be used.
-
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
