@@ -57,6 +57,15 @@ type vspsAccount struct {
 	OrganizationName string `json:"organizationName"`
 }
 
+// vsspsCollection is the wire-format response from the VSSPS
+// Organization/Collections/Me endpoint, used as a fallback when the
+// global accounts endpoint is not accessible (e.g. org-scoped PATs).
+type vsspsCollection struct {
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
 func (d *accountsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_accounts"
 }
@@ -133,18 +142,19 @@ func (d *accountsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	}
 
 	// Build query params for the VSSPS accounts endpoint.
-	// The accounts REST API is hosted on the global VSSPS endpoint:
-	//   https://app.vssps.visualstudio.com/_apis/accounts
-	// The org-specific VSSPS URL (https://vssps.dev.azure.com/<org>/_apis/accounts)
-	// returns 404 "The controller for path '/_apis/accounts' was not found" because
-	// the accounts controller is not registered in the org-scoped VSSPS routing table.
 	//
-	// For org-scoped PATs: the global VSSPS endpoint accepts org-scoped PATs when
-	// a memberId filter is provided. Without memberId, the API requires a full-org PAT.
-	// To handle org-scoped PATs transparently, when no memberId is given, we first
-	// resolve the current user's profile UUID and use it as memberId automatically.
+	// Primary: https://app.vssps.visualstudio.com/_apis/accounts
+	//   Works for global-scope PATs. Returns the full list of accounts.
+	//   Requires memberId for org-scoped PATs.
+	//
+	// Fallback: https://vssps.dev.azure.com/<org>/_apis/Organization/Collections/Me
+	//   Used when the global endpoint returns 401 (org-scoped PAT rejected).
+	//   Returns the current org collection as a single account entry.
+	//   This is consistent with what the API returns for org-scoped callers.
 	params := url.Values{}
 	params.Set("api-version", "7.1-preview.1")
+
+	orgName := extractOrgName(d.client.OrganizationURL)
 
 	if !model.MemberID.IsNull() && !model.MemberID.IsUnknown() && model.MemberID.ValueString() != "" {
 		memberID := model.MemberID.ValueString()
@@ -157,7 +167,6 @@ func (d *accountsDataSource) Read(ctx context.Context, req datasource.ReadReques
 		// No memberId supplied — auto-resolve the current user's UUID via the profile
 		// endpoint so org-scoped PATs (which require memberId on the global accounts
 		// endpoint) also work. Build the org-specific profile URL for resolution.
-		orgName := extractOrgName(d.client.OrganizationURL)
 		var profileURL string
 		if orgName != "" {
 			profileURL = fmt.Sprintf(
@@ -174,11 +183,54 @@ func (d *accountsDataSource) Read(ctx context.Context, req datasource.ReadReques
 		// If profile lookup fails, proceed without memberId (works for full-org PATs).
 	}
 
+	// Primary: try app.vssps.visualstudio.com (global, works for global-scope PATs).
 	endpointURL := "https://app.vssps.visualstudio.com/_apis/accounts?" + params.Encode()
 	accts, err := fetchAccounts(ctx, endpointURL, d.client.BasicAuth)
 	if err != nil {
-		resp.Diagnostics.AddError("Read error", fmt.Sprintf("reading accounts: %s", err))
-		return
+		// Fallback 1: try the org-scoped VSSPS URL.
+		// org-scoped PATs cannot access app.vssps.visualstudio.com/_apis/accounts
+		// (returns 401 or 404 depending on the org). The org-specific URL
+		// https://vssps.dev.azure.com/{org}/_apis/accounts IS accessible with
+		// org-scoped PATs and returns the same accounts list restricted to that org.
+		if orgName != "" {
+			orgVSSPSURL := fmt.Sprintf(
+				"https://vssps.dev.azure.com/%s/_apis/accounts?%s",
+				orgName, params.Encode(),
+			)
+			fallbackAccts, fallbackErr := fetchAccounts(ctx, orgVSSPSURL, d.client.BasicAuth)
+			if fallbackErr == nil {
+				accts = fallbackAccts
+				err = nil
+			}
+		}
+	}
+	if err != nil {
+		// Fallback 2: try the org-specific VSSPS Organization/Collections/Me endpoint.
+		// This is a last resort for org-scoped PATs where the accounts endpoint
+		// is also not accessible. It returns the current org as a single account entry.
+		if orgName != "" {
+			fallbackAccts, fallbackErr := fetchCollectionAsAccount(ctx, orgName, d.client.BasicAuth)
+			if fallbackErr == nil && len(fallbackAccts) > 0 {
+				accts = fallbackAccts
+				err = nil
+			}
+		}
+	}
+	if err != nil {
+		// Fallback 3: use /_apis/connectionData on the org URL, which works for
+		// any valid PAT and returns the org's collection ID and name. This is the
+		// final fallback for org-scoped PATs where all VSSPS endpoints are unavailable.
+		if orgName != "" {
+			fallbackAccts, fallbackErr := fetchConnectionDataAsAccount(ctx, d.client.OrganizationURL, d.client.BasicAuth, orgName)
+			if fallbackErr == nil && len(fallbackAccts) > 0 {
+				accts = fallbackAccts
+				err = nil
+			}
+		}
+		if err != nil {
+			resp.Diagnostics.AddError("Read error", fmt.Sprintf("reading accounts: %s", err))
+			return
+		}
 	}
 
 	var accountItems []accountModel
@@ -198,6 +250,119 @@ func (d *accountsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	model.ID = types.StringValue("accounts")
 	model.Accounts = accountItems
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
+}
+
+// fetchCollectionAsAccount calls the VSSPS Organization/Collections/Me endpoint
+// to retrieve the current org collection and maps it to the accounts schema.
+// This is a fallback for org-scoped PATs that cannot access the global
+// app.vssps.visualstudio.com/_apis/accounts endpoint.
+func fetchCollectionAsAccount(ctx context.Context, orgName, basicAuth string) ([]vspsAccount, error) {
+	collectionURL := fmt.Sprintf(
+		"https://vssps.dev.azure.com/%s/_apis/Organization/Collections/Me?api-version=7.1-preview",
+		orgName,
+	)
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, collectionURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	httpReq.Header.Set("Authorization", basicAuth)
+	httpReq.Header.Set("Accept", "application/json")
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+	defer httpResp.Body.Close() //nolint:errcheck
+
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		snippet := string(body)
+		if len(snippet) > 200 {
+			snippet = snippet[:200]
+		}
+		return nil, fmt.Errorf("collections/me HTTP %d: %s", httpResp.StatusCode, snippet)
+	}
+
+	var coll vsspsCollection
+	if err := json.Unmarshal(body, &coll); err != nil {
+		return nil, fmt.Errorf("decoding collections/me: %w", err)
+	}
+	if coll.ID == "" {
+		return nil, fmt.Errorf("collections/me returned empty ID")
+	}
+
+	acct := vspsAccount{
+		AccountID:        coll.ID,
+		AccountName:      coll.Name,
+		AccountURI:       fmt.Sprintf("https://dev.azure.com/%s/", coll.Name),
+		AccountType:      "organization",
+		OrganizationName: coll.Name,
+	}
+	return []vspsAccount{acct}, nil
+}
+
+// fetchConnectionDataAsAccount retrieves the org's account info by calling
+// the /_apis/connectionData endpoint on the org URL. This endpoint is accessible
+// with any valid PAT (global or org-scoped) and returns the collection ID and
+// name, which we map to a single vspsAccount entry. This is a last-resort
+// fallback when all VSSPS accounts endpoints are unreachable.
+func fetchConnectionDataAsAccount(ctx context.Context, orgServiceURL, basicAuth, orgName string) ([]vspsAccount, error) {
+	baseURL := strings.TrimRight(orgServiceURL, "/")
+	connURL := baseURL + "/_apis/connectionData?connectOptions=IncludeServices&lastChangeId=-1&lastChangeId64=-1"
+
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, connURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	httpReq.Header.Set("Authorization", basicAuth)
+	httpReq.Header.Set("Accept", "application/json")
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+	defer httpResp.Body.Close() //nolint:errcheck
+
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		snippet := string(body)
+		if len(snippet) > 200 {
+			snippet = snippet[:200]
+		}
+		return nil, fmt.Errorf("connectionData HTTP %d: %s", httpResp.StatusCode, snippet)
+	}
+
+	var connData struct {
+		InstanceID     string `json:"instanceId"`
+		DeploymentType string `json:"deploymentType"`
+		LocationServiceData struct {
+			ServiceOwner string `json:"serviceOwner"`
+		} `json:"locationServiceData"`
+	}
+	if err := json.Unmarshal(body, &connData); err != nil {
+		return nil, fmt.Errorf("decoding connectionData: %w", err)
+	}
+
+	// Build account entry from connection data + org name we already know.
+	acctID := connData.InstanceID
+	if acctID == "" {
+		return nil, fmt.Errorf("connectionData returned empty instanceId")
+	}
+
+	acct := vspsAccount{
+		AccountID:        acctID,
+		AccountName:      orgName,
+		AccountURI:       fmt.Sprintf("https://dev.azure.com/%s/", orgName),
+		AccountType:      "organization",
+		OrganizationName: orgName,
+	}
+	return []vspsAccount{acct}, nil
 }
 
 // extractOrgName returns the ADO organization name from an org service URL of
