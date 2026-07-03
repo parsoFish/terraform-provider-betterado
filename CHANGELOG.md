@@ -16,6 +16,12 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   `configuration_type` (optional/computed, default `yaml`), `id` (computed),
   `revision` (computed), `url` (computed). Coexists with `betterado_build_definition`
   — see `docs/pipelines-v2-gap-matrix.md` for the full overlap analysis.
+- **New data source `betterado_pipeline`** — reads an existing Azure Pipelines v2
+  pipeline definition by `pipeline_id`. Returns `name`, `folder`,
+  `configuration_type`, `revision`, and `url`.
+- **New data source `betterado_pipeline_run`** — reads a pipeline run's status
+  and result by `pipeline_id` and `run_id`. Returns `state`, `result`,
+  `created_date`, `finished_date`, and `url`.
 
 ## [1.2.0] - 2026-07-01
 

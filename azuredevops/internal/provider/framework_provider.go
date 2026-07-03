@@ -218,5 +218,7 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseDefinitionRevisionDataSource,
 		release.NewReleaseDefinitionsDataSource,
 		release.NewReleaseFolderDataSource,
+		pipelines.NewPipelineDataSource,
+		pipelines.NewPipelineRunDataSource,
 	}
 }
