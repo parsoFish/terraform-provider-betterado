@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
@@ -33,6 +34,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelines"
 
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
@@ -41,9 +43,10 @@ import (
 
 // Compile-time interface checks.
 var (
-	_ resource.Resource                = &BuildDefinitionResource{}
-	_ resource.ResourceWithImportState = &BuildDefinitionResource{}
-	_ resource.ResourceWithConfigure   = &BuildDefinitionResource{}
+	_ resource.Resource                   = &BuildDefinitionResource{}
+	_ resource.ResourceWithImportState    = &BuildDefinitionResource{}
+	_ resource.ResourceWithConfigure      = &BuildDefinitionResource{}
+	_ resource.ResourceWithValidateConfig = &BuildDefinitionResource{}
 )
 
 // BuildDefinitionResource is the framework resource for betterado_build_definition.
@@ -484,6 +487,39 @@ func (r *BuildDefinitionResource) Configure(_ context.Context, req resource.Conf
 	r.client = c
 }
 
+// ── ValidateConfig ────────────────────────────────────────────────────────────
+
+// ValidateConfig enforces cross-attribute constraints that cannot be expressed
+// as individual attribute validators (ConflictsWith-equivalent).
+func (r *BuildDefinitionResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	// AC3: repository.github_enterprise_url and repository.url are mutually exclusive.
+	// Fetch both values from the nested repository block.
+	var gheURL types.String
+	gheURLDiag := req.Config.GetAttribute(ctx, path.Root("repository").AtListIndex(0).AtName("github_enterprise_url"), &gheURL)
+	if gheURLDiag.HasError() {
+		// Block may not be present yet (unknown/null); skip validation.
+		return
+	}
+
+	var repoURL types.String
+	repoURLDiag := req.Config.GetAttribute(ctx, path.Root("repository").AtListIndex(0).AtName("url"), &repoURL)
+	if repoURLDiag.HasError() {
+		return
+	}
+
+	// Only report conflict if both are non-null, non-unknown, and non-empty.
+	gheSet := !gheURL.IsNull() && !gheURL.IsUnknown() && gheURL.ValueString() != ""
+	urlSet := !repoURL.IsNull() && !repoURL.IsUnknown() && repoURL.ValueString() != ""
+	if gheSet && urlSet {
+		resp.Diagnostics.AddAttributeError(
+			path.Root("repository").AtListIndex(0).AtName("github_enterprise_url"),
+			"Conflicting repository attributes",
+			"repository.github_enterprise_url and repository.url are mutually exclusive. "+
+				"Set only one of these attributes.",
+		)
+	}
+}
+
 // ── Create ───────────────────────────────────────────────────────────────────
 
 func (r *BuildDefinitionResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
@@ -519,6 +555,41 @@ func (r *BuildDefinitionResource) Create(ctx context.Context, req resource.Creat
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	// AC2: When skip_first_run = false, trigger the first pipeline run (SDKv2 parity).
+	if !model.SkipFirstRun.ValueBool() {
+		// Extract branch name from repository block.
+		branchName := "master"
+		if !model.Repository.IsNull() && !model.Repository.IsUnknown() {
+			var repos []buildDefinitionRepositoryModel
+			if diags := model.Repository.ElementsAs(ctx, &repos, false); !diags.HasError() && len(repos) > 0 {
+				branchName = repos[0].BranchName.ValueString()
+			}
+		}
+		branchName = strings.TrimPrefix(branchName, "refs/heads/")
+
+		_, runErr := r.client.PipelinesClient.RunPipeline(r.client.Ctx, pipelines.RunPipelineArgs{
+			Project:    converter.String(projectID),
+			PipelineId: created.Id,
+			RunParameters: &pipelines.RunPipelineParameters{
+				Resources: &pipelines.RunResourcesParameters{
+					Repositories: &map[string]pipelines.RepositoryResourceParameters{
+						"self": {
+							RefName: converter.String("refs/heads/" + branchName),
+						},
+					},
+				},
+			},
+		})
+		if runErr != nil {
+			// Warn but do not fail — pipeline may not have a valid YAML file yet.
+			resp.Diagnostics.AddWarning(
+				"First pipeline run failed",
+				fmt.Sprintf("First run of build definition failed: %s. "+
+					"Try initializing the repository with a valid build definition file.", runErr),
+			)
+		}
 	}
 
 	// Read back to populate computed fields.
@@ -876,7 +947,315 @@ func (r *BuildDefinitionResource) readIntoModel(
 	// agent_specification and skip_first_run: ADO doesn't reliably echo these back
 	// on read, so we preserve the values already in the model (from plan/state).
 
+	// AC1: Parse def.Triggers back into model.CITrigger / model.PullRequestTrigger
+	// so that ADO-side trigger changes surface as drift on terraform plan.
+	if def.Triggers != nil {
+		if err := r.flattenTriggersIntoModel(ctx, *def.Triggers, model); err != nil {
+			return fmt.Errorf("parsing triggers from API response: %w", err)
+		}
+	}
+
 	return nil
+}
+
+// flattenTriggersIntoModel parses the raw API trigger list ([]interface{} where each
+// element is a map[string]interface{}) back into model.CITrigger and
+// model.PullRequestTrigger, mirroring the SDKv2
+// flattenBuildDefinitionContinuousIntegrationTrigger /
+// flattenBuildDefinitionPullRequestTrigger logic.
+func (r *BuildDefinitionResource) flattenTriggersIntoModel(ctx context.Context, triggers []interface{}, model *buildDefinitionModel) error {
+	// Shared attr type maps.
+	filterObjType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"include": types.ListType{ElemType: types.StringType},
+			"exclude": types.ListType{ElemType: types.StringType},
+		},
+	}
+	filterListType := types.ListType{ElemType: filterObjType}
+
+	ciOverrideObjType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"batch":                            types.BoolType,
+			"max_concurrent_builds_per_branch": types.Int64Type,
+			"polling_interval":                 types.Int64Type,
+			"polling_job_id":                   types.StringType,
+			"branch_filter":                    filterListType,
+			"path_filter":                      filterListType,
+		},
+	}
+	ciObjType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"use_yaml": types.BoolType,
+			"override": types.ListType{ElemType: ciOverrideObjType},
+		},
+	}
+	prOverrideObjType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"auto_cancel":   types.BoolType,
+			"branch_filter": filterListType,
+			"path_filter":   filterListType,
+		},
+	}
+	forksObjType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"enabled":       types.BoolType,
+			"share_secrets": types.BoolType,
+		},
+	}
+	prObjType := types.ObjectType{
+		AttrTypes: map[string]attr.Type{
+			"use_yaml":         types.BoolType,
+			"initial_branch":   types.StringType,
+			"comment_required": types.StringType,
+			"override":         types.ListType{ElemType: prOverrideObjType},
+			"forks":            types.ListType{ElemType: forksObjType},
+		},
+	}
+
+	var ciTriggers []buildDefinitionCITriggerModel
+	var prTriggers []buildDefinitionPRTriggerModel
+
+	for _, raw := range triggers {
+		ms, ok := raw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		triggerType, _ := ms["triggerType"].(string)
+
+		isYaml := false
+		if sst, ok := ms["settingsSourceType"]; ok {
+			switch v := sst.(type) {
+			case float64:
+				isYaml = int(v) == 2
+			case int:
+				isYaml = v == 2
+			}
+		}
+
+		switch {
+		case strings.EqualFold(triggerType, string(build.DefinitionTriggerTypeValues.ContinuousIntegration)):
+			ct := buildDefinitionCITriggerModel{
+				UseYAML: types.BoolValue(isYaml),
+			}
+			if !isYaml {
+				// Build override sub-block.
+				batchVal, _ := ms["batchChanges"].(bool)
+				var maxConc int64
+				if mc, ok := ms["maxConcurrentBuildsPerBranch"]; ok {
+					switch v := mc.(type) {
+					case float64:
+						maxConc = int64(v)
+					case int:
+						maxConc = int64(v)
+					}
+				}
+				var pollingInterval int64
+				var pollingIntervalKnown bool
+				if pi, ok := ms["pollingInterval"]; ok && pi != nil {
+					switch v := pi.(type) {
+					case float64:
+						pollingInterval = int64(v)
+						pollingIntervalKnown = true
+					case int:
+						pollingInterval = int64(v)
+						pollingIntervalKnown = true
+					}
+				}
+				pollingJobID := ""
+				if pj, ok := ms["pollingJobId"]; ok && pj != nil {
+					if s, ok := pj.(string); ok {
+						pollingJobID = s
+					}
+				}
+
+				branchFilterList, err := bdFwFlattenFilters(ctx, ms["branchFilters"], filterObjType, filterListType)
+				if err != nil {
+					return fmt.Errorf("ci_trigger branch_filter: %w", err)
+				}
+				pathFilterList, err := bdFwFlattenFilters(ctx, ms["pathFilters"], filterObjType, filterListType)
+				if err != nil {
+					return fmt.Errorf("ci_trigger path_filter: %w", err)
+				}
+
+				ovModel := buildDefinitionCIOverrideModel{
+					Batch:                        types.BoolValue(batchVal),
+					MaxConcurrentBuildsPerBranch: types.Int64Value(maxConc),
+					BranchFilter:                 branchFilterList,
+					PathFilter:                   pathFilterList,
+					PollingJobID:                 types.StringValue(pollingJobID),
+				}
+				if pollingIntervalKnown {
+					ovModel.PollingInterval = types.Int64Value(pollingInterval)
+				} else {
+					ovModel.PollingInterval = types.Int64Null()
+				}
+
+				overrideListVal, diags := types.ListValueFrom(ctx, ciOverrideObjType, []buildDefinitionCIOverrideModel{ovModel})
+				if diags.HasError() {
+					return fmt.Errorf("ci_trigger override list: diags error")
+				}
+				ct.Override = overrideListVal
+			} else {
+				ct.Override = types.ListValueMust(ciOverrideObjType, []attr.Value{})
+			}
+			ciTriggers = append(ciTriggers, ct)
+
+		case strings.EqualFold(triggerType, string(build.DefinitionTriggerTypeValues.PullRequest)):
+			pt := buildDefinitionPRTriggerModel{}
+			pt.UseYAML = types.BoolValue(isYaml)
+
+			// initial_branch: first branch filter entry (strip leading "+").
+			initialBranch := "Managed by Terraform"
+			if bfs, ok := ms["branchFilters"]; ok {
+				if bfSlice, ok := bfs.([]interface{}); ok && len(bfSlice) > 0 {
+					if s, ok := bfSlice[0].(string); ok {
+						initialBranch = strings.TrimPrefix(s, "+")
+					}
+				}
+			}
+			pt.InitialBranch = types.StringValue(initialBranch)
+
+			// comment_required.
+			commentRequired := ""
+			isCommentReq, _ := ms["isCommentRequiredForPullRequest"].(bool)
+			isCommentReqNonTeam, _ := ms["requireCommentsForNonTeamMembersOnly"].(bool)
+			if isCommentReq {
+				commentRequired = "All"
+			}
+			if isCommentReq && isCommentReqNonTeam {
+				commentRequired = "NonTeamMembers"
+			}
+			// Try requireCommentsStrategy (newer API field).
+			if rcs, ok := ms["requireCommentsStrategy"]; ok && rcs != nil {
+				if s, ok := rcs.(string); ok && s != "" {
+					commentRequired = s
+				}
+			}
+			pt.CommentRequired = types.StringValue(commentRequired)
+
+			// forks.
+			forksEnabled := false
+			shareSecrets := false
+			if forks, ok := ms["forks"]; ok {
+				if forkMap, ok := forks.(map[string]interface{}); ok {
+					forksEnabled, _ = forkMap["enabled"].(bool)
+					shareSecrets, _ = forkMap["allowSecrets"].(bool)
+				}
+			}
+			forksModel := buildDefinitionForksModel{
+				Enabled:      types.BoolValue(forksEnabled),
+				ShareSecrets: types.BoolValue(shareSecrets),
+			}
+			forksListVal, diags := types.ListValueFrom(ctx, forksObjType, []buildDefinitionForksModel{forksModel})
+			if diags.HasError() {
+				return fmt.Errorf("pull_request_trigger forks list: diags error")
+			}
+			pt.Forks = forksListVal
+
+			// override (only when not use_yaml).
+			if !isYaml {
+				autoCancel := true
+				if ac, ok := ms["autoCancel"]; ok {
+					autoCancel, _ = ac.(bool)
+				}
+				branchFilterList, err := bdFwFlattenFilters(ctx, ms["branchFilters"], filterObjType, filterListType)
+				if err != nil {
+					return fmt.Errorf("pull_request_trigger branch_filter: %w", err)
+				}
+				pathFilterList, err := bdFwFlattenFilters(ctx, ms["pathFilters"], filterObjType, filterListType)
+				if err != nil {
+					return fmt.Errorf("pull_request_trigger path_filter: %w", err)
+				}
+				ovModel := buildDefinitionPROverrideModel{
+					AutoCancel:   types.BoolValue(autoCancel),
+					BranchFilter: branchFilterList,
+					PathFilter:   pathFilterList,
+				}
+				overrideListVal, diags := types.ListValueFrom(ctx, prOverrideObjType, []buildDefinitionPROverrideModel{ovModel})
+				if diags.HasError() {
+					return fmt.Errorf("pull_request_trigger override list: diags error")
+				}
+				pt.Override = overrideListVal
+			} else {
+				pt.Override = types.ListValueMust(prOverrideObjType, []attr.Value{})
+			}
+
+			prTriggers = append(prTriggers, pt)
+		}
+	}
+
+	// Write CI trigger back to model if found in API response.
+	if len(ciTriggers) > 0 {
+		ciListVal, diags := types.ListValueFrom(ctx, ciObjType, ciTriggers)
+		if diags.HasError() {
+			return fmt.Errorf("ci_trigger list value: diags error")
+		}
+		model.CITrigger = ciListVal
+	} else if !model.CITrigger.IsNull() {
+		// API returned no CI trigger — clear model to surface drift.
+		model.CITrigger = types.ListValueMust(ciObjType, []attr.Value{})
+	}
+
+	// Write PR trigger back to model if found in API response.
+	if len(prTriggers) > 0 {
+		prListVal, diags := types.ListValueFrom(ctx, prObjType, prTriggers)
+		if diags.HasError() {
+			return fmt.Errorf("pull_request_trigger list value: diags error")
+		}
+		model.PullRequestTrigger = prListVal
+	} else if !model.PullRequestTrigger.IsNull() {
+		// API returned no PR trigger — clear model to surface drift.
+		model.PullRequestTrigger = types.ListValueMust(prObjType, []attr.Value{})
+	}
+
+	return nil
+}
+
+// bdFwFlattenFilters converts an API branch/path filter slice ([]string with "+"/"-" prefix)
+// into a types.List of filterModel objects.
+func bdFwFlattenFilters(ctx context.Context, raw interface{}, filterObjType types.ObjectType, filterListType types.ListType) (types.List, error) {
+	emptyList := types.ListValueMust(filterObjType, []attr.Value{})
+	if raw == nil {
+		return emptyList, nil
+	}
+	rawSlice, ok := raw.([]interface{})
+	if !ok || len(rawSlice) == 0 {
+		return emptyList, nil
+	}
+
+	var include []string
+	var exclude []string
+	for _, v := range rawSlice {
+		s, ok := v.(string)
+		if !ok {
+			continue
+		}
+		if strings.HasPrefix(s, "-") {
+			exclude = append(exclude, strings.TrimPrefix(s, "-"))
+		} else {
+			include = append(include, strings.TrimPrefix(s, "+"))
+		}
+	}
+
+	inclListVal, diags := types.ListValueFrom(ctx, types.StringType, include)
+	if diags.HasError() {
+		return emptyList, fmt.Errorf("include filter list")
+	}
+	exclListVal, diags := types.ListValueFrom(ctx, types.StringType, exclude)
+	if diags.HasError() {
+		return emptyList, fmt.Errorf("exclude filter list")
+	}
+
+	fm := buildDefinitionFilterModel{
+		Include: inclListVal,
+		Exclude: exclListVal,
+	}
+	listVal, diags := types.ListValueFrom(ctx, filterObjType, []buildDefinitionFilterModel{fm})
+	if diags.HasError() {
+		return emptyList, fmt.Errorf("filter model list")
+	}
+	_ = filterListType
+	return listVal, nil
 }
 
 // expandBuildDefinitionFw converts the model to an ADO BuildDefinition struct.

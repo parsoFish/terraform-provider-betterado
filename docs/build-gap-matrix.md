@@ -82,7 +82,7 @@ Primary API struct: `BuildDefinition` (inherits `BuildDefinitionReference`).
 | `properties` | `*map[string]string` | Implemented (partial) | `connectedServiceId` → `service_connection_id`; `reportBuildStatus` → `report_build_status`. Other property keys deferred. |
 | `service_connection_id` (via properties) | `string` | Implemented | `service_connection_id`. |
 | `report_build_status` (via properties) | `bool` | Implemented | `report_build_status`. |
-| `github_enterprise_url` (derived) | `string` | Implemented | `github_enterprise_url` (preserved from plan; not returned by API). |
+| `github_enterprise_url` (derived) | `string` | Implemented | `github_enterprise_url` (preserved from plan; not returned by API). Mutually exclusive with `url` — enforced by `ValidateConfig` at plan time (AC3). |
 | `yml_path` (via process) | `string` | Implemented | `yml_path` (extracted from `YamlProcess.YamlFilename` on read). |
 
 ### 1c. `AgentPoolQueue` sub-fields (inside `queue`)
@@ -98,8 +98,8 @@ Primary API struct: `BuildDefinition` (inherits `BuildDefinitionReference`).
 
 | Trigger | API struct | Status | Notes |
 |---|---|---|---|
-| CI trigger | `ContinuousIntegrationTrigger` (interface) | Implemented | `ci_trigger` block with `use_yaml` and `override` sub-block (batch, branch_filter, path_filter, max_concurrent_builds_per_branch, polling_interval, polling_job_id). Wired in expandBuildDefinitionFw. |
-| Pull request trigger | `PullRequestTrigger` (interface) | Implemented | `pull_request_trigger` block with `use_yaml`, `initial_branch`, `comment_required` (validator: enum), `override` sub-block, and `forks` sub-block (Required — SDKv2 parity). Wired in expandBuildDefinitionFw. |
+| CI trigger | `ContinuousIntegrationTrigger` (interface) | Implemented (read+write) | `ci_trigger` block with `use_yaml` and `override` sub-block (batch, branch_filter, path_filter, max_concurrent_builds_per_branch, polling_interval, polling_job_id). Wired in `expandBuildDefinitionFw` (write) and `flattenTriggersIntoModel` (read-back). ADO-side drift is surfaced on `terraform plan`. |
+| Pull request trigger | `PullRequestTrigger` (interface) | Implemented (read+write) | `pull_request_trigger` block with `use_yaml`, `initial_branch`, `comment_required` (validator: enum), `override` sub-block, and `forks` sub-block (Required — SDKv2 parity). Wired in `expandBuildDefinitionFw` (write) and `flattenTriggersIntoModel` (read-back). ADO-side drift is surfaced on `terraform plan`. |
 | Schedule trigger | `ScheduleTrigger` (interface) | **NOT migrated** | Present in SDKv2 `schedules` block. Deliberately omitted from framework schema this iteration — complex nested structure with timezone list. Follow-on work item required. |
 | Build completion trigger | `BuildCompletionTrigger` | **NOT migrated** | Present in SDKv2 `build_completion_trigger` block. Deliberately omitted from framework schema this iteration — complex nested structure. Follow-on work item required. |
 | Gated check-in / batched gated check-in | (XAML only) | Deferred | XAML-only trigger types; not applicable to YAML pipelines. |
@@ -116,7 +116,7 @@ Primary API struct: `BuildDefinition` (inherits `BuildDefinitionReference`).
 
 | Field | SDKv2 location | Framework status | Notes |
 |---|---|---|---|
-| `skip_first_run` | `features[0].skip_first_run` (bool) | Implemented | Promoted to top-level `skip_first_run` bool attribute in framework schema (simpler than nested `features` block). Schema-present; write-only on create (ADO does not echo this back on GET). |
+| `skip_first_run` | `features[0].skip_first_run` (bool) | Implemented (write-on-create wired) | Promoted to top-level `skip_first_run` bool attribute in framework schema (simpler than nested `features` block). When `false` (default), `Create` calls `PipelinesClient.RunPipeline` to trigger the first pipeline run — SDKv2 parity. ADO does not echo this flag back on GET so it is preserved from plan/state on read. |
 | `features` list | `features` block | **NOT migrated** as list | The SDKv2 `features` list wrapper is not present in the framework schema; `skip_first_run` is exposed directly at top level. |
 
 ### 1g. Jobs / Process phases (OtherGit only)
@@ -136,7 +136,7 @@ Primary API struct: `BuildDefinition` (inherits `BuildDefinitionReference`).
 | `job_timeout_in_minutes` | `*int` | **NOT migrated** | OtherGit only; deferred. |
 | `job_cancel_timeout_in_minutes` | `*int` | **NOT migrated** | OtherGit only; deferred. |
 | `job_authorization_scope` | `*string` | **NOT migrated** | OtherGit only; deferred. |
-| `agent_specification` | `string` | Schema-present, NOT wired | `agent_specification` is in the framework schema for future use but not wired to the API object (only meaningful for OtherGit `agent_specification` in `process.target`). |
+| `agent_specification` | `string` | Schema-present, NOT wired (schema-only) | `agent_specification` is in the framework schema for future use but **not wired to the API object** (only meaningful for OtherGit `agent_specification` in `process.target`). Values are accepted and stored in state but have no effect on the ADO pipeline definition until OtherGit support is added. |
 
 ---
 
