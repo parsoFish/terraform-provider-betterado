@@ -7,7 +7,68 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
-<<<<<<< HEAD
+### Changed (Framework Migration)
+
+- `betterado_group` resource: migrated to terraform-plugin-framework; schema unchanged (`scope`, `display_name`, `description`, `mail`, `members`, `origin_id` optional; `descriptor`, `domain`, `group_id`, `origin`, `principal_name`, `subject_kind`, `url` computed).
+- `betterado_group_membership` resource: migrated to terraform-plugin-framework; schema unchanged (`group` required, `members` required set of strings, `mode` optional).
+- `betterado_descriptor` data source: migrated to terraform-plugin-framework; schema unchanged (`storage_key` required; `descriptor`, `id` computed).
+- `betterado_storage_key` data source: migrated to terraform-plugin-framework; schema unchanged (`descriptor` required; `storage_key`, `id` computed).
+- `betterado_group` data source: migrated to terraform-plugin-framework; schema unchanged (`name` required, `project_id` optional; `descriptor`, `group_id`, `id`, `origin`, `origin_id` computed).
+- `betterado_group_membership` data source: migrated to terraform-plugin-framework; schema unchanged (`group_descriptor` required; `members` list of string, `id` computed).
+- `betterado_groups` data source: migrated to terraform-plugin-framework; schema unchanged (`project_id` optional; `groups` set with `id`, `descriptor`, `display_name`, `origin`, `origin_id`, `domain`, `mail_address`, `principal_name` computed).
+- `betterado_user` data source: migrated to terraform-plugin-framework; schema unchanged (`descriptor` required; `display_name`, `domain`, `mail_address`, `origin`, `origin_id`, `principal_name`, `subject_kind` computed).
+- `betterado_users` data source: migrated to terraform-plugin-framework; schema unchanged (`principal_name`, `origin`, `origin_id`, `subject_types` optional; `users` set computed).
+- `betterado_service_principal` data source: migrated to terraform-plugin-framework; schema unchanged (`display_name` required; `descriptor`, `origin`, `origin_id` computed).
+- `betterado_identity_group` data source: migrated to terraform-plugin-framework; schema unchanged (`name`, `project_id` required; `descriptor`, `id`, `subject_descriptor` computed).
+- `betterado_identity_groups` data source: migrated to terraform-plugin-framework; schema unchanged (`project_id` optional; `groups` set with `id`, `name`, `descriptor`, `subject_descriptor` computed).
+- `betterado_identity_user` data source: migrated to terraform-plugin-framework; schema unchanged (`name` required, `search_filter` optional; `descriptor`, `id`, `subject_descriptor` computed).
+
+### FEATURES
+
+- **`betterado_identity_group` data source migrated to terraform-plugin-framework.**
+  The data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`name` required, `project_id` required; `descriptor`,
+  `subject_descriptor` computed).
+  Verified by live acceptance test `TestAccIdentityDataSources_Framework/IdentityGroup`.
+
+- **`betterado_identity_groups` data source migrated to terraform-plugin-framework.**
+  The data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`project_id` optional; `groups` set computed with `id`, `name`,
+  `descriptor`, `subject_descriptor`).
+  Verified by live acceptance test `TestAccIdentityDataSources_Framework/IdentityGroups`.
+
+- **`betterado_identity_user` data source migrated to terraform-plugin-framework.**
+  The data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`name` required; `search_filter` optional/computed defaulting to
+  `General`; `descriptor`, `subject_descriptor` computed).
+  Verified by live acceptance test `TestAccIdentityDataSources_Framework/IdentityUser`.
+
+- **`betterado_user` data source migrated to terraform-plugin-framework.** The
+  data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`descriptor` required; `display_name`, `domain`, `mail_address`,
+  `origin`, `origin_id`, `principal_name`, `subject_kind` computed).
+  Verified by live acceptance test `TestAccGraphComplexDataSources_Framework/User`.
+
+- **`betterado_users` data source migrated to terraform-plugin-framework.** The
+  data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`principal_name`, `origin`, `origin_id`, `subject_types` optional
+  filters; `users` set computed with `id`, `descriptor`, `principal_name`, `origin`,
+  `origin_id`, `display_name`, `mail_address`).
+  Verified by live acceptance test `TestAccGraphComplexDataSources_Framework/Users`.
+
+- **`betterado_groups` data source migrated to terraform-plugin-framework.** The
+  data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`project_id` optional; `groups` set computed with `id`,
+  `descriptor`, `display_name`, `origin`, `origin_id`, `domain`, `mail_address`,
+  `principal_name`).
+  Verified by live acceptance test `TestAccGraphComplexDataSources_Framework/Groups`.
+
+- **`betterado_service_principal` data source migrated to terraform-plugin-framework.**
+  The data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`display_name` required; `descriptor`, `origin_id`, `origin`
+  computed).
+  Verified by live acceptance test `TestAccGraphComplexDataSources_Framework/ServicePrincipal`.
+
 ### Changed
 
 - Migrated `betterado_feed`, `betterado_feed_permission`, `betterado_feed_retention_policy`, and `data.betterado_feed` from terraform-plugin-sdk/v2 to terraform-plugin-framework (mux provider).
@@ -47,7 +108,7 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   `days_to_keep_recently_downloaded_packages`). Verified by live acceptance
   tests `TestAccFeedRetentionPolicyFramework_projectBasic` and
   `TestAccFeedRetentionPolicyFramework_update`.
-=======
+
 ### ENHANCEMENTS
 
 - **Migrated `betterado_serviceendpoint_*` (24 resources + 8 data sources) from terraform-plugin-sdk/v2 to terraform-plugin-framework** via the mux provider.
@@ -349,7 +410,7 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   **Deliberately NOT migrated this iteration** (documented in `docs/build-gap-matrix.md`):
   `variable_groups`, `schedules`, `jobs`, `build_completion_trigger`.
   Verified by live acceptance test `TestAccBuildDefinition_Framework_DataSource`.
->>>>>>> origin/main
+
 
 ## [1.2.0] - 2026-07-01
 

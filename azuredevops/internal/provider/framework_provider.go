@@ -18,6 +18,8 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/featuremanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/feed"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/graph"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
@@ -260,6 +262,8 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		feed.NewFeedResource,
 		feed.NewFeedPermissionResource,
 		feed.NewFeedRetentionPolicyResource,
+		graph.NewGroupResource,
+		graph.NewGroupMembershipResource,
 	}
 }
 
@@ -284,5 +288,16 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		git.NewGitRepositoriesDataSource,
 		git.NewGitRepositoryFileDataSource,
 		feed.NewFeedDataSource,
+		graph.NewDescriptorDataSource,
+		graph.NewStorageKeyDataSource,
+		graph.NewGroupDataSource,
+		graph.NewGroupMembershipDataSource,
+		graph.NewUserDataSource,
+		graph.NewUsersDataSource,
+		graph.NewGroupsDataSource,
+		graph.NewServicePrincipalDataSource,
+		identity.NewIdentityGroupDataSource,
+		identity.NewIdentityGroupsDataSource,
+		identity.NewIdentityUserDataSource,
 	}
 }

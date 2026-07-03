@@ -17,8 +17,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/graph"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
@@ -75,9 +73,9 @@ func Provider() *schema.Provider {
 			// betterado_git_repository migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository_branch migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository_file migrated to the framework provider (framework_provider.go).
-			"betterado_group": graph.ResourceGroup(),
+			// betterado_group is now registered in the framework provider (framework_provider.go)
 			// betterado_group_entitlement migrated to the framework provider (framework_provider.go).
-			"betterado_group_membership":      graph.ResourceGroupMembership(),
+			// betterado_group_membership is now registered in the framework provider (framework_provider.go)
 			"betterado_iteration_permissions": permissions.ResourceIterationPermissions(),
 			"betterado_library_permissions":   permissions.ResourceLibraryPermissions(),
 			// betterado_pipeline_authorization is now registered in the framework provider (framework_provider.go)
@@ -195,18 +193,18 @@ func Provider() *schema.Provider {
 			"betterado_agent_queue":   taskagent.DataAgentQueue(),
 			"betterado_area":          workitemtracking.DataArea(),
 			"betterado_client_config": service.DataClientConfig(),
-			"betterado_descriptor":    graph.DataDescriptor(),
-			"betterado_environment":   taskagent.DataEnvironment(),
+			// betterado_descriptor is now registered in the framework provider (framework_provider.go)
+			"betterado_environment": taskagent.DataEnvironment(),
 			// betterado_feed migrated to the framework provider (framework_provider.go).
 			// betterado_git_repositories migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository_file migrated to the framework provider (framework_provider.go).
-			"betterado_group":                    graph.DataGroup(),
-			"betterado_group_membership":         graph.DataGroupMembership(),
-			"betterado_groups":                   graph.DataGroups(),
-			"betterado_identity_group":           identity.DataIdentityGroup(),
-			"betterado_identity_groups":          identity.DataIdentityGroups(),
-			"betterado_identity_user":            identity.DataIdentityUser(),
+			// betterado_group is now registered in the framework provider (framework_provider.go)
+			// betterado_group_membership is now registered in the framework provider (framework_provider.go)
+			// betterado_groups is now registered in the framework provider (framework_provider.go)
+			// betterado_identity_group is now registered in the framework provider (framework_provider.go)
+			// betterado_identity_groups is now registered in the framework provider (framework_provider.go)
+			// betterado_identity_user is now registered in the framework provider (framework_provider.go)
 			"betterado_iteration":                workitemtracking.DataIteration(),
 			"betterado_project":                  core.DataProject(),
 			"betterado_projects":                 core.DataProjects(),
@@ -222,13 +220,13 @@ func Provider() *schema.Provider {
 			// betterado_serviceendpoint_github migrated to the framework provider (framework_provider.go).
 			// betterado_serviceendpoint_npm migrated to the framework provider (framework_provider.go).
 			// betterado_serviceendpoint_sonarcloud migrated to the framework provider (framework_provider.go).
-			"betterado_service_principal":                     graph.DataServicePrincipal(),
-			"betterado_storage_key":                           graph.DataStorageKey(),
-			"betterado_team":                                  core.DataTeam(),
-			"betterado_task_group":                            taskagent.DataTaskGroup(),
-			"betterado_teams":                                 core.DataTeams(),
-			"betterado_user":                                  graph.DataUser(),
-			"betterado_users":                                 graph.DataUsers(),
+			// betterado_service_principal is now registered in the framework provider (framework_provider.go)
+			// betterado_storage_key is now registered in the framework provider (framework_provider.go)
+			"betterado_team":       core.DataTeam(),
+			"betterado_task_group": taskagent.DataTaskGroup(),
+			"betterado_teams":      core.DataTeams(),
+			// betterado_user is now registered in the framework provider (framework_provider.go)
+			// betterado_users is now registered in the framework provider (framework_provider.go)
 			"betterado_variable_group":                        taskagent.DataVariableGroup(),
 			"betterado_workitemtrackingprocess_process":       workitemtrackingprocess.DataProcess(),
 			"betterado_workitemtrackingprocess_processes":     workitemtrackingprocess.DataProcesses(),
