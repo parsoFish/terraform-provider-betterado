@@ -222,5 +222,7 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseDefinitionsDataSource,
 		release.NewReleaseFolderDataSource,
 		testplan.NewTestPlanDataSource,
+		testplan.NewTestRunDataSource,
+		testplan.NewTestResultDataSource,
 	}
 }
