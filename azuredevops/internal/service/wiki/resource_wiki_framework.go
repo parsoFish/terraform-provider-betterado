@@ -347,14 +347,45 @@ func (r *WikiResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 		return
 	}
 
-	projectID := model.ProjectID.ValueString()
-	_, err := r.client.WikiClient.DeleteWiki(r.client.Ctx, azwiki.DeleteWikiArgs{
-		WikiIdentifier: converter.String(model.ID.ValueString()),
-		Project:        converter.String(projectID),
-	})
-	if err != nil {
-		if !utils.ResponseWasNotFound(err) {
-			resp.Diagnostics.AddError("Error deleting wiki", err.Error())
+	wikiType := azwiki.WikiType(model.Type.ValueString())
+	if wikiType == azwiki.WikiTypeValues.CodeWiki {
+		// Code wikis can be deleted directly via the Wiki API.
+		projectID := model.ProjectID.ValueString()
+		_, err := r.client.WikiClient.DeleteWiki(r.client.Ctx, azwiki.DeleteWikiArgs{
+			WikiIdentifier: converter.String(model.ID.ValueString()),
+			Project:        converter.String(projectID),
+		})
+		if err != nil {
+			if !utils.ResponseWasNotFound(err) {
+				resp.Diagnostics.AddError("Error deleting wiki", err.Error())
+			}
+		}
+	} else if wikiType == azwiki.WikiTypeValues.ProjectWiki {
+		// Project wikis cannot be deleted via the Wiki API; they are backed by a
+		// special git repository that must be deleted to remove the wiki.
+		wikiResp, err := r.client.WikiClient.GetWiki(r.client.Ctx, azwiki.GetWikiArgs{
+			WikiIdentifier: converter.String(model.ID.ValueString()),
+		})
+		if err != nil {
+			if utils.ResponseWasNotFound(err) {
+				// Already gone — nothing to do.
+				return
+			}
+			resp.Diagnostics.AddError("Error reading wiki before delete", err.Error())
+			return
+		}
+
+		if wikiResp.RepositoryId == nil {
+			// No backing repository — nothing to delete.
+			return
+		}
+
+		err = r.client.GitReposClient.DeleteRepository(r.client.Ctx, git.DeleteRepositoryArgs{
+			RepositoryId: wikiResp.RepositoryId,
+			Project:      converter.String(model.ProjectID.ValueString()),
+		})
+		if err != nil {
+			resp.Diagnostics.AddError("Error deleting project wiki repository", err.Error())
 		}
 	}
 }

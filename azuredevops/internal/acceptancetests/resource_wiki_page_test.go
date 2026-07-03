@@ -208,6 +208,7 @@ resource "betterado_wiki_page" "test" {
   wiki_id    = betterado_wiki.test.id
   path       = "/page-path"
   content    = "content"
+  version    = "master"
 }
 `, wikiName, SharedFixtureProjectName)
 }
@@ -241,6 +242,7 @@ resource "betterado_wiki_page" "test" {
   wiki_id    = betterado_wiki.test.id
   path       = "/page-path"
   content    = "contentupdate"
+  version    = "master"
 }
 `, wikiName, SharedFixtureProjectName)
 }

@@ -44,6 +44,7 @@ resource "betterado_wiki_page" "example" {
 ### Optional
 
 - `etag` (String)
+- `version` (String)
 
 ### Read-Only
 

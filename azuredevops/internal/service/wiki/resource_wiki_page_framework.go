@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	azwiki "github.com/microsoft/azure-devops-go-api/azuredevops/v7/wiki"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
@@ -143,6 +144,13 @@ func (r *WikiPageResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			"content": schema.StringAttribute{
 				Required: true,
 			},
+			"version": schema.StringAttribute{
+				Optional: true,
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					wikiUseStateForUnknown(),
+				},
+			},
 			"etag": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
@@ -180,6 +188,7 @@ type wikiPageModel struct {
 	WikiID    types.String `tfsdk:"wiki_id"`
 	Path      types.String `tfsdk:"path"`
 	Content   types.String `tfsdk:"content"`
+	Version   types.String `tfsdk:"version"`
 	ETag      types.String `tfsdk:"etag"`
 }
 
@@ -195,14 +204,26 @@ func (r *WikiPageResource) Create(ctx context.Context, req resource.CreateReques
 	pageLock.Lock()
 	defer pageLock.Unlock()
 
-	result, err := r.client.WikiClient.CreateOrUpdatePage(r.client.Ctx, azwiki.CreateOrUpdatePageArgs{
+	createArgs := azwiki.CreateOrUpdatePageArgs{
 		Parameters: &azwiki.WikiPageCreateOrUpdateParameters{
 			Content: converter.String(model.Content.ValueString()),
 		},
 		Project:        converter.String(model.ProjectID.ValueString()),
 		WikiIdentifier: converter.String(model.WikiID.ValueString()),
 		Path:           converter.String(model.Path.ValueString()),
-	})
+	}
+	// For code wikis the ADO API requires a versionDescriptor (branch reference).
+	// When the caller supplies a version, include it; otherwise omit and let ADO
+	// use the default branch (project wikis do not require a descriptor).
+	if !model.Version.IsNull() && !model.Version.IsUnknown() && model.Version.ValueString() != "" {
+		vt := git.GitVersionTypeValues.Branch
+		createArgs.VersionDescriptor = &git.GitVersionDescriptor{
+			VersionType: &vt,
+			Version:     converter.String(model.Version.ValueString()),
+		}
+	}
+
+	result, err := r.client.WikiClient.CreateOrUpdatePage(r.client.Ctx, createArgs)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating wiki page", err.Error())
 		return
@@ -334,6 +355,12 @@ func (r *WikiPageResource) flattenPage(result *azwiki.WikiPageResponse, model *w
 		model.ETag = types.StringValue(etagValue)
 	} else if model.ETag.IsNull() || model.ETag.IsUnknown() {
 		model.ETag = types.StringValue("")
+	}
+
+	// Version is not returned by the API; preserve whatever the user supplied
+	// (or empty string if not set) so state does not drift.
+	if model.Version.IsNull() || model.Version.IsUnknown() {
+		model.Version = types.StringValue("")
 	}
 
 	if result.Page != nil {
