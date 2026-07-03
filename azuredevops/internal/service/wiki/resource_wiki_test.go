@@ -7,6 +7,9 @@ package wiki
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/google/uuid"
@@ -104,4 +107,18 @@ func TestWiki_Delete_DoesNotSwallowError(t *testing.T) {
 
 	err := resourceWikiDelete(resourceData, clients)
 	require.Regexp(t, ".*DeleteWiki\\(\\) Failed$", err.Error())
+}
+
+// TestWikiGapMatrix_FileExists asserts that docs/wiki-gap-matrix.md exists and is non-empty.
+// This is the quality-gate test for WI-1 (INIT-2026-07-01-migrate-framework-wiki).
+func TestWikiGapMatrix_FileExists(t *testing.T) {
+	// Walk up from this file's directory to the repo root (4 levels up from
+	// azuredevops/internal/service/wiki/).
+	_, thisFile, _, _ := runtime.Caller(0)
+	repoRoot := filepath.Join(filepath.Dir(thisFile), "..", "..", "..", "..")
+	matrixPath := filepath.Join(repoRoot, "docs", "wiki-gap-matrix.md")
+
+	info, err := os.Stat(matrixPath)
+	require.NoError(t, err, "docs/wiki-gap-matrix.md must exist (WI-1 output)")
+	require.Greater(t, info.Size(), int64(0), "docs/wiki-gap-matrix.md must be non-empty")
 }
