@@ -61,7 +61,37 @@ No forge brain queries made — WI spec was the single source of truth.
 - `PagedGraphUsers.ContinuationToken` is `*[]string`, not `*string` — use `(*page.ContinuationToken)[0]`.
 - `ListUsersArgs.ContinuationToken` is `*string`.
 
-## Open questions for next iteration
+### Iteration 2 (current)
 
-- **channel_address idempotency**: ADO `ISubscriptionChannel` may not return `address` on GET for `EmailHtml`. The resource uses `notifUseStateForUnknown` plan modifier for channel_address, which should preserve state value. But if ADO returns email in a sub-field not currently mapped in `flattenNotificationSubscription`, plan diff will be non-empty. Watch the live gate output for `ExpectNonEmptyPlan` failure.
-- **If flattenNotificationSubscription needs fixing**: check the actual JSON response body for `ISubscriptionChannel.EmailHtml` — look for `address` or `Address` field and map it in the flatten function.
+**Gate failure from iter 1:** `provider still indicated an unknown value for betterado_notification_subscription.test.filter_criteria. All values must be known after apply`
+
+**Root cause:** `flattenNotificationSubscription` never set `FilterCriteria` or `ChannelAddress` when the API didn't return them. Since these are `Optional+Computed`, their plan value was `Unknown` on the first Create (no prior state). After Create, the flatten left them as Unknown → Terraform errors with "unknown value after apply".
+
+**ADO API facts confirmed:**
+- `ISubscriptionChannel` Go struct has only `Type *string` — NO `Address` field. The `EmailHtmlSubscriptionChannel` struct has `Address` but the response is unmarshalled into `ISubscriptionChannel`.
+- `ISubscriptionFilter` Go struct has only `EventType *string` + `Type *string` — NO `Criteria` field.
+
+**Fix applied (iter 2):**
+- `flattenNotificationSubscription`: after setting fields from API response, check if each `Optional+Computed` field is still `IsUnknown()` and if so, set it to `types.StringNull()`. This guarantees every field has a known value in state after every Create/Read.
+- **Idempotency reasoning:**
+  - On Create: model is populated from Plan before flatten, so `channel_address = "email"` is already known → not overwritten by null logic ✓
+  - On Read: model is populated from State before flatten, so values from prior Create/state are already known → not overwritten ✓
+  - Step 2 plan (PlanOnly): `filter_criteria = null` in state, not in config → plan = null → no diff ✓
+  - Step 2 plan: `channel_address = "email"` in state, `email` in config → plan = "email" → no diff ✓
+
+## What worked
+
+- `getDirectClient()` reuse from `resource_task_group_test.go` works for notification client.
+- `GraphClient.ListUsers` + `IdentityClient.ReadIdentities(MailAddress)` is the right pattern for auto-discovering a real user without env var dependency.
+- Embedding subscriber_id as a literal UUID in HCL avoids data source dependency and schema confusion.
+- **Pattern for Optional+Computed fields not returned by API**: in flatten, check `IsUnknown()` and set to `types.StringNull()` when true. Never call `types.StringValue("")` — use null to signal "API doesn't manage this value".
+
+## What didn't work / watch out for
+
+- `betterado_identity_user` data source uses `name` + `search_filter` — NOT `mail`. The original HCL was wrong.
+- AZDO_TEST_AAD_USER_EMAIL is NOT injected by the forge gate — tests that require it will fatalf, not skip.
+- `PagedGraphUsers.ContinuationToken` is `*[]string`, not `*string` — use `(*page.ContinuationToken)[0]`.
+- `ListUsersArgs.ContinuationToken` is `*string`.
+- `ISubscriptionChannel` Go struct has only `Type` — `channel_address` (the ADO `address` field) is not returned via the Go API wrapper. Preserve from state/plan, never read from API.
+- `ISubscriptionFilter` Go struct has only `EventType` + `Type` — `filter_criteria` is not returned. Set to null after apply if not in config.
+- Leaving ANY `Optional+Computed` field as Unknown after Create/Read causes TF error "provider still indicated an unknown value after apply".
