@@ -14,4 +14,5 @@
   - [x] Root cause fixed iter-4: `TestAccVariableGroupPermissions_*` — "org has 1000 projects" — migrated permissions tests to use fixture project (SharedFixtureProjectName) instead of creating fresh betterado_project — **DONE** (commit 21256bd2)
   - [x] Root cause fixed iter-4: `TestAccVariableGroup_*/CheckDestroy` — persistent "Unexpectedly found a variable group that should be deleted" — added ContinuousTargetOccurence:3 to Delete wait loop + 60s retry in checkVariableGroupDestroyedMux to handle ADO eventual consistency — **DONE** (commit 21256bd2)
   - [x] Root cause fixed iter-5: `checkVariableGroupDestroyedMux` 60 s retry timeout too short — increased to 3 minutes to handle ADO multi-node cache convergence after deletion — **DONE** (commit 50445dc2)
-  - [ ] Pending: Live gate must confirm all TestAccVariableGroup tests pass end-to-end
+  - [x] Root cause fixed iter-6: 10-minute go test timeout exceeded — Delete loop (ContinuousTargetOccurence:3 / 5 min) + CheckDestroy (3 min) summed to >10 min across ~10 parallel tests — reduced Delete to ContinuousTargetOccurence:1 / 60 s and CheckDestroy to 45 s — **DONE** (commit b0447b40)
+  - [ ] Pending: Live gate must confirm all TestAccVariableGroup tests pass end-to-end within the 10-minute timeout

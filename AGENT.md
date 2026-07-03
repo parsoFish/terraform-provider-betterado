@@ -10,7 +10,30 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 _(updated by each iteration — most recent at the top)_
 
-### Iteration 5 (current)
+### Iteration 6 (current)
+
+**Gate failure from live run (iter-5 result):**
+
+```
+FAIL github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests 600.022s
+```
+
+Goroutine dump showed `mergeStop`/`GRPCProviderServer.StopContext` goroutines in `select` — classic pattern when the `go test` 10-minute default timeout fires. The test suite exceeded 600 seconds.
+
+**Root cause: test timeout from accumulated parallel waits**
+
+The `-run TestAccVariableGroup` filter matches ~10 test functions. Each test using `checkVariableGroupDestroyedMux` waited up to **3 minutes** in CheckDestroy, after the provider's own Delete loop waited up to **5 minutes** (ContinuousTargetOccurence:3). With 5+ tests in parallel, the wall-time easily exceeded 10 minutes.
+
+The goroutine dump (`mergeStop` stuck in `select` for 1 minute) is a SYMPTOM of the test timeout, not the cause. These are provider gRPC cleanup goroutines that accumulate with parallel tests.
+
+**Fix (commit b0447b40):**
+- Delete: `ContinuousTargetOccurence: 1` (was 3), timeout 60 s (was 5 min), Delay 2 s (was 5 s).
+- checkVariableGroupDestroyedMux: timeout 45 s (was 3 min).
+- Worst case per test: 60 s Delete + 45 s CheckDestroy = 105 s total. With 5+ parallel tests → well within 10 min.
+
+**Files changed:** `resource_variable_group_framework.go`, `resource_variable_group_test.go`
+
+### Iteration 5 (prior)
 
 **Gate failures from live run (last-gate-failure.md from iter-3 — iteration 4's fixes are committed but not yet live-gate-tested):**
 
@@ -189,8 +212,8 @@ This is a known terraform-plugin-framework bug with `Default` values inside `Set
 - **`mergeVariableListWithPlan` pattern**: for Create/Update, re-emit the result in plan order using plan values for configured attributes and API values for computed-only attributes. This ensures: (1) list index consistency with the plan, (2) sensitive attribute values match exactly.
 - **`types.ListNull(...)` for Optional non-Computed list attributes**: when the user omits the block, the plan is null and the state must also be null (not empty list).
 - **Override configured (non-Computed) attributes with plan values in Update**: `name`, `description`, and similar user-configured attributes should always use plan values as the post-apply state, not the API response. This guards against ADO eventual consistency on updates.
-- **ContinuousTargetOccurence: 3 in Delete wait loop**: prevents a transient API error flash from being treated as successful deletion confirmation.
-- **checkVariableGroupDestroyedMux retry loop (3 min)**: handles ADO eventual consistency in CheckDestroy — poll for up to 3 min before declaring failure. 60 s was too short for multi-node ADO cache convergence after deletion (iter-5 increased from 60 s).
+- **Delete wait loop (ContinuousTargetOccurence:1, 60 s timeout)**: wait for VG to disappear before returning from Delete. ContinuousTargetOccurence:1 is sufficient (CheckDestroy adds a safety net). 60 s fits the ~10 parallel test budget. Do NOT use ContinuousTargetOccurence:3 or 5 min timeout — too slow for parallel test suites.
+- **checkVariableGroupDestroyedMux retry loop (45 s)**: short safety-net after Delete has already waited. 45 s is enough for ADO cache residual; longer values risk hitting the go test 10-minute default timeout when many tests run in parallel.
 - **ProtoV6ProviderFactories required for tests with framework resources**: any test whose HCL config contains a framework resource (like `betterado_variable_group`) MUST use `GetMuxedProviderFactories()`, NOT `GetProviders()`.
 - **testutils.CheckProjectExists/CheckProjectDestroyed**: these use `GetProvider().Meta()` which is nil in mux tests. Updated to fall back to `GetDirectClient()`.
 - **Fixture project for permissions tests**: `TestAccVariableGroupPermissions_*` and similar tests that previously created a fresh project should use `SharedFixtureProjectName`. Project creation is expensive and subject to org limits (1000 project cap). Only test the resource-specific behavior, not project lifecycle.
@@ -200,7 +223,8 @@ This is a known terraform-plugin-framework bug with `Default` values inside `Set
 - **`SetNestedAttribute` with `Sensitive: true` + `Default: defaultString("")` inside nested objects**: the set-hash changes when a Default is applied, causing subsequent attribute path lookups in the config to fail. Do NOT use Set with Default or Sensitive nested attrs.
 - **Passing `nil` to `searchAzureKVSecrets` variables param**: returns empty map, creates KV VG with no variables.
 - **Trusting `UpdateVariableGroup` response**: the ADO API may return the old VG data in the PUT response. Always do a fresh GET after PUT.
-- **Single-occurrence delete wait loop (iter-3)**: if ADO returns a brief transient error while still processing the deletion, a single "not found" result is not sufficient. Must use ContinuousTargetOccurence ≥ 3.
+- **ContinuousTargetOccurence: 3 with 5 min timeout in Delete**: too aggressive — accumulates with parallel tests to exceed the 10-minute go test timeout. Use ContinuousTargetOccurence:1 with 60 s timeout instead; CheckDestroy adds the safety net.
+- **CheckDestroy timeout of 3 minutes**: too long when 5+ parallel tests each use it — total exceeds 10 min. Use 45 s.
 
 ## Open questions
 
@@ -213,5 +237,6 @@ _(nothing blocking — awaiting live gate confirmation)_
 - **Prefer `ListNestedAttribute` over `SetNestedAttribute`** for variable-like patterns where the key is embedded in the nested object (`name` attribute). Use `MapNestedAttribute` when the key should be the map key and the `name` attribute can be dropped.
 - **Plan-faithful writes (Create/Update)**: after calling the API and reading back, always re-emit configured (non-computed) attributes from the plan rather than the API response. Use `mergeVariableListWithPlan` or a similar pattern. This prevents ADO value normalization from triggering "inconsistent values" errors.
 - **Any test using `betterado_variable_group` in HCL must use mux provider**: framework resources cannot be resolved by the SDKv2-only provider. Rule: if ANY resource in the HCL is a framework resource, switch to `GetMuxedProviderFactories()`.
-- **ADO eventual consistency for delete**: use ContinuousTargetOccurence ≥ 3 in the wait loop AND a retry loop in CheckDestroy to handle the window where the VG is "deleted" on the API but still returned by GET.
+- **ADO eventual consistency for delete**: use a short Delete wait loop (ContinuousTargetOccurence:1, 60 s) to get a first not-found signal quickly, THEN rely on a short CheckDestroy retry (45 s) as the safety net. Do NOT use ContinuousTargetOccurence:3 or 5 min timeout — the combined wait time across 10+ parallel tests exceeds the 10-minute go test timeout.
+- **Parallel test timeout budget**: with `go test` default timeout of 600 s (10 min), and `TestAccVariableGroup` matching ~10 tests running in parallel, each test's Delete+CheckDestroy budget is roughly 600s / ceil(10/GOMAXPROCS). Keep individual wait loops short (≤ 90 s total) to stay within budget.
 - **Avoid project creation in tests**: org has a 1000 project limit. Migrate any test that creates `betterado_project.project` to use `SharedFixtureProjectName` + `data "betterado_project"` lookup instead.
