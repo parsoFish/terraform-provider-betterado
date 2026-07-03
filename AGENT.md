@@ -34,6 +34,18 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 - Looking for the acceptance test in `azuredevops/internal/service/servicehook/` — wrong package. The gate command is explicitly `./azuredevops/internal/acceptancetests/`.
 
+### Iteration 1
+
+**Gate failure:** `The argument "account_name" is required, but no definition was found.` — the `hclServicehookStorageQueuePipelinesFramework` HCL template was missing the `account_name` attribute. The resource schema defines `account_name` as Required (distinct from `account_key`). The existing SDKv2 tests in `testutils/hcl.go` already use `account_name = "teststorageacc"`.
+
+**Action:** Updated `hclServicehookStorageQueuePipelinesFramework` to:
+1. Accept `accountName` as a new parameter (between `projectID` and `accountKey`).
+2. Include `account_name = %[2]q` in the HCL block with re-numbered format specifiers.
+3. Updated both call sites in `TestAccServicehookStorageQueuePipelinesFramework_basic` (Step 1 + Step 2) to pass `accountName = "teststorageacc"`.
+
+**Compile check:** `go build -tags all ./azuredevops/internal/acceptancetests/` — clean.
+**Test list check:** `TestAccServicehookStorageQueuePipelinesFramework_basic` appears in listing.
+
 ## Open questions
 
 _(none)_
