@@ -1,0 +1,25 @@
+---
+page_title: "betterado_build_folder Resource - betterado"
+subcategory: "Build"
+description: |-
+  Manages a build (pipeline) folder within an Azure DevOps project.
+---
+
+# betterado_build_folder (Resource)
+
+Manages an Azure DevOps build folder. Build folders organize build definitions
+into a logical hierarchy beneath the root `\` folder.
+
+## Example Usage
+
+{{ tffile "examples/resources/betterado_build_folder/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Build folders are imported using `projectID/path`:
+
+```shell
+terraform import betterado_build_folder.example 00000000-0000-0000-0000-000000000000/\MyFolder
+```
