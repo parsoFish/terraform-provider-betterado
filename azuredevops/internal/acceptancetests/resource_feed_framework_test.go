@@ -83,6 +83,11 @@ func TestAccFeedFramework_withProject(t *testing.T) {
 // checkFeedFrameworkDestroyed asserts that no betterado_feed resource remains
 // after destroy. Uses getDirectClient() (same as task group tests) because the
 // mux provider does not wire the SDKv2 meta singleton.
+//
+// ADO's DeleteFeed is a soft delete: the feed moves to a recycle bin but
+// GetFeed by GUID still returns it (with DeletedDate set). We treat a feed
+// with a non-nil DeletedDate as "destroyed" — it is no longer an active feed
+// and Terraform destroy has done its job.
 func checkFeedFrameworkDestroyed(s *terraform.State) error {
 	clients, err := getDirectClient()
 	if err != nil {
@@ -96,13 +101,22 @@ func checkFeedFrameworkDestroyed(s *terraform.State) error {
 		id := res.Primary.ID
 		projectID := res.Primary.Attributes["project_id"]
 
-		_, err := clients.FeedClient.GetFeed(clients.Ctx, feedapi.GetFeedArgs{
+		feedDetail, err := clients.FeedClient.GetFeed(clients.Ctx, feedapi.GetFeedArgs{
 			FeedId:  &id,
 			Project: nilIfEmptyStr(projectID),
 		})
-		if err == nil {
-			return fmt.Errorf("feed (ID: %s) should not exist after destroy", id)
+		if err != nil {
+			// 404 or any error → feed is gone, which is what we want.
+			continue
 		}
+		// Feed still returned by ADO — check whether it is in the soft-deleted
+		// (recycle-bin) state. DeletedDate is set when DeleteFeed has been called.
+		if feedDetail != nil && feedDetail.DeletedDate != nil {
+			// Soft-deleted: Terraform destroy succeeded; recycle-bin cleanup is
+			// handled by ADO automatically (or by permanent_delete=true).
+			continue
+		}
+		return fmt.Errorf("feed (ID: %s) should not exist after destroy", id)
 	}
 	return nil
 }

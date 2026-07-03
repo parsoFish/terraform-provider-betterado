@@ -199,6 +199,14 @@ func (r *feedFrameworkResource) Read(ctx context.Context, req resource.ReadReque
 	}
 
 	if feedDetail != nil {
+		// ADO soft-deletes feeds: GetFeed still returns them after DeleteFeed
+		// is called, but with DeletedDate set. Treat a soft-deleted feed the
+		// same as 404 — remove it from state so Terraform will recreate it.
+		if feedDetail.DeletedDate != nil {
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		model.ID = types.StringValue(feedDetail.Id.String())
 		model.Name = types.StringValue(*feedDetail.Name)
 		if feedDetail.Project != nil {
