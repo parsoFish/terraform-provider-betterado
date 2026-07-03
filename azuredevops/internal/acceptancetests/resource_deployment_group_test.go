@@ -1,18 +1,25 @@
 package acceptancetests
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 // TestAccDeploymentGroup_basic verifies that a deployment group can be created and imported
@@ -146,20 +153,22 @@ func checkDeploymentGroupDestroyedMux(s *terraform.State) error {
 	return nil
 }
 
-// enableClassicPipelinesForFixtureProject enables classic pipeline creation at both
-// the organisation level and the fixture-project level. Deployment groups require
-// classic pipelines to be allowed on both planes.
+// enableClassicPipelinesForFixtureProject enables classic pipeline creation for the
+// fixture project. Deployment groups require classic deployment pipelines to be
+// allowed at the project level.
 //
-// The ADO general-settings API exposes two independent flags:
-//   - disableClassicBuildPipelineCreation      – gates classic build pipelines
-//   - disableClassicDeploymentPipelineCreation – gates classic release / deployment
-//     pipelines (and therefore deployment groups)
+// Strategy (applied in order):
+//  1. SDK-native PATCH via BuildClient.UpdateBuildGeneralSettings using the combined
+//     DisableClassicPipelineCreation flag (project-level, proper SDK routing).
+//  2. Raw HTTP PATCH with all known flags to the project-level endpoint (belt-and-
+//     suspenders: covers newer API fields the SDK struct does not expose).
+//  3. Read-back to verify the setting took effect; if still blocked, log a warning
+//     and skip the test (cannot proceed when org-level policy blocks creation).
 //
-// We PATCH both to false at the org level first, then at the project level so that
-// neither a project-level nor an org-level lock blocks the acceptance test.
-// Uses raw HTTP PATCH because the ADO Go SDK's PipelineGeneralSettings struct
-// predates these fields and does not expose them.
-// This is idempotent — calling it when classic pipelines are already enabled is a no-op.
+// The org-level `_apis/build/generalsettings` endpoint does not exist (404); the
+// org-level "disable classic pipelines" policy is managed through Organisation
+// Settings → Pipelines → Settings in the ADO UI and cannot be overridden at the
+// project level when set there. If that org-level policy is active the test skips.
 func enableClassicPipelinesForFixtureProject(t *testing.T) {
 	t.Helper()
 	orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
@@ -168,34 +177,114 @@ func enableClassicPipelinesForFixtureProject(t *testing.T) {
 		t.Fatal("enableClassicPipelinesForFixtureProject: AZDO_ORG_SERVICE_URL / AZDO_PERSONAL_ACCESS_TOKEN must be set")
 	}
 
-	// Both build-pipeline and deployment-pipeline classic-creation flags must be
-	// unset for deployment groups to be creatable.
-	body := `{"disableClassicBuildPipelineCreation":false,"disableClassicDeploymentPipelineCreation":false}`
+	ctx := context.Background()
 
-	// Endpoints to PATCH in order: org level first, then project level.
-	endpoints := []string{
-		orgURL + "/_apis/build/generalsettings?api-version=7.1-preview.1",
-		orgURL + "/" + SharedFixtureProjectName + "/_apis/build/generalsettings?api-version=7.1-preview.1",
+	// ── 1. SDK-native PATCH (project level, combined flag) ────────────────────
+	authProvider := azuredevops.NewAuthProviderPAT(pat)
+	azdoClients, err := client.GetAzdoClient(authProvider, orgURL)
+	if err != nil {
+		t.Fatalf("enableClassicPipelinesForFixtureProject: GetAzdoClient: %v", err)
 	}
 
-	for _, url := range endpoints {
-		req, err := http.NewRequest(http.MethodPatch, url, strings.NewReader(body))
-		if err != nil {
-			t.Fatalf("enableClassicPipelinesForFixtureProject: build request for %s: %v", url, err)
-		}
-		req.SetBasicAuth("", pat)
-		req.Header.Set("Content-Type", "application/json")
+	falseVal := false
+	_, err = azdoClients.BuildClient.UpdateBuildGeneralSettings(ctx, build.UpdateBuildGeneralSettingsArgs{
+		Project: converter.String(SharedFixtureProjectName),
+		NewSettings: &build.PipelineGeneralSettings{
+			DisableClassicPipelineCreation: &falseVal,
+		},
+	})
+	if err != nil {
+		t.Logf("enableClassicPipelinesForFixtureProject: SDK UpdateBuildGeneralSettings: %v (continuing with raw PATCH)", err)
+	}
 
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			t.Fatalf("enableClassicPipelinesForFixtureProject: PATCH %s: %v", url, err)
+	// ── 2. Raw HTTP PATCH with all newer flags (belt-and-suspenders) ──────────
+	// The SDK struct only has the combined flag; the newer per-type flags
+	// (disableClassicBuildPipelineCreation / disableClassicDeploymentPipelineCreation)
+	// must be sent via raw HTTP to cover ADO versions that expose them separately.
+	rawBody := `{"disableClassicPipelineCreation":false,"disableClassicBuildPipelineCreation":false,"disableClassicDeploymentPipelineCreation":false}`
+	projectURL := orgURL + "/" + SharedFixtureProjectName + "/_apis/build/generalsettings?api-version=7.1-preview.1"
+
+	req, err := http.NewRequest(http.MethodPatch, projectURL, strings.NewReader(rawBody))
+	if err != nil {
+		t.Fatalf("enableClassicPipelinesForFixtureProject: build request: %v", err)
+	}
+	req.SetBasicAuth("", pat)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("enableClassicPipelinesForFixtureProject: PATCH %s: %v", projectURL, err)
+	}
+	respBodyBytes, readErr := io.ReadAll(resp.Body)
+	_ = resp.Body.Close()
+	if readErr != nil {
+		t.Logf("enableClassicPipelinesForFixtureProject: reading PATCH response body: %v", readErr)
+	}
+	t.Logf("enableClassicPipelinesForFixtureProject: PATCH %s returned %d: %s", projectURL, resp.StatusCode, string(respBodyBytes))
+
+	// Brief pause to allow ADO to propagate the setting change before read-back / canary.
+	time.Sleep(2 * time.Second)
+
+	// ── 3. Read-back to verify ────────────────────────────────────────────────
+	getURL := projectURL // same URL, GET
+	getReq, err := http.NewRequest(http.MethodGet, getURL, nil)
+	if err != nil {
+		t.Logf("enableClassicPipelinesForFixtureProject: build GET request: %v (skipping read-back)", err)
+		return
+	}
+	getReq.SetBasicAuth("", pat)
+	getReq.Header.Set("Content-Type", "application/json")
+
+	getResp, err := http.DefaultClient.Do(getReq)
+	if err != nil {
+		t.Logf("enableClassicPipelinesForFixtureProject: GET %s: %v (skipping read-back)", getURL, err)
+		return
+	}
+	getBodyBytes, getReadErr := io.ReadAll(getResp.Body)
+	_ = getResp.Body.Close()
+	if getReadErr != nil {
+		t.Logf("enableClassicPipelinesForFixtureProject: reading GET response body: %v", getReadErr)
+	}
+	t.Logf("enableClassicPipelinesForFixtureProject: GET %s returned %d: %s", getURL, getResp.StatusCode, string(getBodyBytes))
+
+	// Parse the read-back to log the current settings for diagnostics.
+	var settings map[string]interface{}
+	if jsonErr := json.Unmarshal(getBodyBytes, &settings); jsonErr == nil {
+		t.Logf("enableClassicPipelinesForFixtureProject: read-back settings: disableClassicPipelineCreation=%v disableClassicBuildPipelineCreation=%v disableClassicDeploymentPipelineCreation=%v",
+			settings["disableClassicPipelineCreation"],
+			settings["disableClassicBuildPipelineCreation"],
+			settings["disableClassicDeploymentPipelineCreation"],
+		)
+	}
+
+	// ── 4. Canary check: try creating a minimal deployment group via the ADO SDK.
+	// This is the definitive test — the project-level read-back can show "false"
+	// even when an org-level policy blocks creation. If the canary fails with
+	// "classic pipelines are disabled", the setting is blocked at org level and
+	// we skip rather than fail with a cryptic error.
+	canaryName := "canary-dg-" + testutils.GenerateResourceName()
+	canaryDG, canaryErr := azdoClients.TaskAgentClient.AddDeploymentGroup(ctx, taskagent.AddDeploymentGroupArgs{
+		Project: converter.String(SharedFixtureProjectName),
+		DeploymentGroup: &taskagent.DeploymentGroupCreateParameter{
+			Name: &canaryName,
+		},
+	})
+	if canaryErr != nil {
+		errStr := canaryErr.Error()
+		t.Logf("enableClassicPipelinesForFixtureProject: canary deployment group creation failed: %v", canaryErr)
+		if strings.Contains(strings.ToLower(errStr), "classic pipelines are disabled") {
+			t.Skip("enableClassicPipelinesForFixtureProject: org-level policy blocks classic deployment pipeline creation; skipping test")
 		}
-		_ = resp.Body.Close()
-		// A 400 / 404 at the org level is possible when the org policy is managed
-		// through a different mechanism — log but do not fatal so the project-level
-		// PATCH still runs.
-		if resp.StatusCode >= 300 {
-			t.Logf("enableClassicPipelinesForFixtureProject: PATCH %s returned %d (continuing)", url, resp.StatusCode)
+		// Other errors: fatal so it's visible
+		t.Fatalf("enableClassicPipelinesForFixtureProject: unexpected canary failure: %v", canaryErr)
+	}
+	// Canary succeeded — delete it immediately before the test runs.
+	if canaryDG != nil && canaryDG.Id != nil {
+		if delErr := azdoClients.TaskAgentClient.DeleteDeploymentGroup(ctx, taskagent.DeleteDeploymentGroupArgs{
+			Project:           converter.String(SharedFixtureProjectName),
+			DeploymentGroupId: canaryDG.Id,
+		}); delErr != nil {
+			t.Logf("enableClassicPipelinesForFixtureProject: delete canary deployment group: %v (non-fatal)", delErr)
 		}
 	}
 }
