@@ -18,7 +18,17 @@
 - [x] `TestProvider_HasChildResources` passes
 - [x] Committed: ae654d6c
 
+## Work done in iteration 2
+
+- [x] Diagnosed live gate failure: org at 1000-project cap — `betterado_project` resource creation fails
+- [x] Rewrote `hclWikiPageBasic` and `hclWikiPageUpdate` to use `data "betterado_project" "fixture"` with `SharedFixtureProjectName` instead of creating a new project
+- [x] Updated `TestAccWikiPageResource_basic` and `TestAccWikiPageResource_update` to remove `projectName` param (now using standing project)
+- [x] Changed path from `/path` to `/page-path` (minor — avoids collision risk with any pre-existing page at `/path`)
+- [x] `go build -mod=vendor ./...` passes
+- [x] `go vet -tags all ./azuredevops/internal/acceptancetests/` passes
+- [x] `golangci-lint run --new-from-rev=main` — 0 issues
+- [x] Committed: 59fadbed
+
 ## Remaining
 
-- The live gate (`go test -tags all -run TestAccWikiPageResource_basic ./azuredevops/internal/acceptancetests/`) needs TF_ACC=1 to run.
-  The framework implementation is complete; forge's live gate will confirm acceptance.
+- Live gate will re-run `TestAccWikiPageResource_basic` with TF_ACC=1. Should succeed now that standing fixture project is used.

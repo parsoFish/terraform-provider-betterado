@@ -35,6 +35,21 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
   - Both tests use `betterado_project` inline + `betterado_wiki` (projectWiki type)
 - Removed `"betterado_wiki_page"` from `provider_test.go` expectedResources
 
+### Iteration 2
+
+**Root cause of live gate failure:** `TestAccWikiPageResource_basic` failed with:
+```
+Error: creating project: Failed to add a project as this organization already has 1000 projects.
+```
+Iteration 1 tests were creating `resource "betterado_project" "test"` — but the org is at its 1000-project cap.
+
+**Fix applied (commit 59fadbed):**
+- Replaced `resource "betterado_project" "test"` with `data "betterado_project" "fixture"` using `SharedFixtureProjectName` ("betterado-standing-demo") in `hclWikiPageBasic` and `hclWikiPageUpdate`.
+- Removed `projectName` parameter from test functions and HCL helpers (no longer needed — project name is fixed as the standing project).
+- Changed wiki page path from `/path` to `/page-path` to avoid potential collision with any pre-existing `/path` page in the standing project.
+- Followed the exact same pattern as `resource_wiki_test.go`'s `hclWikiProjectWiki`.
+- `go build`, `go vet`, `golangci-lint` — all clean.
+
 ## What worked
 
 - **Reusing inline plan modifiers from the same package:** The `wiki` package's `resource_wiki_framework.go` already defines `wikiRequiresReplace()` and `wikiUseStateForUnknown()` — these work directly in `resource_wiki_page_framework.go` without importing the unavailable `stringplanmodifier` package.
@@ -46,6 +61,7 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 ## What didn't work
 
 - Importing `github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier` — this package is NOT vendored. Use inline plan modifier structs instead.
+- Creating `resource "betterado_project"` in acceptance tests — the org is at the 1000-project cap.
 
 ## Open questions
 
@@ -54,3 +70,4 @@ _(things that aren't blocking but would be useful to clarify)_
 ## Notes for reflection
 
 - The `stringplanmodifier` package from terraform-plugin-framework is not in vendor — projects that want `UseStateForUnknown()` or `RequiresReplace()` must implement inline struct plan modifiers. This is a common pattern in this codebase.
+- **CRITICAL pattern for this org:** Always use `SharedFixtureProjectName` ("betterado-standing-demo") for any acceptance test that would otherwise create a new ADO project. The org is at the 1000-project cap. Use `data "betterado_project" "fixture"` and create only the per-test sub-resources (wikis, repos, pages) that get torn down. This is the established pattern in `resource_wiki_test.go`, `resource_release_folder_framework_test.go`, etc.
