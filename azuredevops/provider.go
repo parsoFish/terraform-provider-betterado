@@ -23,7 +23,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/graph"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
@@ -79,10 +78,10 @@ func Provider() *schema.Provider {
 			"betterado_git_repository_branch":           git.ResourceGitRepositoryBranch(),
 			"betterado_git_repository_file":             git.ResourceGitRepositoryFile(),
 			"betterado_group":                           graph.ResourceGroup(),
-			"betterado_group_entitlement":               memberentitlementmanagement.ResourceGroupEntitlement(),
-			"betterado_group_membership":                graph.ResourceGroupMembership(),
-			"betterado_iteration_permissions":           permissions.ResourceIterationPermissions(),
-			"betterado_library_permissions":             permissions.ResourceLibraryPermissions(),
+			// betterado_group_entitlement migrated to the framework provider (framework_provider.go).
+			"betterado_group_membership":      graph.ResourceGroupMembership(),
+			"betterado_iteration_permissions": permissions.ResourceIterationPermissions(),
+			"betterado_library_permissions":   permissions.ResourceLibraryPermissions(),
 			// betterado_pipeline_authorization is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
@@ -155,12 +154,12 @@ func Provider() *schema.Provider {
 			"betterado_servicehook_permissions":                     permissions.ResourceServiceHookPermissions(),
 			"betterado_servicehook_storage_queue_pipelines":         servicehook.ResourceServicehookStorageQueuePipelines(),
 			"betterado_servicehook_webhook_tfs":                     servicehook.ResourceServicehookWebhookTfs(),
-			"betterado_service_principal_entitlement":               memberentitlementmanagement.ResourceServicePrincipalEntitlement(),
-			"betterado_tagging_permissions":                         permissions.ResourceTaggingPermissions(),
-			"betterado_team":                                        core.ResourceTeam(),
-			"betterado_team_administrators":                         core.ResourceTeamAdministrators(),
-			"betterado_team_members":                                core.ResourceTeamMembers(),
-			"betterado_user_entitlement":                            memberentitlementmanagement.ResourceUserEntitlement(),
+			// betterado_service_principal_entitlement migrated to the framework provider.
+			"betterado_tagging_permissions": permissions.ResourceTaggingPermissions(),
+			"betterado_team":                core.ResourceTeam(),
+			"betterado_team_administrators": core.ResourceTeamAdministrators(),
+			"betterado_team_members":        core.ResourceTeamMembers(),
+			// betterado_user_entitlement migrated to the framework provider.
 			"betterado_variable_group":                              taskagent.ResourceVariableGroup(),
 			"betterado_variable_group_permissions":                  permissions.ResourceVariableGroupPermissions(),
 			"betterado_variable_group_variable":                     taskagent.ResourceVariableGroupVariable(),

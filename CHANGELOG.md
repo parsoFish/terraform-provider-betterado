@@ -11,6 +11,27 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **`betterado_user_entitlement` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served through
+  the mux provider. CRUD operations target the Member Entitlement Management API at
+  `{org}/_apis/memberentitlementmanagement/userentitlements`; the schema is unchanged
+  (`principal_name`, `origin_id`, `origin`, `account_license_type`, `licensing_source`,
+  `descriptor`). Verified by live acceptance test `TestAccUserEntitlement_Create`.
+
+- **`betterado_group_entitlement` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served through
+  the mux provider. CRUD operations target the Member Entitlement Management API at
+  `{org}/_apis/memberentitlementmanagement/groupentitlements`; the schema is unchanged
+  (`display_name`, `origin_id`, `origin`, `account_license_type`, `licensing_source`,
+  `principal_name`, `descriptor`). Verified by live acceptance test
+  `TestAccGroupEntitlement_Create`.
+
+- **`betterado_service_principal_entitlement` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served through
+  the mux provider. CRUD operations target the Member Entitlement Management API at
+  `{org}/_apis/memberentitlementmanagement/serviceprincipals`; the schema is unchanged
+  (`origin_id`, `origin`, `account_license_type`, `licensing_source`, `display_name`,
+  `descriptor`). Verified by live acceptance test `TestAccServicePrincipalEntitlement_create`.
 - **`betterado_build_definition` resource migrated to terraform-plugin-framework.**
   The resource now uses the framework implementation served through the mux provider.
   CRUD operations continue to target the Build API. Implemented attributes: `project_id`,

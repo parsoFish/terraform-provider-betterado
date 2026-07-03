@@ -13,6 +13,7 @@ import (
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
@@ -211,6 +212,9 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		build.NewBuildDefinitionResource,
 		build.NewPipelineAuthorizationResource,
 		build.NewResourceAuthorizationResource,
+		memberentitlementmanagement.NewUserEntitlementResource,
+		memberentitlementmanagement.NewGroupEntitlementResource,
+		memberentitlementmanagement.NewServicePrincipalEntitlementResource,
 	}
 }
 

@@ -46,7 +46,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_git_repository_branch",
 		"betterado_git_repository_file",
 		"betterado_group",
-		"betterado_group_entitlement",
+		// betterado_group_entitlement is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_group_membership",
 		"betterado_iteration_permissions",
 		"betterado_library_permissions",
@@ -118,12 +119,12 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_servicehook_permissions",
 		"betterado_servicehook_storage_queue_pipelines",
 		"betterado_servicehook_webhook_tfs",
-		"betterado_service_principal_entitlement",
+		// betterado_service_principal_entitlement is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_tagging_permissions",
 		"betterado_team",
 		"betterado_team_administrators",
 		"betterado_team_members",
-		"betterado_user_entitlement",
 		"betterado_variable_group",
 		"betterado_variable_group_permissions",
 		"betterado_variable_group_variable",
