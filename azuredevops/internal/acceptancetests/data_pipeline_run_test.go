@@ -27,14 +27,23 @@ import (
 func TestAccDataPipelineRun(t *testing.T) {
 	name := testutils.GenerateResourceName()
 
-	// configFilePath is written by Step 1's Check (triggerAndWaitForRun) after
-	// the run completes. Steps 2 and 3 use a ConfigFile closure that returns
-	// this path — ConfigFile funcs are evaluated lazily per-step, so by the
-	// time they are called for Step 2 the file already exists.
+	// configFilePath must be non-empty at TestCase validation time (before any
+	// step runs) because the framework eagerly calls ConfigFile funcs during
+	// validate(). We pre-create a placeholder temp file so that validation
+	// sees a valid path. Step 1's Check (triggerAndWaitForRun) then overwrites
+	// this variable with the path of a new temp file containing real HCL.
+	// The closure below captures configFilePath by reference, so when Steps 2
+	// and 3 execute they read the updated path.
+	placeholderFile, err := os.CreateTemp("", "betterado_pipeline_run_placeholder_*.tf")
+	if err != nil {
+		t.Fatalf("failed to create placeholder config file: %v", err)
+	}
+	placeholderFile.Close()
+
 	var (
 		pipelineIDStr  string
 		runIDStr       string
-		configFilePath string
+		configFilePath = placeholderFile.Name()
 	)
 
 	tfDataNode := "data.betterado_pipeline_run.test"
