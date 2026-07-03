@@ -1,6 +1,3 @@
-//go:build all || data_pipeline_approvals
-// +build all data_pipeline_approvals
-
 package pipelinesapproval
 
 import (

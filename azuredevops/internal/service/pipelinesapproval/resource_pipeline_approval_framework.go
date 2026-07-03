@@ -1,6 +1,3 @@
-//go:build all || resource_pipeline_approval
-// +build all resource_pipeline_approval
-
 package pipelinesapproval
 
 import (
