@@ -518,7 +518,8 @@ func updateGitRepository(clients *client.AggregatedClient, repository *git.GitRe
 			NewRepositoryInfo: repository,
 			RepositoryId:      repository.Id,
 			Project:           converter.String(project.String()),
-		})
+		},
+	)
 }
 
 // Lookup an Azure Git Repository using the ID, or name if the ID is not set.
@@ -639,7 +640,8 @@ func updateIsDisabledGitRepository(clients *client.AggregatedClient, repoID stri
 			NewRepositoryInfo: &git.GitRepository{IsDisabled: converter.Bool(isDisabled)},
 			RepositoryId:      &uuid,
 			Project:           converter.String(projectID),
-		})
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("updating isDisabled on repository : %+v", err)
 	}
@@ -688,7 +690,8 @@ func initializeRepository(clients *client.AggregatedClient, initialization *repo
 								},
 							},
 						},
-					})
+					},
+				)
 				if err != nil {
 					return err
 				}

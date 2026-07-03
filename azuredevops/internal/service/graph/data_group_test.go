@@ -168,7 +168,8 @@ func TestGroupDataSource_HandlesCollectionGroups_And_ReturnsErrorOnProjectGroup(
 	clients := &client.AggregatedClient{GraphClient: graphClient, Ctx: context.Background()}
 
 	listGroupCallArgs := graph.ListGroupsArgs{}
-	listGroupCallResponse := createPaginatedResponse("",
+	listGroupCallResponse := createPaginatedResponse(
+		"",
 		groupMeta{name: "name1", descriptor: "descriptor1", origin: "vsts", originId: originID.String()},
 	)
 	graphClient.
@@ -198,7 +199,8 @@ func TestGroupDataSource_HandlesCollectionGroups_And_ReturnsCorrectGroup(t *test
 		}, nil)
 
 	listGroupCallArgs := graph.ListGroupsArgs{}
-	listGroupCallResponse := createPaginatedResponse("",
+	listGroupCallResponse := createPaginatedResponse(
+		"",
 		groupMeta{name: "name2", descriptor: "descriptor2", origin: "vsts", originId: uuid.New().String()},
 		groupMeta{name: "name5", descriptor: "descriptor5", origin: "vsts", originId: uuid.New().String(), domain: "vstfs:///Classification/TeamProject/" + uuid.New().String()},
 		groupMeta{name: "name3", descriptor: "descriptor3", origin: "vsts", originId: uuid.New().String(), domain: "vstfs:///Framework/IdentityDomain/" + uuid.New().String()},
