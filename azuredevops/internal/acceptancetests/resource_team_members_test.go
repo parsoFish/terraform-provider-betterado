@@ -136,8 +136,8 @@ func captureTeamMembersEvidence(tfNode string) resource.TestCheckFunc {
 		teamID := rs.Primary.Attributes["team_id"]
 		apiURL := fmt.Sprintf("%s/_apis/projects/%s/teams/%s/members?api-version=7.1", orgURL, projectID, teamID)
 		attrs := map[string]string{
-			"project_id":   projectID,
-			"team_id":      teamID,
+			"project_id":    projectID,
+			"team_id":       teamID,
 			"members_count": rs.Primary.Attributes["members.#"],
 		}
 		_ = testutils.CaptureLiveEvidence("team-members", apiURL, attrs)

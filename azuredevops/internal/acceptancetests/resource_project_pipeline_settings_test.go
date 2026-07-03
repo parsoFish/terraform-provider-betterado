@@ -65,13 +65,13 @@ func captureProjectPipelineSettingsEvidence(tfNode string) resource.TestCheckFun
 		projectID := rs.Primary.Attributes["project_id"]
 		apiURL := fmt.Sprintf("%s/%s/_apis/build/generalsettings?api-version=7.1", orgURL, projectID)
 		attrs := map[string]string{
-			"project_id":                            projectID,
-			"enforce_job_scope":                     rs.Primary.Attributes["enforce_job_scope"],
-			"enforce_referenced_repo_scoped_token":  rs.Primary.Attributes["enforce_referenced_repo_scoped_token"],
-			"enforce_settable_var":                  rs.Primary.Attributes["enforce_settable_var"],
-			"publish_pipeline_metadata":             rs.Primary.Attributes["publish_pipeline_metadata"],
-			"status_badges_are_private":             rs.Primary.Attributes["status_badges_are_private"],
-			"enforce_job_scope_for_release":         rs.Primary.Attributes["enforce_job_scope_for_release"],
+			"project_id":                           projectID,
+			"enforce_job_scope":                    rs.Primary.Attributes["enforce_job_scope"],
+			"enforce_referenced_repo_scoped_token": rs.Primary.Attributes["enforce_referenced_repo_scoped_token"],
+			"enforce_settable_var":                 rs.Primary.Attributes["enforce_settable_var"],
+			"publish_pipeline_metadata":            rs.Primary.Attributes["publish_pipeline_metadata"],
+			"status_badges_are_private":            rs.Primary.Attributes["status_badges_are_private"],
+			"enforce_job_scope_for_release":        rs.Primary.Attributes["enforce_job_scope_for_release"],
 		}
 		_ = testutils.CaptureLiveEvidence("project-pipeline-settings", apiURL, attrs)
 		return nil
