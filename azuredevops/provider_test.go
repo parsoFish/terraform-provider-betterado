@@ -128,8 +128,6 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_variable_group",
 		"betterado_variable_group_permissions",
 		"betterado_variable_group_variable",
-		"betterado_wiki",
-		"betterado_wiki_page",
 		"betterado_workitem",
 		"betterado_workitemtracking_field",
 		"betterado_workitemquery",
