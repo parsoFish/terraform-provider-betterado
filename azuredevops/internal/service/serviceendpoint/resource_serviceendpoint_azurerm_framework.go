@@ -18,8 +18,9 @@ import (
 
 // Compile-time interface checks.
 var (
-	_ resource.Resource              = (*ServiceEndpointAzureRMResource)(nil)
-	_ resource.ResourceWithConfigure = (*ServiceEndpointAzureRMResource)(nil)
+	_ resource.Resource               = (*ServiceEndpointAzureRMResource)(nil)
+	_ resource.ResourceWithConfigure  = (*ServiceEndpointAzureRMResource)(nil)
+	_ resource.ResourceWithModifyPlan = (*ServiceEndpointAzureRMResource)(nil)
 )
 
 // ── plan modifier helpers ─────────────────────────────────────────────────────
@@ -30,9 +31,11 @@ func seAzureRMRequiresReplace() planmodifier.String { return seAzureRMRequiresRe
 func (m seAzureRMRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seAzureRMRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seAzureRMRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -46,12 +49,15 @@ func (m seAzureRMRequiresReplaceModifier) PlanModifyString(_ context.Context, re
 type seAzureRMUseStateForUnknownModifier struct{}
 
 func seAzureRMUseStateForUnknown() planmodifier.String { return seAzureRMUseStateForUnknownModifier{} }
+
 func (m seAzureRMUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seAzureRMUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seAzureRMUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -70,9 +76,11 @@ func seAzureRMDefaultString(v string) defaults.String { return seAzureRMStringDe
 func (d seAzureRMStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seAzureRMStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seAzureRMStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }
@@ -83,9 +91,11 @@ func seAzureRMDefaultBool(v bool) defaults.Bool { return seAzureRMBoolDefault{v}
 func (d seAzureRMBoolDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %v", d.value)
 }
+
 func (d seAzureRMBoolDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %v", d.value)
 }
+
 func (d seAzureRMBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(d.value)
 }
@@ -252,9 +262,9 @@ func (r *ServiceEndpointAzureRMResource) Schema(_ context.Context, _ resource.Sc
 			"service_principal_id": schema.StringAttribute{
 				Computed:    true,
 				Description: "The service principal ID.",
-				PlanModifiers: []planmodifier.String{
-					seAzureRMUseStateForUnknown(),
-				},
+				// No UseStateForUnknown here — ModifyPlan sets this from credentials
+				// or state as appropriate, ensuring idempotency on re-plan and correct
+				// value propagation on update.
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -297,6 +307,53 @@ func (r *ServiceEndpointAzureRMResource) Schema(_ context.Context, _ resource.Sc
 				},
 			},
 		},
+	}
+}
+
+// ModifyPlan propagates service_principal_id from credentials[0].serviceprincipalid
+// when credentials are present, so the plan always carries the correct known value.
+//
+// Without this, UseStateForUnknown would freeze the old SPN-ID in the plan during
+// Update, causing a "provider produced inconsistent result" panic when the API
+// returns the newly configured SPN-ID. With this modifier:
+//   - Create: credentials.serviceprincipalid is known → plan matches API response.
+//   - Update (changed creds): new ID is known → plan matches new API response.
+//   - Idempotency re-plan: ID unchanged → plan matches state → no diff.
+//   - No credentials (Automatic/MSI/WIF): fall back to prior state value if known.
+func (r *ServiceEndpointAzureRMResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// Only act on create/update (plan is non-null).
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+
+	var plan serviceEndpointAzureRMModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if len(plan.Credentials) > 0 {
+		spID := plan.Credentials[0].ServicePrincipalID
+		if !spID.IsNull() && !spID.IsUnknown() {
+			// Credentials are explicitly configured — the API will store exactly this ID.
+			plan.ServicePrincipalID = spID
+			resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
+			return
+		}
+	}
+
+	// No credentials block (Automatic/MSI/WIF) or SPN-ID is unknown.
+	// Fall back to prior state value when known, to avoid spurious diffs.
+	if !req.State.Raw.IsNull() {
+		var state serviceEndpointAzureRMModel
+		resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		if !state.ServicePrincipalID.IsNull() && !state.ServicePrincipalID.IsUnknown() {
+			plan.ServicePrincipalID = state.ServicePrincipalID
+			resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
+		}
 	}
 }
 
