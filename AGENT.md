@@ -4,7 +4,7 @@
 
 ## What I've tried
 
-### Iteration 0 (this iteration)
+### Iteration 0 (initial build)
 
 **State before this iteration:** Gate reported "no tests to run" for TestAccFeedPermissionFramework — the test function didn't exist yet.
 
@@ -28,23 +28,41 @@
    - `captureFeedPermissionFrameworkEvidence()` calls `CaptureLiveEvidence("acceptance-resource", url, permissions)` where url = `<org>/<projectId>/_apis/packaging/feeds/<feedId>/permissions?api-version=7.1`
    - Added `os` and `strings` imports
 
+### Iteration 1 (fix display_name unknown after apply)
+
+**Gate failure:** `provider still indicated an unknown value for betterado_feed_permission.test.display_name. All values must be known after apply`
+
+**Root cause:** `display_name` is `Optional + Computed` but had:
+1. No `PlanModifiers` — so on every plan where user doesn't set it, it remains "unknown"
+2. No guaranteed resolution to a known value in Create — only set if `findPermission` returned perm with non-nil DisplayName
+
+**Fix applied (commit e92be2db):**
+1. Added `useStateForUnknown()` PlanModifier to `display_name` schema — on re-plan, carries forward state value instead of "unknown"
+2. In Create: after polling, if `display_name` is unknown/null, call `findPermission` to get ADO's display name; fall back to `""` (empty string, always known) if that fails
+3. In Update: guard `plan.DisplayName.IsUnknown()` and fall back to state or empty string before writing state
+
+**Key insight:** In terraform-plugin-framework, `Optional + Computed` attributes that are not set in config are "unknown" in the plan. After Create/Update, ALL attributes MUST be known in state, or Terraform raises the "unknown value after apply" error. `useStateForUnknown()` handles re-plans but the INITIAL apply must resolve the value.
+
 ## What worked
 
 - Using the custom `useStateForUnknown()` and `requiresReplace()` from `framework_defaults.go` instead of `stringplanmodifier.*` (not vendored)
 - Using `SharedFixtureProjectName` data source instead of creating a new project (org is at cap)
 - Using `getFeedDirectClient()` (already defined in `resource_feed_framework_test.go`) for CheckDestroy
 - Using `nilIfEmptyStr()` (defined in `resource_feed_framework_test.go`) for nil-safe project ID
+- `findPermission` called after `pollPermissions` succeeds is reliable (poll already confirmed perm exists)
 
 ## What didn't work
 
 - `github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier` — NOT in vendor; use `framework_defaults.go` helpers instead
+- Initial `display_name` schema without PlanModifiers → "unknown value after apply" error
 
-## Open questions
+## Framework rules learned
 
-- Will the ADO group's `descriptor` attribute be available immediately when `betterado_group` is created in the mux path? (Should be, since group is still SDKv2)
-- idempotency: `display_name` is Computed+Optional. On re-plan, ADO returns the display name — if it differs from what terraform has in state (or null vs set), this might cause a diff. May need to handle carefully.
+- In terraform-plugin-framework, `Optional + Computed` attributes not set in config → "unknown" in plan
+- After Create/Update, MUST write known value for all Computed attributes to state
+- `useStateForUnknown()` only helps for re-plans (carry forward state), NOT first apply
+- For first apply: must explicitly resolve Computed-only/Optional-Computed values via API re-read or fallback
 
 ## Notes for reflection
 
 - The `betterado_feed_permission` deregistration from SDKv2 means old `TestAccFeedPermission_*` tests using `GetProviderFactories()` (pure SDKv2) will fail at live acceptance time since SDKv2 no longer has the resource. This is expected — they need to be migrated to the mux path too, but that's out of scope for WI-3.
-- The `display_name` field on `feedPermissionModel` is `Optional + Computed`. During read, ADO returns the group's display name. If config doesn't set it, it will be null in config but set in state after apply → potential idempotency diff. To avoid this, the Read sets it from ADO, and Create re-reads after polling to populate it. If this causes issues, consider making it Computed-only or using `UseStateForUnknown`.
