@@ -10,7 +10,40 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 _(updated by each iteration — most recent at the top)_
 
-### Iteration 6 (current)
+### Iteration 7 (current)
+
+**Gate failure from live run (iter-6 result):**
+
+```
+--- FAIL: TestAccVariableGroupPermissions_SetPermissions (87.83s)
+    resource_variable_group_test.go:27: Error running post-test destroy: Unexpectedly found a variable group that should be deleted
+--- FAIL: TestAccVariableGroupPermissions_UpdatePermissions (88.07s)
+--- FAIL: TestAccVariableGroup_basic (64.93s)
+--- FAIL: TestAccVariableGroup_secretValue (64.94s)
+--- FAIL: TestAccVariableGroup_update (68.44s)
+FAIL 244.341s
+```
+
+**Root cause analysis (iteration 7):**
+
+Two compounding issues:
+
+**Issue 1 — Permissions tests were sequential**: `TestAccVariableGroupPermissions_*` used `resource.Test()` (NOT `resource.ParallelTest()`), while all other VG tests used `resource.ParallelTest()`. Go's testing framework runs parallel tests concurrently, but sequential tests run one at a time AFTER all parallel tests complete. With `resource.Test()`, each permissions test adds its full Delete+CheckDestroy budget (60s + 45s = 105s) IN SERIES, not in parallel. With 11 tests total and 2 sequential, the wall time was: parallel batch (max ~65s) + sequential test 1 (105s) + sequential test 2 (105s) ≈ 275s. But this doesn't account for why the parallel tests also fail.
+
+**Issue 2 — CheckDestroy 45s timeout insufficient for ADO multi-node propagation**: The Delete wait loop exits after getting 2s delay + first 404. But CheckDestroy hits the ADO API independently and finds the VG STILL PRESENT. The VG is eventually consistent: it disappears on the primary delete node within ~5s, but other API nodes can take up to ~60s to reflect the deletion. The 45s CheckDestroy timeout runs out before ADO's backend fully propagates.
+
+**Fix (commit 20c48746):**
+1. Changed `resource.Test()` → `resource.ParallelTest()` in both `TestAccVariableGroupPermissions_*` tests. All 11 VG tests now run in parallel → wall time = max(single test) ≈ 195s max.
+2. Increased `checkVariableGroupDestroyedMux` timeout 45s → **120s**. This gives ADO's distributed backend 120s to propagate the deletion after the provider's Delete (which already exits on first 404 within ~5s).
+3. Raised Delete `ContinuousTargetOccurence` 1 → **2** for defensive robustness (requires 2 consecutive 404s, prevents premature exit on transient API errors).
+
+**Time budget check:**
+- 11 parallel tests × max(15s test steps + 60s delete + 120s checkdestroy) = 195s wall time.
+- 195s << 600s (10-min go test budget). Comfortable margin.
+
+**Files changed:** `resource_variable_group_permissions_test.go`, `resource_variable_group_test.go`, `resource_variable_group_framework.go`
+
+### Iteration 6 (prior)
 
 **Gate failure from live run (iter-5 result):**
 
@@ -224,7 +257,9 @@ This is a known terraform-plugin-framework bug with `Default` values inside `Set
 - **Passing `nil` to `searchAzureKVSecrets` variables param**: returns empty map, creates KV VG with no variables.
 - **Trusting `UpdateVariableGroup` response**: the ADO API may return the old VG data in the PUT response. Always do a fresh GET after PUT.
 - **ContinuousTargetOccurence: 3 with 5 min timeout in Delete**: too aggressive — accumulates with parallel tests to exceed the 10-minute go test timeout. Use ContinuousTargetOccurence:1 with 60 s timeout instead; CheckDestroy adds the safety net.
-- **CheckDestroy timeout of 3 minutes**: too long when 5+ parallel tests each use it — total exceeds 10 min. Use 45 s.
+- **CheckDestroy timeout of 3 minutes**: too long — triggered 600s go test default timeout. Don't use 3 min.
+- **CheckDestroy timeout of 45 seconds**: too short — ADO cross-node propagation can take ~60s; VG still found by CheckDestroy. Use 120s (safe with all tests parallel).
+- **Mixing resource.Test() and resource.ParallelTest() in same test suite**: sequential tests (resource.Test) run AFTER parallel tests complete, adding their full wait time in series. Always use resource.ParallelTest() to ensure all tests contribute to the parallel batch.
 
 ## Open questions
 
@@ -237,6 +272,6 @@ _(nothing blocking — awaiting live gate confirmation)_
 - **Prefer `ListNestedAttribute` over `SetNestedAttribute`** for variable-like patterns where the key is embedded in the nested object (`name` attribute). Use `MapNestedAttribute` when the key should be the map key and the `name` attribute can be dropped.
 - **Plan-faithful writes (Create/Update)**: after calling the API and reading back, always re-emit configured (non-computed) attributes from the plan rather than the API response. Use `mergeVariableListWithPlan` or a similar pattern. This prevents ADO value normalization from triggering "inconsistent values" errors.
 - **Any test using `betterado_variable_group` in HCL must use mux provider**: framework resources cannot be resolved by the SDKv2-only provider. Rule: if ANY resource in the HCL is a framework resource, switch to `GetMuxedProviderFactories()`.
-- **ADO eventual consistency for delete**: use a short Delete wait loop (ContinuousTargetOccurence:1, 60 s) to get a first not-found signal quickly, THEN rely on a short CheckDestroy retry (45 s) as the safety net. Do NOT use ContinuousTargetOccurence:3 or 5 min timeout — the combined wait time across 10+ parallel tests exceeds the 10-minute go test timeout.
+- **ADO eventual consistency for delete**: Delete wait loop (ContinuousTargetOccurence:2, 60 s) requires 2 consecutive 404s before exiting. CheckDestroy uses 120 s safety window for cross-node propagation. With all 11 VG tests using `resource.ParallelTest()`, the 120s CheckDestroy does NOT multiply — wall time = max(single test) ≈ 195s, well within 600s budget. CRITICAL: ensure ALL tests in the suite use `resource.ParallelTest()`, not `resource.Test()` — sequential tests add their full wait time in series, potentially blowing the budget.
 - **Parallel test timeout budget**: with `go test` default timeout of 600 s (10 min), and `TestAccVariableGroup` matching ~10 tests running in parallel, each test's Delete+CheckDestroy budget is roughly 600s / ceil(10/GOMAXPROCS). Keep individual wait loops short (≤ 90 s total) to stay within budget.
 - **Avoid project creation in tests**: org has a 1000 project limit. Migrate any test that creates `betterado_project.project` to use `SharedFixtureProjectName` + `data "betterado_project"` lookup instead.
