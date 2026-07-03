@@ -20,7 +20,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/feed"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/graph"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
@@ -186,15 +185,15 @@ func Provider() *schema.Provider {
 			// betterado_release_definition_revision, betterado_release_definitions, and
 			// betterado_release_folder have been migrated to the terraform-plugin-framework
 			// provider (framework_provider.go) and are no longer registered here.
-			"betterado_agent_pool":                            taskagent.DataAgentPool(),
-			"betterado_agent_pools":                           taskagent.DataAgentPools(),
-			"betterado_agent_queue":                           taskagent.DataAgentQueue(),
-			"betterado_area":                                  workitemtracking.DataArea(),
-			"betterado_build_definition":                      build.DataBuildDefinition(),
-			"betterado_client_config":                         service.DataClientConfig(),
-			"betterado_descriptor":                            graph.DataDescriptor(),
-			"betterado_environment":                           taskagent.DataEnvironment(),
-			"betterado_feed":                                  feed.DataFeed(),
+			"betterado_agent_pool":       taskagent.DataAgentPool(),
+			"betterado_agent_pools":      taskagent.DataAgentPools(),
+			"betterado_agent_queue":      taskagent.DataAgentQueue(),
+			"betterado_area":             workitemtracking.DataArea(),
+			"betterado_build_definition": build.DataBuildDefinition(),
+			"betterado_client_config":    service.DataClientConfig(),
+			"betterado_descriptor":       graph.DataDescriptor(),
+			"betterado_environment":      taskagent.DataEnvironment(),
+			// betterado_feed data source is now registered in the framework provider (framework_provider.go)
 			"betterado_git_repositories":                      git.DataGitRepositories(),
 			"betterado_git_repository":                        git.DataGitRepository(),
 			"betterado_git_repository_file":                   git.DataGitRepositoryFile(),

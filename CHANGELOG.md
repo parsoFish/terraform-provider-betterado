@@ -9,6 +9,14 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **`data.betterado_feed` migrated to terraform-plugin-framework.**
+  The data source now uses the terraform-plugin-framework implementation served
+  through the mux provider. Lookup by `name` (org-scoped) or `feed_id` (UUID,
+  project-scoped) is supported; `name`, `feed_id`, `project_id`, and `id` are
+  all exposed. Verified by live acceptance tests
+  `TestAccFeedDataSourceFramework_byName` and
+  `TestAccFeedDataSourceFramework_byId`.
+
 - **`betterado_feed_retention_policy` migrated to terraform-plugin-framework.**
   The resource now uses the terraform-plugin-framework implementation served
   through the mux provider alongside the existing SDKv2 path. CRUD operations

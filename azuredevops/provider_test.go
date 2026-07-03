@@ -172,7 +172,7 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_client_config",
 		"betterado_descriptor",
 		"betterado_environment",
-		"betterado_feed",
+		// betterado_feed has been migrated to the framework provider (framework_provider.go)
 		"betterado_git_repositories",
 		"betterado_git_repository",
 		"betterado_git_repository_file",

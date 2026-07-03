@@ -3,12 +3,12 @@
 page_title: "betterado_feed Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Use this data source to access information about an existing Azure DevOps Artifacts feed.
 ---
 
 # betterado_feed (Data Source)
 
-
+Use this data source to access information about an existing Azure DevOps Artifacts feed.
 
 
 
@@ -17,18 +17,10 @@ description: |-
 
 ### Optional
 
-- `feed_id` (String)
-- `name` (String)
-- `project_id` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `feed_id` (String) The UUID of the feed. Exactly one of name or feed_id must be set.
+- `name` (String) The name of the feed. Exactly one of name or feed_id must be set.
+- `project_id` (String) The ID of the project the feed belongs to. Omit for an org-scoped feed.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `id` (String) The ID of the feed.
