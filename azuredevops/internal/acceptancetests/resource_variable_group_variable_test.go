@@ -188,15 +188,17 @@ resource "betterado_variable_group" "test" {
   name         = %[1]q
   description  = "test description"
   allow_access = false
-  variable {
-    name  = "key1"
-    value = "value1"
-  }
-  variable {
-    name         = "skey1"
-    secret_value = "svalue1"
-    is_secret    = true
-  }
+  variable = [
+    {
+      name  = "key1"
+      value = "value1"
+    },
+    {
+      name         = "skey1"
+      secret_value = "svalue1"
+      is_secret    = true
+    },
+  ]
   lifecycle {
     ignore_changes = [variable]
   }
@@ -221,15 +223,17 @@ resource "betterado_variable_group" "test" {
   name         = %[1]q
   description  = "test description"
   allow_access = false
-  variable {
-    name  = "key1"
-    value = "value1"
-  }
-  variable {
-    name         = "skey1"
-    secret_value = "svalue1"
-    is_secret    = true
-  }
+  variable = [
+    {
+      name  = "key1"
+      value = "value1"
+    },
+    {
+      name         = "skey1"
+      secret_value = "svalue1"
+      is_secret    = true
+    },
+  ]
   lifecycle {
     ignore_changes = [variable]
   }
@@ -255,10 +259,10 @@ resource "betterado_variable_group" "test" {
   description  = "test description"
   allow_access = false
 
-  variable {
+  variable = [{
     name  = "seed"
     value = "seed"
-  }
+  }]
   lifecycle {
     ignore_changes = [variable]
   }

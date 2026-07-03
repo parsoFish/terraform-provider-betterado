@@ -328,10 +328,10 @@ resource "betterado_variable_group" "test" {
   name         = %[1]q
   description  = "test description"
   allow_access = false
-  variable {
+  variable = [{
     name  = "key1"
     value = "value1"
-  }
+  }]
 }`, variableGroupName, SharedFixtureProjectName)
 }
 
@@ -346,20 +346,20 @@ resource "betterado_variable_group" "test" {
   name         = %[1]q
   description  = "update description"
   allow_access = true
-  variable {
-    name         = "key1"
-    secret_value = "value1"
-    is_secret    = true
-  }
-
-  variable {
-    name  = "key2"
-    value = "value2"
-  }
-
-  variable {
-    name = "key3"
-  }
+  variable = [
+    {
+      name         = "key1"
+      secret_value = "value1"
+      is_secret    = true
+    },
+    {
+      name  = "key2"
+      value = "value2"
+    },
+    {
+      name = "key3"
+    },
+  ]
 }`, variableGroupName, SharedFixtureProjectName)
 }
 
@@ -374,11 +374,11 @@ resource "betterado_variable_group" "test" {
   name         = %[1]q
   description  = "test description"
   allow_access = true
-  variable {
+  variable = [{
     name         = "key1"
     secret_value = "value1"
     is_secret    = true
-  }
+  }]
 }`, variableGroupName, SharedFixtureProjectName)
 }
 
@@ -406,13 +406,13 @@ resource "betterado_variable_group" "test" {
   name         = %[1]q
   description  = "A sample variable group."
   allow_access = false
-  key_vault {
+  key_vault = [{
     name                = "%[7]s"
     service_endpoint_id = betterado_serviceendpoint_azurerm.test.id
-  }
-  variable {
+  }]
+  variable = [{
     name = "key1"
-  }
+  }]
 }
 `, variableGroupName, os.Getenv("TEST_SERVICE_PRINCIPAL_ID"), os.Getenv("TEST_SERVICE_PRINCIPAL_KEY"),
 		os.Getenv("TEST_ARM_TENANT_ID"), os.Getenv("TEST_ARM_SUBSCRIPTION_ID"), os.Getenv("TEST_ARM_SUBSCRIPTION_NAME"),

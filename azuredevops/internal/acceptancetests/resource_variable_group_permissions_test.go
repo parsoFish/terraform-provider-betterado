@@ -121,10 +121,10 @@ resource "betterado_variable_group" "example" {
   description  = "Test Description"
   allow_access = true
 
-  variable {
+  variable = [{
     name  = "key1"
     value = "val1"
-  }
+  }]
 }
 
 data "betterado_group" "tf-project-readers" {

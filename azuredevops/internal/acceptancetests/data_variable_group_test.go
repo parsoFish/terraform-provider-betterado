@@ -66,18 +66,20 @@ resource "betterado_variable_group" "vg" {
   name         = %[1]q
   description  = "A sample variable group."
   allow_access = true
-  variable {
-    name         = "key1"
-    secret_value = "value1"
-    is_secret    = true
-  }
-  variable {
-    name  = "key2"
-    value = "value2"
-  }
-  variable {
-    name = "key3"
-  }
+  variable = [
+    {
+      name         = "key1"
+      secret_value = "value1"
+      is_secret    = true
+    },
+    {
+      name  = "key2"
+      value = "value2"
+    },
+    {
+      name = "key3"
+    },
+  ]
 }
 
 data "betterado_variable_group" "vg" {
@@ -112,17 +114,18 @@ resource "betterado_variable_group" "test" {
   description  = "Test Variable Group Description"
   allow_access = true
 
-  key_vault {
+  key_vault = [{
     name                = "MY-KV"
     service_endpoint_id = betterado_serviceendpoint_azurerm.test.id
-  }
+  }]
 
-  variable {
-    name = "var01"
-  }
-
-  variable {
-    name = "var02"
-  }
+  variable = [
+    {
+      name = "var01"
+    },
+    {
+      name = "var02"
+    },
+  ]
 }`, vgName, SharedFixtureProjectName)
 }

@@ -163,10 +163,10 @@ resource "betterado_variable_group" "test" {
   project_id   = betterado_project.test.id
   name         = "%s"
   allow_access = true
-  variable {
+  variable = [{
     name  = "FOO"
     value = "BAR"
-  }
+  }]
 }
 
 resource "betterado_check_rest_api" "test" {

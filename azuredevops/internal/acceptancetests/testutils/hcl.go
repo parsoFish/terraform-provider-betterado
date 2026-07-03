@@ -369,24 +369,24 @@ resource "betterado_serviceendpoint_generic" "test" {
 func HclVariableGroupResource(variableGroupName string, allowAccess bool) string {
 	return fmt.Sprintf(`
 resource "betterado_variable_group" "vg" {
-	project_id  = betterado_project.project.id
-	name        = "%s"
-	description = "A sample variable group."
+	project_id   = betterado_project.project.id
+	name         = "%s"
+	description  = "A sample variable group."
 	allow_access = %t
-	variable {
-		name      = "key1"
-		secret_value  = "value1"
-		is_secret = true
-	}
-
-	variable {
-		name  = "key2"
-		value = "value2"
-	}
-
-	variable {
-		name = "key3"
-	}
+	variable = [
+		{
+			name         = "key1"
+			secret_value = "value1"
+			is_secret    = true
+		},
+		{
+			name  = "key2"
+			value = "value2"
+		},
+		{
+			name = "key3"
+		},
+	]
 }`, variableGroupName, allowAccess)
 }
 
@@ -394,17 +394,17 @@ resource "betterado_variable_group" "vg" {
 func HclVariableGroupResourceKeyVault(variableGroupName string, allowAccess bool, keyVaultName string) string {
 	return fmt.Sprintf(`
 resource "betterado_variable_group" "vg" {
-	project_id  = betterado_project.project.id
-	name        = "%s"
-	description = "A sample variable group."
+	project_id   = betterado_project.project.id
+	name         = "%s"
+	description  = "A sample variable group."
 	allow_access = %t
-	key_vault {
-        name = "%s"
-        service_endpoint_id  = betterado_serviceendpoint_azurerm.serviceendpointrm.id
-    }
-	variable {
+	key_vault = [{
+		name                = "%s"
+		service_endpoint_id = betterado_serviceendpoint_azurerm.serviceendpointrm.id
+	}]
+	variable = [{
 		name = "key1"
-	}
+	}]
 }`, variableGroupName, allowAccess, keyVaultName)
 }
 

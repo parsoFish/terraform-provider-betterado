@@ -584,10 +584,10 @@ resource "betterado_variable_group" "test" {
   name         = "%[1]s"
   allow_access = true
 
-  variable {
+  variable = [{
     name  = "key1"
     value = "val1"
-  }
+  }]
 }
 
 resource "betterado_pipeline_authorization" "test" {
@@ -613,10 +613,10 @@ resource "betterado_variable_group" "test" {
   name         = "%[1]s"
   allow_access = true
 
-  variable {
+  variable = [{
     name  = "key1"
     value = "val1"
-  }
+  }]
 }
 
 data "betterado_git_repository" "test" {
