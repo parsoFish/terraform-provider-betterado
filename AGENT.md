@@ -63,14 +63,37 @@ The `serviceendpoint` unit test package has build failures because many `expandS
 
 **Build:** `go build -tags all ./...` passes. Quality gate passes.
 
-## Remaining work (iteration 4+)
+## Iteration 4 (completed)
 
-- **AC3**: Live gate must re-run `TestAccServiceEndpointAzureRm_CreateAndUpdate` with the fix applied. The test should now pass — `server_url` will not have an inconsistency.
+**Root cause fixed:** Gate failure was `.service_principal_id: was cty.StringVal("9be56814..."), but now cty.StringVal("8124569d...")` at Step 3/3 (the second apply/update step).
+
+**Root cause:** `UseStateForUnknown` on `service_principal_id` froze the OLD SPN-ID in the plan during Update. After Update, `flattenFromServiceEndpoint` read the API response which returned the NEWLY-configured SPN-ID. Framework detected plan ≠ returned → "provider produced inconsistent result after apply".
+
+**Fix:** Implemented `resource.ResourceWithModifyPlan` on `ServiceEndpointAzureRMResource`. In `ModifyPlan`:
+1. If `credentials[0].serviceprincipalid` is known, propagate it directly to `service_principal_id` in the plan.
+2. Otherwise (Automatic/MSI/WIF or unknown credentials), fall back to prior state value.
+
+Removed `seAzureRMUseStateForUnknown()` from `service_principal_id` schema attribute (ModifyPlan supersedes it).
+
+Also applied `gofumpt -w` to all 5 framework files to resolve golangci-lint gofumpt issues (0 issues after).
+
+**CI gate:** `make test` (0 FAIL) + `golangci-lint run ./azuredevops/...` (0 issues) + `make terrafmt-check` (clean).
+
+**Key lesson:** When a computed-only attribute mirrors a user-configurable input (credentials.serviceprincipalid → service_principal_id), UseStateForUnknown is wrong on it — state can be stale after update. Use ModifyPlan to derive the plan value from the user's config.
+
+## Remaining work (iteration 5+)
+
+- **AC3**: Live gate must re-run `TestAccServiceEndpointAzureRm_CreateAndUpdate` with the iteration 4 fix. The test flow is:
+  1. Step 1: Create with configFirst (serviceprincipalidFirst) → ModifyPlan sets plan.ServicePrincipalID = serviceprincipalidFirst → API returns same → match ✓
+  2. Step 2 (idempotency PlanOnly): credentials unchanged → ModifyPlan sets same ID → no diff ✓
+  3. Step 3: Update with configSecond (serviceprincipalidSecond) → ModifyPlan sets plan.ServicePrincipalID = serviceprincipalidSecond → API returns same → match ✓
 
 ## Open questions
 
-- Do the azurerm test env vars (`AZDO_AZR_SPN_ID`, `AZDO_AZR_SPN_KEY`) exist in the live gate environment? The HCL template uses them as Go env vars passed in from test setup.
+- If there are further gate failures, suspect the `credentials` block in flattenFromServiceEndpoint — the API may return a different casing or format for SPN IDs.
 
 ## Notes for reflection
 
-- The "inline plan modifier per file" pattern is now established for this repo. A shared helper package could reduce duplication across framework files — future refactor candidate.
+- The "inline plan modifier per file" pattern is now established for this repo.
+- ModifyPlan is the right tool when a computed attribute must be derived from user config values at plan time (not just preserved from state).
+- gofumpt stricter than gofmt: always run gofumpt after editing framework files or will fail golangci-lint.
