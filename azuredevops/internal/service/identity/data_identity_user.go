@@ -89,7 +89,16 @@ func validateIdentityUser(users *[]identity.Identity, userName string, searchFil
 		case "General":
 			return &user
 		case "DisplayName":
-			if strings.Contains(strings.ToLower(*user.ProviderDisplayName), strings.ToLower(userName)) {
+			// ProviderDisplayName holds the source-IdP display name; for most users this is
+			// the human-readable name (e.g. "John Smith"). For built-in service accounts
+			// (e.g. "Project Collection Build Service") ADO stores a GUID there and puts the
+			// human-readable name in CustomDisplayName instead. Check both so that both
+			// regular users and service accounts can be found by display name.
+			providerMatch := user.ProviderDisplayName != nil &&
+				strings.Contains(strings.ToLower(*user.ProviderDisplayName), strings.ToLower(userName))
+			customMatch := user.CustomDisplayName != nil &&
+				strings.Contains(strings.ToLower(*user.CustomDisplayName), strings.ToLower(userName))
+			if providerMatch || customMatch {
 				return &user
 			}
 		case "MailAddress":
