@@ -9,6 +9,24 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **New resource `betterado_pipeline`** — manages a Pipelines v2 pipeline
+  (`_apis/pipelines`) in Azure DevOps via terraform-plugin-framework. Supports
+  Create, Read, Update (name/folder via PATCH), and Delete. Schema: `project_id`
+  (required, ForceNew), `name` (required), `folder` (optional/computed, default `\`),
+  `configuration_type` (optional/computed, ForceNew, default `yaml`, allowed values:
+  `yaml`/`designerJson`/`justInTime`, validated at plan time via `stringvalidator.OneOf`),
+  `id` (computed), `revision` (computed), `url` (computed). Coexists with
+  `betterado_build_definition` — see `docs/pipelines-v2-gap-matrix.md` for the full
+  overlap analysis.
+- **New data source `betterado_pipeline`** — reads an existing Azure Pipelines v2
+  pipeline definition by `pipeline_id`. Returns `name`, `folder`,
+  `configuration_type`, `revision`, and `url`.
+- **New data source `betterado_pipeline_run`** — reads a pipeline run's status
+  and result by `pipeline_id` and `run_id`. Returns `state`, `result`,
+  `created_date`, `finished_date`, and `url`.
+
+### FEATURES
+
 - **`betterado_notification_subscription` resource and data source.** Manages
   Azure DevOps notification subscriptions via the ADO Notification API v7.1.
   The resource supports creating, reading, updating, and deleting subscriptions
