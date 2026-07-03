@@ -1051,7 +1051,8 @@ func flattenTriggers(m *[]interface{}) map[build.DefinitionTriggerType][]interfa
 			} else {
 				buildTriggers[build.DefinitionTriggerTypeValues.BuildCompletion] = append(
 					buildTriggers[build.DefinitionTriggerTypeValues.BuildCompletion],
-					flattenBuildCompletionTrigger(trigger))
+					flattenBuildCompletionTrigger(trigger),
+				)
 			}
 		}
 	}
