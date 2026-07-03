@@ -46,14 +46,14 @@ func captureClientConfigEvidence(tfNode string) resource.TestCheckFunc {
 		}
 		apiURL := fmt.Sprintf("%s/_apis/connectionData?api-version=7.1", orgURL)
 		attrs := map[string]string{
-			"name":                  rs.Primary.Attributes["name"],
-			"status":                rs.Primary.Attributes["status"],
-			"tenant_id":             rs.Primary.Attributes["tenant_id"],
-			"owner_id":              rs.Primary.Attributes["owner_id"],
-			"organization_url":      rs.Primary.Attributes["organization_url"],
+			"name":             rs.Primary.Attributes["name"],
+			"status":           rs.Primary.Attributes["status"],
+			"tenant_id":        rs.Primary.Attributes["tenant_id"],
+			"owner_id":         rs.Primary.Attributes["owner_id"],
+			"organization_url": rs.Primary.Attributes["organization_url"],
 			// fixture_project_id records the betterado-standing-demo project used by
 			// the acceptance suite — proves this capture ran against the correct org.
-			"fixture_project_id":    "6ddb680c-093d-4953-9561-2266eb7af800",
+			"fixture_project_id": "6ddb680c-093d-4953-9561-2266eb7af800",
 		}
 		_ = testutils.CaptureLiveEvidence("data-client-config", apiURL, attrs)
 		return nil
