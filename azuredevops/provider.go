@@ -31,7 +31,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/wiki"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtracking"
@@ -146,7 +145,8 @@ func Provider() *schema.Provider {
 			"betterado_serviceendpoint_ssh":                         serviceendpoint.ResourceServiceEndpointSSH(),
 			"betterado_serviceendpoint_visualstudiomarketplace":     serviceendpoint.ResourceServiceEndpointMarketplace(),
 			"betterado_servicehook_permissions":                     permissions.ResourceServiceHookPermissions(),
-			"betterado_servicehook_webhook_tfs":                     servicehook.ResourceServicehookWebhookTfs(),
+			// betterado_servicehook_webhook_tfs is now a framework resource (registered in framework_provider.go)
+			// and is no longer in the SDKv2 provider resource map.
 			"betterado_service_principal_entitlement":               memberentitlementmanagement.ResourceServicePrincipalEntitlement(),
 			"betterado_tagging_permissions":                         permissions.ResourceTaggingPermissions(),
 			"betterado_team":                                        core.ResourceTeam(),

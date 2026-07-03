@@ -54,15 +54,15 @@ type runStateChangedEventModel struct {
 
 // servicehookStorageQueuePipelinesModel is the tfsdk model.
 type servicehookStorageQueuePipelinesModel struct {
-	ID                      types.String                  `tfsdk:"id"`
-	ProjectID               types.String                  `tfsdk:"project_id"`
-	AccountName             types.String                  `tfsdk:"account_name"`
-	AccountKey              types.String                  `tfsdk:"account_key"`
-	QueueName               types.String                  `tfsdk:"queue_name"`
-	VisiTimeout             types.Int64                   `tfsdk:"visi_timeout"`
-	TTL                     types.Int64                   `tfsdk:"ttl"`
-	StageStateChangedEvent  []stageStateChangedEventModel `tfsdk:"stage_state_changed_event"`
-	RunStateChangedEvent    []runStateChangedEventModel   `tfsdk:"run_state_changed_event"`
+	ID                     types.String                  `tfsdk:"id"`
+	ProjectID              types.String                  `tfsdk:"project_id"`
+	AccountName            types.String                  `tfsdk:"account_name"`
+	AccountKey             types.String                  `tfsdk:"account_key"`
+	QueueName              types.String                  `tfsdk:"queue_name"`
+	VisiTimeout            types.Int64                   `tfsdk:"visi_timeout"`
+	TTL                    types.Int64                   `tfsdk:"ttl"`
+	StageStateChangedEvent []stageStateChangedEventModel `tfsdk:"stage_state_changed_event"`
+	RunStateChangedEvent   []runStateChangedEventModel   `tfsdk:"run_state_changed_event"`
 }
 
 // ── Metadata / Schema ────────────────────────────────────────────────────────

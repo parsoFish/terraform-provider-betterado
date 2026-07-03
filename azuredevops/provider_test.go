@@ -114,7 +114,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_serviceendpoint_ssh",
 		"betterado_serviceendpoint_visualstudiomarketplace",
 		"betterado_servicehook_permissions",
-		"betterado_servicehook_webhook_tfs",
+		// betterado_servicehook_webhook_tfs is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_service_principal_entitlement",
 		"betterado_tagging_permissions",
 		"betterado_team",

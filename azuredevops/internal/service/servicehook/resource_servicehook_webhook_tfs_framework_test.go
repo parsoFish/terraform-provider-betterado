@@ -1,4 +1,4 @@
-//go:build all || resource_servicehook_storage_queue
+//go:build all || resource_servicehook_webhook_tfs
 
 package servicehook
 
@@ -10,21 +10,21 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
-// TestServicehookStorageQueuePipelinesFramework_Configure verifies that the
-// framework resource's Configure method behaves correctly:
-//  1. NewServicehookStorageQueuePipelinesResource() returns a non-nil resource.
+// TestServicehookWebhookTfsFramework_Configure verifies that the framework
+// resource's Configure method behaves correctly:
+//  1. NewServicehookWebhookTfsResource() returns a non-nil resource.
 //  2. Configure with nil ProviderData is a graceful no-op (no panic, no diagnostics).
 //  3. Configure with a valid *client.AggregatedClient stores the client without errors.
-func TestServicehookStorageQueuePipelinesFramework_Configure(t *testing.T) {
+func TestServicehookWebhookTfsFramework_Configure(t *testing.T) {
 	t.Run("constructor_returns_non_nil", func(t *testing.T) {
-		r := NewServicehookStorageQueuePipelinesResource()
+		r := NewServicehookWebhookTfsResource()
 		if r == nil {
-			t.Fatal("NewServicehookStorageQueuePipelinesResource() returned nil")
+			t.Fatal("NewServicehookWebhookTfsResource() returned nil")
 		}
 	})
 
 	t.Run("configure_with_nil_provider_data_is_noop", func(t *testing.T) {
-		r := NewServicehookStorageQueuePipelinesResource()
+		r := NewServicehookWebhookTfsResource()
 
 		// Must not panic.
 		defer func() {
@@ -50,7 +50,7 @@ func TestServicehookStorageQueuePipelinesFramework_Configure(t *testing.T) {
 	})
 
 	t.Run("configure_with_aggregated_client_stores_client", func(t *testing.T) {
-		r := NewServicehookStorageQueuePipelinesResource()
+		r := NewServicehookWebhookTfsResource()
 
 		configurable, ok := r.(resource.ResourceWithConfigure)
 		if !ok {
@@ -72,9 +72,9 @@ func TestServicehookStorageQueuePipelinesFramework_Configure(t *testing.T) {
 		}
 
 		// Verify the client was stored by casting back to the concrete type.
-		impl, ok := r.(*servicehookStorageQueuePipelinesResource)
+		impl, ok := r.(*servicehookWebhookTfsResource)
 		if !ok {
-			t.Fatalf("resource is not *servicehookStorageQueuePipelinesResource, got %T", r)
+			t.Fatalf("resource is not *servicehookWebhookTfsResource, got %T", r)
 		}
 		if impl.client == nil {
 			t.Fatal("Configure(*AggregatedClient) did not store the client")
