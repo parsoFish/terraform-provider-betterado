@@ -409,7 +409,7 @@ func captureGroupEvidence(tfNode string) resource.TestCheckFunc {
 		}
 		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
 		url := fmt.Sprintf("%s/_apis/graph/groups/%s?api-version=7.1", orgURL, descriptor)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, grp)
+		_ = testutils.CaptureLiveEvidence("group-resource-acceptance", url, grp)
 		return nil
 	}
 }

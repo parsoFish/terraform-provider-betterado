@@ -201,7 +201,7 @@ func captureMembershipEvidence(tfNode, groupName string) resource.TestCheckFunc 
 		}
 		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
 		url := fmt.Sprintf("%s/_apis/graph/memberships/%s?direction=down&api-version=7.1", orgURL, groupDescriptor)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, memberships)
+		_ = testutils.CaptureLiveEvidence("group-membership-acceptance", url, memberships)
 		return nil
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	schemavalidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
@@ -93,8 +94,9 @@ func (m groupSetUseStateForUnknownModifier) PlanModifySet(_ context.Context, req
 
 // compile-time interface checks
 var (
-	_ resource.Resource              = (*GroupResource)(nil)
-	_ resource.ResourceWithConfigure = (*GroupResource)(nil)
+	_ resource.Resource                   = (*GroupResource)(nil)
+	_ resource.ResourceWithConfigure      = (*GroupResource)(nil)
+	_ resource.ResourceWithConfigValidators = (*GroupResource)(nil)
 )
 
 // GroupResource is the terraform-plugin-framework implementation of betterado_group.
@@ -146,6 +148,9 @@ func (r *GroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				PlanModifiers: []planmodifier.String{
 					groupRequiresReplace(),
 				},
+				Validators: []schemavalidator.String{
+					stringNotEmpty(),
+				},
 				Description: "The GUID (UUID) of the project that the group is scoped to. If not set, the group is global.",
 			},
 			"origin_id": schema.StringAttribute{
@@ -155,7 +160,10 @@ func (r *GroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					groupRequiresReplace(),
 					groupUseStateForUnknown(),
 				},
-				Description: "The OriginID for the group when creating from an external source.",
+				Validators: []schemavalidator.String{
+					stringNotEmpty(),
+				},
+				Description: "The OriginID for the group when creating from an external source. Conflicts with mail, display_name, and scope.",
 			},
 			"mail": schema.StringAttribute{
 				Optional: true,
@@ -164,12 +172,18 @@ func (r *GroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 					groupRequiresReplace(),
 					groupUseStateForUnknown(),
 				},
-				Description: "The mail address for the group when creating from an email address.",
+				Validators: []schemavalidator.String{
+					stringNotEmpty(),
+				},
+				Description: "The mail address for the group when creating from an email address. Conflicts with origin_id, display_name, and scope.",
 			},
 			"display_name": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "The display name of the group.",
+				Validators: []schemavalidator.String{
+					stringNotEmpty(),
+				},
+				Description: "The display name of the group. Conflicts with origin_id and mail.",
 			},
 			"description": schema.StringAttribute{
 				Optional:    true,
@@ -213,6 +227,19 @@ func (r *GroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Description: "The unique identifier for the group (storage key UUID).",
 			},
 		},
+	}
+}
+
+// ConfigValidators returns resource-level validators that enforce SDKv2-parity
+// ConflictsWith constraints on origin_id, mail, and display_name:
+//   - origin_id conflicts with mail, display_name, and scope
+//   - mail conflicts with origin_id, display_name, and scope
+//   - display_name conflicts with origin_id and mail
+func (r *GroupResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		conflictingAttrs("origin_id", "mail", "display_name", "scope"),
+		conflictingAttrs("mail", "origin_id", "display_name", "scope"),
+		conflictingAttrs("display_name", "origin_id", "mail"),
 	}
 }
 

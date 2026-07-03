@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	schemavalidator "github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -89,11 +90,17 @@ func (r *GroupMembershipResource) Schema(_ context.Context, _ resource.SchemaReq
 				PlanModifiers: []planmodifier.String{
 					groupRequiresReplace(),
 				},
+				Validators: []schemavalidator.String{
+					stringNotEmpty(),
+				},
 			},
 			"mode": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
-				Default:     staticModeDefault("add"),
+				Optional: true,
+				Computed: true,
+				Default:  staticModeDefault("add"),
+				Validators: []schemavalidator.String{
+					stringOneOfCaseInsensitive("add", "overwrite"),
+				},
 				Description: "The mode to use when managing memberships. Valid values are 'add' and 'overwrite'. Defaults to 'add'.",
 			},
 			"members": schema.SetAttribute{

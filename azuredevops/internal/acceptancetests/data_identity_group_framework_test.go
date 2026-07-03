@@ -147,7 +147,7 @@ func captureIdentityGroupEvidence(tfNode string) resource.TestCheckFunc {
 		}
 		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
 		url := fmt.Sprintf("%s/_apis/identities?identityIds=%s&api-version=7.1", orgURL, identityID)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, identityObj)
+		_ = testutils.CaptureLiveEvidence("identity-group-acceptance", url, identityObj)
 		return nil
 	}
 }
