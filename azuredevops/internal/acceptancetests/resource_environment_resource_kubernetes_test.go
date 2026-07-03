@@ -13,7 +13,6 @@ import (
 )
 
 func TestAccEnvironmentKubernetes_createUpdate(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	environmentName := testutils.GenerateResourceName()
 	serviceEndpointName := testutils.GenerateResourceName()
 	resourceNameFirst := testutils.GenerateResourceName()
@@ -26,7 +25,7 @@ func TestAccEnvironmentKubernetes_createUpdate(t *testing.T) {
 		CheckDestroy:             checkEnvironmentKubernetesDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclEnvironmentKubernetes(projectName, environmentName, serviceEndpointName, resourceNameFirst),
+				Config: hclEnvironmentKubernetes(environmentName, serviceEndpointName, resourceNameFirst),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "name", resourceNameFirst),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
@@ -36,7 +35,7 @@ func TestAccEnvironmentKubernetes_createUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: hclEnvironmentKubernetes(projectName, environmentName, serviceEndpointName, resourceNameSecond),
+				Config: hclEnvironmentKubernetes(environmentName, serviceEndpointName, resourceNameSecond),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "name", resourceNameSecond),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
@@ -129,20 +128,22 @@ func readEnvironmentKubernetes(clients *client.AggregatedClient, projectId strin
 	)
 }
 
-func hclEnvironmentKubernetes(projectName, environmentName, serviceEndpointName, k8sName string) string {
+// hclEnvironmentKubernetes creates a Kubernetes environment resource in the standing
+// fixture project to avoid the 1000-project ADO org limit.
+func hclEnvironmentKubernetes(environmentName, serviceEndpointName, k8sName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
+data "betterado_project" "fixture" {
+  name = %[4]q
 }
 
 resource "betterado_environment" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = data.betterado_project.fixture.id
+  name       = %[1]q
 }
 
 resource "betterado_serviceendpoint_kubernetes" "test" {
-  project_id            = betterado_project.test.id
-  service_endpoint_name = "%s"
+  project_id            = data.betterado_project.fixture.id
+  service_endpoint_name = %[2]q
   apiserver_url         = "https://test-dns-r9lconkh.hcp.eastus.azmk8s.io:443"
   authorization_type    = "ServiceAccount"
   service_account {
@@ -152,13 +153,13 @@ resource "betterado_serviceendpoint_kubernetes" "test" {
 }
 
 resource "betterado_environment_resource_kubernetes" "test" {
-  project_id          = betterado_project.test.id
+  project_id          = data.betterado_project.fixture.id
   environment_id      = betterado_environment.test.id
   service_endpoint_id = betterado_serviceendpoint_kubernetes.test.id
-  name                = "%s"
+  name                = %[3]q
   namespace           = "test"
   cluster_name        = "k8scluster"
   tags                = ["tag1", "tag2"]
 }
-`, projectName, environmentName, serviceEndpointName, k8sName)
+`, environmentName, serviceEndpointName, k8sName, SharedFixtureProjectName)
 }
