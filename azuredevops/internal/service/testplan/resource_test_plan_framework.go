@@ -26,9 +26,11 @@ type tpRequiresReplace struct{}
 func (m tpRequiresReplace) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m tpRequiresReplace) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m tpRequiresReplace) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -45,9 +47,11 @@ type tpUseStateForUnknown struct{}
 func (m tpUseStateForUnknown) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m tpUseStateForUnknown) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m tpUseStateForUnknown) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -117,6 +121,12 @@ func (r *TestPlanResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Optional: true,
 				Computed: true,
 			},
+			"root_suite_id": schema.StringAttribute{
+				Computed: true,
+				PlanModifiers: []planmodifier.String{
+					tpUseStateForUnknown{},
+				},
+			},
 		},
 	}
 }
@@ -149,6 +159,7 @@ type testPlanModel struct {
 	IterationPath types.String `tfsdk:"iteration_path"`
 	StartDate     types.String `tfsdk:"start_date"`
 	EndDate       types.String `tfsdk:"end_date"`
+	RootSuiteID   types.String `tfsdk:"root_suite_id"`
 }
 
 // ── CRUD ──────────────────────────────────────────────────────────────────────
@@ -339,6 +350,11 @@ func flattenTestPlan(model *testPlanModel, plan *testplan.TestPlan) {
 		model.EndDate = types.StringValue(plan.EndDate.Time.UTC().Format(time.RFC3339))
 	} else {
 		model.EndDate = types.StringValue("")
+	}
+	if plan.RootSuite != nil && plan.RootSuite.Id != nil {
+		model.RootSuiteID = types.StringValue(strconv.Itoa(*plan.RootSuite.Id))
+	} else {
+		model.RootSuiteID = types.StringValue("")
 	}
 }
 

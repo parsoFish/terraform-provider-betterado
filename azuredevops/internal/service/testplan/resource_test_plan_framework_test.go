@@ -33,6 +33,7 @@ func TestUnitTestPlan_expandFlatten(t *testing.T) {
 		IterationPath: types.StringValue("MyProject\\Sprint1"),
 		StartDate:     types.StringValue("2024-01-01T00:00:00Z"),
 		EndDate:       types.StringValue("2024-06-30T00:00:00Z"),
+		RootSuiteID:   types.StringValue(""),
 	}
 
 	// Expand to API struct.
@@ -127,7 +128,7 @@ func TestUnitTestPlan_Schema(t *testing.T) {
 	require.False(t, schemaResp.Diagnostics.HasError(),
 		"Schema() must not emit diagnostics: %v", schemaResp.Diagnostics)
 
-	for _, attr := range []string{"id", "project_id", "name", "area_path", "iteration_path", "start_date", "end_date"} {
+	for _, attr := range []string{"id", "project_id", "name", "area_path", "iteration_path", "start_date", "end_date", "root_suite_id"} {
 		_, ok := schemaResp.Schema.Attributes[attr]
 		assert.True(t, ok, "attribute %q must exist in schema", attr)
 	}
@@ -154,8 +155,9 @@ func TestUnitTestPlan_Create_Error(t *testing.T) {
 
 	r := &TestPlanResource{client: clients}
 	model := testPlanModel{
-		ProjectID: types.StringValue(projectID),
-		Name:      types.StringValue("Plan A"),
+		ProjectID:   types.StringValue(projectID),
+		Name:        types.StringValue("Plan A"),
+		RootSuiteID: types.StringValue(""),
 	}
 
 	createParams := expandTestPlan(&model)
