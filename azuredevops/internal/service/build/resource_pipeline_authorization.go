@@ -241,7 +241,8 @@ func resourcePipelineAuthorizationRead(d *schema.ResourceData, m interface{}) er
 		resId = projectId + "." + resId
 	}
 
-	resp, err := clients.PipelinePermissionsClient.GetPipelinePermissionsForResource(clients.Ctx,
+	resp, err := clients.PipelinePermissionsClient.GetPipelinePermissionsForResource(
+		clients.Ctx,
 		pipelinepermissions.GetPipelinePermissionsForResourceArgs{
 			Project:      &pipelineProjectId,
 			ResourceType: &resType,
@@ -329,7 +330,8 @@ func resourcePipelineAuthorizationDelete(d *schema.ResourceData, m interface{}) 
 
 	_, err := clients.PipelinePermissionsClient.UpdatePipelinePermisionsForResource(
 		clients.Ctx,
-		pipePermissionParams)
+		pipePermissionParams,
+	)
 	if err != nil {
 		return fmt.Errorf("deleting authorized resource: %+v", err)
 	}
@@ -351,7 +353,8 @@ func checkPipelineAuthorization(clients *client.AggregatedClient, d *schema.Reso
 			resourceId = projectId + "." + resourceId
 		}
 
-		resp, err := clients.PipelinePermissionsClient.GetPipelinePermissionsForResource(clients.Ctx,
+		resp, err := clients.PipelinePermissionsClient.GetPipelinePermissionsForResource(
+			clients.Ctx,
 			pipelinepermissions.GetPipelinePermissionsForResourceArgs{
 				Project:      &pipelineProjectId,
 				ResourceType: &resourceType,

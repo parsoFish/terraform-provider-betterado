@@ -19,7 +19,8 @@ func TestAccServiceEndpointAzureRM_dataSource_with_serviceEndpointID(t *testing.
 	serviceprincipalkey := uuid.New().String()
 	projectName := testutils.GenerateResourceName()
 	serviceEndpointAuthenticationScheme := "ServicePrincipal"
-	createServiceEndpointAzureRMWithServiceEndpointIDData := fmt.Sprintf("%s\n%s",
+	createServiceEndpointAzureRMWithServiceEndpointIDData := fmt.Sprintf(
+		"%s\n%s",
 		testutils.HclServiceEndpointAzureRMResource(projectName, serviceEndpointAzureRMName, serviceprincipalid, serviceprincipalkey, serviceEndpointAuthenticationScheme),
 		testutils.HclServiceEndpointAzureRMDataSourceWithServiceEndpointID(),
 	)
@@ -47,7 +48,8 @@ func TestAccServiceEndpointAzureRM_dataSource_with_serviceEndpointName(t *testin
 	serviceprincipalid := uuid.New().String()
 	serviceprincipalkey := uuid.New().String()
 	serviceEndpointAuthenticationScheme := "ServicePrincipal"
-	createServiceEndpointAzureRMWithServiceEndpointNameData := fmt.Sprintf("%s\n%s",
+	createServiceEndpointAzureRMWithServiceEndpointNameData := fmt.Sprintf(
+		"%s\n%s",
 		testutils.HclServiceEndpointAzureRMResource(projectName, serviceEndpointAzureRMName, serviceprincipalid, serviceprincipalkey, serviceEndpointAuthenticationScheme),
 		testutils.HclServiceEndpointAzureRMDataSourceWithServiceEndpointName(serviceEndpointAzureRMName),
 	)
@@ -85,7 +87,8 @@ func TestAccServiceEndpointAzureRM_dataSource_with_WorkloadIdentityFederation(t 
 		azureDevOpsOrgName = path.Base(azureDevOpsOrgUrl.Path)
 	}
 
-	createServiceEndpointAzureRMWithServiceEndpointNameData := fmt.Sprintf("%s\n%s",
+	createServiceEndpointAzureRMWithServiceEndpointNameData := fmt.Sprintf(
+		"%s\n%s",
 		testutils.HclServiceEndpointAzureRMNoKeyResource(projectName, serviceEndpointAzureRMName, serviceprincipalid, serviceEndpointAuthenticationScheme),
 		testutils.HclServiceEndpointAzureRMDataSourceWithServiceEndpointName(serviceEndpointAzureRMName),
 	)
