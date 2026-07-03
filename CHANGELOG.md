@@ -7,6 +7,22 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### Changed (Framework Migration)
+
+- `betterado_group` resource: migrated to terraform-plugin-framework; schema unchanged (`scope`, `display_name`, `description`, `mail`, `members`, `origin_id` optional; `descriptor`, `domain`, `group_id`, `origin`, `principal_name`, `subject_kind`, `url` computed).
+- `betterado_group_membership` resource: migrated to terraform-plugin-framework; schema unchanged (`group` required, `members` required set of strings, `mode` optional).
+- `betterado_descriptor` data source: migrated to terraform-plugin-framework; schema unchanged (`storage_key` required; `descriptor`, `id` computed).
+- `betterado_storage_key` data source: migrated to terraform-plugin-framework; schema unchanged (`descriptor` required; `storage_key`, `id` computed).
+- `betterado_group` data source: migrated to terraform-plugin-framework; schema unchanged (`name` required, `project_id` optional; `descriptor`, `group_id`, `id`, `origin`, `origin_id` computed).
+- `betterado_group_membership` data source: migrated to terraform-plugin-framework; schema unchanged (`group_descriptor` required; `members` list of string, `id` computed).
+- `betterado_groups` data source: migrated to terraform-plugin-framework; schema unchanged (`project_id` optional; `groups` set with `id`, `descriptor`, `display_name`, `origin`, `origin_id`, `domain`, `mail_address`, `principal_name` computed).
+- `betterado_user` data source: migrated to terraform-plugin-framework; schema unchanged (`descriptor` required; `display_name`, `domain`, `mail_address`, `origin`, `origin_id`, `principal_name`, `subject_kind` computed).
+- `betterado_users` data source: migrated to terraform-plugin-framework; schema unchanged (`principal_name`, `origin`, `origin_id`, `subject_types` optional; `users` set computed).
+- `betterado_service_principal` data source: migrated to terraform-plugin-framework; schema unchanged (`display_name` required; `descriptor`, `origin`, `origin_id` computed).
+- `betterado_identity_group` data source: migrated to terraform-plugin-framework; schema unchanged (`name`, `project_id` required; `descriptor`, `id`, `subject_descriptor` computed).
+- `betterado_identity_groups` data source: migrated to terraform-plugin-framework; schema unchanged (`project_id` optional; `groups` set with `id`, `name`, `descriptor`, `subject_descriptor` computed).
+- `betterado_identity_user` data source: migrated to terraform-plugin-framework; schema unchanged (`name` required, `search_filter` optional; `descriptor`, `id`, `subject_descriptor` computed).
+
 ### FEATURES
 
 - **`betterado_identity_group` data source migrated to terraform-plugin-framework.**
