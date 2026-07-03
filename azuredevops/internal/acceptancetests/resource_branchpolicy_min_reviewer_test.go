@@ -195,7 +195,7 @@ func doCapturePolicyEvidence(s *terraform.State, tfNode string) error {
 
 	url := fmt.Sprintf("%s/%s/_apis/policy/configurations/%d?api-version=7.1",
 		orgURL, projectID, policyID)
-	return testutils.CaptureLiveEvidence("acceptance-resource", url, cfg)
+	return testutils.CaptureLiveEvidence("acceptance-resource-branch_policy_min_reviewers", url, cfg)
 }
 
 func hclPolicyMinReviewersTemplate(projectID, name string) string {

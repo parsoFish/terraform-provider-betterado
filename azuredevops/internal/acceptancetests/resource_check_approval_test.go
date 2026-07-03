@@ -131,7 +131,7 @@ func captureCheckApprovalEvidence(tfNode string) resource.TestCheckFunc {
 
 		url := fmt.Sprintf("%s/%s/_apis/pipelines/checks/configurations/%d?api-version=7.1",
 			clients.OrganizationURL, projectID, checkID)
-		return testutils.CaptureLiveEvidence("acceptance-resource", url, check)
+		return testutils.CaptureLiveEvidence("acceptance-resource-check_approval", url, check)
 	}
 }
 
