@@ -223,6 +223,10 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		serviceendpoint.NewServiceEndpointIncomingWebhookResource,
 		serviceendpoint.NewServiceEndpointExternalTFSResource,
 		serviceendpoint.NewServiceEndpointAzureDevOpsResource,
+		serviceendpoint.NewServiceEndpointBlackDuckResource,
+		serviceendpoint.NewServiceEndpointCheckMarxOneResource,
+		serviceendpoint.NewServiceEndpointCheckMarxSCAResource,
+		serviceendpoint.NewServiceEndpointCheckMarxSASTResource,
 	}
 }
 

@@ -77,10 +77,10 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// betterado_serviceendpoint_azuredevops migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_azurerm migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_bitbucket migrated to framework (registered in framework_provider.go)
-		"betterado_serviceendpoint_black_duck",
-		"betterado_serviceendpoint_checkmarx_one",
-		"betterado_serviceendpoint_checkmarx_sca",
-		"betterado_serviceendpoint_checkmarx_sast",
+		// betterado_serviceendpoint_black_duck migrated to framework (registered in framework_provider.go)
+		// betterado_serviceendpoint_checkmarx_one migrated to framework (registered in framework_provider.go)
+		// betterado_serviceendpoint_checkmarx_sca migrated to framework (registered in framework_provider.go)
+		// betterado_serviceendpoint_checkmarx_sast migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_dockerregistry migrated to framework (registered in framework_provider.go)
 		"betterado_serviceendpoint_dynamics_lifecycle_services",
 		// betterado_serviceendpoint_externaltfs migrated to framework (registered in framework_provider.go)

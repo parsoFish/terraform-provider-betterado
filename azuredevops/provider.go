@@ -111,10 +111,10 @@ func Provider() *schema.Provider {
 			// betterado_serviceendpoint_azuredevops is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_azurerm is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_bitbucket is registered in framework_provider.go (migrated to terraform-plugin-framework)
-			"betterado_serviceendpoint_black_duck":     serviceendpoint.ResourceServiceEndpointBlackDuck(),
-			"betterado_serviceendpoint_checkmarx_one":  serviceendpoint.ResourceServiceEndpointCheckMarxOneService(),
-			"betterado_serviceendpoint_checkmarx_sca":  serviceendpoint.ResourceServiceEndpointCheckMarxSCA(),
-			"betterado_serviceendpoint_checkmarx_sast": serviceendpoint.ResourceServiceEndpointCheckMarxSAST(),
+			// betterado_serviceendpoint_black_duck is registered in framework_provider.go (migrated to terraform-plugin-framework)
+			// betterado_serviceendpoint_checkmarx_one is registered in framework_provider.go (migrated to terraform-plugin-framework)
+			// betterado_serviceendpoint_checkmarx_sca is registered in framework_provider.go (migrated to terraform-plugin-framework)
+			// betterado_serviceendpoint_checkmarx_sast is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_dockerregistry is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			"betterado_serviceendpoint_dynamics_lifecycle_services": serviceendpoint.ResourceServiceEndpointDynamicsLifecycleServices(),
 			// betterado_serviceendpoint_externaltfs is registered in framework_provider.go (migrated to terraform-plugin-framework)
