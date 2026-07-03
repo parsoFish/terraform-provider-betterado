@@ -7,6 +7,10 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_extension_install` resource (new, framework-native).** Installs and uninstalls Azure DevOps Marketplace extensions at the organisation level via the ExtensionManagement API. Manages `publisher_id` + `extension_id`; supports `version` (optional, defaults to latest); idempotent apply and destroy. Registered in the framework provider only — no SDKv2 registration.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES
