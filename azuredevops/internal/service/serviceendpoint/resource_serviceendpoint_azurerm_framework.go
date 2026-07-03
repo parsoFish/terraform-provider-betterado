@@ -229,10 +229,10 @@ func (r *ServiceEndpointAzureRMResource) Schema(_ context.Context, _ resource.Sc
 			"server_url": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Default:     seAzureRMDefaultString(""),
 				Description: "A URL to the server for AzureStack environments.",
 				PlanModifiers: []planmodifier.String{
 					seAzureRMRequiresReplace(),
+					seAzureRMUseStateForUnknown(),
 				},
 			},
 			"workload_identity_federation_issuer": schema.StringAttribute{
