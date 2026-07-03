@@ -152,11 +152,7 @@ func (r *WikiPageResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				},
 			},
 			"etag": schema.StringAttribute{
-				Optional: true,
 				Computed: true,
-				PlanModifiers: []planmodifier.String{
-					wikiUseStateForUnknown(),
-				},
 			},
 		},
 	}

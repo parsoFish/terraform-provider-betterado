@@ -3,6 +3,7 @@ package wiki
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -271,6 +272,20 @@ func (r *WikiResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	created, err := r.client.WikiClient.CreateWiki(r.client.Ctx, azwiki.CreateWikiArgs{WikiCreateParams: wikiArgs})
 	if err != nil {
+		// ADO allows only one project wiki per project. If one already exists (e.g. from
+		// a previous test run that did not complete cleanup), adopt it instead of failing.
+		if wikiType == azwiki.WikiTypeValues.ProjectWiki &&
+			strings.Contains(err.Error(), "already exists") {
+			existing, adoptErr := r.adoptExistingProjectWiki(model.ProjectID.ValueString(), model.Name.ValueString())
+			if adoptErr != nil {
+				resp.Diagnostics.AddError("Error adopting existing project wiki", adoptErr.Error())
+				return
+			}
+			r.flattenWiki(existing, &model)
+			model.ID = types.StringValue(existing.Id.String())
+			resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
+			return
+		}
 		resp.Diagnostics.AddError("Error creating wiki", err.Error())
 		return
 	}
@@ -442,4 +457,44 @@ func (r *WikiResource) flattenWiki(w *azwiki.WikiV2, model *wikiModel) {
 	} else {
 		model.Version = types.StringValue("")
 	}
+}
+
+// adoptExistingProjectWiki finds the existing project wiki for the given project and renames
+// it to desiredName. ADO allows only one project wiki per project. When CreateWiki returns
+// "already exists", we adopt the existing one and rename it so Terraform state matches config.
+func (r *WikiResource) adoptExistingProjectWiki(projectID, desiredName string) (*azwiki.WikiV2, error) {
+	wikis, err := r.client.WikiClient.GetAllWikis(r.client.Ctx, azwiki.GetAllWikisArgs{
+		Project: converter.String(projectID),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("listing wikis for project %s: %w", projectID, err)
+	}
+	if wikis == nil {
+		return nil, fmt.Errorf("no wikis found for project %s", projectID)
+	}
+	var found *azwiki.WikiV2
+	for i := range *wikis {
+		w := &(*wikis)[i]
+		if w.Type != nil && *w.Type == azwiki.WikiTypeValues.ProjectWiki {
+			found = w
+			break
+		}
+	}
+	if found == nil {
+		return nil, fmt.Errorf("no project wiki found in project %s", projectID)
+	}
+	// Rename the wiki to match the desired Terraform name so that state == config (idempotency).
+	if found.Name == nil || *found.Name != desiredName {
+		updated, updateErr := r.client.WikiClient.UpdateWiki(r.client.Ctx, azwiki.UpdateWikiArgs{
+			WikiIdentifier: converter.String(found.Id.String()),
+			UpdateParameters: &azwiki.WikiUpdateParameters{
+				Name: converter.String(desiredName),
+			},
+		})
+		if updateErr != nil {
+			return nil, fmt.Errorf("renaming adopted project wiki: %w", updateErr)
+		}
+		return updated, nil
+	}
+	return found, nil
 }
