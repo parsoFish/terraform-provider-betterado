@@ -3,12 +3,16 @@ package serviceendpoint
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -132,15 +136,29 @@ func (r *ServiceEndpointGitHubEnterpriseResource) Schema(_ context.Context, _ re
 			"url": schema.StringAttribute{
 				Required:    true,
 				Description: "The GitHub Enterprise server URL.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^https?://`),
+						"must be a valid URL beginning with http:// or https://",
+					),
+				},
 			},
 			"personal_access_token": schema.StringAttribute{
 				Optional:    true,
 				Sensitive:   true,
 				Description: "The GitHub Enterprise personal access token.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("oauth_configuration_id")),
+				},
 			},
 			"oauth_configuration_id": schema.StringAttribute{
 				Optional:    true,
 				Description: "The OAuth2 configuration ID.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("personal_access_token")),
+				},
 			},
 			"authorization": schema.MapAttribute{
 				Computed:    true,

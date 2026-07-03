@@ -9,7 +9,7 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### ENHANCEMENTS
 
-- **Migrated `betterado_serviceendpoint_*` (25 resources + 8 data sources) from terraform-plugin-sdk/v2 to terraform-plugin-framework** via the mux provider.
+- **Migrated `betterado_serviceendpoint_*` (24 resources + 8 data sources) from terraform-plugin-sdk/v2 to terraform-plugin-framework** via the mux provider.
   All service endpoint resources and data sources now use the framework implementation; SDKv2 registrations
   have been removed. The following types are included:
   - Resources: `betterado_serviceendpoint_generic`, `betterado_serviceendpoint_generic_v2`,

@@ -3,12 +3,15 @@ package serviceendpoint
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -125,10 +128,19 @@ func (r *ServiceEndpointGenericV2Resource) Schema(_ context.Context, _ resource.
 				PlanModifiers: []planmodifier.String{
 					seGenericV2RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+						"must be a valid UUID",
+					),
+				},
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "The name of the service endpoint.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"description": schema.StringAttribute{
 				Optional:    true,
@@ -142,16 +154,28 @@ func (r *ServiceEndpointGenericV2Resource) Schema(_ context.Context, _ resource.
 				PlanModifiers: []planmodifier.String{
 					seGenericV2RequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"server_url": schema.StringAttribute{
 				Required:    true,
 				Description: "The server URL of the service connection.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^https?://`),
+						"must be a valid URL beginning with http:// or https://",
+					),
+				},
 			},
 			"authorization_scheme": schema.StringAttribute{
 				Required:    true,
 				Description: "The authorization scheme used for the service connection.",
 				PlanModifiers: []planmodifier.String{
 					seGenericV2RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
 				},
 			},
 			"authorization_parameters": schema.MapAttribute{

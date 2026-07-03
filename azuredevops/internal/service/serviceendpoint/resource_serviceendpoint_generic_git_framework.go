@@ -3,12 +3,15 @@ package serviceendpoint
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -155,6 +158,12 @@ func (r *ServiceEndpointGenericGitResource) Schema(_ context.Context, _ resource
 			"repository_url": schema.StringAttribute{
 				Required:    true,
 				Description: "The server URL of the GenericGit git service connection.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^https?://`),
+						"must be a valid URL beginning with http:// or https://",
+					),
+				},
 			},
 			"username": schema.StringAttribute{
 				Optional:    true,

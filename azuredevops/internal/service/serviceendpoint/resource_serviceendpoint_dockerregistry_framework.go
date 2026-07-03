@@ -5,10 +5,12 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -170,6 +172,9 @@ func (r *ServiceEndpointDockerRegistryResource) Schema(_ context.Context, _ reso
 				Description: "The registry type. Either 'DockerHub' or 'Others'.",
 				PlanModifiers: []planmodifier.String{
 					seDockerRegistryRequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf("DockerHub", "Others"),
 				},
 			},
 			"authorization": schema.MapAttribute{

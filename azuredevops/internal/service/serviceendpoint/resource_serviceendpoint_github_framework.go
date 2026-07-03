@@ -5,10 +5,13 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -135,11 +138,19 @@ func (r *ServiceEndpointGitHubResource) Schema(_ context.Context, _ resource.Sch
 				Optional:    true,
 				Sensitive:   true,
 				Description: "The GitHub personal access token. Required when using PAT authentication.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("oauth_configuration_id")),
+				},
 			},
 			// auth_oauth: OAuth/GitHub App authentication via ConfigurationId
 			"oauth_configuration_id": schema.StringAttribute{
 				Optional:    true,
 				Description: "The OAuth configuration ID. Required when using OAuth authentication.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.ConflictsWith(path.MatchRoot("personal_access_token")),
+				},
 			},
 			"authorization": schema.MapAttribute{
 				Computed:    true,
