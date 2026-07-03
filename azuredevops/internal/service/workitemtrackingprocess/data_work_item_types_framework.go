@@ -16,8 +16,10 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
-var _ datasource.DataSource = &workItemTypesDataSource{}
-var _ datasource.DataSourceWithConfigure = &workItemTypesDataSource{}
+var (
+	_ datasource.DataSource              = &workItemTypesDataSource{}
+	_ datasource.DataSourceWithConfigure = &workItemTypesDataSource{}
+)
 
 type workItemTypesDataSource struct {
 	client *client.AggregatedClient

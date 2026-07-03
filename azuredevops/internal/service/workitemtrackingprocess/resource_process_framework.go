@@ -32,9 +32,11 @@ func staticStringDef(v string) defaults.String { return staticStringDefault{valu
 func (s staticStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", s.value)
 }
+
 func (s staticStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%q`", s.value)
 }
+
 func (s staticStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(s.value)
 }
@@ -46,9 +48,11 @@ func staticBoolDef(v bool) defaults.Bool { return staticBoolDefault{value: v} }
 func (s staticBoolDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %v", s.value)
 }
+
 func (s staticBoolDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%v`", s.value)
 }
+
 func (s staticBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(s.value)
 }
@@ -62,9 +66,11 @@ func processUseStateForUnknownMod() planmodifier.String { return processUseState
 func (processUseStateForUnknown) Description(_ context.Context) string {
 	return "use prior state value for unknown"
 }
+
 func (processUseStateForUnknown) MarkdownDescription(_ context.Context) string {
 	return "use prior state value for unknown"
 }
+
 func (processUseStateForUnknown) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -84,9 +90,11 @@ func processRequiresReplaceMod() planmodifier.String { return processRequiresRep
 func (processRequiresReplace) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (processRequiresReplace) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (processRequiresReplace) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return

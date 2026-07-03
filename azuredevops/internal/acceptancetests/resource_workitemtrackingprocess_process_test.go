@@ -111,24 +111,8 @@ func TestAccWorkitemtrackingprocessProcess_CreateAndUpdate(t *testing.T) {
 	})
 }
 
-func process(name string) string {
-	return fmt.Sprintf(`
-resource "betterado_workitemtrackingprocess_process" "test" {
-  name                   = "%s"
-  parent_process_type_id = "%s"
-}
-`, name, agileSystemProcessTypeId)
-}
-
-func disabledProcess(name string) string {
-	return fmt.Sprintf(`
-resource "betterado_workitemtrackingprocess_process" "test" {
-  name                   = "%s"
-  parent_process_type_id = "%s"
-  is_enabled             = false
-}
-`, name, agileSystemProcessTypeId)
-}
+// process() and disabledProcess() are defined in workitemtrackingprocess_shared_test.go
+// (no build tag) so they are available to all workitemtrackingprocess acceptance tests.
 
 func getProcessStateIdFunc(tfNode string) resource.ImportStateIdFunc {
 	return func(state *terraform.State) (string, error) {
@@ -168,7 +152,5 @@ func captureProcessEvidence(tfNode string) resource.TestCheckFunc {
 	}
 }
 
-// Sourced from https://learn.microsoft.com/en-us/rest/api/azure/devops/processes/processes/list?view=azure-devops-rest-7.1&tabs=HTTP#get-the-list-of-processes
-const (
-	agileSystemProcessTypeId string = "adcc42ab-9882-485e-a3ed-7678f01f66bc"
-)
+// agileSystemProcessTypeId is defined in workitemtrackingprocess_shared_test.go
+// so it is available to all workitemtrackingprocess acceptance tests regardless of build tags.

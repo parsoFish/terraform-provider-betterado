@@ -39,9 +39,11 @@ func witStaticStringDef(v string) defaults.String { return witStaticStringDefaul
 func (s witStaticStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", s.value)
 }
+
 func (s witStaticStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%s`", s.value)
 }
+
 func (s witStaticStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(s.value)
 }
@@ -53,9 +55,11 @@ func witStaticBoolDef(v bool) defaults.Bool { return witStaticBoolDefault{value:
 func (s witStaticBoolDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %v", s.value)
 }
+
 func (s witStaticBoolDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %v", s.value)
 }
+
 func (s witStaticBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(s.value)
 }
@@ -66,8 +70,10 @@ type witUseStateForUnknown struct{}
 
 func witUseStateForUnknownMod() planmodifier.String { return witUseStateForUnknown{} }
 
-func (witUseStateForUnknown) Description(_ context.Context) string         { return "use prior state" }
+func (witUseStateForUnknown) Description(_ context.Context) string { return "use prior state" }
+
 func (witUseStateForUnknown) MarkdownDescription(_ context.Context) string { return "use prior state" }
+
 func (witUseStateForUnknown) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -82,8 +88,10 @@ type witRequiresReplace struct{}
 
 func witRequiresReplaceMod() planmodifier.String { return witRequiresReplace{} }
 
-func (witRequiresReplace) Description(_ context.Context) string         { return "requires replace" }
+func (witRequiresReplace) Description(_ context.Context) string { return "requires replace" }
+
 func (witRequiresReplace) MarkdownDescription(_ context.Context) string { return "requires replace" }
+
 func (witRequiresReplace) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -695,6 +703,7 @@ type witHexColorValidator struct{}
 func (v witHexColorValidator) Description(_ context.Context) string {
 	return "must be a hex color in #RRGGBB format"
 }
+
 func (v witHexColorValidator) MarkdownDescription(_ context.Context) string {
 	return "must be a hex color in `#RRGGBB` format"
 }

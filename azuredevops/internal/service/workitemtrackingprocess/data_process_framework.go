@@ -17,8 +17,10 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
-var _ datasource.DataSource = &processDataSource{}
-var _ datasource.DataSourceWithConfigure = &processDataSource{}
+var (
+	_ datasource.DataSource              = &processDataSource{}
+	_ datasource.DataSourceWithConfigure = &processDataSource{}
+)
 
 type processDataSource struct {
 	client *client.AggregatedClient

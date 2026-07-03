@@ -15,8 +15,10 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
-var _ datasource.DataSource = &processesDataSource{}
-var _ datasource.DataSourceWithConfigure = &processesDataSource{}
+var (
+	_ datasource.DataSource              = &processesDataSource{}
+	_ datasource.DataSourceWithConfigure = &processesDataSource{}
+)
 
 type processesDataSource struct {
 	client *client.AggregatedClient
