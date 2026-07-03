@@ -2,7 +2,7 @@
 
 > **Initiative:** `INIT-2026-07-01-migrate-framework-policy-branch`
 > **Project:** terraform-provider-betterado
-> **Diff:** 94 files changed, 10257 insertions(+), 1268 deletions(-)
+> **Diff:** 172 files changed, 10873 insertions(+), 5609 deletions(-)
 
 ## Essence
 
