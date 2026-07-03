@@ -14,9 +14,8 @@ func TestAccTeam_DataSource_Basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	tfNode := "data.betterado_team.test"
 	resource.Test(t, resource.TestCase{
-		PreCheck:                  func() { testutils.PreCheck(t, nil) },
-		Providers:                 testutils.GetProviders(),
-		PreventPostDestroyRefresh: true,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclTeamDataSourceBasic(projectName),

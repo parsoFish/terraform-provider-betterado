@@ -17,8 +17,8 @@ func TestAccTeam_basic(t *testing.T) {
 
 	tfNode := "betterado_team.test"
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclTeamBasicFixture(projectID, teamName),

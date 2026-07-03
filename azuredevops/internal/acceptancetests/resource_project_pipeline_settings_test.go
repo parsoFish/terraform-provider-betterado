@@ -15,8 +15,8 @@ func TestAccProjectPipelineSettings_Enabled(t *testing.T) {
 	tfNode := "betterado_project_pipeline_settings.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectPipelineSettings(projectName, false, false, false, false, false, false),

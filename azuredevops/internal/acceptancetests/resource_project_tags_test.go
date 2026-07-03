@@ -19,9 +19,9 @@ func TestAccProjectTags_basic(t *testing.T) {
 
 	tfNode := "betterado_project_tags.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkProjectTagsDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkProjectTagsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectTagsBasic(name),
@@ -65,9 +65,9 @@ func TestAccProjectTags_update(t *testing.T) {
 
 	tfNode := "betterado_project_tags.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkProjectTagsDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkProjectTagsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectTagsBasic(name),
@@ -96,9 +96,9 @@ func TestAccProjectTags_requiresImportError(t *testing.T) {
 
 	tfNode := "betterado_project_tags.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkProjectTagsDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkProjectTagsDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectTagsBasic(name),
