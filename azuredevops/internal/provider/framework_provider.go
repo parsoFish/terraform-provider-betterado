@@ -15,6 +15,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/testplan"
 )
 
 // BetteradoFrameworkProvider is the terraform-plugin-framework provider stub.
@@ -206,6 +207,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
+		testplan.NewTestPlanResource,
 	}
 }
 
@@ -216,5 +218,6 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseDefinitionRevisionDataSource,
 		release.NewReleaseDefinitionsDataSource,
 		release.NewReleaseFolderDataSource,
+		testplan.NewTestPlanDataSource,
 	}
 }

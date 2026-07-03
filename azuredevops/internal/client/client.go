@@ -29,6 +29,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/serviceendpoint"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/servicehooks"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/testplan"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/wiki"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
@@ -66,6 +67,7 @@ type AggregatedClient struct {
 	ReleaseClient                 release.Client
 	ServiceEndpointClient         serviceendpoint.Client
 	TaskAgentClient               taskagent.Client
+	TestPlanClient                testplan.Client
 	MemberEntitleManagementClient memberentitlementmanagement.Client
 	FeatureManagementClient       featuremanagement.Client
 	FeedClient                    feed.Client
@@ -142,6 +144,8 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 		log.Printf("getAzdoClient(): taskagent.NewClient failed.")
 		return nil, err
 	}
+
+	testplanClient := testplan.NewClient(ctx, connection)
 
 	gitReposClient, err := git.NewClient(ctx, connection)
 	if err != nil {
@@ -250,6 +254,7 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 		ReleaseClient:                 releaseClient,
 		ServiceEndpointClient:         serviceEndpointClient,
 		TaskAgentClient:               taskagentClient,
+		TestPlanClient:                testplanClient,
 		MemberEntitleManagementClient: memberentitlementmanagementClient,
 		FeatureManagementClient:       featuremanagementClient,
 		FeedClient:                    feedClient,
