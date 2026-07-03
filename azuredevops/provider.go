@@ -168,14 +168,12 @@ func Provider() *schema.Provider {
 			"betterado_workitemtrackingprocess_group":               workitemtrackingprocess.ResourceGroup(),
 			"betterado_workitemtrackingprocess_inherited_control":   workitemtrackingprocess.ResourceInheritedControl(),
 			"betterado_workitemtrackingprocess_inherited_page":      workitemtrackingprocess.ResourceInheritedPage(),
-			"betterado_workitemtrackingprocess_inherited_state":     workitemtrackingprocess.ResourceInheritedState(),
 			"betterado_workitemtrackingprocess_list":                workitemtrackingprocess.ResourceList(),
 			"betterado_workitemtrackingprocess_page":                workitemtrackingprocess.ResourcePage(),
 			// NOTE: betterado_workitemtrackingprocess_process has been migrated to the
 			// terraform-plugin-framework provider (framework_provider.go) and is no longer
 			// registered here.
 			"betterado_workitemtrackingprocess_process_permissions": permissions.ResourceWorkItemTrackingProcessPermissions(),
-			"betterado_workitemtrackingprocess_state":               workitemtrackingprocess.ResourceState(),
 			"betterado_workitemtrackingprocess_system_control":      workitemtrackingprocess.ResourceSystemControl(),
 			// NOTE: betterado_workitemtrackingprocess_workitemtype has been migrated to the
 			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.

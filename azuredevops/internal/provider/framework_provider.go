@@ -209,6 +209,8 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		permissions.NewReleaseDefinitionPermissionsResource,
 		workitemtrackingprocess.NewProcessResource,
 		workitemtrackingprocess.NewWorkItemTypeResource,
+		workitemtrackingprocess.NewStateResource,
+		workitemtrackingprocess.NewInheritedStateResource,
 	}
 }
 

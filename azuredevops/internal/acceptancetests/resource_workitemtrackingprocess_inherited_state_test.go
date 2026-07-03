@@ -2,6 +2,7 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/google/uuid"
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -166,7 +168,15 @@ resource "betterado_workitemtrackingprocess_workitemtype" "test" {
 
 func checkInheritedStateReverted(processIdStr *string, witRefName *string, stateId *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		// Build the client directly from env vars — GetProvider().Meta() is nil when using
+		// ProtoV6ProviderFactories (muxed provider) since the singleton is never configured.
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+		authProvider := azuredevops.NewAuthProviderPAT(pat)
+		clients, err := client.GetAzdoClient(authProvider, orgURL)
+		if err != nil {
+			return fmt.Errorf("checkInheritedStateReverted: building client: %w", err)
+		}
 
 		processId, err := uuid.Parse(*processIdStr)
 		if err != nil {
