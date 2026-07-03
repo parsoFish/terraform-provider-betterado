@@ -1005,12 +1005,13 @@ func (r *BuildDefinitionResource) expandBuildDefinitionFw(ctx context.Context, m
 		var ciTriggers []buildDefinitionCITriggerModel
 		if diags := model.CITrigger.ElementsAs(ctx, &ciTriggers, false); !diags.HasError() && len(ciTriggers) > 0 {
 			ct := ciTriggers[0]
-			if ct.UseYAML.ValueBool() {
+			switch {
+			case ct.UseYAML.ValueBool():
 				allTriggers = append(allTriggers, map[string]interface{}{
 					"triggerType":        "continuousIntegration",
 					"settingsSourceType": 2,
 				})
-			} else if !ct.Override.IsNull() && !ct.Override.IsUnknown() {
+			case !ct.Override.IsNull() && !ct.Override.IsUnknown():
 				var overrides []buildDefinitionCIOverrideModel
 				if diags2 := ct.Override.ElementsAs(ctx, &overrides, false); !diags2.HasError() && len(overrides) > 0 {
 					ov := overrides[0]
@@ -1026,7 +1027,7 @@ func (r *BuildDefinitionResource) expandBuildDefinitionFw(ctx context.Context, m
 					}
 					allTriggers = append(allTriggers, trigger)
 				}
-			} else {
+			default:
 				// Bare ci_trigger block (no override, no use_yaml) — use_yaml defaults false.
 				allTriggers = append(allTriggers, map[string]interface{}{
 					"triggerType":        "continuousIntegration",
