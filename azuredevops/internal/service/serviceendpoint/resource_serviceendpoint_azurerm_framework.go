@@ -501,6 +501,19 @@ func (r *ServiceEndpointAzureRMResource) flattenFromServiceEndpoint(ctx context.
 	state.Authorization = azureRMBuildAuth(ctx, authScheme)
 	scheme := EndpointAuthenticationScheme(authScheme)
 
+	// WIF fields must always be set to a known value after apply.
+	// Initialise to empty string; overwrite below if API returns actual values.
+	// This prevents Terraform from seeing "unknown after apply" for computed-only fields.
+	if state.WorkloadIdentityFederationIssuer.IsUnknown() {
+		state.WorkloadIdentityFederationIssuer = types.StringValue("")
+	}
+	if state.WorkloadIdentityFederationSubject.IsUnknown() {
+		state.WorkloadIdentityFederationSubject = types.StringValue("")
+	}
+	if state.ServicePrincipalID.IsUnknown() {
+		state.ServicePrincipalID = types.StringValue("")
+	}
+
 	if ep.Authorization != nil && ep.Authorization.Parameters != nil {
 		params := *ep.Authorization.Parameters
 		if v, ok := params["tenantid"]; ok {
@@ -509,6 +522,8 @@ func (r *ServiceEndpointAzureRMResource) flattenFromServiceEndpoint(ctx context.
 		if v, ok := params["serviceprincipalid"]; ok {
 			state.ServicePrincipalID = types.StringValue(v)
 		}
+		// WIF fields: for WIF scheme, populate from API; for other schemes they stay as
+		// empty strings (already set above), which is the correct known value.
 		if scheme == WorkloadIdentityFederation {
 			if v, ok := params["workloadIdentityFederationIssuer"]; ok {
 				state.WorkloadIdentityFederationIssuer = types.StringValue(v)
