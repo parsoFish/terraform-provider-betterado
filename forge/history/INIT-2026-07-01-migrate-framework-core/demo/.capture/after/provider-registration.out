@@ -1,0 +1,4 @@
+FAIL	./azuredevops [setup failed]
+FAIL
+[stderr] # ./azuredevops
+stat /home/parso/forge/_worktrees/INIT-2026-07-01-migrate-framework-core/forge/history/INIT-2026-07-01-migrate-framework-core/demo/.capture/_trees/after/azuredevops: directory not found
