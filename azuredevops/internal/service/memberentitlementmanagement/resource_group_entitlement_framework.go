@@ -90,9 +90,10 @@ func (m geUseStateForUnknown) PlanModifyString(_ context.Context, req planmodifi
 
 // Compile-time interface checks.
 var (
-	_ resource.Resource                = (*GroupEntitlementResource)(nil)
-	_ resource.ResourceWithConfigure   = (*GroupEntitlementResource)(nil)
-	_ resource.ResourceWithImportState = (*GroupEntitlementResource)(nil)
+	_ resource.Resource                     = (*GroupEntitlementResource)(nil)
+	_ resource.ResourceWithConfigure        = (*GroupEntitlementResource)(nil)
+	_ resource.ResourceWithImportState      = (*GroupEntitlementResource)(nil)
+	_ resource.ResourceWithConfigValidators = (*GroupEntitlementResource)(nil)
 )
 
 // GroupEntitlementResource is the terraform-plugin-framework implementation of
@@ -178,6 +179,84 @@ func (r *GroupEntitlementResource) Schema(_ context.Context, _ resource.SchemaRe
 				},
 			},
 		},
+	}
+}
+
+// ── ConfigValidators ──────────────────────────────────────────────────────────
+
+// ConfigValidators returns validators that enforce SDKv2-equivalent
+// mutual-exclusivity constraints on display_name / origin_id / origin.
+//
+//   - display_name and origin_id are mutually exclusive (ExactlyOneOf).
+//   - origin_id and origin must be supplied together (required-together).
+func (r *GroupEntitlementResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		&geIdentityValidator{},
+	}
+}
+
+// geIdentityValidator enforces the identity-field constraints for group entitlement.
+type geIdentityValidator struct{}
+
+func (v *geIdentityValidator) Description(_ context.Context) string {
+	return "Validates display_name / origin_id / origin mutual-exclusivity and required-together constraints"
+}
+
+func (v *geIdentityValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v *geIdentityValidator) ValidateResource(_ context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var model groupEntitlementModel
+	resp.Diagnostics.Append(req.Config.Get(context.Background(), &model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	hasDisplayName := !model.DisplayName.IsNull() && !model.DisplayName.IsUnknown() && model.DisplayName.ValueString() != ""
+	hasOriginID := !model.OriginID.IsNull() && !model.OriginID.IsUnknown() && model.OriginID.ValueString() != ""
+	hasOrigin := !model.Origin.IsNull() && !model.Origin.IsUnknown() && model.Origin.ValueString() != ""
+
+	// ExactlyOneOf: display_name or origin_id, but not both
+	if hasDisplayName && hasOriginID {
+		resp.Diagnostics.AddError(
+			"Invalid configuration",
+			"Exactly one of `display_name` or `origin_id` must be set, not both.",
+		)
+	}
+	if !hasDisplayName && !hasOriginID {
+		resp.Diagnostics.AddError(
+			"Invalid configuration",
+			"Exactly one of `display_name` or `origin_id` must be set.",
+		)
+	}
+
+	// display_name conflicts with origin/origin_id
+	if hasDisplayName && hasOriginID {
+		resp.Diagnostics.AddError(
+			"Invalid configuration",
+			"`display_name` cannot be set together with `origin_id`.",
+		)
+	}
+	if hasDisplayName && hasOrigin {
+		resp.Diagnostics.AddError(
+			"Invalid configuration",
+			"`display_name` cannot be set together with `origin`.",
+		)
+	}
+
+	// origin_id and origin must be set together
+	if hasOriginID && !hasOrigin {
+		resp.Diagnostics.AddError(
+			"Invalid configuration",
+			"`origin` must be set when `origin_id` is set.",
+		)
+	}
+	if hasOrigin && !hasOriginID {
+		resp.Diagnostics.AddError(
+			"Invalid configuration",
+			"`origin_id` must be set when `origin` is set.",
+		)
 	}
 }
 

@@ -70,11 +70,32 @@ func (m ueUseStateForUnknown) PlanModifyString(_ context.Context, req planmodifi
 	resp.PlanValue = req.StateValue
 }
 
+// ueCaseInsensitive is a plan modifier that normalises a string attribute to
+// lower-case so that case-only API round-trips do not produce a diff.
+type ueCaseInsensitive struct{}
+
+func ueLowerCase() planmodifier.String { return ueCaseInsensitive{} }
+func (m ueCaseInsensitive) Description(_ context.Context) string {
+	return "normalises value to lower-case to suppress case-only diffs"
+}
+
+func (m ueCaseInsensitive) MarkdownDescription(_ context.Context) string {
+	return "normalises value to lower-case to suppress case-only diffs"
+}
+
+func (m ueCaseInsensitive) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
+	if req.PlanValue.IsUnknown() || req.PlanValue.IsNull() {
+		return
+	}
+	resp.PlanValue = types.StringValue(strings.ToLower(req.PlanValue.ValueString()))
+}
+
 // Compile-time interface checks.
 var (
-	_ resource.Resource                = (*UserEntitlementResource)(nil)
-	_ resource.ResourceWithConfigure   = (*UserEntitlementResource)(nil)
-	_ resource.ResourceWithImportState = (*UserEntitlementResource)(nil)
+	_ resource.Resource                     = (*UserEntitlementResource)(nil)
+	_ resource.ResourceWithConfigure        = (*UserEntitlementResource)(nil)
+	_ resource.ResourceWithImportState      = (*UserEntitlementResource)(nil)
+	_ resource.ResourceWithConfigValidators = (*UserEntitlementResource)(nil)
 )
 
 // UserEntitlementResource is the terraform-plugin-framework implementation of
@@ -131,13 +152,21 @@ func (r *UserEntitlementResource) Schema(_ context.Context, _ resource.SchemaReq
 				Description: "The origin of the user, e.g. 'aad' or 'ghb'.",
 			},
 			"account_license_type": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
+				Optional: true,
+				Computed: true,
+				Default:  geStringDefault(string(licensing.AccountLicenseTypeValues.Express)),
+				PlanModifiers: []planmodifier.String{
+					ueLowerCase(),
+				},
 				Description: "The account license type of the user. Defaults to 'express'.",
 			},
 			"licensing_source": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
+				Optional: true,
+				Computed: true,
+				Default:  geStringDefault(string(licensing.LicensingSourceValues.Account)),
+				PlanModifiers: []planmodifier.String{
+					ueLowerCase(),
+				},
 				Description: "The licensing source of the user. Defaults to 'account'.",
 			},
 			"descriptor": schema.StringAttribute{
@@ -148,6 +177,73 @@ func (r *UserEntitlementResource) Schema(_ context.Context, _ resource.SchemaReq
 				},
 			},
 		},
+	}
+}
+
+// ── ConfigValidators ──────────────────────────────────────────────────────────
+
+// ConfigValidators returns validators that enforce SDKv2-equivalent
+// mutual-exclusivity constraints on principal_name / origin_id / origin.
+//
+//   - principal_name and origin_id are mutually exclusive.
+//   - origin_id and origin must be supplied together (required-together).
+//   - At least one of principal_name or origin_id must be supplied.
+func (r *UserEntitlementResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		&ueIdentityValidator{},
+	}
+}
+
+// ueIdentityValidator enforces the identity-field constraints.
+type ueIdentityValidator struct{}
+
+func (v *ueIdentityValidator) Description(_ context.Context) string {
+	return "Validates principal_name / origin_id / origin mutual-exclusivity and required-together constraints"
+}
+
+func (v *ueIdentityValidator) MarkdownDescription(ctx context.Context) string {
+	return v.Description(ctx)
+}
+
+func (v *ueIdentityValidator) ValidateResource(_ context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	var model userEntitlementModel
+	resp.Diagnostics.Append(req.Config.Get(context.Background(), &model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	hasPrincipalName := !model.PrincipalName.IsNull() && !model.PrincipalName.IsUnknown() && model.PrincipalName.ValueString() != ""
+	hasOriginID := !model.OriginID.IsNull() && !model.OriginID.IsUnknown() && model.OriginID.ValueString() != ""
+	hasOrigin := !model.Origin.IsNull() && !model.Origin.IsUnknown() && model.Origin.ValueString() != ""
+
+	// principal_name and origin_id are mutually exclusive
+	if hasPrincipalName && hasOriginID {
+		resp.Diagnostics.AddError(
+			"Invalid configuration",
+			"Exactly one of `principal_name` or `origin_id` must be set, not both.",
+		)
+	}
+
+	// at least one identity field is required
+	if !hasPrincipalName && !hasOriginID {
+		resp.Diagnostics.AddError(
+			"Invalid configuration",
+			"At least one of `principal_name` or `origin_id` must be set.",
+		)
+	}
+
+	// origin_id and origin must be set together
+	if hasOriginID && !hasOrigin {
+		resp.Diagnostics.AddError(
+			"Invalid configuration",
+			"`origin` must be set when `origin_id` is set.",
+		)
+	}
+	if hasOrigin && !hasOriginID {
+		resp.Diagnostics.AddError(
+			"Invalid configuration",
+			"`origin_id` must be set when `origin` is set.",
+		)
 	}
 }
 
@@ -195,7 +291,8 @@ func (r *UserEntitlementResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	// Apply defaults before expanding
+	// Apply defaults before expanding (schema Default takes care of this, but
+	// fall back to hard-coded values in case the schema default is not applied).
 	accountLicenseType := model.AccountLicenseType.ValueString()
 	if accountLicenseType == "" {
 		accountLicenseType = string(licensing.AccountLicenseTypeValues.Express)
@@ -500,7 +597,8 @@ func flattenUserEntitlementFramework(model *userEntitlementModel, ue *memberenti
 	}
 	if ue.AccessLevel != nil {
 		if ue.AccessLevel.AccountLicenseType != nil {
-			model.AccountLicenseType = types.StringValue(string(*ue.AccessLevel.AccountLicenseType))
+			// Normalise to lower-case to match the plan modifier and suppress case-only diffs.
+			model.AccountLicenseType = types.StringValue(strings.ToLower(string(*ue.AccessLevel.AccountLicenseType)))
 		}
 		if ue.AccessLevel.LicensingSource != nil {
 			model.LicensingSource = types.StringValue(strings.ToLower(string(*ue.AccessLevel.LicensingSource)))
