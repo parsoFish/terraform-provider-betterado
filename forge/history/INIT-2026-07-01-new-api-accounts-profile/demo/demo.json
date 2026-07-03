@@ -184,6 +184,22 @@
       "note": "changed — project config update"
     }
   ],
+  "liveEvidence": {
+    "accounts": {
+      "label": "acceptance-resource",
+      "url": "https://app.vssps.visualstudio.com/_apis/accounts?memberId=<pending>&api-version=7.1-preview.1",
+      "capturedAt": null,
+      "response": null,
+      "note": "Populated automatically by captureAccountsEvidence() during live TestAccDataAccounts run. capturedAt and response will be backfilled from .forge/live-evidence/acceptance-resource.json once gate passes."
+    },
+    "profile": {
+      "label": "acceptance-resource-profile",
+      "url": "https://app.vssps.visualstudio.com/_apis/profile/profiles/me?details=true&api-version=3.0",
+      "capturedAt": null,
+      "response": null,
+      "note": "Populated automatically by captureProfileEvidence() during live TestAccDataProfile run. capturedAt and response will be backfilled from .forge/live-evidence/acceptance-resource-profile.json once gate passes."
+    }
+  },
   "checkpoints": [
     {
       "label": "Quality gate (servicehook suite)",
@@ -265,13 +281,13 @@
     },
     {
       "criterion": "GIVEN a live ADO environment with TF_ACC=1, AZDO_ORG_SERVICE_URL, and AZDO_PERSONAL_ACCESS_TOKEN set WHEN TestAccDataAccounts runs via go test -tags all -run TestAccDataAccounts ./azuredevops/internal/acceptancetests/ THEN the test applies a Terraform config using data.betterado_accounts.test, asserts that accounts list is non-empty and each entry has non-empty account_id and account_name, verifies idempotency (ExpectNonEmptyPlan: false), and CaptureLiveEvidence writes .forge/live-evidence/acceptance-resource.json",
-      "verdict": "met",
-      "evidence": "TestAccDataAccounts in data_accounts_test.go: Step 1 Config='data betterado_accounts test {}', Check: TestCheckResourceAttrSet(\"data.betterado_accounts.test\", \"accounts.#\") + captureAccountsEvidence() which calls CaptureLiveEvidence(\"acceptance-resource\", memberId-filtered-accounts-URL, accountsResponse). Step 2 PlanOnly:true + ExpectNonEmptyPlan:false (idempotency gate). WI-3 status:failed was due to transient VSSPS auth issue (SDK location-service discovery failing for org-scoped PATs); resolved by commits fd947374 + 2724991d (direct HTTP to org-specific VSSPS URL). Gate ran live against serve env (TF_ACC=1 + AZDO_* set)."
+      "verdict": "missed",
+      "evidence": "No live run artifact (.forge/live-evidence/acceptance-resource.json) exists yet. The fix (data_accounts.go: use global app.vssps.visualstudio.com endpoint + auto-resolve memberId via profile lookup for org-scoped PATs) is in place but has not been re-proven live. The previous iteration's 404 was caused by using vssps.dev.azure.com/<org>/_apis/accounts which returns 'controller not found' — that path is now removed. Live evidence will be populated by captureAccountsEvidence() when the gate runs with TF_ACC=1 credentials."
     },
     {
       "criterion": "GIVEN a live ADO environment with TF_ACC=1 set WHEN TestAccDataProfile runs via go test -tags all -run TestAccDataProfile ./azuredevops/internal/acceptancetests/ THEN the test applies a Terraform config using data.betterado_profile.me with id=\"me\", asserts that display_name, email_address are non-empty strings, verifies idempotency (ExpectNonEmptyPlan: false), and calls CaptureLiveEvidence to write live evidence",
-      "verdict": "met",
-      "evidence": "TestAccDataProfile in data_profile_test.go: Step 1 Config='data betterado_profile me { id = \"me\" }', Check: TestCheckResourceAttrSet(\"data.betterado_profile.me\", \"display_name\") + TestCheckResourceAttrSet(\"data.betterado_profile.me\", \"email_address\") + captureProfileEvidence() which calls CaptureLiveEvidence(\"acceptance-resource-profile\", profile-API-URL, profileResponse). Step 2 PlanOnly:true + ExpectNonEmptyPlan:false (idempotency gate). Same VSSPS fix applies."
+      "verdict": "missed",
+      "evidence": "No live run artifact (.forge/live-evidence/acceptance-resource-profile.json) exists yet. The profile data source uses vssps.dev.azure.com/<org>/_apis/profile/profiles/<id> (org-specific URL, which does work for profile) and is unchanged from the prior iteration. Live evidence will be populated by captureProfileEvidence() when the gate runs with TF_ACC=1 credentials."
     },
     {
       "criterion": "GIVEN the provider documentation toolchain (make docs) WHEN docs are regenerated THEN docs/data-sources/accounts.md and docs/data-sources/profile.md are present and describe all schema attributes; examples/data-sources/betterado_accounts/data-source.tf and examples/data-sources/betterado_profile/data-source.tf exist; CHANGELOG.md has an ## Unreleased entry for the new data sources; PROVIDER_VERSION.txt is bumped",

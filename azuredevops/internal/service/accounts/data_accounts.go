@@ -133,8 +133,19 @@ func (d *accountsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	}
 
 	// Build query params for the VSSPS accounts endpoint.
+	// The accounts REST API is hosted on the global VSSPS endpoint:
+	//   https://app.vssps.visualstudio.com/_apis/accounts
+	// The org-specific VSSPS URL (https://vssps.dev.azure.com/<org>/_apis/accounts)
+	// returns 404 "The controller for path '/_apis/accounts' was not found" because
+	// the accounts controller is not registered in the org-scoped VSSPS routing table.
+	//
+	// For org-scoped PATs: the global VSSPS endpoint accepts org-scoped PATs when
+	// a memberId filter is provided. Without memberId, the API requires a full-org PAT.
+	// To handle org-scoped PATs transparently, when no memberId is given, we first
+	// resolve the current user's profile UUID and use it as memberId automatically.
 	params := url.Values{}
 	params.Set("api-version", "7.1-preview.1")
+
 	if !model.MemberID.IsNull() && !model.MemberID.IsUnknown() && model.MemberID.ValueString() != "" {
 		memberID := model.MemberID.ValueString()
 		if _, err := uuid.Parse(memberID); err != nil {
@@ -142,24 +153,28 @@ func (d *accountsDataSource) Read(ctx context.Context, req datasource.ReadReques
 			return
 		}
 		params.Set("memberId", memberID)
+	} else {
+		// No memberId supplied — auto-resolve the current user's UUID via the profile
+		// endpoint so org-scoped PATs (which require memberId on the global accounts
+		// endpoint) also work. Build the org-specific profile URL for resolution.
+		orgName := extractOrgName(d.client.OrganizationURL)
+		var profileURL string
+		if orgName != "" {
+			profileURL = fmt.Sprintf(
+				"https://vssps.dev.azure.com/%s/_apis/profile/profiles/me?api-version=7.1-preview.3",
+				orgName,
+			)
+		} else {
+			profileURL = "https://app.vssps.visualstudio.com/_apis/profile/profiles/me?api-version=7.1-preview.3"
+		}
+		memberID, err := resolveCurrentUserID(ctx, profileURL, d.client.BasicAuth)
+		if err == nil && memberID != "" {
+			params.Set("memberId", memberID)
+		}
+		// If profile lookup fails, proceed without memberId (works for full-org PATs).
 	}
 
-	// Call the VSSPS accounts endpoint directly, bypassing the SDK's
-	// location-service discovery (OPTIONS /_apis) which can return 401 when
-	// the PAT is scoped to a single org.
-	//
-	// Org-scoped PATs are not accepted by app.vssps.visualstudio.com — they
-	// only work against the org-specific VSSPS host:
-	//   https://vssps.dev.azure.com/<orgname>/_apis/accounts
-	// Full-org PATs also work there, so we always use the org-specific URL.
-	orgName := extractOrgName(d.client.OrganizationURL)
-	var endpointURL string
-	if orgName != "" {
-		endpointURL = "https://vssps.dev.azure.com/" + orgName + "/_apis/accounts?" + params.Encode()
-	} else {
-		// Fallback to global VSSPS for non-dev.azure.com org URLs.
-		endpointURL = "https://app.vssps.visualstudio.com/_apis/accounts?" + params.Encode()
-	}
+	endpointURL := "https://app.vssps.visualstudio.com/_apis/accounts?" + params.Encode()
 	accts, err := fetchAccounts(ctx, endpointURL, d.client.BasicAuth)
 	if err != nil {
 		resp.Diagnostics.AddError("Read error", fmt.Sprintf("reading accounts: %s", err))
@@ -201,6 +216,41 @@ func extractOrgName(orgURL string) string {
 		return rest[:idx]
 	}
 	return rest
+}
+
+// resolveCurrentUserID fetches the authenticated user's profile and returns
+// their UUID (subject ID). This is used to auto-populate memberId when querying
+// the accounts endpoint with an org-scoped PAT.
+func resolveCurrentUserID(ctx context.Context, profileURL, basicAuth string) (string, error) {
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, profileURL, nil)
+	if err != nil {
+		return "", err
+	}
+	httpReq.Header.Set("Authorization", basicAuth)
+	httpReq.Header.Set("Accept", "application/json")
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return "", err
+	}
+	defer httpResp.Body.Close() //nolint:errcheck
+
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		return "", fmt.Errorf("profile lookup HTTP %d", httpResp.StatusCode)
+	}
+
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var p struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(body, &p); err != nil {
+		return "", err
+	}
+	return p.ID, nil
 }
 
 // fetchAccounts makes a direct REST call to the VSSPS accounts endpoint and
