@@ -138,7 +138,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_workitemtrackingprocess_inherited_state",
 		"betterado_workitemtrackingprocess_list",
 		"betterado_workitemtrackingprocess_page",
-		"betterado_workitemtrackingprocess_process",
+		// NOTE: betterado_workitemtrackingprocess_process has been migrated to the framework provider.
 		"betterado_workitemtrackingprocess_process_permissions",
 		"betterado_workitemtrackingprocess_rule",
 		"betterado_workitemtrackingprocess_state",
@@ -202,8 +202,8 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_user",
 		"betterado_users",
 		"betterado_variable_group",
-		"betterado_workitemtrackingprocess_process",
-		"betterado_workitemtrackingprocess_processes",
+		// NOTE: betterado_workitemtrackingprocess_process and betterado_workitemtrackingprocess_processes
+		// have been migrated to the framework provider — no longer in the SDKv2 DataSourcesMap.
 		"betterado_workitemtrackingprocess_workitemtype",
 		"betterado_workitemtrackingprocess_workitemtypes",
 	}

@@ -1,12 +1,20 @@
+//go:build (all || resource_workitemtrackingprocess_process) && !exclude_resource_workitemtrackingprocess_process
+
 package acceptancetests
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 func TestAccWorkitemtrackingprocessProcess_Basic(t *testing.T) {
@@ -14,9 +22,9 @@ func TestAccWorkitemtrackingprocessProcess_Basic(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_process.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: process(processName),
@@ -27,6 +35,7 @@ func TestAccWorkitemtrackingprocessProcess_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "is_enabled", "true"),
 					resource.TestCheckResourceAttrSet(tfNode, "customization_type"),
 					resource.TestCheckResourceAttr(tfNode, "parent_process_type_id", "adcc42ab-9882-485e-a3ed-7678f01f66bc"),
+					captureProcessEvidence(tfNode),
 				),
 			},
 			{
@@ -44,9 +53,9 @@ func TestAccWorkitemtrackingprocessProcess_CreateDisabled(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_process.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: disabledProcess(processName),
@@ -70,9 +79,9 @@ func TestAccWorkitemtrackingprocessProcess_CreateAndUpdate(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_process.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: process(processName),
@@ -125,6 +134,37 @@ func getProcessStateIdFunc(tfNode string) resource.ImportStateIdFunc {
 	return func(state *terraform.State) (string, error) {
 		res := state.RootModule().Resources[tfNode]
 		return res.Primary.Attributes["id"], nil
+	}
+}
+
+// captureProcessEvidence reads back the process via API and writes live evidence.
+func captureProcessEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		processID := res.Primary.ID
+
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+		agg, err := client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+		if err != nil {
+			return nil // best-effort: client build failure does not fail the test
+		}
+
+		process, err := agg.WorkItemTrackingProcessClient.GetProcessByItsId(agg.Ctx, workitemtrackingprocess.GetProcessByItsIdArgs{
+			ProcessTypeId: converter.UUID(processID),
+			Expand:        &workitemtrackingprocess.GetProcessExpandLevelValues.None,
+		})
+		if err != nil {
+			return nil // best-effort
+		}
+
+		url := fmt.Sprintf("%s/_apis/work/processes/%s?api-version=7.1",
+			strings.TrimRight(orgURL, "/"), processID)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-workitemtrackingprocess-process", url, process)
+		return nil
 	}
 }
 
