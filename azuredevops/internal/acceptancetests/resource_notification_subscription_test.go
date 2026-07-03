@@ -10,8 +10,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/identity"
 	notificationapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/notification"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 )
 
@@ -19,19 +22,25 @@ import (
 // verifies it is read back correctly (idempotency check), captures live API evidence,
 // and confirms destroy removes it.
 //
-// Requires: TF_ACC=1, AZDO_ORG_SERVICE_URL, AZDO_PERSONAL_ACCESS_TOKEN, AZDO_TEST_AAD_USER_EMAIL
+// Requires: TF_ACC=1, AZDO_ORG_SERVICE_URL, AZDO_PERSONAL_ACCESS_TOKEN
+// AZDO_TEST_AAD_USER_EMAIL is optional — if absent, a real user is auto-discovered.
 func TestAccNotificationSubscription_basic(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set; skipping live acceptance test")
+	}
+
+	email, subscriberID := resolveNotificationSubscriberDirect(t)
+
 	tfNode := "betterado_notification_subscription.test"
-	email := os.Getenv("AZDO_TEST_AAD_USER_EMAIL")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_USER_EMAIL"}) },
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkNotificationSubscriptionDestroyed,
 		Steps: []resource.TestStep{
 			// Step 1: create + assert read-back
 			{
-				Config: hclNotificationSubscriptionBasic(email),
+				Config: hclNotificationSubscriptionBasic(email, subscriberID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "id"),
 					resource.TestCheckResourceAttr(tfNode, "subscription_type", "ms.vss-work.workitem-changed-event"),
@@ -42,7 +51,7 @@ func TestAccNotificationSubscription_basic(t *testing.T) {
 			},
 			// Step 2: idempotency — no perpetual diff
 			{
-				Config:             hclNotificationSubscriptionBasic(email),
+				Config:             hclNotificationSubscriptionBasic(email, subscriberID),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -50,27 +59,110 @@ func TestAccNotificationSubscription_basic(t *testing.T) {
 	})
 }
 
-// hclNotificationSubscriptionBasic returns HCL that creates a notification subscription
-// scoped to the shared fixture project. It uses betterado_identity_user to resolve
-// the subscriber_id from AZDO_TEST_AAD_USER_EMAIL.
-func hclNotificationSubscriptionBasic(email string) string {
+// resolveNotificationSubscriberDirect resolves a real ADO user for the notification
+// subscription test without requiring AZDO_TEST_AAD_USER_EMAIL.
+//
+// Precedence:
+//  1. AZDO_TEST_AAD_USER_EMAIL is set → use that email, look up the identity UUID.
+//  2. Fall back: page through GraphClient.ListUsers and pick the first user with
+//     a non-empty MailAddress; look up that user's identity UUID.
+func resolveNotificationSubscriberDirect(t *testing.T) (email, identityUUID string) {
+	t.Helper()
+
+	clients, err := getDirectClient()
+	if err != nil {
+		t.Fatalf("resolveNotificationSubscriberDirect: getDirectClient: %v", err)
+	}
+
+	// ── 1. Prefer an explicitly-set email env var ─────────────────────────────
+	if envEmail := os.Getenv("AZDO_TEST_AAD_USER_EMAIL"); envEmail != "" {
+		uuid, resolveErr := resolveIdentityUUIDByEmailDirect(t, clients, envEmail)
+		if resolveErr != nil || uuid == "" {
+			t.Fatalf("resolveNotificationSubscriberDirect: could not resolve identity for AZDO_TEST_AAD_USER_EMAIL=%q: %v", envEmail, resolveErr)
+		}
+		return envEmail, uuid
+	}
+
+	// ── 2. Auto-discover via GraphClient.ListUsers ───────────────────────────
+	// ContinuationToken in ListUsersArgs is *string; in the response it is *[]string.
+	subjectTypes := []string{"aad", "msa"}
+	var contToken string
+	for {
+		args := graph.ListUsersArgs{
+			SubjectTypes: &subjectTypes,
+		}
+		if contToken != "" {
+			args.ContinuationToken = &contToken
+		}
+		page, listErr := clients.GraphClient.ListUsers(clients.Ctx, args)
+		if listErr != nil {
+			t.Fatalf("resolveNotificationSubscriberDirect: GraphClient.ListUsers: %v", listErr)
+		}
+		if page == nil || page.GraphUsers == nil {
+			break
+		}
+		for _, u := range *page.GraphUsers {
+			if u.MailAddress == nil || *u.MailAddress == "" {
+				continue
+			}
+			mail := *u.MailAddress
+			uuid, resolveErr := resolveIdentityUUIDByEmailDirect(t, clients, mail)
+			if resolveErr != nil || uuid == "" {
+				continue // try next user
+			}
+			t.Logf("resolveNotificationSubscriberDirect: auto-discovered subscriber email=%q uuid=%q", mail, uuid)
+			return mail, uuid
+		}
+		if page.ContinuationToken == nil || len(*page.ContinuationToken) == 0 || (*page.ContinuationToken)[0] == "" {
+			break
+		}
+		contToken = (*page.ContinuationToken)[0]
+	}
+
+	t.Fatalf("resolveNotificationSubscriberDirect: no ADO user with a valid mail address and resolvable identity found")
+	return "", ""
+}
+
+// resolveIdentityUUIDByEmailDirect returns the identity UUID (GUID) for a given email
+// address by calling IdentityClient.ReadIdentities with SearchFilter="MailAddress".
+// Returns ("", nil) if no identity is found (not an error — caller may skip).
+func resolveIdentityUUIDByEmailDirect(t *testing.T, clients *client.AggregatedClient, email string) (string, error) {
+	t.Helper()
+	filter := "MailAddress"
+	identities, err := clients.IdentityClient.ReadIdentities(clients.Ctx, identity.ReadIdentitiesArgs{
+		SearchFilter: &filter,
+		FilterValue:  &email,
+	})
+	if err != nil {
+		return "", fmt.Errorf("IdentityClient.ReadIdentities(MailAddress=%q): %w", email, err)
+	}
+	if identities == nil || len(*identities) == 0 {
+		return "", nil
+	}
+	for _, id := range *identities {
+		if id.Id != nil {
+			return id.Id.String(), nil
+		}
+	}
+	return "", nil
+}
+
+// hclNotificationSubscriptionBasic returns HCL that creates a notification subscription.
+// subscriber_id is passed as a literal UUID string so no identity data source lookup is needed.
+func hclNotificationSubscriptionBasic(email, subscriberID string) string {
 	return fmt.Sprintf(`
 data "betterado_project" "test" {
   name = %[1]q
 }
 
-data "betterado_identity_user" "subscriber" {
-  mail = %[2]q
-}
-
 resource "betterado_notification_subscription" "test" {
   project_id        = data.betterado_project.test.id
   subscription_type = "ms.vss-work.workitem-changed-event"
-  subscriber_id     = data.betterado_identity_user.subscriber.id
+  subscriber_id     = %[2]q
   channel_type      = "EmailHtml"
-  channel_address   = %[2]q
+  channel_address   = %[3]q
 }
-`, SharedFixtureProjectName, email)
+`, SharedFixtureProjectName, subscriberID, email)
 }
 
 // checkNotificationSubscriptionDestroyed verifies that all notification subscriptions
