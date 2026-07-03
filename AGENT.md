@@ -86,6 +86,28 @@ No forge brain queries made — WI spec was the single source of truth.
 - Embedding subscriber_id as a literal UUID in HCL avoids data source dependency and schema confusion.
 - **Pattern for Optional+Computed fields not returned by API**: in flatten, check `IsUnknown()` and set to `types.StringNull()` when true. Never call `types.StringValue("")` — use null to signal "API doesn't manage this value".
 
+### Iteration 3 (current)
+
+**Gate failure from iter 2:** `notification subscription 886542 still exists after destroy`
+
+**Root cause:** ADO's notification subscription DELETE is **asynchronous (soft-delete)**. After `DeleteSubscription` returns HTTP 204 (success), a subsequent `GetSubscription` on the same ID still returns the subscription — but with `Status = "pendingDeletion"`. The `checkNotificationSubscriptionDestroyed` function checked `sub != nil && sub.Id != nil`, which is true even for pendingDeletion subscriptions → false "still exists" error.
+
+**Fix applied (iter 3):**
+1. `checkNotificationSubscriptionDestroyed` in `resource_notification_subscription_test.go`: Added check `if sub.Status != nil && *sub.Status == notificationapi.SubscriptionStatusValues.PendingDeletion { continue }` — treats pendingDeletion as destroyed.
+2. Resource `Read` in `resource_notification_subscription_framework.go`: Added same check → `resp.State.RemoveResource(ctx)` when status=pendingDeletion. This prevents Terraform from seeing a phantom resource in state after destroy.
+
+**ADO API fact confirmed:**
+- `notificationapi.SubscriptionStatusValues.PendingDeletion` = `"pendingDeletion"`. This is a valid member of the `subscriptionStatusValuesType` struct in the local third-party API (and the magodo fork).
+- `SubscriptionStatus` is a `string` type alias — compare with `==` directly.
+
+## What worked
+
+- `getDirectClient()` reuse from `resource_task_group_test.go` works for notification client.
+- `GraphClient.ListUsers` + `IdentityClient.ReadIdentities(MailAddress)` is the right pattern for auto-discovering a real user without env var dependency.
+- Embedding subscriber_id as a literal UUID in HCL avoids data source dependency and schema confusion.
+- **Pattern for Optional+Computed fields not returned by API**: in flatten, check `IsUnknown()` and set to `types.StringNull()` when true. Never call `types.StringValue("")` — use null to signal "API doesn't manage this value".
+- **ADO notification soft-delete pattern**: `DeleteSubscription` → subscription enters `pendingDeletion` status → treat as destroyed in both `CheckDestroy` and `Read`.
+
 ## What didn't work / watch out for
 
 - `betterado_identity_user` data source uses `name` + `search_filter` — NOT `mail`. The original HCL was wrong.
@@ -95,3 +117,4 @@ No forge brain queries made — WI spec was the single source of truth.
 - `ISubscriptionChannel` Go struct has only `Type` — `channel_address` (the ADO `address` field) is not returned via the Go API wrapper. Preserve from state/plan, never read from API.
 - `ISubscriptionFilter` Go struct has only `EventType` + `Type` — `filter_criteria` is not returned. Set to null after apply if not in config.
 - Leaving ANY `Optional+Computed` field as Unknown after Create/Read causes TF error "provider still indicated an unknown value after apply".
+- ADO notification DELETE is soft/async — `GetSubscription` still returns the record with status `pendingDeletion` immediately after DELETE. Don't treat this as "still exists".
