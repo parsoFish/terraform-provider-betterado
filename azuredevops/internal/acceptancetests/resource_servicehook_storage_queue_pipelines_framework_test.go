@@ -17,6 +17,7 @@ import (
 
 func TestAccServicehookStorageQueuePipelinesFramework_basic(t *testing.T) {
 	fixture := SharedReleaseFixture(t) // reuses betterado-standing-demo — no new project
+	accountName := "teststorageacc"
 	queueName := "acctest-queue"
 	accountKey := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 	stateFilter := "Completed"
@@ -30,7 +31,7 @@ func TestAccServicehookStorageQueuePipelinesFramework_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Step 1: create + assert read-back + capture evidence
 			{
-				Config: hclServicehookStorageQueuePipelinesFramework(fixture.ProjectID, accountKey, queueName, stateFilter, resultFilter),
+				Config: hclServicehookStorageQueuePipelinesFramework(fixture.ProjectID, accountName, accountKey, queueName, stateFilter, resultFilter),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttr(tfNode, "queue_name", queueName),
@@ -42,7 +43,7 @@ func TestAccServicehookStorageQueuePipelinesFramework_basic(t *testing.T) {
 			},
 			// Step 2: idempotency
 			{
-				Config:             hclServicehookStorageQueuePipelinesFramework(fixture.ProjectID, accountKey, queueName, stateFilter, resultFilter),
+				Config:             hclServicehookStorageQueuePipelinesFramework(fixture.ProjectID, accountName, accountKey, queueName, stateFilter, resultFilter),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -50,19 +51,20 @@ func TestAccServicehookStorageQueuePipelinesFramework_basic(t *testing.T) {
 	})
 }
 
-func hclServicehookStorageQueuePipelinesFramework(projectID, accountKey, queueName, stateFilter, resultFilter string) string {
+func hclServicehookStorageQueuePipelinesFramework(projectID, accountName, accountKey, queueName, stateFilter, resultFilter string) string {
 	return fmt.Sprintf(`
 resource "betterado_servicehook_storage_queue_pipelines" "fw_test" {
-  project_id  = %[1]q
-  account_key = %[2]q
-  queue_name  = %[3]q
+  project_id   = %[1]q
+  account_name = %[2]q
+  account_key  = %[3]q
+  queue_name   = %[4]q
 
   stage_state_changed_event {
-    stage_state_filter  = %[4]q
-    stage_result_filter = %[5]q
+    stage_state_filter  = %[5]q
+    stage_result_filter = %[6]q
   }
 }
-`, projectID, accountKey, queueName, stateFilter, resultFilter)
+`, projectID, accountName, accountKey, queueName, stateFilter, resultFilter)
 }
 
 // checkServicehookStorageQueuePipelinesFrameworkDestroyed verifies the subscription
