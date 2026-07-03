@@ -9,6 +9,17 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **`betterado_deployment_group` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux
+  provider; SDKv2 file (`resource_deployment_group.go`) removed. Schema is
+  unchanged (`project_id`, `name`, `description`, `pool_id`, `machine_count`);
+  the SDKv2 `timeouts` block is no longer exposed (framework handles timeouts
+  internally). Acceptance tests updated to use the standing fixture project to
+  avoid the 1000-project ADO org limit. Verified by live acceptance tests
+  `TestAccDeploymentGroup_basic`, `TestAccDeploymentGroup_update`,
+  `TestAccDeploymentGroup_withPoolId` with idempotency re-plan, import, and
+  `CaptureLiveEvidence`.
+
 - **`betterado_agent_pool` resource migrated to terraform-plugin-framework.** The
   resource now uses the terraform-plugin-framework implementation served through
   the mux provider; SDKv2 files removed. Schema is unchanged (`name`, `pool_type`,

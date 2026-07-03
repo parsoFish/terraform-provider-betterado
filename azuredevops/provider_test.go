@@ -12,6 +12,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 	expectedResources := []string{
 		// betterado_agent_pool and betterado_agent_queue are now framework resources
 		// (registered in framework_provider.go) and are no longer in the SDKv2 provider resource map.
+		// betterado_deployment_group is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		// betterado_environment is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
 		"betterado_area_permissions",
@@ -33,7 +35,6 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_check_required_template",
 		"betterado_check_rest_api",
 		"betterado_dashboard",
-		"betterado_deployment_group",
 		"betterado_elastic_pool",
 		"betterado_extension",
 		"betterado_feed",
