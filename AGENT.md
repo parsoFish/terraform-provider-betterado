@@ -44,6 +44,31 @@ and the Create->Update sequence wasn't persisting is_enabled=false.
 
 - SDKv2 resource create: the old createResourceProcess called updateResourceProcess after create to handle is_enabled=false, but this caused a perpetual diff in live tests (the read was returning true). Framework implementation is now authoritative.
 
+### Iteration 1 — Fix gate-blocking permissions test (committed: 86dec7be)
+
+**Gate failure:** `TestAccWorkitemtrackingprocessProcessPermissions_SetPermissions_InheritedProcess`
+was matched by the gate regex `TestAccWorkitemtrackingprocessProcess` and failing with:
+  `The provider hashicorp/betterado does not support resource type "betterado_workitemtrackingprocess_process"`
+
+**Root cause:** This test used `ProviderFactories: testutils.GetProviderFactories()` (SDKv2-only),
+but its HCL configuration creates a `betterado_workitemtrackingprocess_process` resource which is
+now ONLY in the framework provider.
+
+**Fix:** Changed `ProviderFactories: testutils.GetProviderFactories()` to
+`ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories()` in ALL workitemtrackingprocess
+test files that reference the process resource in their HCL configurations (13 files total):
+resource_workitemtrackingprocess_process_permissions_test.go (InheritedProcess only),
+resource_workitemtrackingprocess_{state,inherited_control,inherited_state,system_control,control,field,group,inherited_page,page,rule}_test.go,
+data_workitemtrackingprocess_workitemtype{,s}_test.go.
+
+Files NOT updated (no process resource in HCL):
+- resource_workitemtrackingprocess_list_test.go (uses process client API, not resource HCL)
+- resource_workitemtrackingprocess_process_permissions_test.go SystemProcess function
+
+**KEY LESSON:** When migrating a resource from SDKv2 to framework, search ALL acceptance tests
+that reference the resource type in HCL (not just the resource's own test file). The gate regex
+`TestAccWorkitemtrackingprocessProcess` matches ALL tests with that prefix.
+
 ## Open questions
 
 - If live gate still fails on CreateDisabled: check whether ADO API actually honours `IsEnabled: false` in EditProcess or whether there's a race/cache. The framework Read calls GetProcessByItsId which should return the current value.
@@ -52,3 +77,4 @@ and the Create->Update sequence wasn't persisting is_enabled=false.
 
 - The mux provider (GetMuxedProviderFactories) is required for all framework resources — tests using ProviderFactories (SDKv2 only) will silently skip the framework resource.
 - Framework data sources for nested lists (projects inside processes) require explicit `types.ObjectValue` construction — the SDKv2 `map[string]any` pattern doesn't apply.
+- **When migrating a resource from SDKv2 to framework, search for ALL acceptance tests in the repo that reference the resource type name in HCL, not just the resource's own test file.** Other resource tests may use it as a dependency and will break if they use the old SDKv2-only provider factories.
