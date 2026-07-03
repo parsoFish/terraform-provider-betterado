@@ -9,6 +9,16 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **`betterado_agent_queue` resource and data source migrated to
+  terraform-plugin-framework.** Both `betterado_agent_queue` (resource) and
+  `data.betterado_agent_queue` (data source) now use the framework
+  implementation served through the mux provider; SDKv2 files
+  (`resource_agent_queue.go`, `data_agent_queue.go`, and their unit-test
+  companions) removed. Schema is unchanged (`project_id`, `name`,
+  `agent_pool_id`). Acceptance tests use the standing fixture project with
+  `ProtoV6ProviderFactories` (mux), `ExpectNonEmptyPlan: false`, import verify,
+  and `CaptureLiveEvidence("acceptance-resource-agent-queue", ...)`.
+
 - **`betterado_elastic_pool` resource migrated to terraform-plugin-framework.**
   The resource now uses the framework implementation served through the mux
   provider; SDKv2 file (`resource_elastic_pool.go`) removed. Schema is

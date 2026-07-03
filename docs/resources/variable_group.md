@@ -3,12 +3,12 @@
 page_title: "betterado_variable_group Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a Variable Group within Azure DevOps.
 ---
 
 # betterado_variable_group (Resource)
 
-
+Manages a Variable Group within Azure DevOps.
 
 
 
@@ -17,60 +17,48 @@ description: |-
 
 ### Required
 
-- `name` (String)
-- `project_id` (String)
-- `variable` (Block Set, Min: 1) (see [below for nested schema](#nestedblock--variable))
+- `name` (String) The name of the variable group.
+- `project_id` (String) The ID of the project.
+- `variable` (Attributes Set) One or more variable blocks as documented below. (see [below for nested schema](#nestedatt--variable))
 
 ### Optional
 
-- `allow_access` (Boolean)
-- `description` (String)
-- `key_vault` (Block List, Max: 1) (see [below for nested schema](#nestedblock--key_vault))
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `allow_access` (Boolean) Boolean that indicate if this variable group is shared by all pipelines of this project.
+- `description` (String) The description of the variable group.
+- `key_vault` (Attributes List) A key_vault block as documented below. (see [below for nested schema](#nestedatt--key_vault))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
 
-<a id="nestedblock--variable"></a>
+<a id="nestedatt--variable"></a>
 ### Nested Schema for `variable`
 
 Required:
 
-- `name` (String)
+- `name` (String) The key or name of the variable.
 
 Optional:
 
-- `is_secret` (Boolean)
-- `secret_value` (String, Sensitive)
-- `value` (String)
+- `is_secret` (Boolean) If `true`, the variable will be treated as a secret.
+- `secret_value` (String, Sensitive) The secret value of the variable. Used when `is_secret` is `true`.
+- `value` (String) The value of the variable.
 
 Read-Only:
 
-- `content_type` (String)
-- `enabled` (Boolean)
-- `expires` (String)
+- `content_type` (String) The content type of the variable (for key vault variables).
+- `enabled` (Boolean) Whether the variable is enabled (for key vault variables).
+- `expires` (String) The expiry date of the variable (for key vault variables).
 
 
-<a id="nestedblock--key_vault"></a>
+<a id="nestedatt--key_vault"></a>
 ### Nested Schema for `key_vault`
 
 Required:
 
-- `name` (String)
-- `service_endpoint_id` (String)
+- `name` (String) The name of the Azure Key Vault.
+- `service_endpoint_id` (String) The ID of the Azure RM service endpoint.
 
 Optional:
 
-- `search_depth` (Number)
-
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `search_depth` (Number) The number of pages to search for the secrets. Defaults to `20`.

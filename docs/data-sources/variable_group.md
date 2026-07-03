@@ -3,12 +3,12 @@
 page_title: "betterado_variable_group Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Use this data source to access information about an existing Variable Group within Azure DevOps.
 ---
 
 # betterado_variable_group (Data Source)
 
-
+Use this data source to access information about an existing Variable Group within Azure DevOps.
 
 
 
@@ -17,36 +17,24 @@ description: |-
 
 ### Required
 
-- `name` (String)
-- `project_id` (String)
-
-### Optional
-
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `name` (String) The name of the variable group to look up.
+- `project_id` (String) The ID of the project.
 
 ### Read-Only
 
-- `allow_access` (Boolean)
-- `description` (String)
-- `id` (String) The ID of this resource.
-- `key_vault` (List of Object) (see [below for nested schema](#nestedatt--key_vault))
-- `variable` (Set of Object) (see [below for nested schema](#nestedatt--variable))
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
-
+- `allow_access` (Boolean) Whether this variable group is shared by all pipelines in the project.
+- `description` (String) The description of the variable group.
+- `id` (String) The ID of the variable group.
+- `key_vault` (Attributes List) A key_vault block if this variable group is backed by an Azure Key Vault. (see [below for nested schema](#nestedatt--key_vault))
+- `variable` (Attributes Set) One or more variable blocks. (see [below for nested schema](#nestedatt--variable))
 
 <a id="nestedatt--key_vault"></a>
 ### Nested Schema for `key_vault`
 
 Read-Only:
 
-- `name` (String)
-- `service_endpoint_id` (String)
+- `name` (String) The name of the Azure Key Vault.
+- `service_endpoint_id` (String) The ID of the Azure RM service endpoint.
 
 
 <a id="nestedatt--variable"></a>
@@ -54,10 +42,10 @@ Read-Only:
 
 Read-Only:
 
-- `content_type` (String)
-- `enabled` (Boolean)
-- `expires` (String)
-- `is_secret` (Boolean)
-- `name` (String)
-- `secret_value` (String)
-- `value` (String)
+- `content_type` (String) The content type of the variable (for key vault variables).
+- `enabled` (Boolean) Whether the variable is enabled (for key vault variables).
+- `expires` (String) The expiry date of the variable (for key vault variables).
+- `is_secret` (Boolean) If `true`, the variable is a secret.
+- `name` (String) The key or name of the variable.
+- `secret_value` (String, Sensitive) The secret value of the variable.
+- `value` (String) The value of the variable.
