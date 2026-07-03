@@ -75,11 +75,10 @@ func Provider() *schema.Provider {
 			"betterado_git_repository":                   git.ResourceGitRepository(),
 			"betterado_git_repository_branch":            git.ResourceGitRepositoryBranch(),
 			"betterado_git_repository_file":              git.ResourceGitRepositoryFile(),
-			// betterado_group is now registered in the framework provider (framework_provider.go)
-			// and must NOT be listed here — duplicating a resource type across mux providers causes
-			// "Invalid Provider Server Combination" at plan time.
+			// betterado_group and betterado_group_membership are now registered in the framework
+			// provider (framework_provider.go) and must NOT be listed here — duplicating a resource
+			// type across mux providers causes "Invalid Provider Server Combination" at plan time.
 			"betterado_group_entitlement":         memberentitlementmanagement.ResourceGroupEntitlement(),
-			"betterado_group_membership":          graph.ResourceGroupMembership(),
 			"betterado_iteration_permissions":     permissions.ResourceIterationPermissions(),
 			"betterado_library_permissions":       permissions.ResourceLibraryPermissions(),
 			"betterado_pipeline_authorization":    build.ResourcePipelineAuthorization(),
