@@ -76,7 +76,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// betterado_serviceendpoint_azurecr migrated to framework (registered in framework_provider.go)
 		"betterado_serviceendpoint_azuredevops",
 		// betterado_serviceendpoint_azurerm migrated to framework (registered in framework_provider.go)
-		"betterado_serviceendpoint_bitbucket",
+		// betterado_serviceendpoint_bitbucket migrated to framework (registered in framework_provider.go)
 		"betterado_serviceendpoint_black_duck",
 		"betterado_serviceendpoint_checkmarx_one",
 		"betterado_serviceendpoint_checkmarx_sca",
@@ -87,9 +87,9 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// betterado_serviceendpoint_gcp_terraform migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_generic migrated to framework (registered in framework_provider.go)
 		"betterado_serviceendpoint_generic_git",
-		"betterado_serviceendpoint_github",
-		"betterado_serviceendpoint_github_enterprise",
-		"betterado_serviceendpoint_gitlab",
+		// betterado_serviceendpoint_github migrated to framework (registered in framework_provider.go)
+		// betterado_serviceendpoint_github_enterprise migrated to framework (registered in framework_provider.go)
+		// betterado_serviceendpoint_gitlab migrated to framework (registered in framework_provider.go)
 		"betterado_serviceendpoint_incomingwebhook",
 		"betterado_serviceendpoint_jenkins",
 		"betterado_serviceendpoint_jfrog_artifactory_v2",
@@ -189,9 +189,9 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_serviceendpoint_generic_v2",
 		// betterado_serviceendpoint_azurecr data source migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_azurerm data source migrated to framework (registered in framework_provider.go)
-		"betterado_serviceendpoint_bitbucket",
+		// betterado_serviceendpoint_bitbucket data source migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_dockerregistry data source migrated to framework (registered in framework_provider.go)
-		"betterado_serviceendpoint_github",
+		// betterado_serviceendpoint_github data source migrated to framework (registered in framework_provider.go)
 		"betterado_serviceendpoint_npm",
 		"betterado_serviceendpoint_sonarcloud",
 		"betterado_storage_key",

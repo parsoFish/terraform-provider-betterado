@@ -214,6 +214,10 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		serviceendpoint.NewServiceEndpointGcpTerraformResource,
 		serviceendpoint.NewServiceEndpointDockerRegistryResource,
 		serviceendpoint.NewServiceEndpointAzureCRResource,
+		serviceendpoint.NewServiceEndpointGitHubResource,
+		serviceendpoint.NewServiceEndpointGitHubEnterpriseResource,
+		serviceendpoint.NewServiceEndpointGitLabResource,
+		serviceendpoint.NewServiceEndpointBitBucketResource,
 	}
 }
 
@@ -227,5 +231,7 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		serviceendpoint.NewServiceEndpointAzureRMDataSource,
 		serviceendpoint.NewServiceEndpointDockerRegistryDataSource,
 		serviceendpoint.NewServiceEndpointAzureCRDataSource,
+		serviceendpoint.NewServiceEndpointGitHubDataSource,
+		serviceendpoint.NewServiceEndpointBitBucketDataSource,
 	}
 }
