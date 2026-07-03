@@ -421,10 +421,8 @@ func flattenNotificationSubscription(sub *notificationapi.NotificationSubscripti
 		if sub.Filter.EventType != nil {
 			model.SubscriptionType = types.StringValue(*sub.Filter.EventType)
 		}
-	} else {
-		if model.FilterType.IsUnknown() {
-			model.FilterType = types.StringNull()
-		}
+	} else if model.FilterType.IsUnknown() {
+		model.FilterType = types.StringNull()
 	}
 
 	// filter_criteria: ADO ISubscriptionFilter has no Criteria field in the Go
