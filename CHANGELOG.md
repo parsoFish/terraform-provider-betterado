@@ -7,6 +7,47 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+<<<<<<< HEAD
+### Changed
+
+- Migrated `betterado_feed`, `betterado_feed_permission`, `betterado_feed_retention_policy`, and `data.betterado_feed` from terraform-plugin-sdk/v2 to terraform-plugin-framework (mux provider).
+
+### FEATURES
+
+- **`betterado_feed` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served
+  through the mux provider. CRUD operations target the ADO Packaging Feeds API
+  (`_apis/packaging/feeds`). Schema is unchanged (`name`, `project_id`, `id`,
+  `features`). Soft-deleted feeds are treated as destroyed and re-created on
+  next apply. Verified by live acceptance tests
+  `TestAccFeedFramework_basic` and
+  `TestAccFeedFramework_withProject`.
+
+- **`betterado_feed_permission` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served
+  through the mux provider. Manages a single permission entry per resource
+  instance; `display_name`, `identity_id`, `identity_descriptor`, `role`,
+  `feed_id`, and `project_id` are all exposed. Verified by live acceptance tests
+  `TestAccFeedPermissionFramework_basic`.
+
+- **`data.betterado_feed` migrated to terraform-plugin-framework.**
+  The data source now uses the terraform-plugin-framework implementation served
+  through the mux provider. Lookup by `name` (org-scoped) or `feed_id` (UUID,
+  project-scoped) is supported; `name`, `feed_id`, `project_id`, and `id` are
+  all exposed. Verified by live acceptance tests
+  `TestAccFeedDataSourceFramework_byName` and
+  `TestAccFeedDataSourceFramework_byId`.
+
+- **`betterado_feed_retention_policy` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served
+  through the mux provider alongside the existing SDKv2 path. CRUD operations
+  target the ADO Packaging Feeds retention-policy API
+  (`_apis/packaging/feeds/{feedId}/retentionpolicies`). Schema is unchanged
+  (`feed_id`, `project_id`, `count_limit`,
+  `days_to_keep_recently_downloaded_packages`). Verified by live acceptance
+  tests `TestAccFeedRetentionPolicyFramework_projectBasic` and
+  `TestAccFeedRetentionPolicyFramework_update`.
+=======
 ### ENHANCEMENTS
 
 - **Migrated `betterado_serviceendpoint_*` (24 resources + 8 data sources) from terraform-plugin-sdk/v2 to terraform-plugin-framework** via the mux provider.
@@ -308,6 +349,7 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   **Deliberately NOT migrated this iteration** (documented in `docs/build-gap-matrix.md`):
   `variable_groups`, `schedules`, `jobs`, `build_completion_trigger`.
   Verified by live acceptance test `TestAccBuildDefinition_Framework_DataSource`.
+>>>>>>> origin/main
 
 ## [1.2.0] - 2026-07-01
 

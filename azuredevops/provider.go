@@ -17,7 +17,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/feed"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/graph"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
@@ -69,10 +68,10 @@ func Provider() *schema.Provider {
 			// betterado_extension is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_feed":                  feed.ResourceFeed(),
-			"betterado_feed_permission":       feed.ResourceFeedPermission(),
-			"betterado_feed_retention_policy": feed.ResourceFeedRetentionPolicy(),
-			"betterado_git_permissions":       permissions.ResourceGitPermissions(),
+			// betterado_feed migrated to the framework provider (framework_provider.go).
+			// betterado_feed_permission migrated to the framework provider (framework_provider.go).
+			// betterado_feed_retention_policy migrated to the framework provider (framework_provider.go).
+			"betterado_git_permissions": permissions.ResourceGitPermissions(),
 			// betterado_git_repository migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository_branch migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository_file migrated to the framework provider (framework_provider.go).
@@ -198,7 +197,7 @@ func Provider() *schema.Provider {
 			"betterado_client_config": service.DataClientConfig(),
 			"betterado_descriptor":    graph.DataDescriptor(),
 			"betterado_environment":   taskagent.DataEnvironment(),
-			"betterado_feed":          feed.DataFeed(),
+			// betterado_feed migrated to the framework provider (framework_provider.go).
 			// betterado_git_repositories migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository_file migrated to the framework provider (framework_provider.go).
