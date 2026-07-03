@@ -252,10 +252,18 @@ func (r *ruleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 				Default:     ruleStaticBoolDefault{value: true},
 				Description: "Indicates if the rule is enabled.",
 			},
-			"condition": schema.SetNestedAttribute{
-				Required:    true,
+			"url": schema.StringAttribute{
+				Computed:    true,
+				Description: "URL of the rule resource.",
+				PlanModifiers: []planmodifier.String{
+					ruleUseStateForUnknownString{},
+				},
+			},
+		},
+		Blocks: map[string]schema.Block{
+			"condition": schema.SetNestedBlock{
 				Description: "Set of conditions when the rule should be triggered.",
-				NestedObject: schema.NestedAttributeObject{
+				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"condition_type": schema.StringAttribute{
 							Required:    true,
@@ -277,10 +285,9 @@ func (r *ruleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 					},
 				},
 			},
-			"action": schema.SetNestedAttribute{
-				Required:    true,
+			"action": schema.SetNestedBlock{
 				Description: "Set of actions to take when the rule is triggered.",
-				NestedObject: schema.NestedAttributeObject{
+				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
 						"action_type": schema.StringAttribute{
 							Required:    true,
@@ -299,13 +306,6 @@ func (r *ruleResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 							Description: "Value to set on the target field.",
 						},
 					},
-				},
-			},
-			"url": schema.StringAttribute{
-				Computed:    true,
-				Description: "URL of the rule resource.",
-				PlanModifiers: []planmodifier.String{
-					ruleUseStateForUnknownString{},
 				},
 			},
 		},
