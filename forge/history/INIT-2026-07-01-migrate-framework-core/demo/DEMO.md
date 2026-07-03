@@ -1,136 +1,59 @@
-# Demo — INIT-2026-07-01-migrate-framework-core
+# Migrate core resources (betterado_project, betterado_project_features, + data sources) to terraform-plugin-framework
 
-> **Migrate core resources (betterado_project, betterado_project_features, + data sources) to terraform-plugin-framework**
+> _Derived from `demo.json` (ADR 021). Essence:_ Migrates betterado_project (resource + 2 data sources) and betterado_project_features to terraform-plugin-framework, served through the mux provider. Produces a gap matrix (docs/core-gap-matrix.md) comparing all core resource schemas against the ADO REST API v7.1. Bug fix (UWI-2): applyFeatureStates now surfaces silent ADO feature-state rejections (testplans license restriction); acceptance test switched to license-free features (artifacts + boards). Fixture safety hardened: SharedReleaseFixture fails loudly when betterado-standing-demo is absent. Outstanding regressions from UWI-2 not yet addressed: betterado_project framework schema missing 'features' attribute, validators not ported. WI-4 through WI-9 remain deferred — per-WI Ralphs exhausted iteration budgets.
 
-## Essence
+## Intent & Outcome
 
-`betterado_project` (resource) plus `data.betterado_project` and `data.betterado_projects` data sources are now served by the mux provider via terraform-plugin-framework (WI-2). `betterado_project_features` is also migrated to a framework `resource.Resource` (WI-3) and proven by a live acceptance test with real evidence captured via `CaptureLiveEvidence`. A gap matrix (`docs/core-gap-matrix.md`) documents every field for all 7 core resources against the ADO Projects/Teams/Features REST API v7.1 (WI-1). WI-4 through WI-9 exited `status: failed`; those resources remain in SDKv2 and are deferred to a follow-up initiative.
+> _Assessed intent:_ Migrates betterado_project (resource + 2 data sources) and betterado_project_features to terraform-plugin-framework, served through the mux provider. Produces a gap matrix (docs/core-gap-matrix.md) comparing all core resource schemas against the ADO REST API v7.1. Bug fix (UWI-2): applyFeatureStates now surfaces silent ADO feature-state rejections (testplans license restriction); acceptance test switched to license-free features (artifacts + boards). Fixture safety hardened: SharedReleaseFixture fails loudly when betterado-standing-demo is absent. Outstanding regressions from UWI-2 not yet addressed: betterado_project framework schema missing 'features' attribute, validators not ported. WI-4 through WI-9 remain deferred — per-WI Ralphs exhausted iteration budgets.
 
-## Diff stat
+| # | Acceptance criterion | Verdict | Evidence |
+|---|---|---|---|
+| 1 | GIVEN the ADO Projects/Teams/Features REST API v7.1 schema WHEN compared against each in-scope resource's current SDKv2 schema THEN docs/core-gap-matrix.md exists and lists every field for betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members with status (implemented / read-only / gap / out-of-scope) and every writable gap is resolved or explicitly deferred with rationale | ✓ met | docs/core-gap-matrix.md committed in 4e36fa83; contains field-by-field tables for all 7 resources with implemented/read-only/gap/out-of-scope status; every gap row carries explicit rationale. File is present in branch diff: `git diff --name-only main...HEAD` shows docs/core-gap-matrix.md (191 lines added). |
+| 2 | GIVEN betterado_project resource implemented as resource.Resource in terraform-plugin-framework WHEN terraform import is run against the betterado-standing-demo project (must NOT create a new project) THEN the import succeeds, read-back asserts name/visibility/version_control attributes, and idempotency re-plan shows no diff (ExpectNonEmptyPlan: false) | ✓ met | TestAccProject_importByName in azuredevops/internal/acceptancetests/resource_project_test.go uses GetMuxedProviderFactories(); imports betterado-standing-demo; asserts name/visibility/version_control; ExpectNonEmptyPlan: false. Committed in cbea0eef + e995fe9d + cf0491cf. |
+| 3 | GIVEN data.betterado_project data source implemented in framework WHEN terraform apply runs with a data source lookup by name against betterado-standing-demo THEN data source returns correct project fields; TestAccProject_dataSource_withID and TestAccProject_dataSource_withName pass | ✓ met | data_project_framework.go (172 lines) committed; TestAccProject_dataSource_withID and TestAccProject_dataSource_withName updated in data_project_test.go to use GetMuxedProviderFactories(). Committed in af6f73e2. |
+| 4 | GIVEN data.betterado_projects data source implemented in framework WHEN terraform apply runs listing projects THEN TestAccProjects_dataSource passes | ✓ met | data_projects_framework.go (186 lines) committed; TestAccProjects_dataSource updated to use GetMuxedProviderFactories() in data_projects_test.go. Committed in af6f73e2. |
+| 5 | GIVEN betterado_project, data.betterado_project, data.betterado_projects deregistered from SDKv2 provider.go WHEN TestProvider_HasChildResources and TestProvider_HasChildDataSources run THEN both pass with updated counts | ✓ met | provider.go removes betterado_project from ResourcesMap; removes betterado_project and betterado_projects from DataSourcesMap; provider_test.go updated with new counts. TestProvider_HasChildResources + TestProvider_HasChildDataSources pass (offline gate: go test -tags all -run TestProvider_HasChildResources ./azuredevops/). |
+| 6 | GIVEN betterado_project_features implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply enables/disables project features on betterado-standing-demo → read-back → idempotency re-plan → terraform destroy (feature state restored) THEN TestAccProjectFeatures_roundtrip passes with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false | ✓ met | TestAccProjectFeatures_roundtrip passes (UWI-2 fix b154c6de: uses artifacts+boards instead of testplans+artifacts; applyFeatureStates checks ContributedFeatureState return). CaptureLiveEvidence('acceptance-resource', 'https://dev.azure.com/davidgparsonson/_apis/FeatureManagement/FeatureStatesForScope/host/project/c0ac3757-e915-453f-ba2b-93a3720d1994?api-version=7.1', response) wrote .forge/live-evidence/acceptance-resource.json (capturedAt: 2026-07-02T09:17:10Z). Feature states: artifacts=disabled, boards=enabled, pipelines=enabled, repositories=enabled, testplans=disabled. |
+| 7 | GIVEN betterado_project_features removed from SDKv2 ResourcesMap WHEN TestProvider_HasChildResources runs THEN test passes with updated count (one fewer SDKv2 resource) | ✓ met | provider.go removes betterado_project_features from ResourcesMap; provider_test.go updated with new count. Committed in 81548588. |
+| 8 | GIVEN SDKv2 betterado_project validated name (StringIsNotWhiteSpace) and visibility/version_control (StringInSlice) WHEN the framework resource Schema() is finalized THEN equivalent stringvalidator validators are attached to each attribute | ✗ missed | UWI-2 AC2 not delivered: resource_project_framework.go Schema() carries no stringvalidator for name (whitespace check) or visibility/version_control (enum check). Validators absent — users can set whitespace-only names or invalid enum values without client-side validation. Deferred to follow-up initiative. |
+| 9 | GIVEN SDKv2 betterado_project_features validated project_id (IsUUID) and feature keys/values (validateProjectFeatures) WHEN the framework resource Schema() is finalized THEN equivalent validators are attached (UUID pattern + map-value validator with the same accepted feature names/states) | ✗ missed | UWI-2 AC3 not delivered: resource_project_features_framework.go Schema() carries no UUID validator on project_id and no map-value validator for feature keys/values. Deferred to follow-up initiative. |
+| 10 | GIVEN SDKv2 betterado_project carried a wired features TypeMap attribute and the WI-1 gap matrix classifies it implemented WHEN the framework betterado_project ships THEN features is present in the schema and wired through create/read/update — OR the gap matrix and CHANGELOG explicitly reclassify it as a deliberate breaking deferral with rationale | ✗ missed | UWI-2 AC4 not delivered: resource_project_framework.go Schema() does not include a 'features' attribute. The gap matrix classifies it implemented but the framework port omitted it. This is a regression vs SDKv2 — existing configs using features={...} would break on upgrade. Deferred to follow-up initiative. |
+| 11 | GIVEN the features attribute regression went undetected by every gate WHEN it is fixed THEN an offline schema/roundtrip test asserts the attribute exists and is wired so a future migration cannot silently drop it | ✗ missed | UWI-2 AC5 not delivered: no offline schema regression test added. The features attribute omission went undetected through all gates. Deferred to follow-up initiative. |
+| 12 | GIVEN betterado_project_pipeline_settings implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply sets pipeline settings on betterado-standing-demo project → read-back → idempotency re-plan → terraform destroy (settings restored) THEN TestAccProjectPipelineSettings passes with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false | ✗ missed | WI-4 status: failed — not committed on branch. betterado_project_pipeline_settings remains in SDKv2 ResourcesMap. Deferred: per-WI Ralph exhausted iteration budget without landing the framework implementation. |
+| 13 | GIVEN betterado_project_pipeline_settings removed from SDKv2 ResourcesMap WHEN TestProvider_HasChildResources runs THEN test passes with updated count | ✗ missed | WI-4 status: failed — not committed. betterado_project_pipeline_settings remains in SDKv2 ResourcesMap. |
+| 14 | GIVEN betterado_project_tags implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply adds tags to betterado-standing-demo project → read-back → idempotency re-plan → terraform destroy (tags removed) THEN TestAccProjectTags passes with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false | ✗ missed | WI-5 status: failed — not committed on branch. betterado_project_tags remains in SDKv2 ResourcesMap. |
+| 15 | GIVEN betterado_project_tags removed from SDKv2 ResourcesMap WHEN TestProvider_HasChildResources runs THEN test passes with updated count | ✗ missed | WI-5 status: failed — not committed. betterado_project_tags remains in SDKv2 ResourcesMap. |
+| 16 | GIVEN betterado_team resource implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply creates a team in betterado-standing-demo → read-back → idempotency re-plan → terraform destroy THEN TestAccTeam_basic and TestAccTeam_update pass with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false | ✗ missed | WI-6 status: failed — not committed on branch. betterado_team remains in SDKv2 ResourcesMap. |
+| 17 | GIVEN data.betterado_team and data.betterado_teams data sources implemented in framework WHEN terraform apply reads team(s) from betterado-standing-demo THEN TestAccTeam_dataSource and TestAccTeams_dataSource pass with GetMuxedProviderFactories() | ✗ missed | WI-6 status: failed — data.betterado_team and data.betterado_teams remain in SDKv2 DataSourcesMap. |
+| 18 | GIVEN betterado_team removed from SDKv2 ResourcesMap; data.betterado_team and data.betterado_teams removed from DataSourcesMap WHEN TestProvider_HasChildResources and TestProvider_HasChildDataSources run THEN both pass with updated counts | ✗ missed | WI-6 status: failed — no deregistration committed. |
+| 19 | GIVEN betterado_team_administrators implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply sets team administrators on a team in betterado-standing-demo → read-back → idempotency re-plan → terraform destroy THEN TestAccTeamAdministrators passes with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false | ✗ missed | WI-7 status: failed — not committed on branch. |
+| 20 | GIVEN betterado_team_members implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply sets team members on a team in betterado-standing-demo → read-back → idempotency re-plan → terraform destroy THEN TestAccTeamMembers passes with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false | ✗ missed | WI-7 status: failed — not committed on branch. |
+| 21 | GIVEN betterado_team_administrators and betterado_team_members removed from SDKv2 ResourcesMap WHEN TestProvider_HasChildResources runs THEN test passes with updated count (two fewer SDKv2 resources) | ✗ missed | WI-7 status: failed — no deregistration committed. |
+| 22 | GIVEN data.betterado_client_config data source implemented as datasource.DataSource in terraform-plugin-framework WHEN terraform apply reads provider config metadata (org URL, tenant ID, owner) THEN TestAccClientConfig_LoadsCorrectProperties passes with GetMuxedProviderFactories(); name, status, tenant_id, owner_id, organization_url all set correctly | ✗ missed | WI-8 status: failed — not committed on branch. data.betterado_client_config remains in SDKv2 DataSourcesMap. |
+| 23 | GIVEN data.betterado_client_config removed from SDKv2 DataSourcesMap in provider.go WHEN TestProvider_HasChildDataSources runs THEN test passes with updated count (one fewer SDKv2 data source) | ✗ missed | WI-8 status: failed — not committed. |
+| 24 | GIVEN all core resources and data sources migrated to framework (WI-2 through WI-8) WHEN make docs runs (tfplugindocs) THEN docs/resources/ and docs/data-sources/ are regenerated for every migrated resource; hand-written guides restored via git checkout -- docs/guides/; examples/resources/<name>/resource.tf exists for each migrated resource | ~ partial | WI-9 status: failed — docs regeneration not run for the full set. The gap matrix (docs/core-gap-matrix.md) is committed. Docs for betterado_project and betterado_project_features are NOT yet regenerated; WI-4 through WI-8 not delivered so their docs are also deferred. |
+| 25 | GIVEN CHANGELOG.md updated and PROVIDER_VERSION.txt bumped WHEN git diff HEAD shows the changes THEN CHANGELOG.md has a new entry under ## Unreleased describing the core framework migration; PROVIDER_VERSION.txt has a bumped semver patch or minor version | ~ partial | CHANGELOG.md has a DRAFT ## [Unreleased] entry covering WI-1 through WI-3 (14 lines added), noting WI-4 through WI-9 deferral. PROVIDER_VERSION.txt bump is a pre-merge finaliser step per project.json releaseProcess — not committed by unifier. |
+| 26 | GIVEN demo.json carries real REST GET checkpoints from live evidence WHEN forge demo render is invoked by the unifier THEN demo.json ends with a checkpoint carrying liveEvidence.url (a real REST GET URL from CaptureLiveEvidence calls in WI-2 through WI-7) | ✓ met | Live evidence captured by TestAccProjectFeatures_roundtrip → CaptureLiveEvidence('acceptance-resource') → .forge/live-evidence/acceptance-resource.json: url=https://dev.azure.com/davidgparsonson/_apis/FeatureManagement/FeatureStatesForScope/host/project/c0ac3757-e915-453f-ba2b-93a3720d1994?api-version=7.1; capturedAt=2026-07-02T09:17:10Z. |
 
-12 files changed, 1633 insertions(+), 117 deletions(-)
+## Visual Changes
 
----
+### Offline unit gate: release + taskagent packages green with no TF_ACC — verbatim gate forge ran
 
-## Checkpoint 1 — Offline quality gate
+- **Before:** Gate runs against main branch (pre-migration)
+- **After:** Gate passes on branch HEAD (post-migration + UWI-2 fixes): ok release 0.008s; ok taskagent 0.009s; ok taskagent/validate 0.006s
 
-**Caption:** Offline unit tests for release and taskagent packages pass on branch HEAD (the gate forge ran, verbatim)
+### Framework provider registers migrated resources/data-sources; SDKv2 maps updated
 
-**Command (before/after evidence):**
+- **Before:** betterado_project, betterado_project_features in SDKv2 ResourcesMap
+- **After:** betterado_project and betterado_project_features removed from SDKv2 ResourcesMap; both registered in framework_provider.go Resources()
+
+### Live REST GET: betterado_project_features feature states from ADO API (CaptureLiveEvidence, capturedAt 2026-07-02T09:17:10Z)
+
+- **Before:** betterado_project_features served via SDKv2 schema helper; testplans feature toggle silently failed (license restriction) causing 'inconsistent result after apply' panic
+- **After:** betterado_project_features served via framework resource.Resource; applyFeatureStates checks ContributedFeatureState return — surfaces license errors; test uses artifacts+boards (license-free); live GET: artifacts=disabled boards=enabled pipelines=enabled repositories=enabled testplans=disabled
+
+## Files Changed
+
 ```
-go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...
+17 files changed, 2094 insertions(+), 302 deletions(-)
 ```
-
-| | |
-|---|---|
-| **Before (main)** | Framework files did not exist; only SDKv2 paths compiled |
-| **After (HEAD)** | `ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.008s` \| `ok .../taskagent 0.007s` \| `ok .../taskagent/validate 0.006s` — all three packages green |
-
----
-
-## Checkpoint 2 — Provider registration
-
-**Caption:** Framework provider registers migrated resources/data-sources; SDKv2 maps updated; TestProvider_HasChildResources + TestProvider_HasChildDataSources pass
-
-**Command (before/after evidence):**
-```
-go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/
-```
-
-| | |
-|---|---|
-| **Before (main)** | `betterado_project`, `betterado_project_features` in SDKv2 `ResourcesMap`; `betterado_project`, `betterado_projects` in `DataSourcesMap` |
-| **After (HEAD)** | `betterado_project` + `betterado_project_features` removed from SDKv2 maps; registered in `framework_provider.go` `Resources()` / `DataSources()`. `TestProvider_HasChildResources` + `TestProvider_HasChildDataSources` → `ok` (0.007s) |
-
----
-
-## Checkpoint 3 — Live project_features resource read-back
-
-**Caption:** Live REST GET: betterado_project_features feature states from ADO API (CaptureLiveEvidence called in TestAccProjectFeatures_roundtrip)
-
-**Command (before/after evidence):**
-```
-go test -tags all -count=1 -run TestAccProjectFeatures_roundtrip ./azuredevops/internal/acceptancetests/
-```
-
-**Live evidence (captured 2026-07-02T09:17:10Z):**
-
-- **REST GET:** `https://dev.azure.com/davidgparsonson/_apis/FeatureManagement/FeatureStatesForScope/host/project/c0ac3757-e915-453f-ba2b-93a3720d1994?api-version=7.1`
-- **Response:**
-  ```json
-  {
-    "artifacts": "disabled",
-    "boards": "enabled",
-    "pipelines": "enabled",
-    "repositories": "enabled",
-    "testplans": "disabled"
-  }
-  ```
-
-| | |
-|---|---|
-| **Before (main)** | `betterado_project_features` was SDKv2-only; `projectUseStateForUnknown` applied in SDKv2 `CreateContext` |
-| **After (HEAD)** | `betterado_project_features` served via mux→framework `resource.Resource`; `Configure()` wires `*client.AggregatedClient`; live GET on `betterado-standing-demo` confirmed feature states; `ExpectNonEmptyPlan: false` → PASS; destroy clean (feature states restored) |
-
----
-
-## Intent & Outcome — AC Evaluations
-
-| # | Criterion | Verdict | Evidence |
-|---|-----------|---------|----------|
-| AC1 | GIVEN ADO Projects/Teams/Features REST API v7.1 schema WHEN compared against each in-scope resource's SDKv2 schema THEN `docs/core-gap-matrix.md` exists listing every field with status for all 7 resources; every writable gap resolved or deferred with rationale | **met** | `docs/core-gap-matrix.md` committed (4e36fa83); 191 lines; field tables for all 7 resources with implemented/read-only/gap/out-of-scope status; gap rows carry explicit rationale |
-| AC2 | GIVEN betterado_project as framework resource.Resource WHEN terraform import run against betterado-standing-demo THEN import succeeds, read-back asserts name/visibility/version_control, ExpectNonEmptyPlan: false | **met** | `TestAccProject_importByName` uses `GetMuxedProviderFactories()`; imports betterado-standing-demo; asserts name/visibility/version_control; `ExpectNonEmptyPlan: false`. Committed in cbea0eef + e995fe9d + cf0491cf |
-| AC3 | GIVEN data.betterado_project in framework WHEN terraform apply runs data source lookup by name THEN `TestAccProject_dataSource_withID` and `TestAccProject_dataSource_withName` pass | **met** | `data_project_framework.go` (172 lines) committed; both tests updated to muxed factories in `data_project_test.go` (commit af6f73e2) |
-| AC4 | GIVEN data.betterado_projects in framework WHEN terraform apply runs listing projects THEN TestAccProjects_dataSource passes | **met** | `data_projects_framework.go` (186 lines) committed; test updated to muxed factories in `data_projects_test.go` (commit af6f73e2) |
-| AC5 | GIVEN betterado_project + 2 data sources deregistered from SDKv2 provider.go WHEN TestProvider_HasChildResources + TestProvider_HasChildDataSources run THEN both pass with updated counts | **met** | `provider.go` removes all 3 from SDKv2 maps; `provider_test.go` updated; tests pass: `ok azuredevops 0.007s` |
-| AC6 | GIVEN betterado_project_features as framework resource.Resource WHEN terraform apply enables/disables features → read-back → re-plan → destroy THEN TestAccProjectFeatures_roundtrip passes; CaptureLiveEvidence called; ExpectNonEmptyPlan: false | **met** | `TestAccProjectFeatures_roundtrip` passed live; `CaptureLiveEvidence("acceptance-resource", url, response)` → `.forge/live-evidence/acceptance-resource.json` written (capturedAt 2026-07-02T09:17:10Z); `ExpectNonEmptyPlan: false` |
-| AC7 | GIVEN betterado_project_features removed from SDKv2 ResourcesMap WHEN TestProvider_HasChildResources runs THEN test passes with updated count | **met** | `provider.go` removes `betterado_project_features` from `ResourcesMap`; `provider_test.go` updated; tests pass |
-| AC8 | GIVEN betterado_project_pipeline_settings as framework resource.Resource WHEN TestAccProjectPipelineSettings passes | **missed** | WI-4 status: failed — not committed. betterado_project_pipeline_settings remains in SDKv2 ResourcesMap |
-| AC9 | GIVEN betterado_project_pipeline_settings removed from SDKv2 ResourcesMap WHEN TestProvider_HasChildResources runs THEN test passes | **missed** | WI-4 status: failed — not committed |
-| AC10 | GIVEN betterado_project_tags as framework resource.Resource WHEN TestAccProjectTags passes | **missed** | WI-5 status: failed — not committed. betterado_project_tags remains in SDKv2 ResourcesMap |
-| AC11 | GIVEN betterado_project_tags removed from SDKv2 ResourcesMap WHEN TestProvider_HasChildResources runs THEN test passes | **missed** | WI-5 status: failed — not committed |
-| AC12 | GIVEN betterado_team as framework resource.Resource WHEN TestAccTeam_basic + TestAccTeam_update pass | **missed** | WI-6 status: failed — not committed. betterado_team remains in SDKv2 ResourcesMap |
-| AC13 | GIVEN data.betterado_team + data.betterado_teams in framework WHEN TestAccTeam_dataSource + TestAccTeams_dataSource pass | **missed** | WI-6 status: failed — not committed |
-| AC14 | GIVEN betterado_team + 2 data sources deregistered from SDKv2 WHEN TestProvider tests run THEN pass with updated counts | **missed** | WI-6 status: failed |
-| AC15 | GIVEN betterado_team_administrators in framework WHEN TestAccTeamAdministrators passes | **missed** | WI-7 status: failed — not committed |
-| AC16 | GIVEN betterado_team_members in framework WHEN TestAccTeamMembers passes | **missed** | WI-7 status: failed — not committed |
-| AC17 | GIVEN betterado_team_administrators + betterado_team_members deregistered from SDKv2 WHEN TestProvider_HasChildResources runs THEN pass | **missed** | WI-7 status: failed |
-| AC18 | GIVEN data.betterado_client_config in framework WHEN TestAccClientConfig_LoadsCorrectProperties passes | **missed** | WI-8 status: failed — not committed. data.betterado_client_config remains in SDKv2 DataSourcesMap |
-| AC19 | GIVEN data.betterado_client_config removed from SDKv2 DataSourcesMap WHEN TestProvider_HasChildDataSources runs THEN pass | **missed** | WI-8 status: failed |
-| AC20 | GIVEN all resources migrated WHEN make docs runs THEN docs/resources/ + docs/data-sources/ regenerated; guides restored; examples/ present | **partial** | docs/core-gap-matrix.md committed. Full docs regeneration deferred (WI-9 status: failed; WI-4 through WI-8 not delivered) |
-| AC21 | GIVEN CHANGELOG.md updated and PROVIDER_VERSION.txt bumped WHEN git diff shows changes THEN CHANGELOG.md has Unreleased entry; version bumped | **partial** | CHANGELOG.md updated with draft Unreleased entry for WI-1 through WI-3 by this unifier commit. PROVIDER_VERSION.txt bump is a pre-merge finaliser step |
-| AC22 | GIVEN demo.json carries real REST GET checkpoints WHEN forge demo render invoked THEN demo.json ends with checkpoint carrying liveEvidence.url | **met** | Live evidence: `CaptureLiveEvidence("acceptance-resource", "https://dev.azure.com/davidgparsonson/_apis/FeatureManagement/FeatureStatesForScope/host/project/c0ac3757-e915-453f-ba2b-93a3720d1994?api-version=7.1", response)` → `.forge/live-evidence/acceptance-resource.json` (capturedAt 2026-07-02T09:17:10Z) |
-
----
-
-## Test evidence
-
-| Test | Result |
-|------|--------|
-| `go test -tags all -count=1 ./azuredevops/internal/service/release/...` (offline) | pass |
-| `go test -tags all -count=1 ./azuredevops/internal/service/taskagent/...` (offline) | pass |
-| `go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate/...` (offline) | pass |
-| `TestProvider_HasChildResources` (offline) | pass |
-| `TestProvider_HasChildDataSources` (offline) | pass |
-| `TestAccProject_importByName` (TF_ACC=1, live) | pass |
-| `TestAccProject_dataSource_withID` (TF_ACC=1, live, muxed factories) | pass |
-| `TestAccProject_dataSource_withName` (TF_ACC=1, live, muxed factories) | pass |
-| `TestAccProjects_dataSource` (TF_ACC=1, live, muxed factories) | pass |
-| `TestAccProjectFeatures_roundtrip` (TF_ACC=1, live) | pass |
-
-## Files changed
-
-| File | Change |
-|------|--------|
-| `docs/core-gap-matrix.md` | Added (191 lines) — ADO REST API v7.1 gap matrix for all 7 core resources |
-| `azuredevops/internal/service/core/resource_project_framework.go` | Added (455 lines) — betterado_project as framework resource.Resource |
-| `azuredevops/internal/service/core/data_project_framework.go` | Added (172 lines) — data.betterado_project as framework datasource.DataSource |
-| `azuredevops/internal/service/core/data_projects_framework.go` | Added (186 lines) — data.betterado_projects as framework datasource.DataSource |
-| `azuredevops/internal/service/core/resource_project_features_framework.go` | Added (332 lines) — betterado_project_features as framework resource.Resource |
-| `azuredevops/internal/provider/framework_provider.go` | Modified — registers 4 new framework types |
-| `azuredevops/provider.go` | Modified — removes 3 resources + data sources from SDKv2 maps |
-| `azuredevops/provider_test.go` | Modified — updated TestProvider_Has* counts |
-| `azuredevops/internal/acceptancetests/resource_project_test.go` | Modified — TestAccProject_importByName uses muxed factories |
-| `azuredevops/internal/acceptancetests/data_project_test.go` | Modified — tests updated to muxed factories |
-| `azuredevops/internal/acceptancetests/data_projects_test.go` | Modified — tests updated to muxed factories |
-| `azuredevops/internal/acceptancetests/resource_project_features_test.go` | Modified — TestAccProjectFeatures_roundtrip uses muxed factories + CaptureLiveEvidence |

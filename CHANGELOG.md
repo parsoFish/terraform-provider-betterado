@@ -15,11 +15,19 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 - **`data.betterado_project` and `data.betterado_projects` data sources migrated to terraform-plugin-framework.** Lookup by name or ID. `TestAccProject_dataSource_withID`, `TestAccProject_dataSource_withName`, and `TestAccProjects_dataSource` updated to use `GetMuxedProviderFactories()`.
 
-- **`betterado_project_features` resource migrated to terraform-plugin-framework.** Enable/disable per-project features (boards, pipelines, artifacts, testplans, repositories) with idempotent apply and clean destroy (feature state restored). `TestAccProjectFeatures_roundtrip` passes live; `CaptureLiveEvidence` records real REST GET of feature states from `betterado-standing-demo`. `ExpectNonEmptyPlan: false`.
+- **`betterado_project_features` resource migrated to terraform-plugin-framework.** Enable/disable per-project features (boards, pipelines, artifacts, repositories) with idempotent apply and clean destroy (feature state restored). `TestAccProjectFeatures_roundtrip` passes live against license-free features (artifacts, boards); `CaptureLiveEvidence` records real REST GET of feature states from `betterado-standing-demo`. `ExpectNonEmptyPlan: false`.
+
+### BUG FIXES
+
+- **`betterado_project_features` silent feature-state failure surfaced.** `applyFeatureStates` now checks the `ContributedFeatureState` returned by `SetFeatureStateForScope` and returns a clear error when the API returns HTTP 200 but did not apply the requested state (e.g. testplans requires a paid license). Previously, the provider would silently accept the response and trigger an "inconsistent result after apply" panic on the next plan.
+
+- **Fixture safety hardened in acceptance tests.** `SharedReleaseFixture`/`smokeResolveProject` now fail loudly when `betterado-standing-demo` is not found, preventing silent project creation that would exhaust the org's 1000-project soft-delete cap.
 
 ### NOTES
 
 - WI-4 (`betterado_project_pipeline_settings`), WI-5 (`betterado_project_tags`), WI-6 (`betterado_team` + data sources), WI-7 (`betterado_team_administrators`, `betterado_team_members`), WI-8 (`data.betterado_client_config`), and WI-9 (full docs regeneration) were not delivered in this initiative (per-WI Ralphs exhausted iteration budgets). Those resources remain in the SDKv2 `ResourcesMap`/`DataSourcesMap` and are deferred to a follow-up initiative.
+
+- **Known regressions pending follow-up:** The framework `betterado_project` schema is missing the `features` TypeMap attribute (present in SDKv2; classified `implemented` in the gap matrix — configs using `features={...}` will break on upgrade). SDKv2 validators for `name` (whitespace check), `visibility`/`version_control` (enum checks), and `project_id` UUID + feature-map key/value validation in `betterado_project_features` were not ported to framework equivalents. These must be resolved before this PR is merged.
 
 ## [1.2.0] - 2026-07-01
 
