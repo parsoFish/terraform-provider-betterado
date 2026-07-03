@@ -31,10 +31,10 @@ import (
 
 // Compile-time interface checks.
 var (
-	_ resource.Resource                    = &gitRepositoryResource{}
-	_ resource.ResourceWithConfigure       = &gitRepositoryResource{}
-	_ resource.ResourceWithImportState     = &gitRepositoryResource{}
-	_ resource.ResourceWithValidateConfig  = &gitRepositoryResource{}
+	_ resource.Resource                   = &gitRepositoryResource{}
+	_ resource.ResourceWithConfigure      = &gitRepositoryResource{}
+	_ resource.ResourceWithImportState    = &gitRepositoryResource{}
+	_ resource.ResourceWithValidateConfig = &gitRepositoryResource{}
 )
 
 // ---- plan-modifier / default helpers ----------------------------------------
@@ -171,7 +171,9 @@ type gitStringOneOfValidator struct {
 	allowed []string
 }
 
-func gitStringOneOf(allowed ...string) validator.String { return gitStringOneOfValidator{allowed: allowed} }
+func gitStringOneOf(allowed ...string) validator.String {
+	return gitStringOneOfValidator{allowed: allowed}
+}
 func (v gitStringOneOfValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("value must be one of: %s", strings.Join(v.allowed, ", "))
 }
