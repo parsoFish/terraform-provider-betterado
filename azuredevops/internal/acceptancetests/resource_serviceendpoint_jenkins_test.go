@@ -1,3 +1,5 @@
+//go:build (all || resource_serviceendpoint_jenkins) && !exclude_resource_serviceendpoint_jenkins
+
 package acceptancetests
 
 import (
@@ -15,9 +17,9 @@ func TestAccServiceEndpointJenkins_basic_usernamepassword(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_jenkins"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointJenkinsResourceBasicUsernamePassword(projectName, serviceEndpointName, t.Name()),
@@ -39,9 +41,9 @@ func TestAccServiceEndpointJenkins_complete_usernamepassword(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_jenkins"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointJenkinsResourceCompleteUsernamePassword(projectName, serviceEndpointName, description),
@@ -69,9 +71,9 @@ func TestAccServiceEndpointJenkins_update_usernamepassword(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_jenkins"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointJenkinsResourceBasicUsernamePassword(projectName, serviceEndpointNameFirst, t.Name()),
@@ -103,9 +105,9 @@ func TestAccServiceEndpointJenkins_RequiresImportErrorStepUsernamePassword(t *te
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointJenkinsResourceBasicUsernamePassword(projectName, serviceEndpointName, t.Name()),

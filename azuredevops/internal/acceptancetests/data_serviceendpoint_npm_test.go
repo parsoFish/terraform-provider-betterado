@@ -13,8 +13,8 @@ func TestAccServiceEndpointNpm_dataSource(t *testing.T) {
 
 	tfNode := "data.betterado_serviceendpoint_npm.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclServiceEndpointNpmDataSource(name),
