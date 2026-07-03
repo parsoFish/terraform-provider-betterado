@@ -99,7 +99,20 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 
 	setUserAgent(connection)
 
-	accountsClient, err := accounts.NewClient(ctx, connection)
+	// The Profile and Accounts APIs are hosted on the global VSSPS endpoint.
+	// Their resource area IDs (8ccfef3d-... and 0d55247a-...) are NOT
+	// registered on org-scoped URLs (https://dev.azure.com/<org>); the
+	// discovery call to GetResourceAreas returns a 404/empty result for them
+	// there. A separate connection to https://app.vssps.visualstudio.com is
+	// required so that GetClientByResourceAreaId can resolve their locations.
+	vsspsConnection := &azuredevops.Connection{
+		AuthProvider:            authProvider,
+		BaseUrl:                 "https://app.vssps.visualstudio.com",
+		SuppressFedAuthRedirect: true,
+	}
+	setUserAgent(vsspsConnection)
+
+	accountsClient, err := accounts.NewClient(ctx, vsspsConnection)
 	if err != nil {
 		log.Printf("getAzdoClient(): accounts.NewClient failed.")
 		return nil, err
@@ -177,7 +190,7 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 		return nil, err
 	}
 
-	profileClient, err := profile.NewClient(ctx, connection)
+	profileClient, err := profile.NewClient(ctx, vsspsConnection)
 	if err != nil {
 		log.Printf("getAzdoClient(): profile.NewClient failed.")
 		return nil, err
