@@ -3,7 +3,7 @@
   "essence": "Migrates all 7 core resources (betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members) and 5 data sources (data.betterado_project, data.betterado_projects, data.betterado_team, data.betterado_teams, data.betterado_client_config) to terraform-plugin-framework, served through the mux provider. Produces a gap matrix (docs/core-gap-matrix.md) comparing all core resource schemas against the ADO REST API v7.1. Bug fix: applyFeatureStates surfaces silent ADO feature-state rejections (testplans license restriction). Fixture safety hardened. Missing validators and features attribute in betterado_project schema are documented as deferred regressions. provider_test.go updated to reflect all SDKv2 deregistrations.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-core",
-  "diffStat": "166 files changed, 12493 insertions(+), 466 deletions(-)",
+  "diffStat": "166 files changed, 12528 insertions(+), 489 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
