@@ -142,22 +142,22 @@
     },
     {
       "criterion": "AC10 (WI-4): GIVEN data.betterado_descriptor with valid storage_key WHEN terraform apply runs THEN descriptor populated, idempotency re-plan clean",
-      "verdict": "not-met",
+      "verdict": "missed",
       "evidence": "TestAccGraphSimpleDataSources_Framework/Descriptor exists in data_graph_simple_framework_test.go and the test function is real, but no CaptureLiveEvidence call was made in this test; no live API response was persisted under the per-type label. Acceptance test requires TF_ACC=1 which was not run with capture for this data source type."
     },
     {
       "criterion": "AC11 (WI-4): GIVEN data.betterado_storage_key with valid descriptor WHEN terraform apply runs THEN storage_key populated, idempotency re-plan clean",
-      "verdict": "not-met",
+      "verdict": "missed",
       "evidence": "TestAccGraphSimpleDataSources_Framework/StorageKey exists in data_graph_simple_framework_test.go and the test function is real, but no CaptureLiveEvidence call was made; no live API response persisted for this data source type."
     },
     {
       "criterion": "AC12 (WI-4): GIVEN data.betterado_group with name and project_id WHEN terraform apply runs THEN descriptor, origin, origin_id, group_id all populated, idempotency re-plan clean",
-      "verdict": "not-met",
+      "verdict": "missed",
       "evidence": "TestAccGraphSimpleDataSources_Framework/Group exists in data_graph_simple_framework_test.go, but no CaptureLiveEvidence call was made; no live API response persisted for this data source type."
     },
     {
       "criterion": "AC13 (WI-4): GIVEN data.betterado_group_membership with group_descriptor WHEN terraform apply runs THEN members list populated, idempotency re-plan clean",
-      "verdict": "not-met",
+      "verdict": "missed",
       "evidence": "TestAccGraphSimpleDataSources_Framework/GroupMembership exists in data_graph_simple_framework_test.go, but no CaptureLiveEvidence call was made; no live API response persisted for this data source type."
     },
     {
@@ -167,22 +167,22 @@
     },
     {
       "criterion": "AC15 (WI-5): GIVEN data.betterado_user with known descriptor WHEN terraform apply runs THEN all computed attrs populated, idempotency re-plan clean",
-      "verdict": "not-met",
+      "verdict": "missed",
       "evidence": "TestAccGraphComplexDataSources_Framework/User exists in data_graph_complex_framework_test.go, but no CaptureLiveEvidence call was made for this sub-test; no live API response persisted for this data source type."
     },
     {
       "criterion": "AC16 (WI-5): GIVEN data.betterado_users with optional filters WHEN terraform apply runs THEN users set populated with matching users, idempotency re-plan clean",
-      "verdict": "not-met",
+      "verdict": "missed",
       "evidence": "TestAccGraphComplexDataSources_Framework/Users exists in data_graph_complex_framework_test.go, but no CaptureLiveEvidence call was made; no live API response persisted for this data source type."
     },
     {
       "criterion": "AC17 (WI-5): GIVEN data.betterado_groups with optional project_id WHEN terraform apply runs THEN groups set populated, each group has all attrs, idempotency re-plan clean",
-      "verdict": "not-met",
+      "verdict": "missed",
       "evidence": "TestAccGraphComplexDataSources_Framework/Groups exists in data_graph_complex_framework_test.go, but no CaptureLiveEvidence call was made; no live API response persisted for this data source type."
     },
     {
       "criterion": "AC18 (WI-5): GIVEN data.betterado_service_principal with known display_name WHEN terraform apply runs THEN descriptor, display_name, origin_id, origin populated, idempotency re-plan clean",
-      "verdict": "not-met",
+      "verdict": "missed",
       "evidence": "TestAccGraphComplexDataSources_Framework/ServicePrincipal exists in data_graph_complex_framework_test.go, but no CaptureLiveEvidence call was made; no live API response persisted for this data source type."
     },
     {
@@ -197,12 +197,12 @@
     },
     {
       "criterion": "AC21 (WI-6): GIVEN data.betterado_identity_groups with optional project_id WHEN terraform apply runs THEN groups set populated, each group has id/name/descriptor/subject_descriptor, idempotency re-plan clean",
-      "verdict": "not-met",
+      "verdict": "missed",
       "evidence": "TestAccIdentityDataSources_Framework/IdentityGroups exists in data_identity_group_framework_test.go, but no CaptureLiveEvidence call was made for this sub-test; no live API response persisted for this data source type."
     },
     {
       "criterion": "AC22 (WI-6): GIVEN data.betterado_identity_user with name WHEN terraform apply runs THEN descriptor and subject_descriptor populated, idempotency re-plan clean",
-      "verdict": "not-met",
+      "verdict": "missed",
       "evidence": "TestAccIdentityDataSources_Framework/IdentityUser exists in data_identity_group_framework_test.go, but no CaptureLiveEvidence call was made for this sub-test; no live API response persisted for this data source type."
     },
     {
