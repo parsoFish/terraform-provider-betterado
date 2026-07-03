@@ -32,9 +32,11 @@ func ueRequiresReplace() planmodifier.String { return uePlanRequiresReplace{} }
 func (m uePlanRequiresReplace) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m uePlanRequiresReplace) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m uePlanRequiresReplace) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -53,9 +55,11 @@ func ueStateForUnknown() planmodifier.String { return ueUseStateForUnknown{} }
 func (m ueUseStateForUnknown) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m ueUseStateForUnknown) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m ueUseStateForUnknown) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
