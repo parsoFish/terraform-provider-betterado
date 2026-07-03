@@ -9,10 +9,11 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/datahelper"
 )
 
+// TestAccVariableGroupPermissions_SetPermissions verifies that permissions can be set
+// on a variable group. Uses the standing fixture project to avoid the 1000-project limit.
 func TestAccVariableGroupPermissions_SetPermissions(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	variableGroupName := testutils.GenerateResourceName()
-	config := hclVariableGroupPermissions(projectName, variableGroupName, map[string]string{
+	config := hclVariableGroupPermissions(variableGroupName, map[string]string{
 		"View":        "allow",
 		"Administer":  "allow",
 		"Create":      "allow",
@@ -25,12 +26,11 @@ func TestAccVariableGroupPermissions_SetPermissions(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
-		CheckDestroy:             testutils.CheckProjectDestroyed,
+		CheckDestroy:             checkVariableGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "principal"),
 					resource.TestCheckResourceAttrSet(tfNode, "variable_group_id"),
@@ -47,10 +47,11 @@ func TestAccVariableGroupPermissions_SetPermissions(t *testing.T) {
 	})
 }
 
+// TestAccVariableGroupPermissions_UpdatePermissions verifies that permissions can be
+// updated on a variable group. Uses the standing fixture project.
 func TestAccVariableGroupPermissions_UpdatePermissions(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	variableGroupName := testutils.GenerateResourceName()
-	config1 := hclVariableGroupPermissions(projectName, variableGroupName, map[string]string{
+	config1 := hclVariableGroupPermissions(variableGroupName, map[string]string{
 		"View":        "allow",
 		"Administer":  "allow",
 		"Create":      "allow",
@@ -58,7 +59,7 @@ func TestAccVariableGroupPermissions_UpdatePermissions(t *testing.T) {
 		"Use":         "allow",
 		"Owner":       "allow",
 	})
-	config2 := hclVariableGroupPermissions(projectName, variableGroupName, map[string]string{
+	config2 := hclVariableGroupPermissions(variableGroupName, map[string]string{
 		"View":        "allow",
 		"Administer":  "notset",
 		"Create":      "notset",
@@ -71,12 +72,11 @@ func TestAccVariableGroupPermissions_UpdatePermissions(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
-		CheckDestroy:             testutils.CheckProjectDestroyed,
+		CheckDestroy:             checkVariableGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{
 				Config: config1,
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "principal"),
 					resource.TestCheckResourceAttrSet(tfNode, "variable_group_id"),
@@ -92,7 +92,6 @@ func TestAccVariableGroupPermissions_UpdatePermissions(t *testing.T) {
 			{
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "principal"),
 					resource.TestCheckResourceAttrSet(tfNode, "variable_group_id"),
@@ -109,15 +108,20 @@ func TestAccVariableGroupPermissions_UpdatePermissions(t *testing.T) {
 	})
 }
 
-func hclVariableGroupPermissions(projectName string, variableGroupName string, permissions map[string]string) string {
+// hclVariableGroupPermissions generates HCL using the standing fixture project
+// (avoids the 1000-project limit). The variable group is created in the fixture
+// project; only the VG and its permissions are created/destroyed per test run.
+func hclVariableGroupPermissions(variableGroupName string, permissions map[string]string) string {
 	variableGroupPermissions := datahelper.JoinMap(permissions, "=", "\n")
 
 	return fmt.Sprintf(`
-%s
+data "betterado_project" "fixture" {
+  name = %[3]q
+}
 
 resource "betterado_variable_group" "example" {
-  project_id   = betterado_project.project.id
-  name         = "%s"
+  project_id   = data.betterado_project.fixture.id
+  name         = %[1]q
   description  = "Test Description"
   allow_access = true
 
@@ -128,22 +132,22 @@ resource "betterado_variable_group" "example" {
 }
 
 data "betterado_group" "tf-project-readers" {
-  project_id = betterado_project.project.id
+  project_id = data.betterado_project.fixture.id
   name       = "Readers"
 }
 
 resource "betterado_variable_group_permissions" "permissions" {
-  project_id        = betterado_project.project.id
+  project_id        = data.betterado_project.fixture.id
   variable_group_id = betterado_variable_group.example.id
   principal         = data.betterado_group.tf-project-readers.id
   permissions = {
-		%s
+	%[2]s
   }
 }
 
 
-`, testutils.HclProjectResource(projectName),
-		variableGroupName,
+`, variableGroupName,
 		variableGroupPermissions,
+		SharedFixtureProjectName,
 	)
 }

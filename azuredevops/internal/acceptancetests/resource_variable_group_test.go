@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -246,6 +247,11 @@ func checkVariableGroupExistsMux(expectedName string, expectedAllowAccess bool) 
 
 // checkVariableGroupDestroyedMux verifies all variable groups in state are destroyed.
 // Uses GetDirectClient since we're using ProtoV6ProviderFactories (mux).
+//
+// ADO variable group deletion is eventually consistent — the VG may still be
+// returned briefly after the provider's Delete (which already waits for
+// deletion) returns. We retry for up to 60 s here so that residual ADO cache
+// visibility doesn't cause spurious test failures.
 func checkVariableGroupDestroyedMux(s *terraform.State) error {
 	clients, err := testutils.GetDirectClient()
 	if err != nil {
@@ -263,16 +269,28 @@ func checkVariableGroupDestroyedMux(s *terraform.State) error {
 		}
 		projectID := res.Primary.Attributes["project_id"]
 
-		_, err = clients.TaskAgentClient.GetVariableGroup(
-			clients.Ctx,
-			taskagent.GetVariableGroupArgs{
-				GroupId: &variableGroupID,
-				Project: &projectID,
-			},
-		)
-		// Indicates the variable group still exists -- this should fail the test
-		if err == nil {
-			return fmt.Errorf("Unexpectedly found a variable group that should be deleted")
+		// Poll for up to 60 s: the VG must return a not-found error before we
+		// consider it destroyed. ADO's eventual consistency means the VG may
+		// still be visible for a short window after deletion.
+		const pollInterval = 5 * time.Second
+		const timeout = 60 * time.Second
+		deadline := time.Now().Add(timeout)
+		for {
+			_, getErr := clients.TaskAgentClient.GetVariableGroup(
+				clients.Ctx,
+				taskagent.GetVariableGroupArgs{
+					GroupId: &variableGroupID,
+					Project: &projectID,
+				},
+			)
+			if getErr != nil {
+				// VG is no longer found — deletion confirmed.
+				break
+			}
+			if time.Now().After(deadline) {
+				return fmt.Errorf("Unexpectedly found a variable group that should be deleted")
+			}
+			time.Sleep(pollInterval)
 		}
 	}
 

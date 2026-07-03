@@ -520,22 +520,31 @@ func (r *VariableGroupResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	// ADO variable group deletion is eventually consistent — wait until the
-	// resource is no longer found (404) before returning, so that CheckDestroy
-	// in acceptance tests does not race against the API.
+	// resource is no longer found before returning, so that CheckDestroy in
+	// acceptance tests does not race against the API.
+	//
+	// ContinuousTargetOccurence: 3 requires three consecutive "not found"
+	// results before we declare deletion confirmed. This prevents a transient
+	// 404 / error flash (common in ADO's caching layer) from being interpreted
+	// as a successful deletion while the VG is actually still being removed.
 	deleteConf := &retry.StateChangeConf{
-		Pending:    []string{"deleting"},
-		Target:     []string{"deleted"},
-		Delay:      3 * time.Second,
-		MinTimeout: 5 * time.Second,
-		Timeout:    5 * time.Minute,
+		Pending:                   []string{"deleting"},
+		Target:                    []string{"deleted"},
+		ContinuousTargetOccurence: 3,
+		Delay:                     5 * time.Second,
+		MinTimeout:                5 * time.Second,
+		Timeout:                   5 * time.Minute,
 		Refresh: func() (interface{}, string, error) {
 			vg, getErr := r.client.TaskAgentClient.GetVariableGroup(ctx, taskagent.GetVariableGroupArgs{
 				GroupId: &vgID,
 				Project: &projectID,
 			})
 			if getErr != nil {
-				// 404 / not-found: deletion confirmed.
-				return vgID, "deleted", nil
+				// Any API error (404, 400 "not found", etc.) means the VG is
+				// no longer accessible — count as one "deleted" occurrence.
+				// We intentionally discard the error: the VG being gone is the
+				// success condition, not a failure.
+				return vgID, "deleted", nil //nolint:nilerr
 			}
 			if vg == nil || vg.Id == nil {
 				return vgID, "deleted", nil
