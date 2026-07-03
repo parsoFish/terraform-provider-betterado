@@ -1,0 +1,4 @@
+FAIL	./azuredevops/internal/service/pipelinesapproval/... [setup failed]
+FAIL
+[stderr] # ./azuredevops/internal/service/pipelinesapproval/...
+pattern ./azuredevops/internal/service/pipelinesapproval/...: lstat ./azuredevops/internal/service/pipelinesapproval/: no such file or directory
