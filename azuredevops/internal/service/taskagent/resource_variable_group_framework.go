@@ -409,12 +409,27 @@ func (r *VariableGroupResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
-	updated, err := r.client.TaskAgentClient.UpdateVariableGroup(ctx, taskagent.UpdateVariableGroupArgs{
+	_, err = r.client.TaskAgentClient.UpdateVariableGroup(ctx, taskagent.UpdateVariableGroupArgs{
 		GroupId:                 &vgID,
 		VariableGroupParameters: params,
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating variable group", err.Error())
+		return
+	}
+
+	// ADO's UpdateVariableGroup may return stale data from the previous state.
+	// Do a fresh Get to ensure the post-apply state reflects the actual API state.
+	updated, err := r.client.TaskAgentClient.GetVariableGroup(ctx, taskagent.GetVariableGroupArgs{
+		GroupId: &vgID,
+		Project: &projectID,
+	})
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading variable group after update", err.Error())
+		return
+	}
+	if updated == nil || updated.Id == nil {
+		resp.Diagnostics.AddError("Variable group not found after update", fmt.Sprintf("Variable group %d not found in project %s after update", vgID, projectID))
 		return
 	}
 
@@ -445,6 +460,13 @@ func (r *VariableGroupResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 	newState.AllowAccess = types.BoolValue(extractAllowAccess(projectResources, vgIDStr))
+
+	// For non-computed user-configured attributes (name, description), always
+	// use the plan values to avoid "inconsistent result after apply" errors from
+	// ADO's eventual consistency on updates (the fresh Get may still return the
+	// prior values for a brief window after the PUT).
+	newState.Name = plan.Name
+	newState.Description = plan.Description
 
 	// Preserve plan order and sensitive values verbatim.
 	mergedVarsU, mergeDiagsU := r.mergeVariableListWithPlan(ctx, newState.Variable, plan.Variable)
@@ -494,6 +516,35 @@ func (r *VariableGroupResource) Delete(ctx context.Context, req resource.DeleteR
 	})
 	if err != nil {
 		resp.Diagnostics.AddError("Error deleting variable group", err.Error())
+		return
+	}
+
+	// ADO variable group deletion is eventually consistent — wait until the
+	// resource is no longer found (404) before returning, so that CheckDestroy
+	// in acceptance tests does not race against the API.
+	deleteConf := &retry.StateChangeConf{
+		Pending:    []string{"deleting"},
+		Target:     []string{"deleted"},
+		Delay:      3 * time.Second,
+		MinTimeout: 5 * time.Second,
+		Timeout:    5 * time.Minute,
+		Refresh: func() (interface{}, string, error) {
+			vg, getErr := r.client.TaskAgentClient.GetVariableGroup(ctx, taskagent.GetVariableGroupArgs{
+				GroupId: &vgID,
+				Project: &projectID,
+			})
+			if getErr != nil {
+				// 404 / not-found: deletion confirmed.
+				return vgID, "deleted", nil
+			}
+			if vg == nil || vg.Id == nil {
+				return vgID, "deleted", nil
+			}
+			return vg, "deleting", nil
+		},
+	}
+	if _, waitErr := deleteConf.WaitForStateContext(ctx); waitErr != nil {
+		resp.Diagnostics.AddError("Timeout waiting for variable group deletion", waitErr.Error())
 	}
 }
 
