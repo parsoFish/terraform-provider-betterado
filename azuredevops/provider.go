@@ -35,7 +35,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/wiki"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtracking"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtrackingprocess"
 )
 
 // Provider - The top level Azure DevOps Provider definition.
@@ -164,9 +163,12 @@ func Provider() *schema.Provider {
 			"betterado_workitemquery_permissions":                   permissions.ResourceWorkItemQueryPermissions(),
 			"betterado_workitemquery":                               workitemtracking.ResourceQuery(),
 			"betterado_workitemquery_folder":                        workitemtracking.ResourceQueryFolder(),
-			"betterado_workitemtrackingprocess_control":             workitemtrackingprocess.ResourceControl(),
-			"betterado_workitemtrackingprocess_group":               workitemtrackingprocess.ResourceGroup(),
-			"betterado_workitemtrackingprocess_inherited_control":   workitemtrackingprocess.ResourceInheritedControl(),
+			// NOTE: betterado_workitemtrackingprocess_control has been migrated to the
+			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
+			// NOTE: betterado_workitemtrackingprocess_group has been migrated to the
+			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
+			// NOTE: betterado_workitemtrackingprocess_inherited_control has been migrated to the
+			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
 			// NOTE: betterado_workitemtrackingprocess_inherited_page has been migrated to the
 			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
 			// NOTE: betterado_workitemtrackingprocess_list has been migrated to the
@@ -177,7 +179,8 @@ func Provider() *schema.Provider {
 			// terraform-plugin-framework provider (framework_provider.go) and is no longer
 			// registered here.
 			"betterado_workitemtrackingprocess_process_permissions": permissions.ResourceWorkItemTrackingProcessPermissions(),
-			"betterado_workitemtrackingprocess_system_control":      workitemtrackingprocess.ResourceSystemControl(),
+			// NOTE: betterado_workitemtrackingprocess_system_control has been migrated to the
+			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
 			// NOTE: betterado_workitemtrackingprocess_workitemtype has been migrated to the
 			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
 			// NOTE: betterado_workitemtrackingprocess_field has been migrated to the

@@ -130,10 +130,10 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_workitemquery",
 		"betterado_workitemquery_folder",
 		"betterado_workitemquery_permissions",
-		"betterado_workitemtrackingprocess_control",
+		// NOTE: betterado_workitemtrackingprocess_control has been migrated to the framework provider.
 		// NOTE: betterado_workitemtrackingprocess_field has been migrated to the framework provider.
-		"betterado_workitemtrackingprocess_group",
-		"betterado_workitemtrackingprocess_inherited_control",
+		// NOTE: betterado_workitemtrackingprocess_group has been migrated to the framework provider.
+		// NOTE: betterado_workitemtrackingprocess_inherited_control has been migrated to the framework provider.
 		// NOTE: betterado_workitemtrackingprocess_inherited_page has been migrated to the framework provider.
 		// NOTE: betterado_workitemtrackingprocess_inherited_state has been migrated to the framework provider.
 		// NOTE: betterado_workitemtrackingprocess_list has been migrated to the framework provider.
@@ -141,7 +141,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// NOTE: betterado_workitemtrackingprocess_process has been migrated to the framework provider.
 		"betterado_workitemtrackingprocess_process_permissions",
 		// NOTE: betterado_workitemtrackingprocess_rule has been migrated to the framework provider.
-		"betterado_workitemtrackingprocess_system_control",
+		// NOTE: betterado_workitemtrackingprocess_system_control has been migrated to the framework provider.
 		// NOTE: betterado_workitemtrackingprocess_state has been migrated to the framework provider.
 		// NOTE: betterado_workitemtrackingprocess_workitemtype has been migrated to the framework provider.
 	}

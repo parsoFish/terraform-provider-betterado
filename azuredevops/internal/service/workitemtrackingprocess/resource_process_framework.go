@@ -3,6 +3,7 @@ package workitemtrackingprocess
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	sdkretry "github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
@@ -107,6 +109,50 @@ func (processRequiresReplace) PlanModifyString(_ context.Context, req planmodifi
 	resp.RequiresReplace = true
 }
 
+// ── Inline validators ─────────────────────────────────────────────────────────
+
+// processNonWhiteSpaceValidator rejects values that are empty or whitespace-only.
+// Mirrors the SDKv2 validation.StringIsNotWhiteSpace behaviour.
+type processNonWhiteSpaceValidator struct{}
+
+func (v processNonWhiteSpaceValidator) Description(_ context.Context) string {
+	return "value must not be empty or whitespace-only"
+}
+
+func (v processNonWhiteSpaceValidator) MarkdownDescription(_ context.Context) string {
+	return "value must not be empty or whitespace-only"
+}
+
+func (v processNonWhiteSpaceValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if strings.TrimSpace(req.ConfigValue.ValueString()) == "" {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid value", "Value must not be empty or whitespace-only.")
+	}
+}
+
+// processUUIDValidator rejects values that are not valid UUIDs.
+// Mirrors the SDKv2 validation.IsUUID behaviour.
+type processUUIDValidator struct{}
+
+func (v processUUIDValidator) Description(_ context.Context) string {
+	return "value must be a valid UUID"
+}
+
+func (v processUUIDValidator) MarkdownDescription(_ context.Context) string {
+	return "value must be a valid UUID"
+}
+
+func (v processUUIDValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if _, err := uuid.Parse(req.ConfigValue.ValueString()); err != nil {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid UUID", fmt.Sprintf("Value must be a valid UUID: %s", err))
+	}
+}
+
 // ── Resource struct ───────────────────────────────────────────────────────────
 
 // processResource is the terraform-plugin-framework implementation of
@@ -155,6 +201,7 @@ func (r *processResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "Name of the process.",
+				Validators:  []validator.String{processNonWhiteSpaceValidator{}},
 			},
 			"description": schema.StringAttribute{
 				Optional:    true,
@@ -168,6 +215,7 @@ func (r *processResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				PlanModifiers: []planmodifier.String{
 					processRequiresReplaceMod(),
 				},
+				Validators: []validator.String{processUUIDValidator{}},
 			},
 			"reference_name": schema.StringAttribute{
 				Optional:    true,
@@ -177,6 +225,7 @@ func (r *processResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					processRequiresReplaceMod(),
 					processUseStateForUnknownMod(),
 				},
+				Validators: []validator.String{processNonWhiteSpaceValidator{}},
 			},
 			"is_default": schema.BoolAttribute{
 				Optional:    true,
