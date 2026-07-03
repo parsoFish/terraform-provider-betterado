@@ -15,12 +15,14 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
-var testReleaseDefinitionProjectID = uuid.New()
-var testReleaseDefinitionID = 42
-var testReleaseDefinitionRevision = 1
-var testReleaseDefinitionEnvID = 1
-var testReleaseDefinitionEnvRank = 1
-var testReleaseDefinitionWorkflowTaskID = uuid.New()
+var (
+	testReleaseDefinitionProjectID      = uuid.New()
+	testReleaseDefinitionID             = 42
+	testReleaseDefinitionRevision       = 1
+	testReleaseDefinitionEnvID          = 1
+	testReleaseDefinitionEnvRank        = 1
+	testReleaseDefinitionWorkflowTaskID = uuid.New()
+)
 
 var testReleaseDefinition = releaseapi.ReleaseDefinition{
 	Id:                &testReleaseDefinitionID,

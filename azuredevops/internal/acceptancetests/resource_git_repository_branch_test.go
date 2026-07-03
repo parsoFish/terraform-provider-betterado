@@ -19,29 +19,30 @@ func TestAccGitRepoBranch_fromBranch(t *testing.T) {
 	branchName := testutils.GenerateResourceName()
 	resNode := "betterado_git_repository_branch.test"
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: hclGitRepoBranchesFromBranch(projectName, gitRepoName, branchName),
-				Check: resource.ComposeTestCheckFunc(
-					checkRepositoryBranchExist(branchName),
-					resource.TestCheckResourceAttr(resNode, "name", branchName),
-					resource.TestCheckResourceAttr(resNode, "ref_branch", "master"),
-					resource.TestCheckResourceAttrSet(resNode, "last_commit_id"),
-				),
-			},
-			{
-				ResourceName:            resNode,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateIdFunc:       hclRepositoryBranchID,
-				ImportStateVerifyIgnore: []string{"ref_branch"},
+	resource.Test(
+		t, resource.TestCase{
+			PreCheck:          func() { testutils.PreCheck(t, nil) },
+			ProviderFactories: testutils.GetProviderFactories(),
+			CheckDestroy:      testutils.CheckProjectDestroyed,
+			Steps: []resource.TestStep{
+				{
+					Config: hclGitRepoBranchesFromBranch(projectName, gitRepoName, branchName),
+					Check: resource.ComposeTestCheckFunc(
+						checkRepositoryBranchExist(branchName),
+						resource.TestCheckResourceAttr(resNode, "name", branchName),
+						resource.TestCheckResourceAttr(resNode, "ref_branch", "master"),
+						resource.TestCheckResourceAttrSet(resNode, "last_commit_id"),
+					),
+				},
+				{
+					ResourceName:            resNode,
+					ImportState:             true,
+					ImportStateVerify:       true,
+					ImportStateIdFunc:       hclRepositoryBranchID,
+					ImportStateVerifyIgnore: []string{"ref_branch"},
+				},
 			},
 		},
-	},
 	)
 }
 
@@ -51,29 +52,30 @@ func TestAccGitRepoBranch_fromCommit(t *testing.T) {
 	branchName := testutils.GenerateResourceName()
 	resNode := "betterado_git_repository_branch.test"
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config: hclGitRepoBranchesFromCommit(projectName, gitRepoName, branchName),
-				Check: resource.ComposeTestCheckFunc(
-					checkRepositoryBranchExist(branchName),
-					resource.TestCheckResourceAttr(resNode, "name", branchName),
-					resource.TestCheckResourceAttrSet(resNode, "ref_commit_id"),
-					resource.TestCheckResourceAttrSet(resNode, "last_commit_id"),
-				),
-			},
-			{
-				ResourceName:            resNode,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateIdFunc:       hclRepositoryBranchID,
-				ImportStateVerifyIgnore: []string{"ref_commit_id"},
+	resource.Test(
+		t, resource.TestCase{
+			PreCheck:          func() { testutils.PreCheck(t, nil) },
+			ProviderFactories: testutils.GetProviderFactories(),
+			CheckDestroy:      testutils.CheckProjectDestroyed,
+			Steps: []resource.TestStep{
+				{
+					Config: hclGitRepoBranchesFromCommit(projectName, gitRepoName, branchName),
+					Check: resource.ComposeTestCheckFunc(
+						checkRepositoryBranchExist(branchName),
+						resource.TestCheckResourceAttr(resNode, "name", branchName),
+						resource.TestCheckResourceAttrSet(resNode, "ref_commit_id"),
+						resource.TestCheckResourceAttrSet(resNode, "last_commit_id"),
+					),
+				},
+				{
+					ResourceName:            resNode,
+					ImportState:             true,
+					ImportStateVerify:       true,
+					ImportStateIdFunc:       hclRepositoryBranchID,
+					ImportStateVerifyIgnore: []string{"ref_commit_id"},
+				},
 			},
 		},
-	},
 	)
 }
 
@@ -82,17 +84,18 @@ func TestAccGitRepoBranch_invalidRef(t *testing.T) {
 	gitRepoName := testutils.GenerateResourceName()
 	branchName := testutils.GenerateResourceName()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
-		Steps: []resource.TestStep{
-			{
-				Config:      hclGitRepoBranchInvalidRef(projectName, gitRepoName, branchName),
-				ExpectError: regexp.MustCompile(`No refs found that match ref "refs/tags/0.0.0"`),
+	resource.Test(
+		t, resource.TestCase{
+			PreCheck:          func() { testutils.PreCheck(t, nil) },
+			ProviderFactories: testutils.GetProviderFactories(),
+			CheckDestroy:      testutils.CheckProjectDestroyed,
+			Steps: []resource.TestStep{
+				{
+					Config:      hclGitRepoBranchInvalidRef(projectName, gitRepoName, branchName),
+					ExpectError: regexp.MustCompile(`No refs found that match ref "refs/tags/0.0.0"`),
+				},
 			},
 		},
-	},
 	)
 }
 
@@ -101,17 +104,18 @@ func TestAccGitRepoBranch_requireImportError(t *testing.T) {
 	gitRepoName := testutils.GenerateResourceName()
 	branchName := testutils.GenerateResourceName()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		CheckDestroy:      testutils.CheckProjectDestroyed,
-		ProviderFactories: testutils.GetProviderFactories(),
-		Steps: []resource.TestStep{
-			{
-				Config:      hclGitRepoBranchesImportError(projectName, gitRepoName, branchName),
-				ExpectError: regexp.MustCompile(`Update refs failed. Update Status: staleOldObjectId`),
+	resource.Test(
+		t, resource.TestCase{
+			PreCheck:          func() { testutils.PreCheck(t, nil) },
+			CheckDestroy:      testutils.CheckProjectDestroyed,
+			ProviderFactories: testutils.GetProviderFactories(),
+			Steps: []resource.TestStep{
+				{
+					Config:      hclGitRepoBranchesImportError(projectName, gitRepoName, branchName),
+					ExpectError: regexp.MustCompile(`Update refs failed. Update Status: staleOldObjectId`),
+				},
 			},
 		},
-	},
 	)
 }
 
