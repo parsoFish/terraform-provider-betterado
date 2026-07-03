@@ -338,7 +338,7 @@ func (r *feedFrameworkResource) isFeedRestorable(name, projectID string) bool {
 		Project: nilIfEmpty(projectID),
 	})
 	return err == nil && change != nil && change.ChangeType != nil &&
-		*(change.ChangeType) == feedapi.ChangeTypeValues.Delete
+		*change.ChangeType == feedapi.ChangeTypeValues.Delete
 }
 
 func (r *feedFrameworkResource) restoreFeed(name, projectID string) error {
