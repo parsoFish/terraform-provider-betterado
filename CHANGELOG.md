@@ -7,6 +7,8 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-07-03
+
 ### ENHANCEMENTS
 
 - **`betterado_git_repository` resource migrated to terraform-plugin-framework.**
@@ -41,6 +43,7 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   Reads a file from an Azure DevOps Git repository by `repository_id`, `file`, and
   optional `branch`. Served through the mux provider. Verified by live acceptance
   test `TestAccDataGitRepositoryFileFramework`.
+
 ## [1.3.0] - 2026-07-01
 
 ### Added
