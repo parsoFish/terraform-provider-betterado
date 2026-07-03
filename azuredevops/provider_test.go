@@ -54,8 +54,10 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// betterado_project_features is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
 		"betterado_project_permissions",
-		"betterado_project_pipeline_settings",
-		"betterado_project_tags",
+		// betterado_project_pipeline_settings is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
+		// betterado_project_tags is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		// betterado_release_definition_permissions is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
 		// betterado_release_folder is now a framework resource (registered in framework_provider.go)
@@ -118,9 +120,12 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_servicehook_webhook_tfs",
 		"betterado_service_principal_entitlement",
 		"betterado_tagging_permissions",
-		"betterado_team",
-		"betterado_team_administrators",
-		"betterado_team_members",
+		// betterado_team is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
+		// betterado_team_administrators is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
+		// betterado_team_members is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_user_entitlement",
 		"betterado_variable_group",
 		"betterado_variable_group_permissions",
@@ -168,7 +173,8 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_agent_queue",
 		"betterado_area",
 		"betterado_build_definition",
-		"betterado_client_config",
+		// betterado_client_config is now a framework data source (registered in framework_provider.go)
+		// and is no longer in the SDKv2 DataSourcesMap.
 		"betterado_descriptor",
 		"betterado_environment",
 		"betterado_feed",
@@ -198,9 +204,11 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_serviceendpoint_sonarcloud",
 		"betterado_storage_key",
 		"betterado_service_principal",
-		"betterado_team",
+		// betterado_team is now a framework data source (registered in framework_provider.go)
+		// and is no longer in the SDKv2 DataSourcesMap.
 		"betterado_task_group",
-		"betterado_teams",
+		// betterado_teams is now a framework data source (registered in framework_provider.go)
+		// and is no longer in the SDKv2 DataSourcesMap.
 		"betterado_user",
 		"betterado_users",
 		"betterado_variable_group",
