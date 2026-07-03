@@ -102,7 +102,8 @@ func hclBuildDefinitionPermissions(projectName string, path string, permissions 
 	rootPermissions := datahelper.JoinMap(permissions, "=", "\n")
 	buildDefinitionNameFirst := testutils.GenerateResourceName()
 
-	return fmt.Sprintf(`
+	return fmt.Sprintf(
+		`
 %s
 
 data "betterado_group" "tf-project-readers" {

@@ -15,15 +15,19 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
-var testTaskGroupProjectID = uuid.New()
-var testTaskGroupID = uuid.New()
-var testTaskStepTaskID = uuid.New()
+var (
+	testTaskGroupProjectID = uuid.New()
+	testTaskGroupID        = uuid.New()
+	testTaskStepTaskID     = uuid.New()
+)
 
-var testTaskGroupRevision = 1
-var testTaskVersionMajor = 1
-var testTaskVersionMinor = 0
-var testTaskVersionPatch = 0
-var testTaskVersionIsTest = false
+var (
+	testTaskGroupRevision = 1
+	testTaskVersionMajor  = 1
+	testTaskVersionMinor  = 0
+	testTaskVersionPatch  = 0
+	testTaskVersionIsTest = false
+)
 
 var testTaskGroup = taskagent.TaskGroup{
 	Id:           &testTaskGroupID,

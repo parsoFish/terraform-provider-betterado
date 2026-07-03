@@ -145,7 +145,7 @@ func getGroupsForDescriptor(clients *client.AggregatedClient, projectDescriptor 
 
 					domain := strings.ToLower(*grp.Domain)
 					if strings.HasPrefix(domain, "vstfs:///framework/identitydomain") ||
-						(strings.HasPrefix(domain, "vstfs:///framework/generic")) {
+						strings.HasPrefix(domain, "vstfs:///framework/generic") {
 						filteredGroups = append(filteredGroups, grp)
 					}
 				}
