@@ -142,7 +142,8 @@ func TestFrameworkReleaseDefinition_expandDeployPhase(t *testing.T) {
 
 	const taskUUID = "12345678-1234-1234-1234-1234567890ab"
 
-	phaseList := buildDeployPhaseList(t,
+	phaseList := buildDeployPhaseList(
+		t,
 		"Run phase",                       // phaseName
 		"agentBasedDeployment",            // phaseType
 		1,                                 // rank
