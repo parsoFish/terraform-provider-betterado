@@ -9,6 +9,27 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **`betterado_task_group` data source migrated to terraform-plugin-framework.**
+  `data.betterado_task_group` now uses the framework implementation served through
+  the mux provider; SDKv2 files (`data_task_group.go`, `data_task_group_test.go`)
+  deleted. Schema is unchanged (`project_id`, `id`, `name`, `friendly_name`,
+  `description`, `category`, `version`, `input`, `task`, `runs_on`, `author`,
+  `icon_url`). Acceptance tests use `ProtoV6ProviderFactories` (mux) with
+  `ExpectNonEmptyPlan: false` and `CaptureLiveEvidence("acceptance-resource-task-group-datasource", ...)`.
+
+- **`betterado_variable_group` resource and data source migrated to
+  terraform-plugin-framework.** Both `betterado_variable_group` (resource) and
+  `data.betterado_variable_group` (data source) now use the framework
+  implementation served through the mux provider; SDKv2 files
+  (`resource_variable_group.go`, `data_variable_group.go`, and their unit-test
+  companions) removed. Schema is unchanged (including `key_vault` nested block
+  for KeyVault-backed groups and sensitive `is_secret` flag on variable entries).
+  Acceptance tests use `ProtoV6ProviderFactories` (mux) with
+  `ExpectNonEmptyPlan: false`, import verify, and
+  `CaptureLiveEvidence("acceptance-resource-variable-group", ...)`.
+  Note: post-destroy race on the ADO side was observed during final live gate;
+  fix committed (WI-9 iter 7); gate rerun pending review.
+
 - **`betterado_agent_queue` resource and data source migrated to
   terraform-plugin-framework.** Both `betterado_agent_queue` (resource) and
   `data.betterado_agent_queue` (data source) now use the framework
