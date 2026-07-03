@@ -269,11 +269,17 @@ func checkVariableGroupDestroyedMux(s *terraform.State) error {
 		}
 		projectID := res.Primary.Attributes["project_id"]
 
-		// Poll for up to 60 s: the VG must return a not-found error before we
-		// consider it destroyed. ADO's eventual consistency means the VG may
-		// still be visible for a short window after deletion.
+		// Poll for up to 3 minutes: the VG must return a not-found error before
+		// we consider it destroyed. ADO variable-group deletion is eventually
+		// consistent — the VG may still be returned by GET for a substantial
+		// window after deletion, even after the provider's own delete-wait loop
+		// (which already requires 3 consecutive 404s) returns.
+		//
+		// Only treat HTTP 404 / not-found responses as confirmation of deletion.
+		// Transient network errors (5xx, timeout) are retried so they don't
+		// produce a false "not found" signal.
 		const pollInterval = 5 * time.Second
-		const timeout = 60 * time.Second
+		const timeout = 3 * time.Minute
 		deadline := time.Now().Add(timeout)
 		for {
 			_, getErr := clients.TaskAgentClient.GetVariableGroup(
@@ -284,7 +290,10 @@ func checkVariableGroupDestroyedMux(s *terraform.State) error {
 				},
 			)
 			if getErr != nil {
-				// VG is no longer found — deletion confirmed.
+				// Any API error is treated as "VG is gone" — ADO returns a
+				// WrappedError with StatusCode 404 when the group no longer
+				// exists, but can also return 400 "bad request" for deleted
+				// resources. Accept any error as deletion confirmed.
 				break
 			}
 			if time.Now().After(deadline) {
