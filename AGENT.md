@@ -10,7 +10,47 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 _(updated by each iteration — most recent at the top)_
 
-### Iteration 3 (current)
+### Iteration 4 (current)
+
+**Gate failures from live run (last-gate-failure.md from iter-3):**
+
+```
+TestAccVariableGroupPermissions_SetPermissions:
+  "Failed to add a project as this organization already has 1000 projects"
+TestAccVariableGroupPermissions_UpdatePermissions:
+  "Failed to add a project as this organization already has 1000 projects"
+TestAccVariableGroup_basic:
+  "Unexpectedly found a variable group that should be deleted"
+TestAccVariableGroup_secretValue:
+  "Unexpectedly found a variable group that should be deleted"
+TestAccVariableGroup_update:
+  "Unexpectedly found a variable group that should be deleted"
+```
+
+**Root cause 1 — Permissions tests: "org has 1000 projects"**
+
+The permissions tests previously created a fresh `betterado_project` per test run. The org is at the 1000-project limit.
+
+**Fix:** Migrated `TestAccVariableGroupPermissions_*` to use the standing fixture project (`SharedFixtureProjectName`) instead of `HclProjectResource(projectName)`. Removed `betterado_project.project` creation from the HCL. Changed `CheckDestroy` from `CheckProjectDestroyed` to `checkVariableGroupDestroyedMux` (the project doesn't need to be verified since we're not creating it).
+
+---
+
+**Root cause 2 — TestAccVariableGroup_*/CheckDestroy: "Unexpectedly found a variable group that should be deleted"**
+
+ADO variable group deletion is eventually consistent. Our Delete wait loop (iter-3) uses `ContinuousTargetOccurence` of 1 (default) and only a 3s Delay before the first poll. If the ADO API returns a transient error (not actually 404), our wait exits declaring "deleted" while the VG still exists.
+
+Additionally, `checkVariableGroupDestroyedMux` checks immediately after the provider's Delete returns — any residual ADO cache can still return the VG.
+
+**Fix 1 (Delete wait loop):** Added `ContinuousTargetOccurence: 3` to require 3 consecutive "not found" results before declaring deletion confirmed. Also changed Delay from 3s → 5s to give ADO more time to process the deletion before the first poll. This prevents a transient API error flash from being treated as successful deletion.
+
+**Fix 2 (checkVariableGroupDestroyedMux):** Added a 60 s retry poll loop. Instead of checking once and failing immediately, we poll every 5 s for up to 60 s for the VG to disappear. This handles ADO eventual consistency in the CheckDestroy function.
+
+**Files changed (commit 21256bd2):**
+- `azuredevops/internal/acceptancetests/resource_variable_group_test.go` — checkVariableGroupDestroyedMux retry
+- `azuredevops/internal/acceptancetests/resource_variable_group_permissions_test.go` — fixture project migration
+- `azuredevops/internal/service/taskagent/resource_variable_group_framework.go` — ContinuousTargetOccurence:3 + Delay:5s
+
+### Iteration 3
 
 **Gate failures from live run (last-gate-failure.md from iter-2):**
 
@@ -125,15 +165,18 @@ This is a known terraform-plugin-framework bug with `Default` values inside `Set
 - **`mergeVariableListWithPlan` pattern**: for Create/Update, re-emit the result in plan order using plan values for configured attributes and API values for computed-only attributes. This ensures: (1) list index consistency with the plan, (2) sensitive attribute values match exactly.
 - **`types.ListNull(...)` for Optional non-Computed list attributes**: when the user omits the block, the plan is null and the state must also be null (not empty list).
 - **Override configured (non-Computed) attributes with plan values in Update**: `name`, `description`, and similar user-configured attributes should always use plan values as the post-apply state, not the API response. This guards against ADO eventual consistency on updates.
-- **wait-for-deletion loop**: ADO's delete API returns 200 before the VG is gone. Poll `GetVariableGroup` after delete until it returns an error to ensure CheckDestroy doesn't race.
+- **ContinuousTargetOccurence: 3 in Delete wait loop**: prevents a transient API error flash from being treated as successful deletion confirmation.
+- **checkVariableGroupDestroyedMux retry loop (60 s)**: handles ADO eventual consistency in CheckDestroy — poll for up to 60s before declaring failure.
 - **ProtoV6ProviderFactories required for tests with framework resources**: any test whose HCL config contains a framework resource (like `betterado_variable_group`) MUST use `GetMuxedProviderFactories()`, NOT `GetProviders()`.
 - **testutils.CheckProjectExists/CheckProjectDestroyed**: these use `GetProvider().Meta()` which is nil in mux tests. Updated to fall back to `GetDirectClient()`.
+- **Fixture project for permissions tests**: `TestAccVariableGroupPermissions_*` and similar tests that previously created a fresh project should use `SharedFixtureProjectName`. Project creation is expensive and subject to org limits (1000 project cap). Only test the resource-specific behavior, not project lifecycle.
 
 ## What didn't work
 
 - **`SetNestedAttribute` with `Sensitive: true` + `Default: defaultString("")` inside nested objects**: the set-hash changes when a Default is applied, causing subsequent attribute path lookups in the config to fail. Do NOT use Set with Default or Sensitive nested attrs.
 - **Passing `nil` to `searchAzureKVSecrets` variables param**: returns empty map, creates KV VG with no variables.
 - **Trusting `UpdateVariableGroup` response**: the ADO API may return the old VG data in the PUT response. Always do a fresh GET after PUT.
+- **Single-occurrence delete wait loop (iter-3)**: if ADO returns a brief transient error while still processing the deletion, a single "not found" result is not sufficient. Must use ContinuousTargetOccurence ≥ 3.
 
 ## Open questions
 
@@ -146,3 +189,5 @@ _(nothing blocking — awaiting live gate confirmation)_
 - **Prefer `ListNestedAttribute` over `SetNestedAttribute`** for variable-like patterns where the key is embedded in the nested object (`name` attribute). Use `MapNestedAttribute` when the key should be the map key and the `name` attribute can be dropped.
 - **Plan-faithful writes (Create/Update)**: after calling the API and reading back, always re-emit configured (non-computed) attributes from the plan rather than the API response. Use `mergeVariableListWithPlan` or a similar pattern. This prevents ADO value normalization from triggering "inconsistent values" errors.
 - **Any test using `betterado_variable_group` in HCL must use mux provider**: framework resources cannot be resolved by the SDKv2-only provider. Rule: if ANY resource in the HCL is a framework resource, switch to `GetMuxedProviderFactories()`.
+- **ADO eventual consistency for delete**: use ContinuousTargetOccurence ≥ 3 in the wait loop AND a retry loop in CheckDestroy to handle the window where the VG is "deleted" on the API but still returned by GET.
+- **Avoid project creation in tests**: org has a 1000 project limit. Migrate any test that creates `betterado_project.project` to use `SharedFixtureProjectName` + `data "betterado_project"` lookup instead.
