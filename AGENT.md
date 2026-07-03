@@ -20,6 +20,12 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - Added `captureListEvidence()` for AC4
 - All unit tests pass (`go test ./azuredevops/...`)
 
+### Iteration 1 (complete)
+- **Root cause of gate failure**: `checkFieldDestroyed` in `resource_workitemtracking_field_test.go` (NOT the process field test) used `testutils.GetProvider().Meta().(*client.AggregatedClient)` which panics when `ProtoV6ProviderFactories` is used (muxed provider sets SDKv2 Meta() to nil).
+- **Fix**: Updated `checkFieldDestroyed` to build client directly from env vars (`AZDO_ORG_SERVICE_URL` + `AZDO_PERSONAL_ACCESS_TOKEN`) — same pattern as `checkListDestroyed`. Added `os` and `azuredevops` imports.
+- **Compile**: Clean (`go build -tags all ./azuredevops/internal/acceptancetests/`)
+- **Note**: Pre-existing failures exist in `TestAccTaskGroupStateUpgradeSmoke`, `TestBuildDefinition_Create/Update_DoesNotSwallowError`, etc — those are on main branch too, not caused by our change.
+
 ## What worked
 
 - **Inline plan modifiers and defaults**: Vendor lacks `resource/schema/stringplanmodifier`, `resource/schema/booldefault` etc. — must use inline struct implementations. Available sub-packages: `resource/schema/planmodifier`, `resource/schema/defaults`.
@@ -37,5 +43,5 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 ## Notes for reflection
 
-- Pattern: when migrating SDKv2 resources, `checkXxxDestroyed` functions that use `testutils.GetProvider().Meta()` must be rewritten to build clients from env vars when tests switch to `ProtoV6ProviderFactories`.
+- Pattern: when migrating SDKv2 resources, `checkXxxDestroyed` functions that use `testutils.GetProvider().Meta()` must be rewritten to build clients from env vars when tests switch to `ProtoV6ProviderFactories`. THIS IS CRITICAL: the check function may live in a DIFFERENT file (e.g., `resource_workitemtracking_field_test.go`) than the test being run (e.g., `resource_workitemtrackingprocess_field_test.go`). Search for all callers.
 - The vendor directory determines which framework sub-packages are available; always check with `ls vendor/github.com/hashicorp/terraform-plugin-framework/resource/schema/` before using sub-packages.
