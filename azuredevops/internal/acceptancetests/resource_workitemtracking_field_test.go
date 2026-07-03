@@ -2,11 +2,13 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -582,8 +584,15 @@ func checkFieldAndListDestroyed(s *terraform.State) error {
 
 // checkFieldDestroyed verifies that all fields referenced in the state are destroyed. This will be invoked
 // *after* terraform destroys the resource but *before* the state is wiped clean.
+// Builds the client directly from environment variables so this works regardless
+// of whether the test uses SDKv2 or ProtoV6ProviderFactories (mux).
 func checkFieldDestroyed(s *terraform.State) error {
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	clients, err := client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+	if err != nil {
+		return fmt.Errorf("checkFieldDestroyed: building client: %w", err)
+	}
 
 	for _, res := range s.RootModule().Resources {
 		if res.Type != "betterado_workitemtracking_field" {
