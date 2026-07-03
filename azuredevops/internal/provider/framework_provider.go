@@ -223,5 +223,9 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		graph.NewStorageKeyDataSource,
 		graph.NewGroupDataSource,
 		graph.NewGroupMembershipDataSource,
+		graph.NewUserDataSource,
+		graph.NewUsersDataSource,
+		graph.NewGroupsDataSource,
+		graph.NewServicePrincipalDataSource,
 	}
 }

@@ -17,31 +17,20 @@ description: |-
 
 ### Optional
 
-- `description` (String)
-- `display_name` (String)
-- `mail` (String)
-- `members` (Set of String)
-- `origin_id` (String)
-- `scope` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `description` (String) The description of the group.
+- `display_name` (String) The display name of the group.
+- `mail` (String) The mail address for the group when creating from an email address.
+- `members` (Set of String) A set of descriptors of subjects (groups/users) to add as members.
+- `origin_id` (String) The OriginID for the group when creating from an external source.
+- `scope` (String) The GUID (UUID) of the project that the group is scoped to. If not set, the group is global.
 
 ### Read-Only
 
-- `descriptor` (String)
-- `domain` (String)
-- `group_id` (String)
+- `descriptor` (String) The descriptor is the primary way to reference the graph subject while the system is running.
+- `domain` (String) The domain of the group.
+- `group_id` (String) The unique identifier for the group (storage key UUID).
 - `id` (String) The ID of this resource.
-- `origin` (String)
-- `principal_name` (String)
-- `subject_kind` (String)
-- `url` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `origin` (String) The identity store that is the origin for the group.
+- `principal_name` (String) The principal name of the group.
+- `subject_kind` (String) Subject kind of the group.
+- `url` (String) URL to the group entity.

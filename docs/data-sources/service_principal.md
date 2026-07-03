@@ -3,12 +3,12 @@
 page_title: "betterado_service_principal Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Looks up an Azure DevOps service principal by display name.
 ---
 
 # betterado_service_principal (Data Source)
 
-
+Looks up an Azure DevOps service principal by display name.
 
 
 
@@ -17,22 +17,11 @@ description: |-
 
 ### Required
 
-- `display_name` (String)
-
-### Optional
-
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `display_name` (String) The display name of the service principal to look up.
 
 ### Read-Only
 
-- `descriptor` (String)
-- `id` (String) The ID of this resource.
-- `origin` (String)
-- `origin_id` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `descriptor` (String) The descriptor of the service principal.
+- `id` (String) The descriptor of the service principal (used as the data source ID).
+- `origin` (String) The origin of the service principal.
+- `origin_id` (String) The origin-specific identifier of the service principal.

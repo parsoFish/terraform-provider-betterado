@@ -22,7 +22,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/feed"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/graph"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
@@ -202,7 +201,8 @@ func Provider() *schema.Provider {
 			// (framework_provider.go) and must NOT be listed here.
 			// betterado_group_membership is now registered in the framework provider
 			// (framework_provider.go) and must NOT be listed here.
-			"betterado_groups":                         graph.DataGroups(),
+			// betterado_groups is now registered in the framework provider
+			// (framework_provider.go) and must NOT be listed here.
 			"betterado_identity_group":                 identity.DataIdentityGroup(),
 			"betterado_identity_groups":                identity.DataIdentityGroups(),
 			"betterado_identity_user":                  identity.DataIdentityUser(),
@@ -221,14 +221,17 @@ func Provider() *schema.Provider {
 			"betterado_serviceendpoint_github":         serviceendpoint.DataServiceEndpointGithub(),
 			"betterado_serviceendpoint_npm":            serviceendpoint.DataResourceServiceEndpointNpm(),
 			"betterado_serviceendpoint_sonarcloud":     serviceendpoint.DataResourceServiceEndpointSonarCloud(),
-			"betterado_service_principal":              graph.DataServicePrincipal(),
+			// betterado_service_principal is now registered in the framework provider
+			// (framework_provider.go) and must NOT be listed here.
 			// betterado_storage_key is now registered in the framework provider
 			// (framework_provider.go) and must NOT be listed here.
-			"betterado_team":                                  core.DataTeam(),
-			"betterado_task_group":                            taskagent.DataTaskGroup(),
-			"betterado_teams":                                 core.DataTeams(),
-			"betterado_user":                                  graph.DataUser(),
-			"betterado_users":                                 graph.DataUsers(),
+			"betterado_team":       core.DataTeam(),
+			"betterado_task_group": taskagent.DataTaskGroup(),
+			"betterado_teams":      core.DataTeams(),
+			// betterado_user is now registered in the framework provider
+			// (framework_provider.go) and must NOT be listed here.
+			// betterado_users is now registered in the framework provider
+			// (framework_provider.go) and must NOT be listed here.
 			"betterado_variable_group":                        taskagent.DataVariableGroup(),
 			"betterado_workitemtrackingprocess_process":       workitemtrackingprocess.DataProcess(),
 			"betterado_workitemtrackingprocess_processes":     workitemtrackingprocess.DataProcesses(),

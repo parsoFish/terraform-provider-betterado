@@ -3,12 +3,12 @@
 page_title: "betterado_user Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Looks up an Azure DevOps user by descriptor.
 ---
 
 # betterado_user (Data Source)
 
-
+Looks up an Azure DevOps user by descriptor.
 
 
 
@@ -17,26 +17,15 @@ description: |-
 
 ### Required
 
-- `descriptor` (String)
-
-### Optional
-
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `descriptor` (String) The descriptor of the user to look up.
 
 ### Read-Only
 
-- `display_name` (String)
-- `domain` (String)
-- `id` (String) The ID of this resource.
-- `mail_address` (String)
-- `origin` (String)
-- `origin_id` (String)
-- `principal_name` (String)
-- `subject_kind` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `display_name` (String) The display name of the user.
+- `domain` (String) The domain the user belongs to.
+- `id` (String) The descriptor of the user (used as the data source ID).
+- `mail_address` (String) The mail address of the user.
+- `origin` (String) The origin of the user (e.g. aad, msa).
+- `origin_id` (String) The origin-specific identifier of the user.
+- `principal_name` (String) The principal name of the user.
+- `subject_kind` (String) The subject kind (e.g. User).

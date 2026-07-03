@@ -3,12 +3,12 @@
 page_title: "betterado_group_membership Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Lists the members of an Azure DevOps group by its descriptor.
 ---
 
 # betterado_group_membership (Data Source)
 
-
+Lists the members of an Azure DevOps group by its descriptor.
 
 
 
@@ -17,20 +17,9 @@ description: |-
 
 ### Required
 
-- `group_descriptor` (String)
-
-### Optional
-
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `group_descriptor` (String) The descriptor of the group whose members to list.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-- `members` (List of String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `id` (String) The group descriptor (used as the data source ID).
+- `members` (List of String) The list of member descriptors.

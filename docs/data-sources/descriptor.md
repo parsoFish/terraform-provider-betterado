@@ -3,12 +3,12 @@
 page_title: "betterado_descriptor Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Gets the descriptor for an Azure DevOps object by its storage key (UUID).
 ---
 
 # betterado_descriptor (Data Source)
 
-
+Gets the descriptor for an Azure DevOps object by its storage key (UUID).
 
 
 
@@ -17,20 +17,9 @@ description: |-
 
 ### Required
 
-- `storage_key` (String)
-
-### Optional
-
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `storage_key` (String) The storage key (UUID) of the Azure DevOps object.
 
 ### Read-Only
 
-- `descriptor` (String)
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `descriptor` (String) The descriptor for the Azure DevOps object.
+- `id` (String) The storage key (used as the data source ID).

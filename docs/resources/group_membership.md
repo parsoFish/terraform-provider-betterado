@@ -3,12 +3,12 @@
 page_title: "betterado_group_membership Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages group memberships in Azure DevOps.
 ---
 
 # betterado_group_membership (Resource)
 
-
+Manages group memberships in Azure DevOps.
 
 
 
@@ -17,24 +17,13 @@ description: |-
 
 ### Required
 
-- `group` (String)
-- `members` (Set of String)
+- `group` (String) The descriptor of the group to manage memberships for.
+- `members` (Set of String) A set of descriptors of subjects (groups/users) to make members of the group.
 
 ### Optional
 
-- `mode` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `mode` (String) The mode to use when managing memberships. Valid values are 'add' and 'overwrite'. Defaults to 'add'.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

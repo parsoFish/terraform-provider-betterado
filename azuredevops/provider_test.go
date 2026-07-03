@@ -163,8 +163,9 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		// betterado_release_definition_revision, betterado_release_definitions, and
 		// betterado_release_folder have been migrated to the framework provider —
 		// they are no longer registered in the SDKv2 DataSourcesMap.
-		// NOTE: betterado_descriptor, betterado_storage_key, betterado_group, and
-		// betterado_group_membership have also been migrated to the framework provider.
+		// NOTE: betterado_descriptor, betterado_storage_key, betterado_group,
+		// betterado_group_membership, betterado_groups, betterado_user, betterado_users,
+		// and betterado_service_principal have been migrated to the framework provider.
 		"betterado_agent_pool",
 		"betterado_agent_pools",
 		"betterado_agent_queue",
@@ -176,7 +177,6 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_git_repositories",
 		"betterado_git_repository",
 		"betterado_git_repository_file",
-		"betterado_groups",
 		"betterado_identity_group",
 		"betterado_identity_groups",
 		"betterado_identity_user",
@@ -195,12 +195,9 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_serviceendpoint_github",
 		"betterado_serviceendpoint_npm",
 		"betterado_serviceendpoint_sonarcloud",
-		"betterado_service_principal",
 		"betterado_team",
 		"betterado_task_group",
 		"betterado_teams",
-		"betterado_user",
-		"betterado_users",
 		"betterado_variable_group",
 		"betterado_workitemtrackingprocess_process",
 		"betterado_workitemtrackingprocess_processes",

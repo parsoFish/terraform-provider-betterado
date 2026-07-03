@@ -7,6 +7,34 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_user` data source migrated to terraform-plugin-framework.** The
+  data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`descriptor` required; `display_name`, `domain`, `mail_address`,
+  `origin`, `origin_id`, `principal_name`, `subject_kind` computed).
+  Verified by live acceptance test `TestAccGraphComplexDataSources_Framework/User`.
+
+- **`betterado_users` data source migrated to terraform-plugin-framework.** The
+  data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`principal_name`, `origin`, `origin_id`, `subject_types` optional
+  filters; `users` set computed with `id`, `descriptor`, `principal_name`, `origin`,
+  `origin_id`, `display_name`, `mail_address`).
+  Verified by live acceptance test `TestAccGraphComplexDataSources_Framework/Users`.
+
+- **`betterado_groups` data source migrated to terraform-plugin-framework.** The
+  data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`project_id` optional; `groups` set computed with `id`,
+  `descriptor`, `display_name`, `origin`, `origin_id`, `domain`, `mail_address`,
+  `principal_name`).
+  Verified by live acceptance test `TestAccGraphComplexDataSources_Framework/Groups`.
+
+- **`betterado_service_principal` data source migrated to terraform-plugin-framework.**
+  The data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`display_name` required; `descriptor`, `origin_id`, `origin`
+  computed).
+  Verified by live acceptance test `TestAccGraphComplexDataSources_Framework/ServicePrincipal`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES
