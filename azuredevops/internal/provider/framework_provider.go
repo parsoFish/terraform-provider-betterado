@@ -208,6 +208,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
 		wiki.NewWikiResource,
+		wiki.NewWikiPageResource,
 	}
 }
 

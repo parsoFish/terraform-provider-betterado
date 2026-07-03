@@ -33,7 +33,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/wiki"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtracking"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtrackingprocess"
 )
@@ -157,8 +156,7 @@ func Provider() *schema.Provider {
 			"betterado_variable_group":                              taskagent.ResourceVariableGroup(),
 			"betterado_variable_group_permissions":                  permissions.ResourceVariableGroupPermissions(),
 			"betterado_variable_group_variable":                     taskagent.ResourceVariableGroupVariable(),
-			// betterado_wiki migrated to terraform-plugin-framework (see framework_provider.go).
-			"betterado_wiki_page":                                   wiki.ResourceWikiPage(),
+			// betterado_wiki and betterado_wiki_page are migrated to terraform-plugin-framework (see framework_provider.go).
 			"betterado_workitem":                                    workitemtracking.ResourceWorkItem(),
 			"betterado_workitemtracking_field":                      workitemtracking.ResourceField(),
 			"betterado_workitemquery_permissions":                   permissions.ResourceWorkItemQueryPermissions(),
