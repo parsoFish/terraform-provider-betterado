@@ -295,7 +295,7 @@ func capturePipelineRunEvidence(tfNode string, pipelineIDStr, runIDStr *string) 
 		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
 		url := fmt.Sprintf("%s/%s/_apis/pipelines/%d/runs/%d?api-version=7.1-preview.1",
 			orgURL, projectID, pipelineID, runID)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, r)
+		_ = testutils.CaptureLiveEvidence("pipeline-run-datasource-read", url, r)
 		return nil
 	}
 }

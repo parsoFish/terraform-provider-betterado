@@ -113,7 +113,7 @@ func checkPipelineDestroyed(s *terraform.State) error {
 // and persists the response as forge demo live-evidence (before the resource is
 // destroyed). Best-effort: a capture failure never fails the test.
 //
-// Satisfies AC2: CaptureLiveEvidence("acceptance-resource", <GET URL>, <API response>)
+// Satisfies AC2: CaptureLiveEvidence("pipeline-create", <GET URL>, <API response>)
 func capturePipelineEvidence(tfNode string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		res, ok := s.RootModule().Resources[tfNode]
@@ -141,7 +141,7 @@ func capturePipelineEvidence(tfNode string) resource.TestCheckFunc {
 
 		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
 		url := fmt.Sprintf("%s/%s/_apis/pipelines/%d?api-version=7.1-preview.1", orgURL, projectID, pipelineID)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, pipeline)
+		_ = testutils.CaptureLiveEvidence("pipeline-create", url, pipeline)
 		return nil
 	}
 }

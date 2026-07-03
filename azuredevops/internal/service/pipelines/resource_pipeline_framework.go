@@ -9,10 +9,12 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	adoBuild "github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 	adoPipelines "github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelines"
@@ -141,8 +143,12 @@ func (r *PipelineResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 			"configuration_type": schema.StringAttribute{
 				Optional:            true,
 				Computed:            true,
-				MarkdownDescription: "The configuration type. One of: `yaml`, `designerJson`, `justInTime`, `designerHyphenJson`, `unknown`. Defaults to `yaml`.",
+				MarkdownDescription: "The configuration type. Allowed values: `yaml`, `designerJson`, `justInTime`. Defaults to `yaml`. Changing this forces a new resource.",
 				Default:             defaultString("yaml"),
+				PlanModifiers:       []planmodifier.String{requiresReplace()},
+				Validators: []validator.String{
+					stringvalidator.OneOf("yaml", "designerJson", "justInTime"),
+				},
 			},
 			"repo_id": schema.StringAttribute{
 				Optional:            true,

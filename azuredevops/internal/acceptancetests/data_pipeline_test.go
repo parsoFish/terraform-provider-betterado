@@ -4,9 +4,14 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	adoPipelines "github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelines"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
@@ -32,6 +37,8 @@ func TestAccDataPipeline_basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(tfDataNode, "revision", tfResNode, "revision"),
 					// Data source ID is set
 					resource.TestCheckResourceAttrSet(tfDataNode, "id"),
+					// Capture live evidence for the data-source GET (AC1)
+					captureDataPipelineEvidence(tfDataNode),
 				),
 			},
 			// Step 2: idempotency — no perpetual diff (AC3 ExpectNonEmptyPlan:false)
@@ -74,4 +81,42 @@ data "betterado_pipeline" "test" {
   pipeline_id = tonumber(betterado_pipeline.test.id)
 }
 `, name, SharedFixtureProjectName)
+}
+
+// captureDataPipelineEvidence performs a real live API GET of the pipeline via
+// the data source read-back and persists the response as forge demo live-evidence.
+// Best-effort: a capture failure never fails the test.
+//
+// Satisfies AC1: CaptureLiveEvidence("pipeline-datasource-read", <GET URL>, <API response>)
+func captureDataPipelineEvidence(tfDataNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfDataNode]
+		if !ok {
+			return nil
+		}
+		idStr := res.Primary.Attributes["id"]
+		pipelineID, err := strconv.Atoi(idStr)
+		if err != nil {
+			return nil
+		}
+		projectID := res.Primary.Attributes["project_id"]
+
+		clients, err := getDirectClient()
+		if err != nil {
+			return nil // best-effort: client build failure does not fail the test
+		}
+
+		pipeline, err := clients.PipelinesClient.GetPipeline(clients.Ctx, adoPipelines.GetPipelineArgs{
+			Project:    &projectID,
+			PipelineId: &pipelineID,
+		})
+		if err != nil || pipeline == nil {
+			return nil
+		}
+
+		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+		url := fmt.Sprintf("%s/%s/_apis/pipelines/%d?api-version=7.1-preview.1", orgURL, projectID, pipelineID)
+		_ = testutils.CaptureLiveEvidence("pipeline-datasource-read", url, pipeline)
+		return nil
+	}
 }
