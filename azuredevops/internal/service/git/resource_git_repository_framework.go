@@ -150,9 +150,11 @@ func gitListSizeExactlyOne() validator.List { return gitListSizeExactlyOneValida
 func (v gitListSizeExactlyOneValidator) Description(_ context.Context) string {
 	return "list must contain exactly one element"
 }
+
 func (v gitListSizeExactlyOneValidator) MarkdownDescription(_ context.Context) string {
 	return "list must contain exactly one element"
 }
+
 func (v gitListSizeExactlyOneValidator) ValidateList(_ context.Context, req validator.ListRequest, resp *validator.ListResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -174,12 +176,15 @@ type gitStringOneOfValidator struct {
 func gitStringOneOf(allowed ...string) validator.String {
 	return gitStringOneOfValidator{allowed: allowed}
 }
+
 func (v gitStringOneOfValidator) Description(_ context.Context) string {
 	return fmt.Sprintf("value must be one of: %s", strings.Join(v.allowed, ", "))
 }
+
 func (v gitStringOneOfValidator) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("value must be one of: `%s`", strings.Join(v.allowed, "`, `"))
 }
+
 func (v gitStringOneOfValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -204,9 +209,11 @@ func gitURLHTTPS() validator.String { return gitURLHTTPSValidator{} }
 func (v gitURLHTTPSValidator) Description(_ context.Context) string {
 	return "value must be a valid HTTP or HTTPS URL"
 }
+
 func (v gitURLHTTPSValidator) MarkdownDescription(_ context.Context) string {
 	return "value must be a valid HTTP or HTTPS URL"
 }
+
 func (v gitURLHTTPSValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
