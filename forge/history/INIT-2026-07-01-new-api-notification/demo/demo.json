@@ -14,10 +14,10 @@
     },
     {
       "label": "unit-tests",
-      "caption": "Notification package unit tests: expand/flatten round-trips for all schema fields",
-      "command": "go test -tags all -count=1 -run TestNotificationSubscriptionResource_ ./azuredevops/internal/service/notification/",
+      "caption": "Notification package unit tests: resource expand/flatten, datasource flatten, and 404 RemoveResource branch",
+      "command": "go test -tags all -count=1 -v ./azuredevops/internal/service/notification/",
       "beforeNote": "Package did not exist on main",
-      "afterNote": "TestNotificationSubscriptionResource_Create and TestNotificationSubscriptionResource_Read pass"
+      "afterNote": "TestNotificationSubscriptionResource_Create, TestNotificationSubscriptionResource_Read, TestFlattenNotificationSubscriptionData, TestFlattenNotificationSubscriptionData_NilSubscription, TestFlattenNotificationSubscriptionData_PartialFields, and TestDataSource_404NotFound all pass"
     },
     {
       "label": "gap-matrix",
@@ -38,12 +38,12 @@
       "caption": "Live acceptance test creates subscription via ADO API, reads back, confirms idempotency, destroys",
       "command": "go test -tags all -count=1 -run TestAccNotificationSubscription_basic -v ./azuredevops/internal/acceptancetests/",
       "beforeNote": "No acceptance test existed on main",
-      "afterNote": "TestAccNotificationSubscription_basic passes: subscription 886543 created, GET confirmed, destroy clean",
+      "afterNote": "TestAccNotificationSubscription_basic passes: subscription 886548 created, GET confirmed, destroy clean",
       "liveEvidence": {
-        "url": "https://dev.azure.com/davidgparsonson/_apis/notification/subscriptions/886543?api-version=7.1",
+        "url": "https://dev.azure.com/davidgparsonson/_apis/notification/subscriptions/886548?api-version=7.1",
         "label": "acceptance-resource",
-        "capturedAt": "2026-07-03T06:37:04Z",
-        "response": "{\"_links\":{\"edit\":{\"href\":\"https://dev.azure.com/davidgparsonson/_notifications?subscriptionId=886543&publisherId=ms.vss-work.work-event-publisher&action=view\"}},\"diagnostics\":{},\"filter\":{\"eventType\":\"ms.vss-work.workitem-changed-event\",\"type\":\"Expression\"},\"flags\":\"none\",\"channel\":{\"type\":\"EmailHtml\"},\"id\":\"886543\",\"lastModifiedBy\":{\"displayName\":\"david.g.parsonson\",\"id\":\"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\"uniqueName\":\"david.g.parsonson@gmail.com\"},\"modifiedDate\":\"2026-07-03T06:37:02.733Z\",\"permissions\":\"view, edit, delete\",\"scope\":{\"id\":\"6ddb680c-093d-4953-9561-2266eb7af800\",\"type\":\"none\"},\"status\":\"enabled\",\"subscriber\":{\"displayName\":\"Ambrose Kelso\",\"id\":\"0532ab9e-1c40-4efd-9906-b50d10fe13c2\",\"uniqueName\":\"abby@kel.so\"},\"url\":\"https://dev.azure.com/davidgparsonson/_apis/notification/Subscriptions/886543\"}"
+        "capturedAt": "2026-07-03T08:02:23Z",
+        "response": "{\n  \"_links\": {\n    \"edit\": {\n      \"href\": \"https://dev.azure.com/davidgparsonson/_notifications?subscriptionId=886548&publisherId=ms.vss-work.work-event-publisher&action=view\"\n    }\n  },\n  \"diagnostics\": {},\n  \"filter\": {\n    \"eventType\": \"ms.vss-work.workitem-changed-event\",\n    \"type\": \"Expression\"\n  },\n  \"flags\": \"none\",\n  \"channel\": {\n    \"type\": \"EmailHtml\"\n  },\n  \"id\": \"886548\",\n  \"lastModifiedBy\": {\n    \"displayName\": \"david.g.parsonson\",\n    \"id\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"uniqueName\": \"david.g.parsonson@gmail.com\"\n  },\n  \"modifiedDate\": \"2026-07-03T08:02:20.803Z\",\n  \"permissions\": \"view, edit, delete\",\n  \"scope\": {\n    \"id\": \"6ddb680c-093d-4953-9561-2266eb7af800\",\n    \"type\": \"none\"\n  },\n  \"status\": \"enabled\",\n  \"subscriber\": {\n    \"displayName\": \"Ambrose Kelso\",\n    \"id\": \"0532ab9e-1c40-4efd-9906-b50d10fe13c2\",\n    \"uniqueName\": \"abby@kel.so\"\n  },\n  \"url\": \"https://dev.azure.com/davidgparsonson/_apis/notification/Subscriptions/886548\"\n}"
       }
     }
   ],
@@ -66,7 +66,7 @@
     {
       "criterion": "GIVEN a new notification service package with the framework resource WHEN go test is run against the package THEN TestNotificationSubscriptionResource_Create and TestNotificationSubscriptionResource_Read unit tests pass, verifying expand/flatten round-trips for subscription_type, channel_type, channel_address, filter_type, filter_criteria, and subscriber_id fields",
       "verdict": "met",
-      "evidence": "go test -tags all -count=1 -run TestNotificationSubscriptionResource_ ./azuredevops/internal/service/notification/ → PASS (both TestNotificationSubscriptionResource_Create and TestNotificationSubscriptionResource_Read green)"
+      "evidence": "go test -tags all -count=1 -run TestNotificationSubscriptionResource_ ./azuredevops/internal/service/notification/ → PASS (both TestNotificationSubscriptionResource_Create and TestNotificationSubscriptionResource_Read green). The channel_type attribute is validated with stringvalidator.OneOf (resource_notification_subscription_framework.go:139) enforcing the exact ADO API channel type enum values (Block, EmailHtml, EmailPlaintext, Group, MessageQueue, ServiceBus, ServiceHooks, Soap, Unsupported, User, UserSystem); this framework-validators fix was added in UWI-2 AC1."
     },
     {
       "criterion": "GIVEN the betterado_notification_subscription framework resource implementation WHEN the resource is reviewed THEN it is registered only in framework_provider.go Resources() and NOT added to the SDKv2 provider.go ResourcesMap; Create/Read/Update/Delete methods use NotificationClient.CreateSubscription, GetSubscription, UpdateSubscription, DeleteSubscription; Read returns nil on 404 (external delete); schema uses TypeList+MaxItems:1 for filter block",
@@ -76,17 +76,17 @@
     {
       "criterion": "GIVEN the betterado_notification_subscription resource and a new data source for reading an existing subscription WHEN the data source is registered in framework_provider.go DataSources() THEN betterado_notification_subscription data source exists in the framework provider; it reads a subscription by ID and exposes all schema attributes; it is NOT added to SDKv2 provider.go",
       "verdict": "met",
-      "evidence": "data_notification_subscription_framework.go committed (190 lines); framework_provider.go diff shows notification.NewNotificationSubscriptionDataSource added to DataSources(). grep -n notification_subscription azuredevops/provider.go → no output."
+      "evidence": "data_notification_subscription_framework.go committed (190 lines); framework_provider.go diff shows notification.NewNotificationSubscriptionDataSource added to DataSources(). grep -n notification_subscription azuredevops/provider.go → no output. Unit tests TestFlattenNotificationSubscriptionData (data_notification_subscription_framework_test.go) verify all flatten fields (id, channel_type, filter_type, subscription_type, subscriber_id, project_id, status, channel_address, filter_criteria). TestDataSource_404NotFound (data_notification_subscription_framework_test.go) drives datasource Read() directly against a 404 mock, asserts utils.ResponseWasNotFound returns true, and confirms resp.State.RemoveResource(ctx) is called — the RemoveResource branch at data_notification_subscription_framework.go:131 is exercised by test code."
     },
     {
       "criterion": "GIVEN a betterado_notification_subscription resource in HCL with subscription_type, subscriber_id, channel_type, and channel_address set to non-default values WHEN terraform apply runs live (TF_ACC=1) THEN TestAccNotificationSubscription_basic passes: the subscription is created via ADO Notification API, read back with ExpectNonEmptyPlan:false (idempotency), CaptureLiveEvidence is called with label acceptance-resource and the real GET URL, and terraform destroy removes it cleanly",
       "verdict": "met",
-      "evidence": "TestAccNotificationSubscription_basic → PASS. Live evidence: .forge/live-evidence/acceptance-resource.json capturedAt 2026-07-03T06:37:04Z, subscription ID 886543, GET URL https://dev.azure.com/davidgparsonson/_apis/notification/subscriptions/886543?api-version=7.1, status=enabled, channel.type=EmailHtml."
+      "evidence": "TestAccNotificationSubscription_basic → PASS. Live evidence: .forge/live-evidence/acceptance-resource.json capturedAt 2026-07-03T08:02:23Z, subscription ID 886548, GET URL https://dev.azure.com/davidgparsonson/_apis/notification/subscriptions/886548?api-version=7.1, status=enabled, channel.type=EmailHtml."
     },
     {
       "criterion": "GIVEN the acceptance test runs to completion WHEN live evidence is inspected THEN .forge/live-evidence/acceptance-resource.json exists and contains a real AZDO_ORG_SERVICE_URL/_apis/notification/subscriptions/<id>?api-version=7.1 GET URL",
       "verdict": "met",
-      "evidence": ".forge/live-evidence/acceptance-resource.json exists: url=https://dev.azure.com/davidgparsonson/_apis/notification/subscriptions/886543?api-version=7.1, response contains id=886543, status=enabled, subscriber=abby@kel.so, capturedAt=2026-07-03T06:37:04Z."
+      "evidence": ".forge/live-evidence/acceptance-resource.json exists: url=https://dev.azure.com/davidgparsonson/_apis/notification/subscriptions/886548?api-version=7.1, response contains id=886548, status=enabled, subscriber=abby@kel.so, capturedAt=2026-07-03T08:02:23Z."
     },
     {
       "criterion": "GIVEN the resource and data source are implemented WHEN make docs is run THEN docs/resources/notification_subscription.md and docs/data-sources/notification_subscription.md are generated; then git checkout -- docs/guides/ restores hand-written guides; examples/resources/betterado_notification_subscription/resource.tf and examples/data-sources/betterado_notification_subscription/data-source.tf exist with non-trivial HCL",
@@ -118,6 +118,22 @@
     },
     {
       "name": "TestNotificationSubscriptionResource_Read",
+      "result": "pass"
+    },
+    {
+      "name": "TestFlattenNotificationSubscriptionData",
+      "result": "pass"
+    },
+    {
+      "name": "TestFlattenNotificationSubscriptionData_NilSubscription",
+      "result": "pass"
+    },
+    {
+      "name": "TestFlattenNotificationSubscriptionData_PartialFields",
+      "result": "pass"
+    },
+    {
+      "name": "TestDataSource_404NotFound",
       "result": "pass"
     },
     {

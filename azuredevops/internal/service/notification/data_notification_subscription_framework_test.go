@@ -3,20 +3,26 @@
 package notification
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	notificationapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/notification"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
 	"github.com/parsoFish/terraform-provider-betterado/azdosdkmocks"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // TestFlattenNotificationSubscriptionData verifies that flattenNotificationSubscriptionData
@@ -99,20 +105,64 @@ func TestFlattenNotificationSubscriptionData_PartialFields(t *testing.T) {
 		"id should be empty or null when sub.Id is nil")
 }
 
+// notificationDataSourceSchemaType returns the tftypes.Object type that matches
+// the notificationSubscriptionDataSource schema, keyed by attribute name.
+func notificationDataSourceSchemaType() tftypes.Object {
+	return tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"id":                tftypes.String,
+			"project_id":        tftypes.String,
+			"subscription_type": tftypes.String,
+			"subscriber_id":     tftypes.String,
+			"channel_type":      tftypes.String,
+			"channel_address":   tftypes.String,
+			"filter_type":       tftypes.String,
+			"filter_criteria":   tftypes.String,
+			"status":            tftypes.String,
+		},
+	}
+}
+
+// notificationDataSourceConfigRaw builds a tftypes.Value representing the config
+// passed to the datasource Read() method, with only the subscription ID populated.
+func notificationDataSourceConfigRaw(subID string) tftypes.Value {
+	objType := notificationDataSourceSchemaType()
+	return tftypes.NewValue(objType, map[string]tftypes.Value{
+		"id":                tftypes.NewValue(tftypes.String, subID),
+		"project_id":        tftypes.NewValue(tftypes.String, nil),
+		"subscription_type": tftypes.NewValue(tftypes.String, nil),
+		"subscriber_id":     tftypes.NewValue(tftypes.String, nil),
+		"channel_type":      tftypes.NewValue(tftypes.String, nil),
+		"channel_address":   tftypes.NewValue(tftypes.String, nil),
+		"filter_type":       tftypes.NewValue(tftypes.String, nil),
+		"filter_criteria":   tftypes.NewValue(tftypes.String, nil),
+		"status":            tftypes.NewValue(tftypes.String, nil),
+	})
+}
+
 // TestDataSource_404NotFound verifies that when the ADO API returns HTTP 404
-// for a GetSubscription call, utils.ResponseWasNotFound detects it correctly.
-// This exercises the code path in data_notification_subscription_framework.go Read()
-// that calls resp.State.RemoveResource when the subscription is gone from the API.
+// for a GetSubscription call, the datasource Read() actually invokes
+// resp.State.RemoveResource(ctx), leaving the state Raw as a typed null.
+//
+// This drives the datasource Read() method directly (not just the mock client),
+// exercising data_notification_subscription_framework.go lines 128-131 — the
+// RemoveResource branch demanded by UWI-2 AC2 / UWI-4 AC2.
 func TestDataSource_404NotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	ctx := context.Background()
 	subID := "sub-missing-001"
 	statusCode := http.StatusNotFound
 	notFoundErr := azuredevops.WrappedError{
 		StatusCode: &statusCode,
 	}
 
+	// Confirm that utils.ResponseWasNotFound detects the 404 correctly.
+	assert.True(t, utils.ResponseWasNotFound(notFoundErr),
+		"utils.ResponseWasNotFound must return true for HTTP 404")
+
+	// Wire mock to return 404 for GetSubscription.
 	mockClient := azdosdkmocks.NewMockNotificationClient(ctrl)
 	mockClient.EXPECT().
 		GetSubscription(gomock.Any(), notificationapi.GetSubscriptionArgs{
@@ -121,13 +171,44 @@ func TestDataSource_404NotFound(t *testing.T) {
 		Return(nil, notFoundErr).
 		Times(1)
 
-	_, err := mockClient.GetSubscription(nil, notificationapi.GetSubscriptionArgs{ //nolint:staticcheck
-		SubscriptionId: &subID,
-	})
+	// Build the datasource instance and inject the mock client via AggregatedClient.
+	ds := &notificationSubscriptionDataSource{
+		client: &client.AggregatedClient{
+			NotificationClient: mockClient,
+			Ctx:                ctx,
+		},
+	}
 
-	// The data source Read() checks utils.ResponseWasNotFound(err); assert it returns true
-	// so the RemoveResource branch is exercised.
-	assert.True(t, utils.ResponseWasNotFound(err),
-		"utils.ResponseWasNotFound must return true for HTTP 404 so the data source "+
-			"correctly removes the resource from state rather than returning an error")
+	// Obtain the framework schema from the datasource itself.
+	var schemaResp datasource.SchemaResponse
+	ds.Schema(ctx, datasource.SchemaRequest{}, &schemaResp)
+	fwSchema := schemaResp.Schema
+
+	// Build the config raw value (subscription ID required, rest null).
+	rawVal := notificationDataSourceConfigRaw(subID)
+
+	readReq := datasource.ReadRequest{
+		Config: tfsdk.Config{
+			Raw:    rawVal,
+			Schema: fwSchema,
+		},
+	}
+	// Pre-populate state with the same raw value so RemoveResource has something to nil.
+	readResp := datasource.ReadResponse{
+		State: tfsdk.State{
+			Raw:    rawVal.Copy(),
+			Schema: fwSchema,
+		},
+	}
+
+	// Drive Read() directly — this exercises the 404 branch in Read():
+	//   if utils.ResponseWasNotFound(err) { resp.State.RemoveResource(ctx); return }
+	ds.Read(ctx, readReq, &readResp)
+
+	// RemoveResource sets State.Raw to a typed null; no diagnostic error must be present.
+	require.False(t, readResp.Diagnostics.HasError(),
+		"Read must not return an error on 404; it should gracefully remove the resource")
+	assert.True(t, readResp.State.Raw.IsNull(),
+		"RemoveResource must set State.Raw to a typed null — "+
+			"Terraform uses this signal to remove the data source from state")
 }
