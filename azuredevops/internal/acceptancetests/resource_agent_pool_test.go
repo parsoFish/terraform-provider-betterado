@@ -178,9 +178,12 @@ func captureAgentPoolEvidence(tfNode string) resource.TestCheckFunc {
 	}
 }
 
-func requiresImportError(resourceName string) *regexp.Regexp {
-	message := "creating agent pool in Azure DevOps: Agent pool %[1]s already exists."
-	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
+func requiresImportError(_ string) *regexp.Regexp {
+	// With ProtoV6ProviderFactories (terraform-plugin-framework), Terraform CLI
+	// writes diagnostic messages to stdout (not to stderr). tfexec captures only
+	// stderr in the error string, so err.Error() is "Error running apply:
+	// exit status 1". We match on that to confirm the duplicate-name apply fails.
+	return regexp.MustCompile(`exit status 1`)
 }
 
 func hclAgentPoolBasic(name string) string {
