@@ -1,9 +1,12 @@
 package acceptancetests
 
 import (
+	"bytes"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -20,7 +23,7 @@ func TestAccDeploymentGroup_basic(t *testing.T) {
 	tfNode := "betterado_deployment_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { testutils.PreCheck(t, nil); enableClassicPipelinesForFixtureProject(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkDeploymentGroupDestroyedMux,
 		Steps: []resource.TestStep{
@@ -53,7 +56,7 @@ func TestAccDeploymentGroup_update(t *testing.T) {
 	tfNode := "betterado_deployment_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { testutils.PreCheck(t, nil); enableClassicPipelinesForFixtureProject(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkDeploymentGroupDestroyedMux,
 		Steps: []resource.TestStep{
@@ -95,7 +98,7 @@ func TestAccDeploymentGroup_withPoolId(t *testing.T) {
 	tfNode := "betterado_deployment_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { testutils.PreCheck(t, nil); enableClassicPipelinesForFixtureProject(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkDeploymentGroupDestroyedMux,
 		Steps: []resource.TestStep{
@@ -142,6 +145,40 @@ func checkDeploymentGroupDestroyedMux(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+// enableClassicPipelinesForFixtureProject PATCHes the ADO project's build general settings
+// to set disableClassicBuildPipelineCreation=false.  Deployment groups require the
+// classic-build-pipeline creation feature to be enabled at the project level.
+// Uses a raw HTTP PATCH because the ADO Go SDK's PipelineGeneralSettings struct predates
+// the disableClassicBuildPipelineCreation field and does not expose it.
+// This is idempotent — calling it when classic pipelines are already enabled is a no-op.
+func enableClassicPipelinesForFixtureProject(t *testing.T) {
+	t.Helper()
+	orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	if orgURL == "" || pat == "" {
+		t.Fatal("enableClassicPipelinesForFixtureProject: AZDO_ORG_SERVICE_URL / AZDO_PERSONAL_ACCESS_TOKEN must be set")
+	}
+
+	url := orgURL + "/" + SharedFixtureProjectName + "/_apis/build/generalsettings?api-version=7.1-preview.1"
+	body := `{"disableClassicBuildPipelineCreation":false}`
+
+	req, err := http.NewRequest(http.MethodPatch, url, bytes.NewBufferString(body))
+	if err != nil {
+		t.Fatalf("enableClassicPipelinesForFixtureProject: build request: %v", err)
+	}
+	req.SetBasicAuth("", pat)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("enableClassicPipelinesForFixtureProject: PATCH: %v", err)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+	if resp.StatusCode >= 300 {
+		t.Fatalf("enableClassicPipelinesForFixtureProject: unexpected status %d", resp.StatusCode)
+	}
 }
 
 // readDeploymentGroup looks up a DeploymentGroup by project and ID.
