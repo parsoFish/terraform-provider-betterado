@@ -34,3 +34,5 @@ Changed files (from `git diff --name-only main...HEAD`):
 - `docs/gallery-extensionmanagement-gap-matrix.md`
 - `docs/resources/extension_install.md`
 - `examples/resources/betterado_extension_install/resource.tf`
+- `forge/history/INIT-2026-07-01-new-api-gallery-extensionmanagement/demo/demo.json`
+- `forge/history/INIT-2026-07-01-new-api-gallery-extensionmanagement/demo/DEMO.md`

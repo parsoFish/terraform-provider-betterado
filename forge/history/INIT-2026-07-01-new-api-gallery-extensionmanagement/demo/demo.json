@@ -3,7 +3,7 @@
   "essence": "Adds betterado_extension_install (terraform-plugin-framework resource) to install/uninstall ADO Marketplace extensions at the organisation level via the ExtensionManagement API, registered exclusively on the framework provider (mux-free-ready). Includes a gap matrix clarifying the boundary with the existing betterado_extension SDKv2 resource, a live acceptance test with CaptureLiveEvidence, tfplugindocs-generated docs, and CHANGELOG/version bump.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-new-api-gallery-extensionmanagement",
-  "diffStat": "11 files changed, 985 insertions(+), 1 deletion(-)",
+  "diffStat": "13 files changed, 1166 insertions(+), 1 deletion(-)",
   "checkpoints": [
     {
       "label": "CI gate green",
@@ -46,6 +46,17 @@
       "command": "grep -c 'publisher_id\\|extension_id\\|version\\|disabled' docs/resources/extension_install.md",
       "beforeNote": "docs/resources/extension_install.md did not exist on main",
       "afterNote": "All four schema attributes (publisher_id, extension_id, version, disabled) documented in generated registry docs"
+    },
+    {
+      "label": "acceptance-resource-extension-install",
+      "kind": "harness",
+      "caption": "Live evidence — acceptance-resource-extension-install",
+      "afterNote": "Real API GET against the live system: https://dev.azure.com/davidgparsonson/_apis/extensionmanagement/installedextensionsbyname/ms-securitydevops/microsoft-security-devops-azdevops?api-version=7.1",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/_apis/extensionmanagement/installedextensionsbyname/ms-securitydevops/microsoft-security-devops-azdevops?api-version=7.1",
+        "capturedAt": "2026-07-03T23:47:01Z",
+        "response": "{\n  \"baseUri\": \"https://ms-securitydevops.gallerycdn.vsassets.io/extensions/ms-securitydevops/microsoft-security-devops-azdevops/1.18.5/1777460984221\",\n  \"contributions\": [\n    {\n      \"id\": \"ms-securitydevops.microsoft-security-devops-azdevops.build-task-microsoft-security-devops\",\n      \"constraints\": [\n        {\n          \"name\": \"ExtensionLicensed\",\n          \"properties\": {\n            \"extensionId\": \"ms-securitydevops.microsoft-security-devops-azdevops\"\n          }\n        }\n      ],\n      \"properties\": {\n        \"::Attributes\": 24,\n        \"::Version\": \"1.18.5\",\n        \"name\": \"MicrosoftSecurityDevOps/v1\"\n      },\n      \"restrictedTo\": [\n        \"member\"\n      ],\n      \"targets\": [\n        \"ms.vss-distributed-task.tasks\"\n      ],\n      \"type\": \"ms.vss-distributed-task.task\"\n    },\n    {\n      \"id\": \"ms-securitydevops.microsoft-security-devops-azdevops.build-task-microsoft-defender-cli\",\n      \"constraints\": [\n        {\n          \"name\": \"ExtensionLicensed\",\n          \"properties\": {\n            \"extensionId\": \"ms-securitydevops.microsoft-security-devops-azdevops\"\n          }\n        }\n      ],\n      \"properties\": {\n        \"::Attributes\": 24,\n        \"::Version\": \"1.18.5\",\n        \"name\": \"MicrosoftSecurityDevOps/v2\"\n      },\n      \"restrictedTo\": [\n        \"member\"\n      ],\n      \"targets\": [\n        \"ms.vss-distributed-task.tasks\"\n      ],\n      \"type\": \"ms.vss-distributed-task.task\"\n    }\n  ],\n  \"contributionTypes\": [],\n  \"fallbackBaseUri\": \"https://ms-securitydevops.gallery.vsassets.io/_apis/public/gallery/publisher/ms-securitydevops/extension/microsoft-security-devops-azdevops/1.18.5/assetbyname\",\n  \"manifestVersion\": 1,\n  \"scopes\": [],\n  \"extensionId\": \"microsoft-security-devops-azdevops\",\n  \"extensionName\": \"Microsoft Security DevOps\",\n  \"files\": [],\n  \"installState\": {\n    \"flags\": \"none\",\n    \"lastUpdated\": \"2026-07-03T23:47:01.133Z\"\n  },\n  \"lastPublished\": \"2026-04-29T11:14:34.7Z\",\n  \"publisherId\": \"ms-securitydevops\",\n  \"publisherName\": \"Microsoft\",\n  \"registrationId\": \"b9cd1858-fd62-43c6-b3c2-c54b6686bc00\",\n  \"version\": \"1.18.5\"\n}"
+      }
     }
   ],
   "acEvaluations": [
