@@ -374,7 +374,7 @@ func (r *WikiResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 	if wikiType == azwiki.WikiTypeValues.CodeWiki {
 		// Code wikis can be deleted directly via the Wiki API.
 		projectID := model.ProjectID.ValueString()
-		_, err := r.client.WikiClient.DeleteWiki(r.client.Ctx, azwiki.DeleteWikiArgs{
+		_, err := r.client.WikiClient.DeleteWiki(ctx, azwiki.DeleteWikiArgs{
 			WikiIdentifier: converter.String(model.ID.ValueString()),
 			Project:        converter.String(projectID),
 		})
