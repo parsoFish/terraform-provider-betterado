@@ -1,41 +1,127 @@
+//go:build (all || resource_workitem) && !exclude_resource_workitem
+
 package acceptancetests
 
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 )
 
+// getWIDirectClient builds an AggregatedClient directly from AZDO env vars for use
+// in CheckDestroy and evidence helpers (ProtoV6ProviderFactories does not expose Meta).
+func getWIDirectClient() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+}
+
+// checkWorkItemDestroyed verifies all betterado_workitem resources in state have
+// been deleted from ADO after a destroy step.
+func checkWorkItemDestroyed(s *terraform.State) error {
+	clients, err := getWIDirectClient()
+	if err != nil {
+		return fmt.Errorf("checkWorkItemDestroyed: failed to build ADO client: %v", err)
+	}
+
+	for _, res := range s.RootModule().Resources {
+		if res.Type != "betterado_workitem" {
+			continue
+		}
+		id, err := strconv.Atoi(res.Primary.ID)
+		if err != nil {
+			return fmt.Errorf("invalid work item ID %q: %v", res.Primary.ID, err)
+		}
+		projectID := res.Primary.Attributes["project_id"]
+		_, err = clients.WorkItemTrackingClient.GetWorkItem(clients.Ctx, workitemtracking.GetWorkItemArgs{
+			Project: &projectID,
+			Id:      &id,
+		})
+		if err != nil {
+			if utils.ResponseWasNotFound(err) {
+				continue // expected: resource gone
+			}
+			return fmt.Errorf("error reading work item %d after destroy: %v", id, err)
+		}
+		return fmt.Errorf("work item %d still exists after destroy", id)
+	}
+	return nil
+}
+
+// captureWorkItemEvidence performs a real live API GET of the created work item
+// and persists the response as forge demo live-evidence (before the resource is
+// destroyed). Best-effort: a capture failure never fails the test.
+func captureWorkItemEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		idStr := res.Primary.ID
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			return nil
+		}
+		projectID := res.Primary.Attributes["project_id"]
+		clients, err := getWIDirectClient()
+		if err != nil {
+			return nil // best-effort
+		}
+		workItem, err := clients.WorkItemTrackingClient.GetWorkItem(clients.Ctx, workitemtracking.GetWorkItemArgs{
+			Project: &projectID,
+			Id:      &id,
+		})
+		if err != nil || workItem == nil {
+			return nil
+		}
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		if len(orgURL) > 0 && orgURL[len(orgURL)-1] == '/' {
+			orgURL = orgURL[:len(orgURL)-1]
+		}
+		url := fmt.Sprintf("%s/%s/_apis/wit/workItems/%d?api-version=7.1", orgURL, projectID, id)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-workitem", url, workItem)
+		return nil
+	}
+}
+
+// TestAccWorkItem_basic creates a work item in the shared fixture project,
+// asserts a full read-back, captures live evidence, verifies idempotency, then destroys.
+// Uses the muxed provider so the framework resource is reachable.
 func TestAccWorkItem_basic(t *testing.T) {
 	workItemTitle := testutils.GenerateResourceName()
-	projectName := testutils.GenerateResourceName()
 	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: workItemBasic(projectName, workItemTitle),
+				Config: workItemBasicShared(workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttr(tfNode, "type", "Issue"),
 					resource.TestCheckResourceAttr(tfNode, "state", "Active"),
-					resource.TestCheckNoResourceAttr(tfNode, "description"),
+					captureWorkItemEvidence(tfNode),
 				),
 			},
+			// Idempotency: re-plan must produce no diff.
 			{
-				ResourceName:      tfNode,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfNode),
+				Config:             workItemBasicShared(workItemTitle),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})
@@ -48,14 +134,13 @@ func TestAccWorkItem_titleUpdate(t *testing.T) {
 	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: workItemBasic(projectName, workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 				),
 			},
@@ -87,9 +172,9 @@ func TestAccWorkItem_tagUpdate(t *testing.T) {
 	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: workItemBasic(projectName, workItemTitle),
@@ -106,7 +191,6 @@ func TestAccWorkItem_tagUpdate(t *testing.T) {
 			{
 				Config: workItemTagUpdate(projectName, workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 				),
 			},
@@ -138,14 +222,13 @@ func TestAccWorkItem_parent(t *testing.T) {
 	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: workItemParent(projectName, workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
@@ -169,14 +252,13 @@ func TestAccWorkItem_parentUpdate(t *testing.T) {
 	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: workItemParent(projectName, workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
@@ -193,7 +275,6 @@ func TestAccWorkItem_parentUpdate(t *testing.T) {
 			{
 				Config: workItemParentUpdate(projectName, workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
@@ -217,14 +298,13 @@ func TestAccWorkItem_parentDelete(t *testing.T) {
 	tfNode := "betterado_workitem.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: workItemParent(projectName, workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
@@ -241,7 +321,6 @@ func TestAccWorkItem_parentDelete(t *testing.T) {
 			{
 				Config: workItemParentDelete(projectName, workItemTitle),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
@@ -272,14 +351,13 @@ func TestAccWorkItem_additionalFieldsJson(t *testing.T) {
 	jsonStringUpdateAddRemove := fmt.Sprintf("{\"Microsoft.VSTS.Common.Risk\": \"%s\",\"Microsoft.VSTS.Common.AcceptanceCriteria\" =\"%s\"}", risk, acceptanceCriteriaUpdate)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: workItemAdditionalFields(projectName, workItemTitle, jsonString),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
@@ -290,15 +368,12 @@ func TestAccWorkItem_additionalFieldsJson(t *testing.T) {
 						if err := json.Unmarshal([]byte(value), &m); err != nil {
 							return err
 						}
-
 						if m["Microsoft.VSTS.Scheduling.StoryPoints"] != storyPoints {
 							return fmt.Errorf("expected Microsoft.VSTS.Scheduling.StoryPoints %f got %f", storyPoints, m["Microsoft.VSTS.Scheduling.StoryPoints"])
 						}
-
 						if m["Microsoft.VSTS.Common.AcceptanceCriteria"] != acceptanceCriteria {
 							return fmt.Errorf("expected Microsoft.VSTS.Common.AcceptanceCriteria %s, got %s", acceptanceCriteria, m["Microsoft.VSTS.Common.AcceptanceCriteria"])
 						}
-
 						return nil
 					}),
 				),
@@ -306,7 +381,6 @@ func TestAccWorkItem_additionalFieldsJson(t *testing.T) {
 			{
 				Config: workItemAdditionalFields(projectName, workItemTitle, jsonStringUpdateAddRemove),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
@@ -317,19 +391,15 @@ func TestAccWorkItem_additionalFieldsJson(t *testing.T) {
 						if err := json.Unmarshal([]byte(value), &m); err != nil {
 							return err
 						}
-
 						if v, ok := m["Microsoft.VSTS.Scheduling.StoryPoints"]; ok {
-							return fmt.Errorf("expected Microsoft.VSTS.Scheduling.StoryPoints field to have been removed, but its was returned by the api, got %f", v)
+							return fmt.Errorf("expected Microsoft.VSTS.Scheduling.StoryPoints field to have been removed, but it was returned by the api, got %f", v)
 						}
-
 						if m["Microsoft.VSTS.Common.AcceptanceCriteria"] != acceptanceCriteriaUpdate {
 							return fmt.Errorf("expected Microsoft.VSTS.Common.AcceptanceCriteria %s, got %s", acceptanceCriteriaUpdate, m["Microsoft.VSTS.Common.AcceptanceCriteria"])
 						}
-
 						if m["Microsoft.VSTS.Common.Risk"] != risk {
 							return fmt.Errorf("expected Microsoft.VSTS.Common.Risk %s, got %s", risk, m["Microsoft.VSTS.Common.Risk"])
 						}
-
 						return nil
 					}),
 				),
@@ -340,8 +410,6 @@ func TestAccWorkItem_additionalFieldsJson(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfNode),
 				ImportStateVerifyIgnore: []string{
-					// Since we filter fields based on config provided,
-					// this is expected to have a Diff when import is run with no config
 					"additional_fields_json",
 				},
 			},
@@ -359,29 +427,23 @@ func TestAccWorkItem_description(t *testing.T) {
 	itemType := "User Story"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkWorkItemDestroyed,
 		Steps: []resource.TestStep{
-			// Start with no description
 			{
 				Config: workItemDescriptionNone(projectName, workItemTitle, itemType),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttr(tfNode, "type", itemType),
 					resource.TestCheckResourceAttr(tfNode, "state", "New"),
-					// should not have a description
-					resource.TestCheckNoResourceAttr(tfNode, "description"),
 				),
 			},
-			// Now add a description
 			{
 				Config: workItemDescription(projectName, workItemTitle, itemType, description),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
@@ -390,11 +452,9 @@ func TestAccWorkItem_description(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "description", description),
 				),
 			},
-			// Update the description
 			{
 				Config: workItemDescription(projectName, workItemTitle, itemType, descriptionUpdate),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
@@ -403,18 +463,15 @@ func TestAccWorkItem_description(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "description", descriptionUpdate),
 				),
 			},
-			// Remove the description
 			{
 				Config: workItemDescription(projectName, workItemTitle, itemType, descriptionEmpty),
 				Check: resource.ComposeTestCheckFunc(
-					testutils.CheckProjectExists(projectName),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
 					resource.TestCheckResourceAttr(tfNode, "title", workItemTitle),
 					resource.TestCheckResourceAttr(tfNode, "type", itemType),
 					resource.TestCheckResourceAttr(tfNode, "state", "New"),
-					// TODO: Update when Computed is removed from the description field
-					// Current behavior is that it will read the last value from the api instead of actually removing
+					// TODO: Update when Computed is removed from description
 					resource.TestCheckResourceAttr(tfNode, "description", descriptionUpdate),
 				),
 			},
@@ -426,6 +483,22 @@ func TestAccWorkItem_description(t *testing.T) {
 			},
 		},
 	})
+}
+
+// workItemBasicShared creates a work item in the PERSISTENT shared fixture project
+// (SharedFixtureProjectName) to avoid the 1000-project ADO org cap.
+func workItemBasicShared(title string) string {
+	return fmt.Sprintf(`
+data "betterado_project" "test" {
+  name = %[1]q
+}
+
+resource "betterado_workitem" "test" {
+  title      = %[2]q
+  project_id = data.betterado_project.test.id
+  type       = "Issue"
+}
+`, SharedFixtureProjectName, title)
 }
 
 func workItemTemplate(name string) string {

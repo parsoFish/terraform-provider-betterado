@@ -125,7 +125,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_variable_group_variable",
 		"betterado_wiki",
 		"betterado_wiki_page",
-		"betterado_workitem",
+		// betterado_workitem is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_workitemtracking_field",
 		"betterado_workitemquery",
 		"betterado_workitemquery_folder",

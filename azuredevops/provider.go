@@ -159,7 +159,6 @@ func Provider() *schema.Provider {
 			"betterado_variable_group_variable":                     taskagent.ResourceVariableGroupVariable(),
 			"betterado_wiki":                                        wiki.ResourceWiki(),
 			"betterado_wiki_page":                                   wiki.ResourceWikiPage(),
-			"betterado_workitem":                                    workitemtracking.ResourceWorkItem(),
 			"betterado_workitemtracking_field":                      workitemtracking.ResourceField(),
 			"betterado_workitemquery_permissions":                   permissions.ResourceWorkItemQueryPermissions(),
 			"betterado_workitemquery":                               workitemtracking.ResourceQuery(),

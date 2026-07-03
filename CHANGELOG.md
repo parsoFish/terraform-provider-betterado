@@ -7,6 +7,15 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_workitem` migrated to terraform-plugin-framework.** The resource
+  is now served through the mux provider using the terraform-plugin-framework
+  implementation (`resource_workitem_framework.go`). The SDKv2 implementation
+  (`resource_workitem.go`) has been removed. CRUD operations target the Work
+  Item Tracking REST API; the schema is unchanged. Verified by live acceptance
+  test `TestAccWorkItem_basic`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES
