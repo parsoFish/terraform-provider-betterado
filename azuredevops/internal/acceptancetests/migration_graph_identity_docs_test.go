@@ -4,6 +4,7 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -227,15 +228,24 @@ func testAccMigrationDocs_UsersDataSource(t *testing.T) {
 // testAccMigrationDocs_ServicePrincipalDataSource verifies the betterado_service_principal
 // data source schema: display_name (required), descriptor/origin/origin_id (computed).
 // Matches docs/data-sources/service_principal.md.
+//
+// Requires: AZDO_TEST_AAD_SERVICE_PRINCIPAL_OBJECT_ID — skipped if not set.
+// The data source looks up AAD service principals (not native ADO build service accounts),
+// so we provision a service principal entitlement from a known AAD object ID and read it
+// back to validate the framework schema. Pattern mirrors TestAccServicePrincipalDataSource_Framework_Read.
 func testAccMigrationDocs_ServicePrincipalDataSource(t *testing.T) {
+	if os.Getenv("AZDO_TEST_AAD_SERVICE_PRINCIPAL_OBJECT_ID") == "" {
+		t.Skip("Skipping: AZDO_TEST_AAD_SERVICE_PRINCIPAL_OBJECT_ID not set")
+	}
+	servicePrincipalObjectId := os.Getenv("AZDO_TEST_AAD_SERVICE_PRINCIPAL_OBJECT_ID")
 	tfNode := "data.betterado_service_principal.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		PreCheck:                 func() { testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_SERVICE_PRINCIPAL_OBJECT_ID"}) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclMigrationDocsServicePrincipalDataSource(),
+				Config: hclMigrationDocsServicePrincipalDataSource(servicePrincipalObjectId),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "descriptor"),
 					resource.TestCheckResourceAttrSet(tfNode, "origin"),
@@ -243,7 +253,7 @@ func testAccMigrationDocs_ServicePrincipalDataSource(t *testing.T) {
 				),
 			},
 			{
-				Config:             hclMigrationDocsServicePrincipalDataSource(),
+				Config:             hclMigrationDocsServicePrincipalDataSource(servicePrincipalObjectId),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -460,14 +470,13 @@ data "betterado_users" "test" {
 `
 }
 
-func hclMigrationDocsServicePrincipalDataSource() string {
-	return `
-data "betterado_client_config" "current" {}
-
+func hclMigrationDocsServicePrincipalDataSource(servicePrincipalObjectId string) string {
+	return fmt.Sprintf(`
+%s
 data "betterado_service_principal" "test" {
-  display_name = "Project Collection Build Service (${compact(split("/", data.betterado_client_config.current.organization_url))[2]})"
+  display_name = betterado_service_principal_entitlement.test.display_name
 }
-`
+`, testutils.HclServicePrincipleEntitlementResource(servicePrincipalObjectId))
 }
 
 func hclMigrationDocsIdentityGroupDataSource(groupName string) string {
