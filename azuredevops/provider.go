@@ -169,7 +169,8 @@ func Provider() *schema.Provider {
 			"betterado_workitemtrackingprocess_inherited_control":   workitemtrackingprocess.ResourceInheritedControl(),
 			// NOTE: betterado_workitemtrackingprocess_inherited_page has been migrated to the
 			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
-			"betterado_workitemtrackingprocess_list": workitemtrackingprocess.ResourceList(),
+			// NOTE: betterado_workitemtrackingprocess_list has been migrated to the
+			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
 			// NOTE: betterado_workitemtrackingprocess_page has been migrated to the
 			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
 			// NOTE: betterado_workitemtrackingprocess_process has been migrated to the
@@ -179,8 +180,9 @@ func Provider() *schema.Provider {
 			"betterado_workitemtrackingprocess_system_control":      workitemtrackingprocess.ResourceSystemControl(),
 			// NOTE: betterado_workitemtrackingprocess_workitemtype has been migrated to the
 			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
-			"betterado_workitemtrackingprocess_field": workitemtrackingprocess.ResourceField(),
-			"betterado_workitemtrackingprocess_rule":  workitemtrackingprocess.ResourceRule(),
+			// NOTE: betterado_workitemtrackingprocess_field has been migrated to the
+			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
+			"betterado_workitemtrackingprocess_rule": workitemtrackingprocess.ResourceRule(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			// NOTE: betterado_release_definition, betterado_release_definition_history,
