@@ -11,7 +11,7 @@
 - Provider version bumped to `1.2.1`; CHANGELOG updated with all 13 migrated types; all 13 registry docs and 13 example HCL files added.
 - Adopts `terraform-plugin-framework-validators` v0.19.0 (now direct dependency); hand-rolled `validators.go` deleted; 7 offline unit tests verify conflict-triangle and mode-enum validators.
 
-**Branch:** `forge/INIT-2026-07-01-migrate-framework-graph-identity` · **Commit:** `f5488265`
+**Branch:** `forge/INIT-2026-07-01-migrate-framework-graph-identity` · **Commit:** `b7f2ced1`
 
 ## Essence
 
@@ -35,7 +35,7 @@ go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredev
 | | |
 |---|---|
 | **Before (main)** | Gate already passing on main before initiative. |
-| **After (HEAD)** | `ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.006s` \| `ok .../taskagent 0.006s` \| `ok .../taskagent/validate 0.004s` — all three packages green on branch HEAD. |
+| **After (HEAD)** | `ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.010s` \| `ok .../taskagent 0.009s` \| `ok .../taskagent/validate 0.005s` — all three packages green on branch HEAD (unifier iteration 1, confirmed). |
 
 ---
 
@@ -237,9 +237,9 @@ grep -A 20 '## \[Unreleased\]' CHANGELOG.md | head -20
 
 | Test | Result |
 |------|--------|
-| `go test -tags all -count=1 ./azuredevops/internal/service/release/...` — ok .../release 0.007s | pass |
-| `go test -tags all -count=1 ./azuredevops/internal/service/taskagent/...` — ok .../taskagent 0.006s | pass |
-| `go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate/...` — ok .../taskagent/validate 0.004s | pass |
+| `go test -tags all -count=1 ./azuredevops/internal/service/release/...` — ok .../release 0.010s | pass |
+| `go test -tags all -count=1 ./azuredevops/internal/service/taskagent/...` — ok .../taskagent 0.009s | pass |
+| `go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate/...` — ok .../taskagent/validate 0.005s | pass |
 | `TestGroupResource_ConflictOriginIDAndMail` (offline validator unit test) | pass |
 | `TestGroupResource_ConflictOriginIDAndDisplayName` (offline validator unit test) | pass |
 | `TestGroupResource_ConflictMailAndDisplayName` (offline validator unit test) | pass |
