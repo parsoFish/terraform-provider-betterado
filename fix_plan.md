@@ -23,6 +23,13 @@
 - [x] make test: all pass; golangci-lint --new-from-rev=main: 0 issues
 - [x] Committed: 8453169e feat(taskagent): migrate betterado_agent_pool resource + data sources to framework
 
+## Sub-tasks completed in iteration 1
+
+- [x] Fix TestAccAgentPool_requiresImportErrorStep: update requiresImportError() to match
+  `exit status 1` instead of the diagnostic detail text (framework writes diagnostics to stdout,
+  not stderr; tfexec only captures stderr in err.Error()).
+- [x] Committed: c1712ea3 fix(acctest): align requiresImportError pattern with framework apply error string
+
 ## Awaiting live gate
 
 The live quality gate (TF_ACC=1, `go test -tags all -run TestAccAgentPool ./azuredevops/internal/acceptancetests/`) must pass in the forge environment.

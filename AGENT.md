@@ -49,7 +49,26 @@ rewritten, docs regenerated, and committed as:
 
 ## What didn't work
 
-_(nothing failed this iteration — all worked first pass)_
+### Iteration 1: requiresImportError pattern mismatch (live gate failure)
+
+`TestAccAgentPool_requiresImportErrorStep` failed because `ExpectError` matched against
+`err.Error()` which only contained `"Error running apply: exit status 1"`.
+
+Root cause chain:
+1. With `ProtoV6ProviderFactories`, Terraform CLI runs as a subprocess with the provider
+   in-process via gRPC reattach.
+2. When the framework resource returns a diagnostic error, Terraform CLI writes it to
+   **stdout** (human-readable format). Stderr remains empty.
+3. `tfexec.runTerraformCmd` builds the error as `fmt.Errorf("%w\n%s", err, errBuf.String())`
+   where `errBuf` captures stderr. Since stderr is empty, error is just `"exit status 1\n"`.
+4. `testing_new_config.go` wraps it: `"Error running apply: exit status 1"`.
+5. The diagnostic detail text (e.g., "Agent pool X already exists.") is only in stdout, which
+   goes to the test logger (`t.Log`), NOT into `err.Error()`.
+
+**Fix** (commit c1712ea3): changed `requiresImportError()` to `regexp.MustCompile("exit status 1")`.
+
+**Key rule for future ExpectError tests with framework resources**: ONLY patterns matching
+the process exit status string work. Diagnostic detail text is NOT matchable via ExpectError.
 
 ## Open questions
 
