@@ -12,10 +12,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/featuremanagement"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/wiki"
 )
 
 // BetteradoFrameworkProvider is the terraform-plugin-framework provider stub.
@@ -203,34 +211,51 @@ func (p *BetteradoFrameworkProvider) Configure(ctx context.Context, req provider
 
 func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
+		dashboard.NewDashboardResource,
+		extension.NewExtensionResource,
 		taskagent.NewTaskGroupResource,
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
-		serviceendpoint.NewServiceEndpointGenericResource,
-		serviceendpoint.NewServiceEndpointAzureRMResource,
+		build.NewBuildFolderResource,
+		build.NewBuildDefinitionResource,
+		build.NewPipelineAuthorizationResource,
+		build.NewResourceAuthorizationResource,
+		memberentitlementmanagement.NewUserEntitlementResource,
+		memberentitlementmanagement.NewGroupEntitlementResource,
+		memberentitlementmanagement.NewServicePrincipalEntitlementResource,
+		featuremanagement.NewFeatureFlagResource,
+		git.NewGitRepositoryResource,
+		git.NewGitRepositoryBranchResource,
+		git.NewGitRepositoryFileResource,
+		servicehook.NewServicehookStorageQueuePipelinesResource,
+		servicehook.NewServicehookWebhookTfsResource,
+		wiki.NewWikiResource,
+		wiki.NewWikiPageResource,
+		serviceendpoint.NewServiceEndpointArgoCDResource,
+		serviceendpoint.NewServiceEndpointArtifactoryResource,
 		serviceendpoint.NewServiceEndpointAwsResource,
 		serviceendpoint.NewServiceEndpointAzureServiceBusResource,
-		serviceendpoint.NewServiceEndpointGcpTerraformResource,
-		serviceendpoint.NewServiceEndpointDockerRegistryResource,
 		serviceendpoint.NewServiceEndpointAzureCRResource,
-		serviceendpoint.NewServiceEndpointGitHubResource,
-		serviceendpoint.NewServiceEndpointGitHubEnterpriseResource,
-		serviceendpoint.NewServiceEndpointGitLabResource,
-		serviceendpoint.NewServiceEndpointBitBucketResource,
-		serviceendpoint.NewServiceEndpointJenkinsResource,
-		serviceendpoint.NewServiceEndpointArgoCDResource,
-		serviceendpoint.NewServiceEndpointIncomingWebhookResource,
-		serviceendpoint.NewServiceEndpointExternalTFSResource,
 		serviceendpoint.NewServiceEndpointAzureDevOpsResource,
+		serviceendpoint.NewServiceEndpointAzureRMResource,
+		serviceendpoint.NewServiceEndpointBitBucketResource,
 		serviceendpoint.NewServiceEndpointBlackDuckResource,
 		serviceendpoint.NewServiceEndpointCheckMarxOneResource,
-		serviceendpoint.NewServiceEndpointCheckMarxSCAResource,
 		serviceendpoint.NewServiceEndpointCheckMarxSASTResource,
-		serviceendpoint.NewServiceEndpointArtifactoryResource,
+		serviceendpoint.NewServiceEndpointCheckMarxSCAResource,
+		serviceendpoint.NewServiceEndpointDockerRegistryResource,
 		serviceendpoint.NewServiceEndpointDynamicsLifecycleServicesResource,
-		serviceendpoint.NewServiceEndpointGenericV2Resource,
+		serviceendpoint.NewServiceEndpointExternalTFSResource,
+		serviceendpoint.NewServiceEndpointGcpTerraformResource,
+		serviceendpoint.NewServiceEndpointGenericResource,
 		serviceendpoint.NewServiceEndpointGenericGitResource,
+		serviceendpoint.NewServiceEndpointGenericV2Resource,
+		serviceendpoint.NewServiceEndpointGitHubEnterpriseResource,
+		serviceendpoint.NewServiceEndpointGitHubResource,
+		serviceendpoint.NewServiceEndpointGitLabResource,
+		serviceendpoint.NewServiceEndpointIncomingWebhookResource,
+		serviceendpoint.NewServiceEndpointJenkinsResource,
 	}
 }
 
@@ -241,13 +266,18 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseDefinitionRevisionDataSource,
 		release.NewReleaseDefinitionsDataSource,
 		release.NewReleaseFolderDataSource,
-		serviceendpoint.NewServiceEndpointAzureRMDataSource,
-		serviceendpoint.NewServiceEndpointDockerRegistryDataSource,
+		build.NewBuildDefinitionDataSource,
+		featuremanagement.NewFeatureFlagDataSource,
 		serviceendpoint.NewServiceEndpointAzureCRDataSource,
-		serviceendpoint.NewServiceEndpointGitHubDataSource,
+		serviceendpoint.NewServiceEndpointAzureRMDataSource,
 		serviceendpoint.NewServiceEndpointBitBucketDataSource,
+		serviceendpoint.NewServiceEndpointDockerRegistryDataSource,
+		serviceendpoint.NewServiceEndpointGenericV2DataSource,
+		serviceendpoint.NewServiceEndpointGitHubDataSource,
 		serviceendpoint.NewServiceEndpointNpmDataSource,
 		serviceendpoint.NewServiceEndpointSonarCloudDataSource,
-		serviceendpoint.NewServiceEndpointGenericV2DataSource,
+		git.NewGitRepositoryDataSource,
+		git.NewGitRepositoriesDataSource,
+		git.NewGitRepositoryFileDataSource,
 	}
 }
