@@ -125,7 +125,7 @@ func capturePipelineAuthorizationFrameworkEvidence(tfNode string) resource.TestC
 			"%s/%s/_apis/pipelines/pipelinepermissions/%s/%s?api-version=7.1-preview.1",
 			orgURL, projectID, resType, resourceID,
 		)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", apiURL, permResp)
+		_ = testutils.CaptureLiveEvidence("pipeline-authorization-resource", apiURL, permResp)
 		return nil
 	}
 }

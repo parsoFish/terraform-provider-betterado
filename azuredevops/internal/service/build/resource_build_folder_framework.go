@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 
@@ -80,6 +81,9 @@ func (r *BuildFolderResource) Schema(_ context.Context, _ resource.SchemaRequest
 			"path": schema.StringAttribute{
 				Required:    true,
 				Description: "The folder path within the build definitions tree (e.g. `\\MyFolder`).",
+				Validators: []validator.String{
+					bdFwPathValidator{},
+				},
 			},
 			"description": schema.StringAttribute{
 				Optional:    true,

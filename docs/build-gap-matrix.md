@@ -1,20 +1,22 @@
 # Build Package – API Gap Matrix
 
-> Generated for **WI-1** (INIT-2026-07-01-migrate-framework-build).
+> Updated for **UWI-2** (INIT-2026-07-01-migrate-framework-build).
 >
 > **Source of truth:** `vendor/github.com/microsoft/azure-devops-go-api/azuredevops/v7/build/models.go`
 > and `vendor/github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelinepermissions/models.go`
 >
-> **SDKv2 schemas read from:** `azuredevops/internal/service/build/`
-> - `resource_build_definition.go`
-> - `resource_build_folder.go`
-> - `resource_pipeline_authorization.go`
-> - `resource_resource_authorization.go`
-> - `data_build_definition.go`
+> **Framework schemas read from:** `azuredevops/internal/service/build/`
+> - `resource_build_definition_framework.go`
+> - `resource_build_folder_framework.go`
+> - `resource_pipeline_authorization_framework.go`
+> - `resource_resource_authorization_framework.go`
+> - `datasource_build_definition_framework.go`
 >
 > **Status values:**
-> - **Implemented** – field is mapped in the current SDKv2 schema (read, write, or computed).
-> - **Gap** – field exists in the API model but is absent from the provider schema.
+> - **Implemented** – field is mapped in the current framework schema (read, write, or computed).
+> - **NOT migrated** – field exists in the SDKv2 schema but is deliberately NOT included in the
+>   framework schema for this iteration (see reason). Follow-on work item to address.
+> - **Gap** – field exists in the API model but is absent from both SDKv2 and framework schemas.
 > - **Deferred** – field is a deliberate non-goal with a documented reason.
 
 ---
@@ -27,11 +29,11 @@ Primary API struct: `BuildDefinition` (inherits `BuildDefinitionReference`).
 
 | Field | API Type | Status | Notes |
 |---|---|---|---|
-| `id` | `*int` | Implemented | Stored as resource ID (`d.SetId`). |
-| `name` | `*string` | Implemented | `name` attribute. |
-| `path` | `*string` | Implemented | `path` attribute; defaults to `\`. |
-| `project` | `*core.TeamProjectReference` | Implemented | Represented by `project_id` (string UUID). Full object not needed for TF. |
-| `queue_status` | `*DefinitionQueueStatus` | Implemented | `queue_status` attribute (enabled/paused/disabled). |
+| `id` | `*int` | Implemented | Stored as resource ID. |
+| `name` | `*string` | Implemented | `name` attribute. Validator: StringIsNotWhiteSpace. |
+| `path` | `*string` | Implemented | `path` attribute; defaults to `\`. Validator: path format (must start with `\`, no invalid chars). |
+| `project` | `*core.TeamProjectReference` | Implemented | Represented by `project_id` (string UUID). |
+| `queue_status` | `*DefinitionQueueStatus` | Implemented | `queue_status` attribute (enabled/paused/disabled). Validator: enum membership. |
 | `revision` | `*int` | Implemented | `revision` attribute (Computed). |
 | `type` | `*DefinitionType` | Deferred | Always `Build` for YAML pipelines; hard-coded on expand. No user value needed. |
 | `uri` | `*string` | Deferred | Internal API URI; not a user-facing concern. |
@@ -44,26 +46,26 @@ Primary API struct: `BuildDefinition` (inherits `BuildDefinitionReference`).
 | `latest_completed_build` | `*Build` | Deferred | Runtime data; not configuration. |
 | `metrics` | `*[]BuildMetric` | Deferred | Runtime statistics; not configuration. |
 | `quality` | `*DefinitionQuality` | Deferred | Always `Definition` for normal pipelines; hard-coded on expand. |
-| `queue` (AgentPoolQueue) | `*AgentPoolQueue` | Implemented | Surfaced as `agent_pool_name` (string). ID/URL sub-fields deferred — name is sufficient for most workflows. |
-| `badge_enabled` | `*bool` | Gap | **Resolved by this migration** — will be added as optional bool in framework migration. |
-| `build_number_format` | `*string` | Gap | **Resolved by this migration** — user-controllable build number format string. |
+| `queue` (AgentPoolQueue) | `*AgentPoolQueue` | Implemented | Surfaced as `agent_pool_name` (string). ID/URL sub-fields deferred. |
+| `badge_enabled` | `*bool` | Gap | Not in framework schema. Low priority; not in SDKv2 schema either. |
+| `build_number_format` | `*string` | Gap | Not in framework schema. Not in SDKv2 schema either. |
 | `comment` | `*string` | Gap | **Deferred** — save-time comment on definition revision; rarely needed via TF. |
-| `demands` | `*[]interface{}` | Gap | **Deferred** — definition-level demands (separate from job-level); superseded by agent pool configuration. |
-| `description` | `*string` | Gap | **Resolved by this migration** — useful metadata field. |
+| `demands` | `*[]interface{}` | Gap | **Deferred** — definition-level demands; superseded by agent pool configuration. |
+| `description` | `*string` | Gap | Not in framework schema. Not in SDKv2 schema either. |
 | `drop_location` | `*string` | Deferred | Legacy XAML build artefact drop path; not applicable to YAML pipelines. |
-| `job_authorization_scope` | `*BuildAuthorizationScope` | Implemented | `job_authorization_scope` attribute. |
-| `job_cancel_timeout_in_minutes` | `*int` | Gap | **Resolved by this migration** — definition-level cancel timeout (distinct from job-level). |
-| `job_timeout_in_minutes` | `*int` | Gap | **Resolved by this migration** — definition-level execution timeout. |
+| `job_authorization_scope` | `*BuildAuthorizationScope` | Implemented | `job_authorization_scope` attribute. Validator: enum membership (projectCollection/project). |
+| `job_cancel_timeout_in_minutes` | `*int` | Gap | Not in framework schema. Not in SDKv2 schema either. |
+| `job_timeout_in_minutes` | `*int` | Gap | Not in framework schema. Not in SDKv2 schema either. |
 | `options` | `*[]BuildOption` | Deferred | Legacy build options (classic UI checkboxes); not relevant for YAML pipelines. |
-| `process` | `interface{}` | Implemented | Handled via `YamlProcess` (yml_path) for YAML and `map[string]interface{}` for OtherGit. |
+| `process` | `interface{}` | Implemented | Handled via `YamlProcess` (yml_path) for YAML pipelines. |
 | `process_parameters` | `*ProcessParameters` | Deferred | UI-level process parameter schema; not applicable for YAML pipelines. |
 | `properties` | `interface{}` | Deferred | Opaque property bag; no known TF use case. |
 | `repository` | `*BuildRepository` | Implemented | `repository` block. See §1b for sub-field detail. |
 | `retention_rules` | `*[]RetentionPolicy` | Deferred | Retention managed separately (project-level policy); not per-definition in practice. |
-| `tags` | `*[]string` | Gap | **Resolved by this migration** — pipeline tags are user-visible and requested. |
-| `triggers` | `*[]interface{}` | Implemented | `ci_trigger`, `pull_request_trigger`, `build_completion_trigger`, `schedules` blocks. |
-| `variable_groups` | `*[]VariableGroup` | Implemented | `variable_groups` (TypeSet of int IDs). |
-| `variables` | `*map[string]BuildDefinitionVariable` | Implemented | `variable` block (name/value/is_secret/allow_override). |
+| `tags` | `*[]string` | Gap | Not in framework schema. Not in SDKv2 schema either. |
+| `triggers` | `*[]interface{}` | Implemented (partial) | `ci_trigger` (with `override` sub-block) and `pull_request_trigger` (with `override` + `forks` Required) are implemented. `build_completion_trigger` and `schedules` are **NOT migrated** — see §1d. |
+| `variable_groups` | `*[]VariableGroup` | **NOT migrated** | Present in SDKv2 as TypeSet of int IDs. Deliberately omitted from framework schema this iteration — complex int-set type with no direct framework parallel. Follow-on work item required. |
+| `variables` | `*map[string]BuildDefinitionVariable` | Implemented | `variable` set block (name/value/is_secret/allow_override). Wired in expandBuildDefinitionFw and readIntoModel. |
 
 ### 1b. `BuildRepository` sub-fields (inside `repository` block)
 
@@ -71,17 +73,17 @@ Primary API struct: `BuildDefinition` (inherits `BuildDefinitionReference`).
 |---|---|---|---|
 | `id` | `*string` | Implemented | `repo_id`. |
 | `name` | `*string` | Implemented | Set equal to `repo_id` on expand; read back from API. |
-| `type` | `*string` | Implemented | `repo_type`. |
+| `type` | `*string` | Implemented | `repo_type`. Validator: enum membership (GitHub/TfsGit/Bitbucket/GitHubEnterprise/Git). |
 | `default_branch` | `*string` | Implemented | `branch_name`. |
 | `url` | `*string` | Implemented | `url` (Computed; also used for OtherGit). |
-| `clean` | `*string` | Gap | **Resolved by this migration** — controls workspace clean behaviour (`true`/`false`/`nil`). |
-| `checkout_submodules` | `*bool` | Gap | **Resolved by this migration** — common repository option. |
+| `clean` | `*string` | Gap | Not in framework schema. Not in SDKv2 schema either. |
+| `checkout_submodules` | `*bool` | Gap | Not in framework schema. Not in SDKv2 schema either. |
 | `root_folder` | `*string` | Deferred | Rarely needed; only relevant for non-default checkout paths. Deferred — low demand. |
-| `properties` | `*map[string]string` | Implemented (partial) | `connectedServiceId` → `service_connection_id`; `reportBuildStatus` → `report_build_status`; `apiUrl` set internally. Other property keys deferred. |
+| `properties` | `*map[string]string` | Implemented (partial) | `connectedServiceId` → `service_connection_id`; `reportBuildStatus` → `report_build_status`. Other property keys deferred. |
 | `service_connection_id` (via properties) | `string` | Implemented | `service_connection_id`. |
 | `report_build_status` (via properties) | `bool` | Implemented | `report_build_status`. |
-| `github_enterprise_url` (derived) | `string` | Implemented | `github_enterprise_url` (computed from URL for GHE repos). |
-| `yml_path` (via process) | `string` | Implemented | `yml_path` (extracted from `YamlProcess.YamlFilename`). |
+| `github_enterprise_url` (derived) | `string` | Implemented | `github_enterprise_url` (preserved from plan; not returned by API). |
+| `yml_path` (via process) | `string` | Implemented | `yml_path` (extracted from `YamlProcess.YamlFilename` on read). |
 
 ### 1c. `AgentPoolQueue` sub-fields (inside `queue`)
 
@@ -96,35 +98,45 @@ Primary API struct: `BuildDefinition` (inherits `BuildDefinitionReference`).
 
 | Trigger | API struct | Status | Notes |
 |---|---|---|---|
-| CI trigger | `ContinuousIntegrationTrigger` (interface) | Implemented | `ci_trigger` block with `use_yaml`/`override` sub-blocks. |
-| Pull request trigger | `PullRequestTrigger` (interface) | Implemented | `pull_request_trigger` block. |
-| Schedule trigger | `ScheduleTrigger` (interface) | Implemented | `schedules` block. |
-| Build completion trigger | `BuildCompletionTrigger` | Implemented | `build_completion_trigger` block. |
+| CI trigger | `ContinuousIntegrationTrigger` (interface) | Implemented | `ci_trigger` block with `use_yaml` and `override` sub-block (batch, branch_filter, path_filter, max_concurrent_builds_per_branch, polling_interval, polling_job_id). Wired in expandBuildDefinitionFw. |
+| Pull request trigger | `PullRequestTrigger` (interface) | Implemented | `pull_request_trigger` block with `use_yaml`, `initial_branch`, `comment_required` (validator: enum), `override` sub-block, and `forks` sub-block (Required — SDKv2 parity). Wired in expandBuildDefinitionFw. |
+| Schedule trigger | `ScheduleTrigger` (interface) | **NOT migrated** | Present in SDKv2 `schedules` block. Deliberately omitted from framework schema this iteration — complex nested structure with timezone list. Follow-on work item required. |
+| Build completion trigger | `BuildCompletionTrigger` | **NOT migrated** | Present in SDKv2 `build_completion_trigger` block. Deliberately omitted from framework schema this iteration — complex nested structure. Follow-on work item required. |
 | Gated check-in / batched gated check-in | (XAML only) | Deferred | XAML-only trigger types; not applicable to YAML pipelines. |
 
 ### 1e. Variables (`BuildDefinitionVariable`)
 
 | Field | API Type | Status | Notes |
 |---|---|---|---|
-| `value` | `*string` | Implemented | `value` / `secret_value`. |
+| `value` | `*string` | Implemented | `value` / `secret_value`. Wired in expandBuildDefinitionFw and readIntoModel. |
 | `allow_override` | `*bool` | Implemented | `allow_override`. |
-| `is_secret` | `*bool` | Implemented | `is_secret`. |
+| `is_secret` | `*bool` | Implemented | `is_secret`. Secret values preserved from state on read (API does not return them). |
 
-### 1f. Jobs / Process phases (OtherGit only)
+### 1f. `skip_first_run` and `features` block
+
+| Field | SDKv2 location | Framework status | Notes |
+|---|---|---|---|
+| `skip_first_run` | `features[0].skip_first_run` (bool) | Implemented | Promoted to top-level `skip_first_run` bool attribute in framework schema (simpler than nested `features` block). Schema-present; write-only on create (ADO does not echo this back on GET). |
+| `features` list | `features` block | **NOT migrated** as list | The SDKv2 `features` list wrapper is not present in the framework schema; `skip_first_run` is exposed directly at top level. |
+
+### 1g. Jobs / Process phases (OtherGit only)
+
+> **NOT migrated to framework schema.** The `jobs` block is only relevant for `repo_type = "Git"` (OtherGit) pipelines. This is a complex nested structure and a low-usage code path. The framework resource targets YAML-based pipelines (`repo_type ∈ {GitHub, TfsGit, Bitbucket, GitHubEnterprise}`). Follow-on work item required to support OtherGit.
 
 | Field | API / Model Type | Status | Notes |
 |---|---|---|---|
-| `name` | `string` (PipelineJob) | Implemented | `jobs[].name`. |
-| `ref_name` | `string` | Implemented | `jobs[].ref_name`. |
-| `condition` | `string` | Implemented | `jobs[].condition`. |
-| `dependencies` | `[]JobDependency` | Implemented | `jobs[].dependencies`. |
-| `target.type` | `int` | Implemented | `jobs[].target.type` (AgentJob/AgentlessJob). |
-| `target.execution_options` | `JobExecutionOptions` | Implemented | `jobs[].target.execution_options` (None/MultiConfig/MultiAgent). |
-| `target.demands` | `[]string` | Implemented | `jobs[].target.demands`. |
-| `target.allow_scripts_auth_access_option` | `*bool` | Implemented | `jobs[].allow_scripts_auth_access_option`. |
-| `job_timeout_in_minutes` | `*int` | Implemented | `jobs[].job_timeout_in_minutes`. |
-| `job_cancel_timeout_in_minutes` | `*int` | Implemented | `jobs[].job_cancel_timeout_in_minutes`. |
-| `job_authorization_scope` | `*string` | Implemented | `jobs[].job_authorization_scope`. |
+| `name` | `string` (PipelineJob) | **NOT migrated** | OtherGit only; deferred. |
+| `ref_name` | `string` | **NOT migrated** | OtherGit only; deferred. |
+| `condition` | `string` | **NOT migrated** | OtherGit only; deferred. |
+| `dependencies` | `[]JobDependency` | **NOT migrated** | OtherGit only; deferred. |
+| `target.type` | `int` | **NOT migrated** | OtherGit only; deferred. |
+| `target.execution_options` | `JobExecutionOptions` | **NOT migrated** | OtherGit only; deferred. |
+| `target.demands` | `[]string` | **NOT migrated** | OtherGit only; deferred. |
+| `target.allow_scripts_auth_access_option` | `*bool` | **NOT migrated** | OtherGit only; deferred. |
+| `job_timeout_in_minutes` | `*int` | **NOT migrated** | OtherGit only; deferred. |
+| `job_cancel_timeout_in_minutes` | `*int` | **NOT migrated** | OtherGit only; deferred. |
+| `job_authorization_scope` | `*string` | **NOT migrated** | OtherGit only; deferred. |
+| `agent_specification` | `string` | Schema-present, NOT wired | `agent_specification` is in the framework schema for future use but not wired to the API object (only meaningful for OtherGit `agent_specification` in `process.target`). |
 
 ---
 
@@ -134,7 +146,7 @@ Primary API struct: `Folder`.
 
 | Field | API Type | Status | Notes |
 |---|---|---|---|
-| `path` | `*string` | Implemented | `path` attribute. |
+| `path` | `*string` | Implemented | `path` attribute. Validator: path format (must start with `\`, no invalid chars). |
 | `description` | `*string` | Implemented | `description` attribute. |
 | `project` | `*core.TeamProjectReference` | Implemented | Surfaced as `project_id` (string UUID). |
 | `created_by` | `*webapi.IdentityRef` | Deferred | Read-only metadata; not configuration. |
@@ -153,9 +165,9 @@ Primary API structs: `ResourcePipelinePermissions`, `PipelinePermission`, `Permi
 |---|---|---|---|
 | `project_id` | `string` (request param) | Implemented | `project_id`. |
 | `pipeline_project_id` | `string` (request param) | Implemented | `pipeline_project_id` (optional; cross-project auth). |
-| `resource_id` | `string` (request param) | Implemented | `resource_id`. |
-| `type` | `string` (request param) | Implemented | `type` (endpoint/queue/variablegroup/environment/repository). |
-| `pipeline_id` | `PipelinePermission.Id` → `*int` | Implemented | `pipeline_id` (optional; omit for all-pipelines). |
+| `resource_id` | `string` (request param) | Implemented | `resource_id`. Validator: StringIsNotWhiteSpace. |
+| `type` | `string` (request param) | Implemented | `type` (endpoint/queue/variablegroup/environment/repository). Validator: enum membership. |
+| `pipeline_id` | `PipelinePermission.Id` → `*int` | Implemented | `pipeline_id` (optional; omit for all-pipelines). Validator: IntAtLeast(1). |
 | `AllPipelines.authorized` | `*bool` | Implemented (implicit) | Granted implicitly when `pipeline_id` is absent. |
 | `AllPipelines.authorized_by` | `*webapi.IdentityRef` | Deferred | Read-only audit metadata. |
 | `AllPipelines.authorized_on` | `*azuredevops.Time` | Deferred | Read-only audit metadata. |
@@ -185,7 +197,7 @@ Primary API struct: `DefinitionResourceReference`.
 
 ## 5. `data.betterado_build_definition` (data source)
 
-Same API struct as §1 (`BuildDefinition`). All writable attributes in the resource are exposed as Computed-only in the data source. The gap/deferred mapping follows §1 directly — gaps in the resource translate to gaps in the data source.
+Same API struct as §1 (`BuildDefinition`). All writable attributes in the resource are exposed as Computed-only in the data source.
 
 | Field | Status (data source) | Notes |
 |---|---|---|
@@ -193,41 +205,38 @@ Same API struct as §1 (`BuildDefinition`). All writable attributes in the resou
 | `path` | Implemented | Optional lookup key (defaults to `\`). |
 | `project_id` | Implemented | Required. |
 | `revision` | Implemented | Computed. |
-| `variable_groups` | Implemented | Computed. |
-| `variable` | Implemented | Computed. |
+| `variable` | Implemented | Computed set block. |
 | `agent_pool_name` | Implemented | Computed. |
-| `repository` | Implemented | Computed (all sub-fields from §1b). |
+| `repository` | Implemented | Computed block (all sub-fields from §1b). |
 | `ci_trigger` | Implemented | Computed. |
 | `pull_request_trigger` | Implemented | Computed. |
-| `agent_specification` | Implemented | Computed. |
+| `agent_specification` | Implemented | Computed (schema-present; API may not return for YAML pipelines). |
 | `job_authorization_scope` | Implemented | Computed. |
-| `jobs` | Implemented | Computed. |
-| `schedules` | Implemented | Computed. |
 | `queue_status` | Implemented | Computed. |
-| `badge_enabled` | Gap | **Resolved by this migration** — follows resource. |
-| `build_number_format` | Gap | **Resolved by this migration** — follows resource. |
-| `description` | Gap | **Resolved by this migration** — follows resource. |
-| `tags` | Gap | **Resolved by this migration** — follows resource. |
-| `job_cancel_timeout_in_minutes` | Gap | **Resolved by this migration** — follows resource. |
-| `job_timeout_in_minutes` | Gap | **Resolved by this migration** — follows resource. |
-| `clean` (repository) | Gap | **Resolved by this migration** — follows resource §1b. |
-| `checkout_submodules` (repository) | Gap | **Resolved by this migration** — follows resource §1b. |
-| `build_completion_trigger` | Gap | **Deferred** — data source currently omits this trigger type; low impact since it's read-only. |
+| `skip_first_run` | Implemented | Computed (top-level bool; promoted from SDKv2 features block). |
+| `variable_groups` | **NOT migrated** | Present in SDKv2 data source. Omitted from framework data source this iteration. Follow-on work item required. |
+| `jobs` | **NOT migrated** | OtherGit only; omitted from framework data source this iteration. Follow-on work item required. |
+| `schedules` | **NOT migrated** | Present in SDKv2 data source. Omitted from framework data source this iteration (complex nested structure). Follow-on work item required. |
+| `badge_enabled` | Gap | Not in SDKv2 data source either. |
+| `build_number_format` | Gap | Not in SDKv2 data source either. |
+| `description` | Gap | Not in SDKv2 data source either. |
+| `tags` | Gap | Not in SDKv2 data source either. |
+| `job_cancel_timeout_in_minutes` | Gap | Not in SDKv2 data source either. |
+| `job_timeout_in_minutes` | Gap | Not in SDKv2 data source either. |
+| `clean` (repository) | Gap | Not in SDKv2 data source either. |
+| `checkout_submodules` (repository) | Gap | Not in SDKv2 data source either. |
+| `build_completion_trigger` | **NOT migrated** | Present in SDKv2 data source. Omitted from framework data source this iteration. Follow-on work item required. |
 
 ---
 
-## Summary of writable gaps
+## Summary of NOT-migrated subtrees
 
-| Gap field | Affected resource(s) | Resolution |
+The following SDKv2 schema subtrees are deliberately **NOT** present in the framework schema for this iteration. Each requires a follow-on work item.
+
+| SDKv2 field/block | Affected resource(s) | Reason for deferral |
 |---|---|---|
-| `badge_enabled` | `betterado_build_definition`, `data.betterado_build_definition` | Resolved by this migration |
-| `build_number_format` | `betterado_build_definition`, `data.betterado_build_definition` | Resolved by this migration |
-| `description` | `betterado_build_definition`, `data.betterado_build_definition` | Resolved by this migration |
-| `tags` | `betterado_build_definition`, `data.betterado_build_definition` | Resolved by this migration |
-| `job_cancel_timeout_in_minutes` (definition-level) | `betterado_build_definition`, `data.betterado_build_definition` | Resolved by this migration |
-| `job_timeout_in_minutes` (definition-level) | `betterado_build_definition`, `data.betterado_build_definition` | Resolved by this migration |
-| `repository.clean` | `betterado_build_definition`, `data.betterado_build_definition` | Resolved by this migration |
-| `repository.checkout_submodules` | `betterado_build_definition`, `data.betterado_build_definition` | Resolved by this migration |
-| `demands` (definition-level) | `betterado_build_definition` | Deferred — superseded by agent pool; no clear TF use case |
-| `comment` | `betterado_build_definition` | Deferred — save-time comment on revision; ephemeral, not idempotent |
-| `build_completion_trigger` | `data.betterado_build_definition` | Deferred — data source only; low impact |
+| `variable_groups` | `betterado_build_definition`, `data.betterado_build_definition` | Complex int-set type; no direct framework parallel in current vendored version |
+| `build_completion_trigger` | `betterado_build_definition`, `data.betterado_build_definition` | Complex nested structure; low usage |
+| `schedules` | `betterado_build_definition`, `data.betterado_build_definition` | Complex nested structure with timezone enumeration |
+| `jobs` (OtherGit only) | `betterado_build_definition`, `data.betterado_build_definition` | OtherGit pipeline type only; large nested block |
+| `features` list wrapper | `betterado_build_definition` | `skip_first_run` promoted to top-level attribute instead; list wrapper not present |

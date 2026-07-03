@@ -122,7 +122,7 @@ func captureBuildFolderFrameworkEvidence(tfNode string) resource.TestCheckFunc {
 		encodedPath := url.PathEscape(path)
 		apiURL := fmt.Sprintf("%s/%s/_apis/build/folders%s?api-version=7.1-preview.2",
 			orgURL, projectID, encodedPath)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", apiURL, (*folders)[0])
+		_ = testutils.CaptureLiveEvidence("build-folder-resource", apiURL, (*folders)[0])
 		return nil
 	}
 }

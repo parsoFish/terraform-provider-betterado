@@ -121,7 +121,7 @@ func captureBuildDefinitionFrameworkDSEvidence(tfDataNode string) resource.TestC
 			"%s/%s/_apis/build/definitions/%d?api-version=7.1",
 			orgURL, projectID, defID,
 		)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", apiURL, defResp)
+		_ = testutils.CaptureLiveEvidence("build-definition-datasource", apiURL, defResp)
 		return nil
 	}
 }

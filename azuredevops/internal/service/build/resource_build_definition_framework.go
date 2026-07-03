@@ -9,17 +9,27 @@ package build
 // The framework resource is registered in framework_provider.go Resources().
 //
 // No build tag on this production file — only _test.go files carry //go:build.
+//
+// Deliberately deferred subtrees (NOT migrated to this framework schema):
+//   - variable_groups  — complex int-set; documented in docs/build-gap-matrix.md
+//   - build_completion_trigger — complex nested; documented in docs/build-gap-matrix.md
+//   - jobs             — large nested block (OtherGit only); documented in docs/build-gap-matrix.md
+//   - schedules        — complex nested with timezone list; documented in docs/build-gap-matrix.md
+//   - features (top-level list) — skip_first_run is promoted to a top-level bool attribute here
 
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
@@ -59,6 +69,52 @@ type buildDefinitionRepositoryModel struct {
 	ReportBuildStatus   types.Bool   `tfsdk:"report_build_status"`
 }
 
+type buildDefinitionVariableModel struct {
+	Name          types.String `tfsdk:"name"`
+	Value         types.String `tfsdk:"value"`
+	SecretValue   types.String `tfsdk:"secret_value"`
+	IsSecret      types.Bool   `tfsdk:"is_secret"`
+	AllowOverride types.Bool   `tfsdk:"allow_override"`
+}
+
+type buildDefinitionCITriggerModel struct {
+	UseYAML  types.Bool `tfsdk:"use_yaml"`
+	Override types.List `tfsdk:"override"`
+}
+
+type buildDefinitionCIOverrideModel struct {
+	Batch                        types.Bool   `tfsdk:"batch"`
+	MaxConcurrentBuildsPerBranch types.Int64  `tfsdk:"max_concurrent_builds_per_branch"`
+	PollingInterval              types.Int64  `tfsdk:"polling_interval"`
+	PollingJobID                 types.String `tfsdk:"polling_job_id"`
+	BranchFilter                 types.List   `tfsdk:"branch_filter"`
+	PathFilter                   types.List   `tfsdk:"path_filter"`
+}
+
+type buildDefinitionFilterModel struct {
+	Include types.List `tfsdk:"include"`
+	Exclude types.List `tfsdk:"exclude"`
+}
+
+type buildDefinitionPRTriggerModel struct {
+	UseYAML         types.Bool   `tfsdk:"use_yaml"`
+	InitialBranch   types.String `tfsdk:"initial_branch"`
+	CommentRequired types.String `tfsdk:"comment_required"`
+	Override        types.List   `tfsdk:"override"`
+	Forks           types.List   `tfsdk:"forks"`
+}
+
+type buildDefinitionPROverrideModel struct {
+	AutoCancel   types.Bool `tfsdk:"auto_cancel"`
+	BranchFilter types.List `tfsdk:"branch_filter"`
+	PathFilter   types.List `tfsdk:"path_filter"`
+}
+
+type buildDefinitionForksModel struct {
+	Enabled      types.Bool `tfsdk:"enabled"`
+	ShareSecrets types.Bool `tfsdk:"share_secrets"`
+}
+
 type buildDefinitionModel struct {
 	ID                    types.String `tfsdk:"id"`
 	Name                  types.String `tfsdk:"name"`
@@ -83,6 +139,81 @@ func (r *BuildDefinitionResource) Metadata(_ context.Context, req resource.Metad
 }
 
 func (r *BuildDefinitionResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	// Shared filter sub-block used by ci_trigger.override and pull_request_trigger.override.
+	filterNestedObj := schema.NestedAttributeObject{
+		Attributes: map[string]schema.Attribute{
+			"include": schema.ListAttribute{
+				Optional:    true,
+				ElementType: types.StringType,
+				Description: "List of branch/path patterns to include.",
+			},
+			"exclude": schema.ListAttribute{
+				Optional:    true,
+				ElementType: types.StringType,
+				Description: "List of branch/path patterns to exclude.",
+			},
+		},
+	}
+
+	ciOverrideNestedObj := schema.NestedAttributeObject{
+		Attributes: map[string]schema.Attribute{
+			"batch": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Whether to batch changes while a build is in progress.",
+				Default:     bdFwStaticBool(true),
+			},
+			"max_concurrent_builds_per_branch": schema.Int64Attribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "The maximum number of concurrent builds per branch.",
+				Default:     bdFwStaticInt64(1),
+			},
+			"polling_interval": schema.Int64Attribute{
+				Optional:    true,
+				Description: "The polling interval in seconds.",
+			},
+			"polling_job_id": schema.StringAttribute{
+				Computed:    true,
+				Description: "The polling job ID (computed).",
+				PlanModifiers: []planmodifier.String{
+					bdFwUseStateForUnknown(),
+				},
+			},
+			"branch_filter": schema.ListNestedAttribute{
+				Required:     true,
+				Description:  "Branch filter blocks.",
+				NestedObject: filterNestedObj,
+			},
+			"path_filter": schema.ListNestedAttribute{
+				Optional:     true,
+				Description:  "Path filter blocks.",
+				NestedObject: filterNestedObj,
+			},
+		},
+	}
+
+	prOverrideNestedObj := schema.NestedAttributeObject{
+		Attributes: map[string]schema.Attribute{
+			"auto_cancel": schema.BoolAttribute{
+				Optional:    true,
+				Computed:    true,
+				Description: "Whether to auto-cancel pending builds when new commits are pushed.",
+				Default:     bdFwStaticBool(true),
+			},
+			"branch_filter": schema.ListNestedAttribute{
+				Required:     true,
+				Description:  "Branch filter blocks.",
+				NestedObject: filterNestedObj,
+			},
+			"path_filter": schema.ListNestedAttribute{
+				Optional:     true,
+				Description:  "Path filter blocks.",
+				NestedObject: filterNestedObj,
+			},
+		},
+	}
+
 	resp.Schema = schema.Schema{
 		Description: "Manages a build (pipeline) definition within an Azure DevOps project.",
 		Attributes: map[string]schema.Attribute{
@@ -96,6 +227,9 @@ func (r *BuildDefinitionResource) Schema(_ context.Context, _ resource.SchemaReq
 			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "The name of the build definition.",
+				Validators: []validator.String{
+					bdFwStringNotWhitespace{},
+				},
 			},
 			"project_id": schema.StringAttribute{
 				Required:    true,
@@ -116,6 +250,9 @@ func (r *BuildDefinitionResource) Schema(_ context.Context, _ resource.SchemaReq
 				Computed:    true,
 				Description: `The folder path of the build definition (e.g. "\\MyFolder"). Defaults to "\".`,
 				Default:     bdFwStaticString(`\`),
+				Validators: []validator.String{
+					bdFwPathValidator{},
+				},
 			},
 			"agent_pool_name": schema.StringAttribute{
 				Optional:    true,
@@ -132,17 +269,30 @@ func (r *BuildDefinitionResource) Schema(_ context.Context, _ resource.SchemaReq
 				Computed:    true,
 				Description: "The authorization scope for the job. Valid values: `projectCollection`, `project`.",
 				Default:     bdFwStaticString("projectCollection"),
+				Validators: []validator.String{
+					bdFwStringOneOf{values: []string{
+						string(build.BuildAuthorizationScopeValues.ProjectCollection),
+						string(build.BuildAuthorizationScopeValues.Project),
+					}},
+				},
 			},
 			"queue_status": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "The queue status of the build definition. Valid values: `enabled`, `paused`, `disabled`.",
 				Default:     bdFwStaticString("enabled"),
+				Validators: []validator.String{
+					bdFwStringOneOf{values: []string{
+						string(build.DefinitionQueueStatusValues.Enabled),
+						string(build.DefinitionQueueStatusValues.Paused),
+						string(build.DefinitionQueueStatusValues.Disabled),
+					}},
+				},
 			},
 			"skip_first_run": schema.BoolAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "If true, the first run of the pipeline is skipped after creation.",
+				Description: "If true, the first run of the pipeline is skipped after creation. (Promoted from features block — see docs/build-gap-matrix.md.)",
 				Default:     bdFwStaticBool(false),
 			},
 			"variable": schema.SetNestedAttribute{
@@ -153,6 +303,9 @@ func (r *BuildDefinitionResource) Schema(_ context.Context, _ resource.SchemaReq
 						"name": schema.StringAttribute{
 							Required:    true,
 							Description: "The name of the variable.",
+							Validators: []validator.String{
+								bdFwStringNotWhitespace{},
+							},
 						},
 						"value": schema.StringAttribute{
 							Optional:    true,
@@ -200,6 +353,11 @@ func (r *BuildDefinitionResource) Schema(_ context.Context, _ resource.SchemaReq
 						"repo_type": schema.StringAttribute{
 							Required:    true,
 							Description: "The type of repository (GitHub, TfsGit, Bitbucket, GitHubEnterprise, Git).",
+							Validators: []validator.String{
+								bdFwStringOneOf{values: []string{
+									"GitHub", "TfsGit", "Bitbucket", "GitHubEnterprise", "Git",
+								}},
+							},
 						},
 						"branch_name": schema.StringAttribute{
 							Optional:    true,
@@ -216,13 +374,13 @@ func (r *BuildDefinitionResource) Schema(_ context.Context, _ resource.SchemaReq
 						"github_enterprise_url": schema.StringAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "The URL of the GitHub Enterprise instance.",
+							Description: "The URL of the GitHub Enterprise instance. Conflicts with url.",
 							Default:     bdFwStaticString(""),
 						},
 						"url": schema.StringAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "The URL of the repository.",
+							Description: "The URL of the repository. Conflicts with github_enterprise_url.",
 							PlanModifiers: []planmodifier.String{
 								bdFwUseStateForUnknown(),
 							},
@@ -244,8 +402,13 @@ func (r *BuildDefinitionResource) Schema(_ context.Context, _ resource.SchemaReq
 						"use_yaml": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "Whether to use the YAML-defined trigger.",
+							Description: "Whether to use the YAML-defined trigger. Conflicts with override.",
 							Default:     bdFwStaticBool(false),
+						},
+						"override": schema.ListNestedAttribute{
+							Optional:     true,
+							Description:  "Override block for CI trigger settings (conflicts with use_yaml).",
+							NestedObject: ciOverrideNestedObj,
 						},
 					},
 				},
@@ -258,7 +421,7 @@ func (r *BuildDefinitionResource) Schema(_ context.Context, _ resource.SchemaReq
 						"use_yaml": schema.BoolAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "Whether to use the YAML-defined PR trigger.",
+							Description: "Whether to use the YAML-defined PR trigger. Conflicts with override.",
 							Default:     bdFwStaticBool(false),
 						},
 						"initial_branch": schema.StringAttribute{
@@ -270,8 +433,32 @@ func (r *BuildDefinitionResource) Schema(_ context.Context, _ resource.SchemaReq
 						"comment_required": schema.StringAttribute{
 							Optional:    true,
 							Computed:    true,
-							Description: "Whether a comment is required to trigger the PR build. Valid values: '', 'All', 'NonTeamMembers'.",
+							Description: "Whether a comment is required to trigger the PR build. Valid values: ``, `All`, `NonTeamMembers`.",
 							Default:     bdFwStaticString(""),
+							Validators: []validator.String{
+								bdFwStringOneOf{values: []string{"", "All", "NonTeamMembers"}},
+							},
+						},
+						"override": schema.ListNestedAttribute{
+							Optional:     true,
+							Description:  "Override block for PR trigger settings (conflicts with use_yaml).",
+							NestedObject: prOverrideNestedObj,
+						},
+						"forks": schema.ListNestedAttribute{
+							Required:    true,
+							Description: "Forks settings for the pull request trigger.",
+							NestedObject: schema.NestedAttributeObject{
+								Attributes: map[string]schema.Attribute{
+									"enabled": schema.BoolAttribute{
+										Required:    true,
+										Description: "Whether fork-based pull request builds are enabled.",
+									},
+									"share_secrets": schema.BoolAttribute{
+										Required:    true,
+										Description: "Whether secrets are shared with fork builds.",
+									},
+								},
+							},
 						},
 					},
 				},
@@ -500,7 +687,7 @@ func (r *BuildDefinitionResource) ImportState(ctx context.Context, req resource.
 // readIntoModel fetches the build definition from ADO and populates model fields.
 // removeResource is called when the resource no longer exists (404).
 func (r *BuildDefinitionResource) readIntoModel(
-	_ context.Context,
+	ctx context.Context,
 	defIDStr, projectID string,
 	model *buildDefinitionModel,
 	removeResource func(context.Context),
@@ -548,6 +735,147 @@ func (r *BuildDefinitionResource) readIntoModel(
 		model.QueueStatus = types.StringValue(string(*def.QueueStatus))
 	}
 
+	// Read repository fields back.
+	if def.Repository != nil {
+		repo := def.Repository
+		repoModel := buildDefinitionRepositoryModel{}
+		if repo.Id != nil {
+			repoModel.RepoID = types.StringValue(*repo.Id)
+		} else {
+			repoModel.RepoID = types.StringValue("")
+		}
+		if repo.Type != nil {
+			repoModel.RepoType = types.StringValue(*repo.Type)
+		} else {
+			repoModel.RepoType = types.StringValue("")
+		}
+		if repo.DefaultBranch != nil {
+			repoModel.BranchName = types.StringValue(*repo.DefaultBranch)
+		} else {
+			repoModel.BranchName = types.StringValue("")
+		}
+		if repo.Url != nil {
+			repoModel.URL = types.StringValue(*repo.Url)
+		} else {
+			repoModel.URL = types.StringValue("")
+		}
+		// Properties: connectedServiceId, reportBuildStatus.
+		if repo.Properties != nil {
+			props := *repo.Properties
+			if sc, ok := props["connectedServiceId"]; ok {
+				repoModel.ServiceConnectionID = types.StringValue(sc)
+			} else {
+				repoModel.ServiceConnectionID = types.StringValue("")
+			}
+			if rbs, ok := props["reportBuildStatus"]; ok {
+				repoModel.ReportBuildStatus = types.BoolValue(rbs == "true")
+			} else {
+				repoModel.ReportBuildStatus = types.BoolValue(true)
+			}
+		} else {
+			repoModel.ServiceConnectionID = types.StringValue("")
+			repoModel.ReportBuildStatus = types.BoolValue(true)
+		}
+		// YmlPath from process.
+		if def.Process != nil {
+			if yamlProc, ok := def.Process.(*build.YamlProcess); ok && yamlProc.YamlFilename != nil {
+				repoModel.YmlPath = types.StringValue(*yamlProc.YamlFilename)
+			} else {
+				repoModel.YmlPath = types.StringValue("")
+			}
+		} else {
+			repoModel.YmlPath = types.StringValue("")
+		}
+		// github_enterprise_url: not returned by API — preserve from state.
+		if !model.Repository.IsNull() && !model.Repository.IsUnknown() {
+			var existingRepos []buildDefinitionRepositoryModel
+			if diags := model.Repository.ElementsAs(ctx, &existingRepos, false); !diags.HasError() && len(existingRepos) > 0 {
+				repoModel.GithubEnterpriseURL = existingRepos[0].GithubEnterpriseURL
+			} else {
+				repoModel.GithubEnterpriseURL = types.StringValue("")
+			}
+		} else {
+			repoModel.GithubEnterpriseURL = types.StringValue("")
+		}
+
+		// Build the list value.
+		repoObjType := types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"yml_path":              types.StringType,
+				"repo_id":               types.StringType,
+				"repo_type":             types.StringType,
+				"branch_name":           types.StringType,
+				"service_connection_id": types.StringType,
+				"github_enterprise_url": types.StringType,
+				"url":                   types.StringType,
+				"report_build_status":   types.BoolType,
+			},
+		}
+		repoListVal, diags := types.ListValueFrom(ctx, repoObjType, []buildDefinitionRepositoryModel{repoModel})
+		if diags.HasError() {
+			return fmt.Errorf("converting repository to list value")
+		}
+		model.Repository = repoListVal
+	}
+
+	// Read variable fields back.
+	if def.Variables != nil && len(*def.Variables) > 0 {
+		// Build a map from existing state for secret_value (API never returns secret values).
+		existingSecrets := map[string]string{}
+		if !model.Variable.IsNull() && !model.Variable.IsUnknown() {
+			var existingVars []buildDefinitionVariableModel
+			if diags := model.Variable.ElementsAs(ctx, &existingVars, false); !diags.HasError() {
+				for _, ev := range existingVars {
+					existingSecrets[ev.Name.ValueString()] = ev.SecretValue.ValueString()
+				}
+			}
+		}
+		vars := make([]buildDefinitionVariableModel, 0, len(*def.Variables))
+		for name, v := range *def.Variables {
+			vm := buildDefinitionVariableModel{
+				Name:          types.StringValue(name),
+				IsSecret:      types.BoolValue(v.IsSecret != nil && *v.IsSecret),
+				AllowOverride: types.BoolValue(v.AllowOverride == nil || *v.AllowOverride),
+			}
+			if v.IsSecret != nil && *v.IsSecret {
+				// Secret: API returns empty value; preserve from state.
+				vm.Value = types.StringValue("")
+				if sv, ok := existingSecrets[name]; ok {
+					vm.SecretValue = types.StringValue(sv)
+				} else {
+					vm.SecretValue = types.StringValue("")
+				}
+			} else {
+				if v.Value != nil {
+					vm.Value = types.StringValue(*v.Value)
+				} else {
+					vm.Value = types.StringValue("")
+				}
+				vm.SecretValue = types.StringValue("")
+			}
+			vars = append(vars, vm)
+		}
+		varObjType := types.ObjectType{
+			AttrTypes: map[string]attr.Type{
+				"name":           types.StringType,
+				"value":          types.StringType,
+				"secret_value":   types.StringType,
+				"is_secret":      types.BoolType,
+				"allow_override": types.BoolType,
+			},
+		}
+		varSetVal, diags := types.SetValueFrom(ctx, varObjType, vars)
+		if diags.HasError() {
+			return fmt.Errorf("converting variables to set value")
+		}
+		model.Variable = varSetVal
+	}
+	// If API returns no variables but we had some, leave model.Variable as-is from plan
+	// (empty set from defaults will be used).
+
+	// agent_specification and skip_first_run: ADO doesn't reliably echo these back
+	// on read, so we preserve the values already in the model (from plan/state).
+
 	return nil
 }
 
@@ -575,9 +903,13 @@ func (r *BuildDefinitionResource) expandBuildDefinitionFw(ctx context.Context, m
 	ymlPath := repo.YmlPath.ValueString()
 	serviceConnID := repo.ServiceConnectionID.ValueString()
 	reportStatus := repo.ReportBuildStatus.ValueBool()
+	gheURL := repo.GithubEnterpriseURL.ValueString()
 
 	if repoType == "GitHub" && repoURL == "" {
 		repoURL = fmt.Sprintf("https://github.com/%s.git", repoID)
+	}
+	if gheURL != "" {
+		repoURL = gheURL
 	}
 
 	// Compute reference ID for updates.
@@ -635,8 +967,154 @@ func (r *BuildDefinitionResource) expandBuildDefinitionFw(ctx context.Context, m
 		def.JobAuthorizationScope = &s
 	}
 
+	// agent_specification: only relevant for OtherGit/jobs-based pipelines (deferred subtree).
+	// For YAML pipelines it is stored inside the Process/target map. Since jobs are
+	// deliberately deferred in this framework implementation, agent_specification is
+	// accepted in schema (for future use) but not wired to the API object here.
+	// See docs/build-gap-matrix.md for the NOT-migrated note.
+
+	// Wire variables.
+	if !model.Variable.IsNull() && !model.Variable.IsUnknown() {
+		var vars []buildDefinitionVariableModel
+		if diags := model.Variable.ElementsAs(ctx, &vars, false); !diags.HasError() && len(vars) > 0 {
+			varMap := make(map[string]build.BuildDefinitionVariable, len(vars))
+			for _, v := range vars {
+				name := v.Name.ValueString()
+				isSecret := v.IsSecret.ValueBool()
+				allowOverride := v.AllowOverride.ValueBool()
+				bdv := build.BuildDefinitionVariable{
+					IsSecret:      &isSecret,
+					AllowOverride: &allowOverride,
+				}
+				if isSecret {
+					sv := v.SecretValue.ValueString()
+					bdv.Value = &sv
+				} else {
+					val := v.Value.ValueString()
+					bdv.Value = &val
+				}
+				varMap[name] = bdv
+			}
+			def.Variables = &varMap
+		}
+	}
+
+	// Wire ci_trigger.
+	var allTriggers []interface{}
+	if !model.CITrigger.IsNull() && !model.CITrigger.IsUnknown() {
+		var ciTriggers []buildDefinitionCITriggerModel
+		if diags := model.CITrigger.ElementsAs(ctx, &ciTriggers, false); !diags.HasError() && len(ciTriggers) > 0 {
+			ct := ciTriggers[0]
+			if ct.UseYAML.ValueBool() {
+				allTriggers = append(allTriggers, map[string]interface{}{
+					"triggerType":        "continuousIntegration",
+					"settingsSourceType": 2,
+				})
+			} else if !ct.Override.IsNull() && !ct.Override.IsUnknown() {
+				var overrides []buildDefinitionCIOverrideModel
+				if diags2 := ct.Override.ElementsAs(ctx, &overrides, false); !diags2.HasError() && len(overrides) > 0 {
+					ov := overrides[0]
+					trigger := map[string]interface{}{
+						"triggerType":                  "continuousIntegration",
+						"batchChanges":                 ov.Batch.ValueBool(),
+						"maxConcurrentBuildsPerBranch": int(ov.MaxConcurrentBuildsPerBranch.ValueInt64()),
+						"branchFilters":                expandBdFwFilters(ctx, ov.BranchFilter),
+						"pathFilters":                  expandBdFwFilters(ctx, ov.PathFilter),
+					}
+					if !ov.PollingInterval.IsNull() && !ov.PollingInterval.IsUnknown() {
+						trigger["pollingInterval"] = int(ov.PollingInterval.ValueInt64())
+					}
+					allTriggers = append(allTriggers, trigger)
+				}
+			} else {
+				// Bare ci_trigger block (no override, no use_yaml) — use_yaml defaults false.
+				allTriggers = append(allTriggers, map[string]interface{}{
+					"triggerType":        "continuousIntegration",
+					"settingsSourceType": 1,
+				})
+			}
+		}
+	}
+
+	// Wire pull_request_trigger.
+	if !model.PullRequestTrigger.IsNull() && !model.PullRequestTrigger.IsUnknown() {
+		var prTriggers []buildDefinitionPRTriggerModel
+		if diags := model.PullRequestTrigger.ElementsAs(ctx, &prTriggers, false); !diags.HasError() && len(prTriggers) > 0 {
+			pt := prTriggers[0]
+			trigger := map[string]interface{}{
+				"triggerType": "pullRequest",
+				"autoCancel":  true,
+			}
+			if pt.UseYAML.ValueBool() {
+				trigger["settingsSourceType"] = 2
+			} else {
+				trigger["settingsSourceType"] = 1
+			}
+			if cr := pt.CommentRequired.ValueString(); cr != "" {
+				trigger["requireCommentsStrategy"] = cr
+			}
+			// Forks (Required in SDKv2 parity).
+			if !pt.Forks.IsNull() && !pt.Forks.IsUnknown() {
+				var forks []buildDefinitionForksModel
+				if diags2 := pt.Forks.ElementsAs(ctx, &forks, false); !diags2.HasError() && len(forks) > 0 {
+					f := forks[0]
+					trigger["forks"] = map[string]interface{}{
+						"enabled":      f.Enabled.ValueBool(),
+						"allowSecrets": f.ShareSecrets.ValueBool(),
+					}
+				}
+			}
+			// Override.
+			if !pt.Override.IsNull() && !pt.Override.IsUnknown() {
+				var overrides []buildDefinitionPROverrideModel
+				if diags2 := pt.Override.ElementsAs(ctx, &overrides, false); !diags2.HasError() && len(overrides) > 0 {
+					ov := overrides[0]
+					trigger["autoCancel"] = ov.AutoCancel.ValueBool()
+					trigger["branchFilters"] = expandBdFwFilters(ctx, ov.BranchFilter)
+					trigger["pathFilters"] = expandBdFwFilters(ctx, ov.PathFilter)
+				}
+			}
+			allTriggers = append(allTriggers, trigger)
+		}
+	}
+
+	if len(allTriggers) > 0 {
+		def.Triggers = &allTriggers
+	}
+
 	_ = projectID // captured in caller
 	return &def, nil
+}
+
+// expandBdFwFilters converts a list of filter models to ADO branch/path filter strings.
+func expandBdFwFilters(ctx context.Context, filterList types.List) []string {
+	if filterList.IsNull() || filterList.IsUnknown() {
+		return nil
+	}
+	var filters []buildDefinitionFilterModel
+	if diags := filterList.ElementsAs(ctx, &filters, false); diags.HasError() {
+		return nil
+	}
+	var result []string
+	for _, f := range filters {
+		if !f.Include.IsNull() && !f.Include.IsUnknown() {
+			var incl []string
+			if diags := f.Include.ElementsAs(ctx, &incl, false); !diags.HasError() {
+				for _, v := range incl {
+					result = append(result, "+"+v)
+				}
+			}
+		}
+		if !f.Exclude.IsNull() && !f.Exclude.IsUnknown() {
+			var excl []string
+			if diags := f.Exclude.ElementsAs(ctx, &excl, false); !diags.HasError() {
+				for _, v := range excl {
+					result = append(result, "-"+v)
+				}
+			}
+		}
+	}
+	return result
 }
 
 // ── Inline defaults ───────────────────────────────────────────────────────────
@@ -675,6 +1153,23 @@ func (d bdFwStaticBoolImpl) MarkdownDescription(_ context.Context) string {
 
 func (d bdFwStaticBoolImpl) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(d.value)
+}
+
+// bdFwStaticInt64Impl is a minimal defaults.Int64 that returns a constant.
+type bdFwStaticInt64Impl struct{ value int64 }
+
+func bdFwStaticInt64(v int64) defaults.Int64 { return bdFwStaticInt64Impl{value: v} }
+
+func (d bdFwStaticInt64Impl) Description(_ context.Context) string {
+	return fmt.Sprintf("defaults to %d", d.value)
+}
+
+func (d bdFwStaticInt64Impl) MarkdownDescription(_ context.Context) string {
+	return fmt.Sprintf("defaults to `%d`", d.value)
+}
+
+func (d bdFwStaticInt64Impl) DefaultInt64(_ context.Context, _ defaults.Int64Request, resp *defaults.Int64Response) {
+	resp.PlanValue = types.Int64Value(d.value)
 }
 
 // ── Inline plan-modifiers ─────────────────────────────────────────────────────
@@ -746,4 +1241,93 @@ func (bdFwUseStateForUnknownInt64Impl) PlanModifyInt64(_ context.Context, req pl
 		return
 	}
 	resp.PlanValue = req.StateValue
+}
+
+// ── Validators ────────────────────────────────────────────────────────────────
+
+// bdFwStringNotWhitespace rejects empty/whitespace strings (SDKv2 StringIsNotWhiteSpace parity).
+type bdFwStringNotWhitespace struct{}
+
+func (v bdFwStringNotWhitespace) Description(_ context.Context) string {
+	return "value must not be empty or whitespace"
+}
+
+func (v bdFwStringNotWhitespace) MarkdownDescription(_ context.Context) string {
+	return "value must not be empty or whitespace"
+}
+
+func (v bdFwStringNotWhitespace) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if strings.TrimSpace(req.ConfigValue.ValueString()) == "" {
+		resp.Diagnostics.AddAttributeError(req.Path, "Value must not be whitespace",
+			"The value must contain at least one non-whitespace character.")
+	}
+}
+
+// bdFwStringOneOf rejects values not in the allowed set (SDKv2 StringInSlice parity).
+type bdFwStringOneOf struct{ values []string }
+
+func (v bdFwStringOneOf) Description(_ context.Context) string {
+	return fmt.Sprintf("value must be one of: %s", strings.Join(v.values, ", "))
+}
+
+func (v bdFwStringOneOf) MarkdownDescription(_ context.Context) string {
+	return v.Description(context.Background())
+}
+
+func (v bdFwStringOneOf) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	val := req.ConfigValue.ValueString()
+	for _, allowed := range v.values {
+		if val == allowed {
+			return
+		}
+	}
+	resp.Diagnostics.AddAttributeError(req.Path, "Invalid value",
+		fmt.Sprintf("value must be one of %v, got: %q", v.values, val))
+}
+
+// bdFwPathValidator validates that a build definition folder path is correctly formatted.
+// Rules (matching SDKv2 validate.Path):
+//   - must not be empty
+//   - must start with backslash
+//   - must not end with backslash (unless it IS the root "\" path)
+//   - must not contain any of: < > | : $ @ " / % + * ?
+var bdFwInvalidPathRe = regexp.MustCompile(`[<>|:$@"/%+*?]`)
+
+type bdFwPathValidator struct{}
+
+func (v bdFwPathValidator) Description(_ context.Context) string {
+	return `path must start with \ and must not contain <, >, |, :, $, @, ", /, %, +, *, or ?`
+}
+
+func (v bdFwPathValidator) MarkdownDescription(_ context.Context) string {
+	return v.Description(context.Background())
+}
+
+func (v bdFwPathValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	val := req.ConfigValue.ValueString()
+	if len(val) == 0 {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid path", "path must not be empty")
+		return
+	}
+	if val[0] != '\\' {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid path", "path must start with a backslash")
+		return
+	}
+	if len(val) >= 2 && val[len(val)-1] == '\\' {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid path", "path must not end with a backslash when not the root path")
+		return
+	}
+	if bdFwInvalidPathRe.MatchString(val) {
+		resp.Diagnostics.AddAttributeError(req.Path, "Invalid path",
+			`path must not contain <, >, |, :, $, @, ", /, %, +, *, or ?`)
+	}
 }

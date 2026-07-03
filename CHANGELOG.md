@@ -11,30 +11,43 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 - **`betterado_build_definition` resource migrated to terraform-plugin-framework.**
   The resource now uses the framework implementation served through the mux provider.
-  CRUD operations continue to target the Build API. Schema is unchanged (`project_id`,
-  `name`, `path`, `repository`, `variable`, `ci_trigger`, `pull_request_trigger`,
+  CRUD operations continue to target the Build API. Implemented attributes: `project_id`,
+  `name`, `path`, `repository` (with `repo_type` validator), `variable` (fully wired in
+  expand and read), `ci_trigger` (with `override` sub-block: batch, branch_filter,
+  path_filter, max_concurrent_builds_per_branch, polling_interval), `pull_request_trigger`
+  (with `override` sub-block and `forks` Required sub-block for SDKv2 parity),
   `agent_pool_name`, `agent_specification`, `job_authorization_scope`, `queue_status`,
-  `skip_first_run`). Verified by unit test `TestBuildDefinitionFramework_Schema`.
+  `skip_first_run`. Framework validators added for `name` (StringIsNotWhiteSpace), `path`
+  (path format), `job_authorization_scope` (enum), `queue_status` (enum), `comment_required`
+  (enum), `repo_type` (enum). **Deliberately NOT migrated this iteration** (documented in
+  `docs/build-gap-matrix.md`): `variable_groups`, `build_completion_trigger`, `schedules`,
+  `jobs` (OtherGit only). Verified by unit tests
+  `TestBuildDefinitionFramework_Schema`, `TestBuildDefinitionFramework_PathValidator`.
 
 - **`betterado_build_folder` resource migrated to terraform-plugin-framework.**
   The resource now uses the framework implementation served through the mux provider.
-  Schema is unchanged (`project_id`, `path`, `description`). Verified by live
-  acceptance test `TestAccBuildFolder_Framework_basic`.
+  Schema: `project_id`, `path`, `description`. Framework validator added for `path`
+  (path format: must start with `\`, no invalid characters — SDKv2 parity).
+  Verified by unit test `TestBuildFolderFramework_PathValidator` and live acceptance
+  test `TestAccBuildFolder_Framework_basic`.
 
 - **`betterado_pipeline_authorization` resource migrated to terraform-plugin-framework.**
-  The resource now uses the framework implementation. Schema is unchanged (`project_id`,
-  `resource_id`, `type`). Verified by live acceptance test
-  `TestAccPipelineAuthorization_Framework_allPipeline_queue`.
+  The resource now uses the framework implementation. Schema: `project_id`,
+  `pipeline_project_id`, `resource_id`, `type`, `pipeline_id`. Validators: `resource_id`
+  (StringIsNotWhiteSpace), `type` (enum), `pipeline_id` (IntAtLeast(1)).
+  Verified by live acceptance test `TestAccPipelineAuthorization_Framework_allPipeline_queue`.
 
 - **`betterado_resource_authorization` resource migrated to terraform-plugin-framework.**
-  The resource now uses the framework implementation. Schema is unchanged (`project_id`,
-  `resource_id`, `definition_id`, `type`, `authorized`). Verified by unit test.
+  The resource now uses the framework implementation. Schema: `project_id`,
+  `resource_id`, `definition_id`, `type`, `authorized`. Verified by unit test.
 
 - **`betterado_build_definition` data source migrated to terraform-plugin-framework.**
   The data source now uses the framework implementation. Reads a build definition by
   `project_id`, `name`, and optional `path`; returns `id`, `revision`, `repository`,
   `ci_trigger`, `pull_request_trigger`, `variable`, `agent_pool_name`,
-  `agent_specification`, `job_authorization_scope`, `queue_status`, and `schedules`.
+  `agent_specification`, `job_authorization_scope`, `queue_status`, `skip_first_run`.
+  **Deliberately NOT migrated this iteration** (documented in `docs/build-gap-matrix.md`):
+  `variable_groups`, `schedules`, `jobs`, `build_completion_trigger`.
   Verified by live acceptance test `TestAccBuildDefinition_Framework_DataSource`.
 
 ## [1.2.0] - 2026-07-01
