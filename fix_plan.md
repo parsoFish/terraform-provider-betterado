@@ -12,5 +12,6 @@
   - resource_wiki_framework.go created and compiled
   - NewWikiResource registered in framework_provider.go
   - Acceptance tests rewritten: GetMuxedProviderFactories, SharedFixtureProjectName, ExpectNonEmptyPlan: false
+  - Build failure FIXED (iter 2): restored checkWikiDestroyed(resourceType string) alongside checkWikiDestroyedFramework — resource_wiki_page_test.go uses the old function signature
+  - acceptancetests package now compiles cleanly (go test -tags all -run TestAccWikiResource_projectWiki ./azuredevops/internal/acceptancetests/ → ok)
   - LIVE gate pending: needs TF_ACC run to confirm apply/read/idempotency/destroy cycle
-  - Last gate failure showed org is at 1000-project cap — fixed by using SharedFixtureProjectName

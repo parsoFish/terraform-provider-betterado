@@ -59,6 +59,17 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - `wikiRequiresReplace()` is like SDKv2 `ForceNew: true`
 - `wikiUseStateForUnknown()` prevents perpetual diffs for Computed attributes
 
+### Iteration 2
+
+**Root cause of gate failure:** `resource_wiki_page_test.go` calls `checkWikiDestroyed(resourceType string)` — a function that was in the original `resource_wiki_test.go` but was REMOVED when we rewrote it (we only kept `checkWikiDestroyedFramework`). This caused a build failure in the acceptancetests package.
+
+**What was done:**
+- Added `checkWikiDestroyed(resourceType string) resource.TestCheckFunc` back to `resource_wiki_test.go` alongside `checkWikiDestroyedFramework`.
+- The SDKv2 variant uses `testutils.GetProvider().Meta().(*client.AggregatedClient)` — wiki_page tests still use `Providers: testutils.GetProviders()` so they need the SDKv2 provider singleton's Meta().
+- `go build -mod=vendor .` passes, `go test -tags all -run TestAccWikiResource_projectWiki ./azuredevops/internal/acceptancetests/` → ok (compiles, skips without TF_ACC).
+
+**Key lesson:** When rewriting a test file, always grep for ALL callers of any function you rename or remove. `resource_wiki_page_test.go` was a hidden consumer of `checkWikiDestroyed` from `resource_wiki_test.go`.
+
 ## Open questions
 
 - Will the project wiki delete logic work? Project wikis use `DeleteRepository` on the backing git repo.
