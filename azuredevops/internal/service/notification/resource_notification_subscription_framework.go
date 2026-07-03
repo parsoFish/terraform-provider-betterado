@@ -5,9 +5,11 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	notificationapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/notification"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
@@ -129,8 +131,25 @@ func (r *notificationSubscriptionResource) Schema(_ context.Context, _ resource.
 				Description: "The subscriber identity descriptor or group descriptor.",
 			},
 			"channel_type": schema.StringAttribute{
-				Required:    true,
-				Description: "Delivery channel type (e.g. `EmailHtml`, `ServiceHooks`).",
+				Required: true,
+				Description: "Delivery channel type. Must be one of the ADO API channel types: " +
+					"`Block`, `EmailHtml`, `EmailPlaintext`, `Group`, `MessageQueue`, " +
+					"`ServiceBus`, `ServiceHooks`, `Soap`, `Unsupported`, `User`, `UserSystem`.",
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						"Block",
+						"EmailHtml",
+						"EmailPlaintext",
+						"Group",
+						"MessageQueue",
+						"ServiceBus",
+						"ServiceHooks",
+						"Soap",
+						"Unsupported",
+						"User",
+						"UserSystem",
+					),
+				},
 			},
 			"channel_address": schema.StringAttribute{
 				Optional:    true,
