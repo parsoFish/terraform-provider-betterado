@@ -28,6 +28,8 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
@@ -296,6 +298,21 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		approvalsandchecks.NewExclusiveLockResource,
 		approvalsandchecks.NewRequiredTemplateResource,
 		approvalsandchecks.NewRestAPIResource,
+		permissions.NewAreaPermissionsResource,
+		permissions.NewBuildDefinitionPermissionsResource,
+		permissions.NewBuildFolderPermissionsResource,
+		permissions.NewGitPermissionsResource,
+		permissions.NewIterationPermissionsResource,
+		permissions.NewLibraryPermissionsResource,
+		permissions.NewServiceEndpointPermissionsResource,
+		permissions.NewServiceHookPermissionsResource,
+		permissions.NewTaggingPermissionsResource,
+		permissions.NewVariableGroupPermissionsResource,
+		permissions.NewWorkItemQueryPermissionsResource,
+		permissions.NewWorkItemTrackingProcessPermissionsResource,
+		permissions.NewProjectPermissionsResource,
+		security.NewSecurityPermissionsResource,
+		securityroles.NewSecurityRoleAssignmentResource,
 	}
 }
 
@@ -336,5 +353,9 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		notification.NewNotificationSubscriptionDataSource,
 		pipelines.NewPipelineDataSource,
 		pipelines.NewPipelineRunDataSource,
+		security.NewSecurityNamespaceDataSource,
+		security.NewSecurityNamespaceTokenDataSource,
+		security.NewSecurityNamespacesDataSource,
+		securityroles.NewSecurityRoleDefinitionsDataSource,
 	}
 }

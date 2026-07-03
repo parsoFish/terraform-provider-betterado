@@ -9,6 +9,121 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **`betterado_security_permissions` migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux
+  provider. Schema is unchanged (`namespace_id`, `token`, `principal`,
+  `permissions`, `replace`). Supports full ACL management via the Azure DevOps
+  Security REST API with idempotent apply. Verified by live acceptance test
+  `TestAccSecurityPermissionsFramework`.
+
+- **`betterado_security_namespace` data source migrated to terraform-plugin-framework.**
+  Reads a security namespace by `id` or `name`; returns `display_name` and an
+  `actions` list with `name`, `display_name`, and `bit` per permission action.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataSecurityNamespaceFramework`.
+
+- **`betterado_security_namespace_token` data source migrated to terraform-plugin-framework.**
+  Generates a scoped security token for a given namespace and set of resource
+  identifiers (`project_id`, `repository_id`, etc.); also supports
+  `return_identifier_info` mode to discover required and optional identifiers.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataSecurityNamespaceFramework`.
+
+- **`betterado_security_namespaces` data source migrated to terraform-plugin-framework.**
+  Lists all available security namespaces in the Azure DevOps organisation;
+  exposes a `namespaces` set with full namespace metadata per entry.
+  Served through the mux provider.
+
+- **`betterado_securityrole_assignment` migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux
+  provider. Schema is unchanged (`scope`, `resource_id`, `identity_id`,
+  `role_name`). Handles ADO inherited-access after delete. Verified by live
+  acceptance test `TestAccSecurityroleAssignmentFramework`.
+
+- **`betterado_securityrole_definitions` data source migrated to terraform-plugin-framework.**
+  Reads all security role definitions for a given `scope`; exposes a
+  `definitions` set with `name`, `display_name`, `description`, `identifier`,
+  `scope`, `allow_permissions`, and `deny_permissions` per entry.
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccDataSecurityroleDefinitionsFramework`.
+
+- **`betterado_project_permissions` migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux
+  provider. Schema is unchanged (`project_id`, `principal`, `permissions`,
+  `replace`). Verified by live acceptance test
+  `TestAccProjectPermissionsFramework`.
+
+- **`betterado_area_permissions` migrated to terraform-plugin-framework.**
+  Manages area (classification node) ACL permissions. Schema is unchanged
+  (`project_id`, `token`, `principal`, `permissions`, `replace`). Served through
+  the mux provider. Verified by live acceptance test
+  `TestAccAreaPermissionsFramework`.
+
+- **`betterado_build_definition_permissions` migrated to terraform-plugin-framework.**
+  Manages build definition ACL permissions. Schema is unchanged
+  (`project_id`, `build_definition_id`, `principal`, `permissions`, `replace`).
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccBuildDefinitionPermissionsFramework`.
+
+- **`betterado_build_folder_permissions` migrated to terraform-plugin-framework.**
+  Manages build folder ACL permissions. Schema is unchanged
+  (`project_id`, `path`, `principal`, `permissions`, `replace`). Served through
+  the mux provider. Verified by live acceptance test
+  `TestAccBuildFolderPermissionsFramework`.
+
+- **`betterado_git_permissions` migrated to terraform-plugin-framework.**
+  Manages Git repository ACL permissions. Schema is unchanged
+  (`project_id`, `repository_id`, `branch_name`, `principal`, `permissions`,
+  `replace`). Served through the mux provider. Verified by live acceptance test
+  `TestAccGitPermissionsFramework`.
+
+- **`betterado_iteration_permissions` migrated to terraform-plugin-framework.**
+  Manages iteration (classification node) ACL permissions. Schema is unchanged
+  (`project_id`, `token`, `principal`, `permissions`, `replace`). Served through
+  the mux provider. Verified by live acceptance test
+  `TestAccIterationPermissionsFramework`.
+
+- **`betterado_library_permissions` migrated to terraform-plugin-framework.**
+  Manages library ACL permissions. Schema is unchanged
+  (`project_id`, `principal`, `permissions`, `replace`). Served through the mux
+  provider. Verified by live acceptance test `TestAccLibraryPermissionsFramework`.
+
+- **`betterado_serviceendpoint_permissions` migrated to terraform-plugin-framework.**
+  Manages service endpoint ACL permissions. Schema is unchanged
+  (`project_id`, `service_endpoint_id`, `principal`, `permissions`, `replace`).
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccServiceEndpointPermissionsFramework`.
+
+- **`betterado_servicehook_permissions` migrated to terraform-plugin-framework.**
+  Manages service hook ACL permissions. Schema is unchanged
+  (`project_id`, `principal`, `permissions`, `replace`). Served through the mux
+  provider. Verified by live acceptance test `TestAccServiceHookPermissionsFramework`.
+
+- **`betterado_tagging_permissions` migrated to terraform-plugin-framework.**
+  Manages tagging ACL permissions. Schema is unchanged
+  (`project_id`, `principal`, `permissions`, `replace`). Served through the mux
+  provider. Verified by live acceptance test `TestAccTaggingPermissionsFramework`.
+
+- **`betterado_variable_group_permissions` migrated to terraform-plugin-framework.**
+  Manages variable group ACL permissions. Schema is unchanged
+  (`project_id`, `variable_group_id`, `principal`, `permissions`, `replace`).
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccVariableGroupPermissionsFramework`.
+
+- **`betterado_workitemquery_permissions` migrated to terraform-plugin-framework.**
+  Manages work item query ACL permissions. Schema is unchanged
+  (`project_id`, `path`, `principal`, `permissions`, `replace`). Served through
+  the mux provider. Verified by live acceptance test
+  `TestAccWorkItemQueryPermissionsFramework`.
+
+- **`betterado_workitemtrackingprocess_process_permissions` migrated to terraform-plugin-framework.**
+  Manages work item tracking process ACL permissions. Schema is unchanged
+  (`principal`, `permissions`, `replace`). Served through the mux provider.
+  Verified by live acceptance test
+  `TestAccWorkItemTrackingProcessPermissionsFramework`.
+
+### FEATURES
+
 - **7 branch policy resources migrated to terraform-plugin-framework** (`betterado_branch_policy_auto_reviewers`, `betterado_branch_policy_build_validation`, `betterado_branch_policy_comment_resolution`, `betterado_branch_policy_merge_types`, `betterado_branch_policy_min_reviewers`, `betterado_branch_policy_status_check`, `betterado_branch_policy_work_item_linking`). All resources now use the framework implementation served through the mux provider. Schema and CRUD semantics are unchanged; `settings` and `scope` continue to use block syntax. Verified by live acceptance tests `TestAccBranchPolicy*`.
 
 - **7 repository policy resources migrated to terraform-plugin-framework** (`betterado_repository_policy_author_email_pattern`, `betterado_repository_policy_case_enforcement`, `betterado_repository_policy_check_credentials`, `betterado_repository_policy_file_path_pattern`, `betterado_repository_policy_max_file_size`, `betterado_repository_policy_max_path_length`, `betterado_repository_policy_reserved_names`). All resources now use the framework implementation served through the mux provider. Schema is unchanged; `repository_ids` is a flat list attribute. Verified by live acceptance tests `TestAccRepositoryPolicy*`.

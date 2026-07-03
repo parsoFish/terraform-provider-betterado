@@ -16,9 +16,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtrackingprocess"
@@ -28,9 +25,9 @@ import (
 func Provider() *schema.Provider {
 	p := &schema.Provider{
 		ResourcesMap: map[string]*schema.Resource{
-			"betterado_agent_pool":       taskagent.ResourceAgentPool(),
-			"betterado_agent_queue":      taskagent.ResourceAgentQueue(),
-			"betterado_area_permissions": permissions.ResourceAreaPermissions(),
+			"betterado_agent_pool":  taskagent.ResourceAgentPool(),
+			"betterado_agent_queue": taskagent.ResourceAgentQueue(),
+			// betterado_area_permissions is now registered in the framework provider (framework_provider.go)
 			// betterado_branch_policy_auto_reviewers is now registered in the framework provider (framework_provider.go)
 			// betterado_branch_policy_build_validation is now registered in the framework provider (framework_provider.go)
 			// betterado_branch_policy_comment_resolution is now registered in the framework provider (framework_provider.go)
@@ -41,11 +38,11 @@ func Provider() *schema.Provider {
 			// betterado_build_definition is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_build_definition_permissions": permissions.ResourceBuildDefinitionPermissions(),
+			// betterado_build_definition_permissions is now registered in the framework provider (framework_provider.go)
 			// betterado_build_folder is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_build_folder_permissions": permissions.ResourceBuildFolderPermissions(),
+			// betterado_build_folder_permissions is now registered in the framework provider (framework_provider.go)
 			// betterado_check_approval is now registered in the framework provider (framework_provider.go)
 			// betterado_check_branch_control is now registered in the framework provider (framework_provider.go)
 			// betterado_check_business_hours is now registered in the framework provider (framework_provider.go)
@@ -65,21 +62,21 @@ func Provider() *schema.Provider {
 			// betterado_feed migrated to the framework provider (framework_provider.go).
 			// betterado_feed_permission migrated to the framework provider (framework_provider.go).
 			// betterado_feed_retention_policy migrated to the framework provider (framework_provider.go).
-			"betterado_git_permissions": permissions.ResourceGitPermissions(),
+			// betterado_git_permissions is now registered in the framework provider (framework_provider.go)
 			// betterado_git_repository migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository_branch migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository_file migrated to the framework provider (framework_provider.go).
 			// betterado_group is now registered in the framework provider (framework_provider.go)
 			// betterado_group_entitlement migrated to the framework provider (framework_provider.go).
 			// betterado_group_membership is now registered in the framework provider (framework_provider.go)
-			"betterado_iteration_permissions": permissions.ResourceIterationPermissions(),
-			"betterado_library_permissions":   permissions.ResourceLibraryPermissions(),
+			// betterado_iteration_permissions is now registered in the framework provider (framework_provider.go)
+			// betterado_library_permissions is now registered in the framework provider (framework_provider.go)
 			// betterado_pipeline_authorization is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_project":                   core.ResourceProject(),
-			"betterado_project_features":          core.ResourceProjectFeatures(),
-			"betterado_project_permissions":       permissions.ResourceProjectPermissions(),
+			"betterado_project":          core.ResourceProject(),
+			"betterado_project_features": core.ResourceProjectFeatures(),
+			// betterado_project_permissions is now registered in the framework provider (framework_provider.go)
 			"betterado_project_pipeline_settings": core.ResourceProjectPipelineSettings(),
 			"betterado_project_tags":              core.ResourceProjectTag(),
 			// betterado_release_definition_permissions is now registered in the framework provider (framework_provider.go)
@@ -98,8 +95,8 @@ func Provider() *schema.Provider {
 			// betterado_resource_authorization is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_security_permissions":    security.ResourceGenericPermissions(),
-			"betterado_securityrole_assignment": securityroles.ResourceSecurityRoleAssignment(),
+			// betterado_security_permissions is now registered in the framework provider (framework_provider.go)
+			// betterado_securityrole_assignment is now registered in the framework provider (framework_provider.go)
 			// betterado_serviceendpoint_generic_v2 migrated to the framework provider (framework_provider.go).
 			// betterado_serviceendpoint_argocd migrated to the framework provider (framework_provider.go).
 			// betterado_serviceendpoint_artifactory migrated to the framework provider (framework_provider.go).
@@ -135,7 +132,7 @@ func Provider() *schema.Provider {
 			"betterado_serviceendpoint_nuget":         serviceendpoint.ResourceServiceEndpointNuGet(),
 			"betterado_serviceendpoint_octopusdeploy": serviceendpoint.ResourceServiceEndpointOctopusDeploy(),
 			"betterado_serviceendpoint_openshift":     serviceendpoint.ResourceServiceEndpointOpenshift(),
-			"betterado_serviceendpoint_permissions":   permissions.ResourceServiceEndpointPermissions(),
+			// betterado_serviceendpoint_permissions is now registered in the framework provider (framework_provider.go)
 			"betterado_serviceendpoint_runpipeline":   serviceendpoint.ResourceServiceEndpointRunPipeline(),
 			"betterado_serviceendpoint_servicefabric": serviceendpoint.ResourceServiceEndpointServiceFabric(),
 			"betterado_serviceendpoint_snyk":          serviceendpoint.ResourceServiceEndpointSnyk(),
@@ -143,39 +140,39 @@ func Provider() *schema.Provider {
 			"betterado_serviceendpoint_sonarqube":               serviceendpoint.ResourceServiceEndpointSonarQube(),
 			"betterado_serviceendpoint_ssh":                     serviceendpoint.ResourceServiceEndpointSSH(),
 			"betterado_serviceendpoint_visualstudiomarketplace": serviceendpoint.ResourceServiceEndpointMarketplace(),
-			"betterado_servicehook_permissions":                 permissions.ResourceServiceHookPermissions(),
+			// betterado_servicehook_permissions is now registered in the framework provider (framework_provider.go)
 			// betterado_servicehook_storage_queue_pipelines migrated to the framework provider (framework_provider.go).
 			// betterado_servicehook_webhook_tfs migrated to the framework provider (framework_provider.go).
 			// betterado_service_principal_entitlement migrated to the framework provider.
-			"betterado_tagging_permissions": permissions.ResourceTaggingPermissions(),
+			// betterado_tagging_permissions is now registered in the framework provider (framework_provider.go)
 			"betterado_team":                core.ResourceTeam(),
 			"betterado_team_administrators": core.ResourceTeamAdministrators(),
 			"betterado_team_members":        core.ResourceTeamMembers(),
 			// betterado_user_entitlement migrated to the framework provider.
-			"betterado_variable_group":             taskagent.ResourceVariableGroup(),
-			"betterado_variable_group_permissions": permissions.ResourceVariableGroupPermissions(),
-			"betterado_variable_group_variable":    taskagent.ResourceVariableGroupVariable(),
+			"betterado_variable_group": taskagent.ResourceVariableGroup(),
+			// betterado_variable_group_permissions is now registered in the framework provider (framework_provider.go)
+			"betterado_variable_group_variable": taskagent.ResourceVariableGroupVariable(),
 			// betterado_wiki migrated to the framework provider (framework_provider.go).
 			// betterado_wiki_page migrated to the framework provider (framework_provider.go).
 			// betterado_workitem is now registered in the framework provider (framework_provider.go)
 			// betterado_workitemtracking_field is now registered in the framework provider (framework_provider.go)
-			"betterado_workitemquery_permissions": permissions.ResourceWorkItemQueryPermissions(),
+			// betterado_workitemquery_permissions is now registered in the framework provider (framework_provider.go)
 			// betterado_workitemquery is now registered in the framework provider (framework_provider.go)
 			// betterado_workitemquery_folder is now registered in the framework provider (framework_provider.go)
-			"betterado_workitemtrackingprocess_control":             workitemtrackingprocess.ResourceControl(),
-			"betterado_workitemtrackingprocess_group":               workitemtrackingprocess.ResourceGroup(),
-			"betterado_workitemtrackingprocess_inherited_control":   workitemtrackingprocess.ResourceInheritedControl(),
-			"betterado_workitemtrackingprocess_inherited_page":      workitemtrackingprocess.ResourceInheritedPage(),
-			"betterado_workitemtrackingprocess_inherited_state":     workitemtrackingprocess.ResourceInheritedState(),
-			"betterado_workitemtrackingprocess_list":                workitemtrackingprocess.ResourceList(),
-			"betterado_workitemtrackingprocess_page":                workitemtrackingprocess.ResourcePage(),
-			"betterado_workitemtrackingprocess_process":             workitemtrackingprocess.ResourceProcess(),
-			"betterado_workitemtrackingprocess_process_permissions": permissions.ResourceWorkItemTrackingProcessPermissions(),
-			"betterado_workitemtrackingprocess_state":               workitemtrackingprocess.ResourceState(),
-			"betterado_workitemtrackingprocess_system_control":      workitemtrackingprocess.ResourceSystemControl(),
-			"betterado_workitemtrackingprocess_workitemtype":        workitemtrackingprocess.ResourceWorkItemType(),
-			"betterado_workitemtrackingprocess_field":               workitemtrackingprocess.ResourceField(),
-			"betterado_workitemtrackingprocess_rule":                workitemtrackingprocess.ResourceRule(),
+			"betterado_workitemtrackingprocess_control":           workitemtrackingprocess.ResourceControl(),
+			"betterado_workitemtrackingprocess_group":             workitemtrackingprocess.ResourceGroup(),
+			"betterado_workitemtrackingprocess_inherited_control": workitemtrackingprocess.ResourceInheritedControl(),
+			"betterado_workitemtrackingprocess_inherited_page":    workitemtrackingprocess.ResourceInheritedPage(),
+			"betterado_workitemtrackingprocess_inherited_state":   workitemtrackingprocess.ResourceInheritedState(),
+			"betterado_workitemtrackingprocess_list":              workitemtrackingprocess.ResourceList(),
+			"betterado_workitemtrackingprocess_page":              workitemtrackingprocess.ResourcePage(),
+			"betterado_workitemtrackingprocess_process":           workitemtrackingprocess.ResourceProcess(),
+			// betterado_workitemtrackingprocess_process_permissions is now registered in the framework provider (framework_provider.go)
+			"betterado_workitemtrackingprocess_state":          workitemtrackingprocess.ResourceState(),
+			"betterado_workitemtrackingprocess_system_control": workitemtrackingprocess.ResourceSystemControl(),
+			"betterado_workitemtrackingprocess_workitemtype":   workitemtrackingprocess.ResourceWorkItemType(),
+			"betterado_workitemtrackingprocess_field":          workitemtrackingprocess.ResourceField(),
+			"betterado_workitemtrackingprocess_rule":           workitemtrackingprocess.ResourceRule(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			// NOTE: betterado_release_definition, betterado_release_definition_history,
@@ -202,12 +199,12 @@ func Provider() *schema.Provider {
 			// betterado_identity_groups is now registered in the framework provider (framework_provider.go)
 			// betterado_identity_user is now registered in the framework provider (framework_provider.go)
 			// betterado_iteration is now registered in the framework provider (framework_provider.go)
-			"betterado_project":                  core.DataProject(),
-			"betterado_projects":                 core.DataProjects(),
-			"betterado_security_namespace":       security.DataSecurityNamespace(),
-			"betterado_security_namespace_token": security.DataSecurityNamespaceToken(),
-			"betterado_security_namespaces":      security.DataSecurityNamespaces(),
-			"betterado_securityrole_definitions": securityroles.DataSecurityRoleDefinitions(),
+			"betterado_project":  core.DataProject(),
+			"betterado_projects": core.DataProjects(),
+			// betterado_security_namespace is now registered in the framework provider (framework_provider.go)
+			// betterado_security_namespace_token is now registered in the framework provider (framework_provider.go)
+			// betterado_security_namespaces is now registered in the framework provider (framework_provider.go)
+			// betterado_securityrole_definitions is now registered in the framework provider (framework_provider.go)
 			// betterado_serviceendpoint_generic_v2 migrated to the framework provider (framework_provider.go).
 			// betterado_serviceendpoint_azurecr migrated to the framework provider (framework_provider.go).
 			// betterado_serviceendpoint_azurerm migrated to the framework provider (framework_provider.go).
