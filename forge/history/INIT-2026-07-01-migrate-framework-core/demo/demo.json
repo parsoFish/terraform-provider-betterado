@@ -3,14 +3,14 @@
   "essence": "Migrates all 7 core resources (betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members) and 5 data sources (data.betterado_project, data.betterado_projects, data.betterado_team, data.betterado_teams, data.betterado_client_config) to terraform-plugin-framework, served through the mux provider. Produces a gap matrix (docs/core-gap-matrix.md) comparing all core resource schemas against the ADO REST API v7.1. Bug fix: applyFeatureStates surfaces silent ADO feature-state rejections (testplans license restriction). Fixture safety hardened. Missing validators and features attribute in betterado_project schema are documented as deferred regressions. provider_test.go updated to reflect all SDKv2 deregistrations.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-core",
-  "diffStat": "166 files changed, 12528 insertions(+), 489 deletions(-)",
+  "diffStat": "187 files changed, 13603 insertions(+), 3451 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
-      "caption": "Offline unit gate: release + taskagent packages green — verbatim gate forge ran",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "caption": "Offline unit gate: servicehook package green — verbatim gate forge ran",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "Gate runs against main branch (pre-migration)",
-      "afterNote": "Gate passes on branch HEAD: ok release 0.007s; ok taskagent 0.006s; ok taskagent/validate 0.004s"
+      "afterNote": "Gate passes on branch HEAD: ok servicehook 0.008s"
     },
     {
       "label": "provider-registration",
@@ -24,7 +24,13 @@
       "caption": "Live REST GET: betterado_project_features feature states from ADO API (CaptureLiveEvidence, capturedAt 2026-07-02T09:17:10Z)",
       "command": "go test -tags all -count=1 -run TestAccProjectFeatures_roundtrip ./azuredevops/internal/acceptancetests/",
       "beforeNote": "betterado_project_features served via SDKv2 schema helper; testplans feature toggle silently failed (license restriction) causing 'inconsistent result after apply' panic",
-      "afterNote": "betterado_project_features served via framework resource.Resource; applyFeatureStates checks ContributedFeatureState return — surfaces license errors; test uses artifacts+boards (license-free); live GET: artifacts=disabled boards=enabled pipelines=enabled repositories=enabled testplans=disabled"
+      "afterNote": "betterado_project_features served via framework resource.Resource; applyFeatureStates checks ContributedFeatureState return — surfaces license errors; test uses artifacts+boards (license-free); live GET: artifacts=disabled boards=enabled pipelines=enabled repositories=enabled testplans=disabled",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/_apis/FeatureManagement/FeatureStatesForScope/host/project/c0ac3757-e915-453f-ba2b-93a3720d1994?api-version=7.1",
+        "capturedAt": "2026-07-02T09:17:10Z",
+        "label": "acceptance-resource",
+        "response": "{\"artifacts\":\"disabled\",\"boards\":\"enabled\",\"pipelines\":\"enabled\",\"repositories\":\"enabled\",\"testplans\":\"disabled\"}"
+      }
     }
   ],
   "acEvaluations": [

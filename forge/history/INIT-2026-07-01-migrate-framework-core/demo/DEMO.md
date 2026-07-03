@@ -37,17 +37,28 @@
 
 ## Visual Changes
 
-### Offline unit gate: release + taskagent packages green — verbatim gate forge ran
+### Offline unit gate: servicehook package green — verbatim gate forge ran
+
+**Command:** `go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...`
 
 - **Before:** Gate runs against main branch (pre-migration)
-- **After:** Gate passes on branch HEAD: ok release 0.007s; ok taskagent 0.006s; ok taskagent/validate 0.004s
+- **After:** Gate passes on branch HEAD: ok servicehook 0.008s
 
 ### Framework provider registers all migrated resources/data-sources; SDKv2 maps fully updated
+
+**Command:** `go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/`
 
 - **Before:** betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members in SDKv2 ResourcesMap; betterado_team, betterado_teams, betterado_client_config in DataSourcesMap
 - **After:** All 7 core resources and 5 data sources removed from SDKv2 maps; all registered in framework_provider.go Resources()/DataSources(). TestProvider_HasChildResources + TestProvider_HasChildDataSources pass.
 
 ### Live REST GET: betterado_project_features feature states from ADO API (CaptureLiveEvidence, capturedAt 2026-07-02T09:17:10Z)
+
+**Command:** `go test -tags all -count=1 -run TestAccProjectFeatures_roundtrip ./azuredevops/internal/acceptancetests/`
+
+**Live evidence (captured 2026-07-02T09:17:10Z):**
+
+- **REST GET:** `https://dev.azure.com/davidgparsonson/_apis/FeatureManagement/FeatureStatesForScope/host/project/c0ac3757-e915-453f-ba2b-93a3720d1994?api-version=7.1`
+- **Response:** `{"artifacts":"disabled","boards":"enabled","pipelines":"enabled","repositories":"enabled","testplans":"disabled"}`
 
 - **Before:** betterado_project_features served via SDKv2 schema helper; testplans feature toggle silently failed (license restriction) causing 'inconsistent result after apply' panic
 - **After:** betterado_project_features served via framework resource.Resource; applyFeatureStates checks ContributedFeatureState return — surfaces license errors; test uses artifacts+boards (license-free); live GET: artifacts=disabled boards=enabled pipelines=enabled repositories=enabled testplans=disabled
@@ -55,5 +66,5 @@
 ## Files Changed
 
 ```
-166 files changed, 12528 insertions(+), 489 deletions(-)
+187 files changed, 13603 insertions(+), 3451 deletions(-)
 ```
