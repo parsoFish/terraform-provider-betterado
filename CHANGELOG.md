@@ -7,6 +7,11 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### Changed
+
+- Migrated `betterado_servicehook_storage_queue_pipelines` to terraform-plugin-framework (schema and behaviour unchanged).
+- Migrated `betterado_servicehook_webhook_tfs` to terraform-plugin-framework (schema and behaviour unchanged).
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES
