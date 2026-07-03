@@ -11,6 +11,9 @@ import (
 )
 
 func TestAccTeam_basic(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("acceptance tests skipped unless TF_ACC is set")
+	}
 	testutils.PreCheck(t, nil)
 	projectID := ResolveFixtureProjectID(t)
 	teamName := testutils.GenerateResourceName()

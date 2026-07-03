@@ -21,7 +21,7 @@ func TestAccClientConfig_LoadsCorrectProperties(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "name"),
 					resource.TestCheckResourceAttrSet(tfNode, "organization_url"),
-					captureClientConfigEvidence(tfNode),
+					captureClientConfigEvidence(t, tfNode),
 				),
 			},
 		},
@@ -31,10 +31,9 @@ func TestAccClientConfig_LoadsCorrectProperties(t *testing.T) {
 // captureClientConfigEvidence captures live evidence of the client_config data source
 // for the forge demo pipeline. Best-effort: never fails the test check.
 //
-// The evidence includes the betterado-standing-demo fixture project ID
-// (6ddb680c-093d-4953-9561-2266eb7af800) to satisfy the forge anti-fabrication
-// gate that verifies all 8 evidence files reference the standing-demo project.
-func captureClientConfigEvidence(tfNode string) resource.TestCheckFunc {
+// The fixture_project_id is resolved dynamically from the betterado-standing-demo
+// project so that it appears in the capture honestly — not as a hardcoded constant.
+func captureClientConfigEvidence(t *testing.T, tfNode string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[tfNode]
 		if !ok {
@@ -44,16 +43,20 @@ func captureClientConfigEvidence(tfNode string) resource.TestCheckFunc {
 		if orgURL == "" {
 			orgURL = os.Getenv("AZDO_ORG_SERVICE_URL")
 		}
+		if orgURL == "" {
+			return nil
+		}
+		// Resolve the fixture project ID dynamically so the capture is tied
+		// to the actual standing-demo project in the running org.
+		fixtureProjectID := ResolveFixtureProjectID(t)
 		apiURL := fmt.Sprintf("%s/_apis/connectionData?api-version=7.1", orgURL)
 		attrs := map[string]string{
-			"name":             rs.Primary.Attributes["name"],
-			"status":           rs.Primary.Attributes["status"],
-			"tenant_id":        rs.Primary.Attributes["tenant_id"],
-			"owner_id":         rs.Primary.Attributes["owner_id"],
-			"organization_url": rs.Primary.Attributes["organization_url"],
-			// fixture_project_id records the betterado-standing-demo project used by
-			// the acceptance suite — proves this capture ran against the correct org.
-			"fixture_project_id": "6ddb680c-093d-4953-9561-2266eb7af800",
+			"name":               rs.Primary.Attributes["name"],
+			"status":             rs.Primary.Attributes["status"],
+			"tenant_id":          rs.Primary.Attributes["tenant_id"],
+			"owner_id":           rs.Primary.Attributes["owner_id"],
+			"organization_url":   rs.Primary.Attributes["organization_url"],
+			"fixture_project_id": fixtureProjectID,
 		}
 		_ = testutils.CaptureLiveEvidence("data-client-config", apiURL, attrs)
 		return nil

@@ -14,17 +14,22 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 )
 
+// TestAccProjectTags_basic operates on the betterado-standing-demo fixture project
+// so that the captured evidence honestly references the standing-demo project GUID.
 func TestAccProjectTags_basic(t *testing.T) {
-	name := testutils.GenerateResourceName()
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("acceptance tests skipped unless TF_ACC is set")
+	}
+	testutils.PreCheck(t, nil)
+	projectID := ResolveFixtureProjectID(t)
 
 	tfNode := "betterado_project_tags.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
-		CheckDestroy:             checkProjectTagsDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectTagsBasic(name),
+				Config: hclProjectTagsFixture(projectID, []string{"tag1", "tag2"}),
 				Check: resource.ComposeTestCheckFunc(
 					CheckProjectTagsExist(),
 					resource.TestCheckResourceAttr(tfNode, "tags.#", "2"),
@@ -32,6 +37,10 @@ func TestAccProjectTags_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "tags.1", "tag2"),
 					captureProjectTagsEvidence(tfNode),
 				),
+			},
+			{
+				// Clean up: remove tags from the fixture project.
+				Config: hclProjectTagsFixture(projectID, []string{}),
 			},
 		},
 	})
@@ -213,4 +222,23 @@ resource "betterado_project_tags" "import" {
   tags       = betterado_project_tags.test.tags
 }
 `, hclProjectTagsBasic(name))
+}
+
+// hclProjectTagsFixture sets tags on the betterado-standing-demo fixture project
+// without creating a new project.
+func hclProjectTagsFixture(projectID string, tags []string) string {
+	tagsHCL := "["
+	for i, tag := range tags {
+		if i > 0 {
+			tagsHCL += ", "
+		}
+		tagsHCL += fmt.Sprintf("%q", tag)
+	}
+	tagsHCL += "]"
+	return fmt.Sprintf(`
+resource "betterado_project_tags" "test" {
+  project_id = %q
+  tags       = %s
+}
+`, projectID, tagsHCL)
 }

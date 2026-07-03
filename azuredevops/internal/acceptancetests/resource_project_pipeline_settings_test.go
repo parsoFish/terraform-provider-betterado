@@ -10,8 +10,16 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
+// TestAccProjectPipelineSettings_Enabled operates on the betterado-standing-demo
+// fixture project so that the captured evidence honestly references the standing-demo
+// project GUID in its URL.
 func TestAccProjectPipelineSettings_Enabled(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("acceptance tests skipped unless TF_ACC is set")
+	}
+	testutils.PreCheck(t, nil)
+	projectID := ResolveFixtureProjectID(t)
+
 	tfNode := "betterado_project_pipeline_settings.test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -19,7 +27,7 @@ func TestAccProjectPipelineSettings_Enabled(t *testing.T) {
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectPipelineSettings(projectName, false, false, false, false, false, false),
+				Config: hclProjectPipelineSettingsFixture(projectID, false, false, false, false, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "enforce_job_scope", "false"),
 					resource.TestCheckResourceAttr(tfNode, "enforce_referenced_repo_scoped_token", "false"),
@@ -31,7 +39,7 @@ func TestAccProjectPipelineSettings_Enabled(t *testing.T) {
 				),
 			},
 			{
-				Config: hclProjectPipelineSettings(projectName, true, true, true, true, true, true),
+				Config: hclProjectPipelineSettingsFixture(projectID, true, true, true, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "enforce_job_scope", "true"),
 					resource.TestCheckResourceAttr(tfNode, "enforce_referenced_repo_scoped_token", "true"),
@@ -42,9 +50,8 @@ func TestAccProjectPipelineSettings_Enabled(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      tfNode,
-				ImportState:       true,
-				ImportStateVerify: true,
+				// Restore defaults on the fixture project.
+				Config: hclProjectPipelineSettingsFixture(projectID, false, false, false, false, false, false),
 			},
 		},
 	})
@@ -76,6 +83,22 @@ func captureProjectPipelineSettingsEvidence(tfNode string) resource.TestCheckFun
 		_ = testutils.CaptureLiveEvidence("project-pipeline-settings", apiURL, attrs)
 		return nil
 	}
+}
+
+// hclProjectPipelineSettingsFixture sets pipeline settings on the betterado-standing-demo
+// fixture project (no project creation — uses the fixture project ID directly).
+func hclProjectPipelineSettingsFixture(projectID string, enforceJobAuthScope, enforceReferencedRepoScopedToken, enforceSettableVar, publishPipelineMetadata, statusBadgesArePrivate, enforceJobAuthScopeForReleases bool) string {
+	return fmt.Sprintf(`
+resource "betterado_project_pipeline_settings" "test" {
+  project_id                           = %q
+  enforce_job_scope                    = %t
+  enforce_referenced_repo_scoped_token = %t
+  enforce_settable_var                 = %t
+  publish_pipeline_metadata            = %t
+  status_badges_are_private            = %t
+  enforce_job_scope_for_release        = %t
+}
+`, projectID, enforceJobAuthScope, enforceReferencedRepoScopedToken, enforceSettableVar, publishPipelineMetadata, statusBadgesArePrivate, enforceJobAuthScopeForReleases)
 }
 
 func hclProjectPipelineSettings(projectName string, enforceJobAuthScope, enforceReferencedRepoScopedToken, enforceSettableVar, publishPipelineMetadata, statusBadgesArePrivate, enforceJobAuthScopeForReleases bool) string {

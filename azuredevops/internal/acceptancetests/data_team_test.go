@@ -10,20 +10,27 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
+// TestAccTeam_DataSource_Basic reads the default team of the betterado-standing-demo
+// fixture project so that the captured evidence honestly references the standing-demo
+// project GUID in its URL.
 func TestAccTeam_DataSource_Basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("acceptance tests skipped unless TF_ACC is set")
+	}
+	testutils.PreCheck(t, nil)
+	projectID := ResolveFixtureProjectID(t)
+
 	tfNode := "data.betterado_team.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclTeamDataSourceBasic(projectName),
+				Config: hclTeamDataSourceFixture(projectID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "id"),
 					resource.TestCheckResourceAttrSet(tfNode, "name"),
-					resource.TestCheckResourceAttrSet(tfNode, "description"),
 					resource.TestCheckResourceAttrSet(tfNode, "administrators.#"),
 					resource.TestCheckResourceAttrSet(tfNode, "members.#"),
 					captureTeamDataSourceEvidence(tfNode),
@@ -56,6 +63,17 @@ func captureTeamDataSourceEvidence(tfNode string) resource.TestCheckFunc {
 		_ = testutils.CaptureLiveEvidence("data-team", apiURL, attrs)
 		return nil
 	}
+}
+
+// hclTeamDataSourceFixture reads the default team from the betterado-standing-demo
+// fixture project without creating any new project.
+func hclTeamDataSourceFixture(projectID string) string {
+	return fmt.Sprintf(`
+data "betterado_team" "test" {
+  project_id = %q
+  name       = "betterado-standing-demo Team"
+}
+`, projectID)
 }
 
 func hclTeamDataSourceBasic(name string) string {

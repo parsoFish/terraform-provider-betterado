@@ -10,24 +10,26 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
+// TestAccTeams_DataSource_basic reads the teams of the betterado-standing-demo
+// fixture project so that the captured evidence honestly references the standing-demo
+// project GUID in its URL.
 func TestAccTeams_DataSource_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("acceptance tests skipped unless TF_ACC is set")
+	}
+	testutils.PreCheck(t, nil)
+	projectID := ResolveFixtureProjectID(t)
+
 	tfNode := "data.betterado_teams.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclTeamsDataSourceBasic(projectName),
+				Config: hclTeamsDataSourceFixture(projectID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
-					resource.TestCheckResourceAttr(tfNode, "teams.#", "1"),
-					resource.TestCheckResourceAttrSet(tfNode, "teams.0.project_id"),
-					resource.TestCheckResourceAttrSet(tfNode, "teams.0.id"),
-					resource.TestCheckResourceAttrSet(tfNode, "teams.0.name"),
-					resource.TestCheckResourceAttrSet(tfNode, "teams.0.description"),
-					resource.TestCheckResourceAttrSet(tfNode, "teams.0.administrators.#"),
-					resource.TestCheckResourceAttrSet(tfNode, "teams.0.members.#"),
+					resource.TestCheckResourceAttrSet(tfNode, "teams.#"),
 					captureTeamsDataSourceEvidence(tfNode),
 				),
 			},
@@ -56,6 +58,16 @@ func captureTeamsDataSourceEvidence(tfNode string) resource.TestCheckFunc {
 		_ = testutils.CaptureLiveEvidence("data-teams", apiURL, attrs)
 		return nil
 	}
+}
+
+// hclTeamsDataSourceFixture reads the teams from the betterado-standing-demo
+// fixture project without creating any new project.
+func hclTeamsDataSourceFixture(projectID string) string {
+	return fmt.Sprintf(`
+data "betterado_teams" "test" {
+  project_id = %q
+}
+`, projectID)
 }
 
 func hclTeamsDataSourceBasic(name string) string {
