@@ -1,4 +1,4 @@
-# Agent Memory — WI-9
+# Agent Memory — WI-1
 
 > Institutional memory for this work item across Ralph iterations. Read at the start of every iteration; updated at the end.
 
@@ -8,57 +8,41 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 ## What I've tried
 
-### Iteration 0 (2025-07)
+### Iteration 1
 
-Full migration of betterado_variable_group resource + data source to terraform-plugin-framework.
+**Gate failure analyzed:** `.forge/last-gate-failure.md` showed `TestAccVariableGroup*` and `TestAccVariableGroupVariable*` tests failing with "Failed to add a project as this organization already has 1000 projects".
 
-**Created:**
-- `azuredevops/internal/service/taskagent/resource_variable_group_framework.go`
-  - VariableGroupResource: Create/Read/Update/Delete/ImportState
-  - Uses package-level `defaultString()`, `defaultBool()`, `defaultInt64()`, `requiresReplace()`, `useStateForUnknown()` helpers from resource_task_group_framework.go (same package)
-  - `types.SetNestedAttribute` for variable set; `types.ListNestedAttribute` for key_vault
-  - `allow_access` via `build.AuthorizeProjectResources` / `build.GetProjectResources`
-  - Secret values recovered from prior state (API returns empty for secrets)
-  - `searchAzureKVSecrets` called from resource_variable_group.go (same package — kept for WI-10 dependency)
-  - `splitImportID` for import ID parsing ("projectID/vgIntID")
-  - Retry loop for Create to wait for variable count to stabilize
-- `azuredevops/internal/service/taskagent/data_variable_group_framework.go`
-  - VariableGroupDataSource: Read only, uses GetVariableGroups by name
+**Root cause:** `resource_variable_group_variable_test.go` tests were:
+1. Using `resource "betterado_project" "test"` in HCL fixtures — creating a new project each run, hitting the 1000-project org cap.
+2. Using `Providers: testutils.GetProviders()` (SDKv2 singleton) instead of `ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories()`.
+3. Using `testutils.GetProvider().Meta().(*client.AggregatedClient)` in check helpers — incompatible with mux provider (Meta() is nil in mux path).
 
-**Modified:**
-- `azuredevops/internal/provider/framework_provider.go`: added NewVariableGroupResource + NewVariableGroupDataSource
-- `azuredevops/provider.go`: removed betterado_variable_group from ResourcesMap and DataSourcesMap (kept comment explaining removal)
-- `azuredevops/provider_test.go`: removed betterado_variable_group from both SDKv2 count lists
-- `azuredevops/internal/acceptancetests/resource_variable_group_test.go`: rewrote to use ProtoV6ProviderFactories, fixture project (`betterado-standing-demo`), GetDirectClient for CheckDestroy, CaptureLiveEvidence in TestAccVariableGroup_basic
-- `azuredevops/internal/acceptancetests/data_variable_group_test.go`: rewrote to use inline HCL with fixture project (avoids HclVariableGroupResource which references `betterado_project.project` resource)
+`resource_variable_group_test.go` and `data_variable_group_test.go` already used fixture project — variable_group_variable tests were the stragglers.
 
-**Deleted:**
-- `azuredevops/internal/service/taskagent/data_variable_group.go` (SDKv2, replaced by framework)
-- `azuredevops/internal/service/taskagent/data_variable_group_test.go` (all-commented-out, deleted)
+**Fix applied (commit 6778cfcb):**
+- Rewrote `resource_variable_group_variable_test.go` to use `data "betterado_project" "fixture" { name = SharedFixtureProjectName }` in all HCL templates.
+- Removed `projectName` parameter from fixture functions.
+- Switched all 3 tests to `ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories()`.
+- Replaced `testutils.GetProvider().Meta().(*client.AggregatedClient)` with `testutils.GetDirectClient()` in `checkVariableGroupVariableFromState`.
+- Fixed pre-existing gofmt drift in `resource_variable_group_framework.go` and `provider.go` (unblocked `make test` fmtcheck).
 
-**Kept:**
-- `azuredevops/internal/service/taskagent/resource_variable_group.go` — NOT deleted because resource_variable_group_variable.go calls `updateVariableGroup` from it, and resource_variable_group_framework.go calls `searchAzureKVSecrets` and `isKeyVaultVariableGroupType`. WI-10 will handle resource_variable_group_variable.
+**Verification:** `make test` passes. `go test -tags all -count=1 ./azuredevops/internal/service/...` passes.
 
 ## What worked
 
-- Import sub-packages like `booldefault`, `stringdefault`, `stringplanmodifier` are NOT vendored. Must use the custom package-level helpers defined in `resource_task_group_framework.go` (same package): `defaultString()`, `defaultBool()`, `defaultInt64()`, `requiresReplace()`, `useStateForUnknown()`.
-- Fixture project pattern: `data "betterado_project" "fixture" { name = "betterado-standing-demo" }` avoids 1000-project limit.
-- `GetDirectClient()` from testutils is required for CheckDestroy when using ProtoV6ProviderFactories (SDKv2 provider singleton's Meta() is nil in mux mode).
-- `variableAttrTypes` and `keyVaultAttrTypes` must be declared at package level as `map[string]attr.Type` for use with `types.ObjectValueFrom` and `types.SetValue`.
-- Watch out for variable shadowing: `d *VariableGroupDataSource` receiver shadows `:=` assignments. Use distinct variable names (e.g., `dSet` instead of `d`) for diagnostics from nested calls.
-- The data source test should not use `HclVariableGroupResource` helper because it references `betterado_project.project` (resource), not a data source lookup. Write inline HCL instead.
+- Fixture project pattern: `data "betterado_project" "fixture" { name = SharedFixtureProjectName }` — already used in variable_group, environment, task_group tests.
+- `GetDirectClient()` works for check helpers with mux provider; `GetProvider().Meta()` is nil in mux path.
+- Run `gofmt -w <file>` to fix drift; `make test` fmtcheck catches it.
 
 ## What didn't work
 
-- Using `booldefault`, `stringdefault`, `stringplanmodifier` from typed sub-packages — not in vendor directory, causes build failure.
-- Using `:=` with `d` as both a diag result AND the method receiver `d *VariableGroupDataSource` — causes compile error due to shadowing.
+_(none)_
 
 ## Open questions
 
-- None at this time.
+_(none)_
 
 ## Notes for reflection
 
-- Pattern: custom helper functions for defaults and plan modifiers are reused across all framework resources in the taskagent package. New framework resources must use these, not the vendored typed sub-packages.
-- Pattern: fixture project lookup for acceptance tests that avoid the 1000-project limit.
-- The data source helper `HclVariableGroupResource` (testutils/hcl.go) still references `betterado_project.project` (a resource). Since this WI migrated the VG to framework using a data source lookup instead, there may be a future cleanup opportunity to update this helper too.
+- The 1000-project org cap has been a recurring pain point. Every new acceptance test must use the standing fixture project. The pattern is now consistently applied across all taskagent acceptance tests.
+- Pre-existing gofmt drift should be fixed opportunistically when touching files.

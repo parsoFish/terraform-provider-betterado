@@ -1,17 +1,12 @@
 # Fix Plan
 
-> Checklist for WI-9. Tick items as you complete them; add items as you discover sub-problems.
+> Checklist for WI-1. Tick items as you complete them; add items as you discover sub-problems.
 
-- [x] AC1: GIVEN betterado_variable_group resource and betterado_variable_group data source are migrated to terraform-plugin-framework WHEN TestAccVariableGroup acceptance tests run live (TF_ACC=1) THEN apply succeeds, provider read-back verifies all attributes with non-default values (including secret variables), ExpectNonEmptyPlan: false, destroy is clean
-  - resource_variable_group_framework.go: CRUD + Import + secret_value recovery + allow_access + key_vault
-  - data_variable_group_framework.go: Read data source
-  - Acceptance tests: ProtoV6ProviderFactories (mux) + fixture project + ExpectNonEmptyPlan: false + GetDirectClient for CheckDestroy
-- [x] AC2: GIVEN SDKv2 variable_group files are deregistered and deleted WHEN provider.go ResourcesMap and DataSourcesMap are inspected THEN betterado_variable_group is absent from SDKv2 maps; source files deleted; framework_provider.go includes new factories; provider_test.go counts updated
-  - data_variable_group.go deleted; data_variable_group_test.go deleted
-  - resource_variable_group.go KEPT (shared helpers needed by resource_variable_group_variable.go for WI-10)
-  - ResourcesMap and DataSourcesMap entries removed; provider_test.go counts updated
-- [x] AC3: GIVEN live acceptance test runs WHEN CaptureLiveEvidence is called THEN CaptureLiveEvidence("acceptance-resource-variable-group", url, apiResponse) writes .forge/live-evidence/acceptance-resource-variable-group.json
-  - captureVariableGroupEvidence() wired in TestAccVariableGroup_basic Check step (best-effort, non-fatal)
-  - Requires TF_ACC=1 live run to produce the evidence file
+- [x] AC1: GIVEN the ADO Task Agent REST API v7.1 documentation and each SDKv2 resource schema WHEN compared field-by-field against the Terraform attributes for agent_pool, agent_queue, deployment_group, elastic_pool, environment, environment_resource_kubernetes, variable_group, variable_group_variable, task_group data source THEN docs/taskagent-gap-matrix.md exists, lists every field with status (mapped/partial/missing), and defers unimplemented writable gaps explicitly
 
-## Status: ALL ACs structurally complete, awaiting live gate TF_ACC=1 run
+**AC1 DONE** — `docs/taskagent-gap-matrix.md` committed in prior iteration (ba0761ab). WI-1 status: complete.
+
+## Gate-tightening fixes (iteration 1)
+
+- [x] `resource_variable_group_variable_test.go`: migrated from project-per-test to fixture project (avoids 1000-project org cap); switched from `GetProviders()` to `GetMuxedProviderFactories()`; use `GetDirectClient()` in check helpers.
+- [x] `resource_variable_group_framework.go` + `provider.go`: fixed pre-existing gofmt formatting drift (unblocks `make test` fmtcheck).
