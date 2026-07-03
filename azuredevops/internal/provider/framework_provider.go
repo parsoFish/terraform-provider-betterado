@@ -209,6 +209,8 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		permissions.NewReleaseDefinitionPermissionsResource,
 		testplan.NewTestPlanResource,
 		testplan.NewTestSuiteResource,
+		testplan.NewTestConfigurationResource,
+		testplan.NewTestVariableResource,
 	}
 }
 
