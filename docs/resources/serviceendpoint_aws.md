@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_aws Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an AWS service endpoint within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_aws (Resource)
 
-
+Manages an AWS service endpoint within Azure DevOps.
 
 
 
@@ -24,25 +24,14 @@ description: |-
 
 - `access_key_id` (String) The AWS access key ID for signing programmatic requests.
 - `description` (String)
-- `external_id` (String) A unique identifier that is used by third parties when assuming roles in their customers' accounts, aka cross-account role access.
+- `external_id` (String) A unique identifier that is used by third parties when assuming roles in their customers' accounts.
 - `role_session_name` (String) Optional identifier for the assumed role session.
 - `role_to_assume` (String) The Amazon Resource Name (ARN) of the role to assume.
 - `secret_access_key` (String, Sensitive) The AWS secret access key for signing programmatic requests.
 - `session_token` (String, Sensitive) The AWS session token for signing programmatic requests.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `use_oidc` (Boolean) Enable this to attempt getting credentials with OIDC token from Azure Devops.
 
 ### Read-Only
 
 - `authorization` (Map of String)
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

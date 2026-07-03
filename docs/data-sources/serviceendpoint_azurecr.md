@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_azurecr Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Use this data source to access information about an existing Azure Container Registry service endpoint.
 ---
 
 # betterado_serviceendpoint_azurecr (Data Source)
 
-
+Use this data source to access information about an existing Azure Container Registry service endpoint.
 
 
 
@@ -17,33 +17,23 @@ description: |-
 
 ### Required
 
-- `project_id` (String)
+- `project_id` (String) The project ID or project name.
 
 ### Optional
 
-- `service_endpoint_id` (String) The ID of the serviceendpoint
-- `service_endpoint_name` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `service_endpoint_id` (String) The service endpoint ID.
+- `service_endpoint_name` (String) The service endpoint name.
 
 ### Read-Only
 
-- `app_object_id` (String)
-- `authorization` (Map of String)
-- `az_spn_role_assignment_id` (String)
-- `az_spn_role_permissions` (String)
-- `azurecr_name` (String)
-- `azurecr_spn_tenantid` (String)
-- `azurecr_subscription_id` (String)
-- `azurecr_subscription_name` (String)
-- `description` (String)
-- `id` (String) The ID of this resource.
-- `resource_group` (String)
-- `service_principal_id` (String)
-- `spn_object_id` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `app_object_id` (String) The object ID of the service principal's application.
+- `az_spn_role_assignment_id` (String) The service principal role assignment ID.
+- `az_spn_role_permissions` (String) The service principal role permissions.
+- `azurecr_name` (String) The AzureContainerRegistry name.
+- `azurecr_spn_tenantid` (String) The service principal tenant id.
+- `azurecr_subscription_id` (String) The Azure subscription Id.
+- `azurecr_subscription_name` (String) The Azure subscription name.
+- `resource_group` (String) Scope Resource Group.
+- `service_endpoint_authentication_scheme` (String) The authentication scheme.
+- `service_principal_id` (String) The service principal ID.
+- `spn_object_id` (String) The object ID of the service principal.

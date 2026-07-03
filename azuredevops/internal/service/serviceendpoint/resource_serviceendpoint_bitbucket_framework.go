@@ -26,12 +26,15 @@ var (
 type seBitBucketRequiresReplaceModifier struct{}
 
 func seBitBucketRequiresReplace() planmodifier.String { return seBitBucketRequiresReplaceModifier{} }
+
 func (m seBitBucketRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seBitBucketRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seBitBucketRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -47,12 +50,15 @@ type seBitBucketUseStateForUnknownModifier struct{}
 func seBitBucketUseStateForUnknown() planmodifier.String {
 	return seBitBucketUseStateForUnknownModifier{}
 }
+
 func (m seBitBucketUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seBitBucketUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seBitBucketUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -69,9 +75,11 @@ func seBitBucketDefaultString(v string) defaults.String { return seBitBucketStri
 func (d seBitBucketStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seBitBucketStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seBitBucketStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }

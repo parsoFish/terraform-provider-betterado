@@ -7,6 +7,26 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_serviceendpoint_github` resource and data source migrated to terraform-plugin-framework.**
+  Supports PAT (`personal_access_token`) and OAuth (`oauth_configuration_id`) authentication schemes.
+  Deregistered from the SDKv2 provider; served through the mux provider. Verified by live acceptance
+  test `TestAccServiceEndpointGitHub_basic` (apply → read-back → idempotency re-plan → destroy).
+
+- **`betterado_serviceendpoint_github_enterprise` resource migrated to terraform-plugin-framework.**
+  Supports PAT and OAuth authentication; schema unchanged (`project_id`, `service_endpoint_name`,
+  `github_enterprise_url`, `personal_access_token`, `oauth_configuration_id`, `description`).
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_gitlab` resource migrated to terraform-plugin-framework.**
+  Username + password basic authentication. Deregistered from the SDKv2 provider; served through
+  the mux provider.
+
+- **`betterado_serviceendpoint_bitbucket` resource and data source migrated to terraform-plugin-framework.**
+  Username + password basic authentication. Deregistered from the SDKv2 provider; served through
+  the mux provider.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

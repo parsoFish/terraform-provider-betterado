@@ -29,9 +29,11 @@ func seGitLabRequiresReplace() planmodifier.String { return seGitLabRequiresRepl
 func (m seGitLabRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seGitLabRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seGitLabRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -45,12 +47,15 @@ func (m seGitLabRequiresReplaceModifier) PlanModifyString(_ context.Context, req
 type seGitLabUseStateForUnknownModifier struct{}
 
 func seGitLabUseStateForUnknown() planmodifier.String { return seGitLabUseStateForUnknownModifier{} }
+
 func (m seGitLabUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seGitLabUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seGitLabUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -67,9 +72,11 @@ func seGitLabDefaultString(v string) defaults.String { return seGitLabStringDefa
 func (d seGitLabStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seGitLabStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seGitLabStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }
