@@ -71,7 +71,7 @@ func Provider() *schema.Provider {
 			// betterado_feed is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_feed_permission":           feed.ResourceFeedPermission(),
+			// betterado_feed_permission is now registered in the framework provider (framework_provider.go)
 			"betterado_feed_retention_policy":     feed.ResourceFeedRetentionPolicy(),
 			"betterado_git_permissions":           permissions.ResourceGitPermissions(),
 			"betterado_git_repository":            git.ResourceGitRepository(),

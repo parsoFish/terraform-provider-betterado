@@ -204,6 +204,7 @@ func (p *BetteradoFrameworkProvider) Configure(ctx context.Context, req provider
 func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		feed.NewFeedResource,
+		feed.NewFeedPermissionResource,
 		taskagent.NewTaskGroupResource,
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
