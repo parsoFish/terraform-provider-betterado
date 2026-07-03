@@ -22,6 +22,14 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
+// Feed permission propagation states (moved from the deleted SDKv2
+// resource_feed_permission.go — used by the create/read polling below).
+const (
+	syncing = "Syncing"
+	failed  = "Failed"
+	succeed = "Succeeded"
+)
+
 // Ensure interface compliance at compile time.
 var (
 	_ resource.Resource                = &feedPermissionFrameworkResource{}
