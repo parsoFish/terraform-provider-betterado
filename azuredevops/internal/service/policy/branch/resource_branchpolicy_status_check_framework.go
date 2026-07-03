@@ -4,13 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/policy"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -93,6 +96,15 @@ func (r *StatusCheckResource) Schema(_ context.Context, _ resource.SchemaRequest
 							Optional: true,
 							Computed: true,
 							Default:  staticPolicyString(""),
+							Validators: []validator.String{
+								stringvalidator.Any(
+									stringvalidator.OneOf(""),
+									stringvalidator.RegexMatches(
+										regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+										"must be empty or a valid UUID",
+									),
+								),
+							},
 						},
 						"invalidate_on_update": schema.BoolAttribute{
 							Optional: true,
@@ -103,6 +115,9 @@ func (r *StatusCheckResource) Schema(_ context.Context, _ resource.SchemaRequest
 							Optional: true,
 							Computed: true,
 							Default:  staticPolicyString("default"),
+							Validators: []validator.String{
+								stringvalidator.OneOf("default", "conditional"),
+							},
 						},
 						"filename_patterns": schema.ListAttribute{
 							ElementType: types.StringType,

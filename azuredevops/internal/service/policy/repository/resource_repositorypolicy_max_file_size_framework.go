@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/policy"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -84,6 +86,9 @@ func (r *MaxFileSizeResource) Schema(_ context.Context, _ resource.SchemaRequest
 			},
 			"max_file_size": schema.Int64Attribute{
 				Required: true,
+				Validators: []validator.Int64{
+					int64validator.OneOf(1, 2, 5, 10, 50, 100, 200),
+				},
 			},
 		},
 	}

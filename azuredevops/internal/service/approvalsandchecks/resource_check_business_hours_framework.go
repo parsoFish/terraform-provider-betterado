@@ -3,13 +3,16 @@ package approvalsandchecks
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
@@ -70,9 +73,30 @@ func (r *BusinessHoursResource) Schema(_ context.Context, _ resource.SchemaReque
 				Computed: true,
 				Default:  staticCheckString("Managed by Terraform"),
 			},
-			"time_zone":  schema.StringAttribute{Required: true},
-			"start_time": schema.StringAttribute{Required: true},
-			"end_time":   schema.StringAttribute{Required: true},
+			"time_zone": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
+			},
+			"start_time": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^\d{2}:\d{2}$`),
+						"must be in HH:MM format (e.g. 09:00)",
+					),
+				},
+			},
+			"end_time": schema.StringAttribute{
+				Required: true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^\d{2}:\d{2}$`),
+						"must be in HH:MM format (e.g. 18:00)",
+					),
+				},
+			},
 			"monday":     schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
 			"tuesday":    schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
 			"wednesday":  schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},

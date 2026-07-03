@@ -6,12 +6,16 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/boolvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/policy"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -88,6 +92,9 @@ func (r *MinReviewersResource) Schema(_ context.Context, _ resource.SchemaReques
 							Optional: true,
 							Computed: true,
 							Default:  staticPolicyInt64(1),
+							Validators: []validator.Int64{
+								int64validator.AtLeast(1),
+							},
 						},
 						"submitter_can_vote": schema.BoolAttribute{
 							Optional: true,
@@ -113,11 +120,17 @@ func (r *MinReviewersResource) Schema(_ context.Context, _ resource.SchemaReques
 							Optional: true,
 							Computed: true,
 							Default:  staticPolicyBool(false),
+							Validators: []validator.Bool{
+								boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("on_push_reset_all_votes")),
+							},
 						},
 						"on_push_reset_all_votes": schema.BoolAttribute{
 							Optional: true,
 							Computed: true,
 							Default:  staticPolicyBool(false),
+							Validators: []validator.Bool{
+								boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("on_push_reset_approved_votes")),
+							},
 						},
 						"last_pusher_cannot_approve": schema.BoolAttribute{
 							Optional: true,

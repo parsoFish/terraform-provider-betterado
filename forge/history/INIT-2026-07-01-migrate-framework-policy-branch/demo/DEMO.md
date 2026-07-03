@@ -90,12 +90,12 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 | TestAccRepositoryPolicyCaseEnforcement (TF_ACC=1, live) | ✅ pass |
 | TestAccRepositoryPolicyCheckCredentials (TF_ACC=1, skip — ADO policy type removed) | ⏭ skip |
 | TestAccRepositoryPolicyFilePathPatterns (TF_ACC=1, live) | ✅ pass |
-| TestAccRepositoryPolicyMaxFileSize (TF_ACC=1, live) | ✅ pass |
-| TestAccRepositoryPolicyMaxPathLength (TF_ACC=1, live) | ✅ pass |
+| TestAccRepositoryPolicyFileSize (TF_ACC=1, live) | ✅ pass |
+| TestAccRepositoryPolicyPathLength (TF_ACC=1, live) | ✅ pass |
 | TestAccRepositoryPolicyReservedNames (TF_ACC=1, live) | ✅ pass |
 | TestAccCheckApproval (TF_ACC=1, live) | ✅ pass |
 | TestAccCheckBranchControl (TF_ACC=1, live) | ✅ pass |
 | TestAccCheckBusinessHours (TF_ACC=1, live) | ✅ pass |
 | TestAccCheckExclusiveLock (TF_ACC=1, live) | ✅ pass |
 | TestAccCheckRequiredTemplate (TF_ACC=1, live) | ✅ pass |
-| TestAccCheckRestApi (TF_ACC=1, live) | ✅ pass |
+| TestAccCheckRestAPI_basic (TF_ACC=1, live) | ✅ pass |
