@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
@@ -329,7 +330,9 @@ func (r *TeamResource) Delete(_ context.Context, req resource.DeleteRequest, res
 func (r *TeamResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	// Accept "projectID/teamID" format.
 	var projectID, teamID string
-	fmt.Sscanf(req.ID, "%36s/%36s", &projectID, &teamID)
+	if parts := strings.SplitN(req.ID, "/", 2); len(parts) == 2 {
+		projectID, teamID = parts[0], parts[1]
+	}
 	if _, err := uuid.Parse(projectID); err != nil || teamID == "" {
 		// Fall back: treat req.ID as teamID; project_id will need to be set.
 		resp.Diagnostics.AddError(

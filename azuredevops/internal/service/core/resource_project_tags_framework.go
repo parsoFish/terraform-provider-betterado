@@ -298,8 +298,9 @@ func (r *ProjectTagsResource) readTags(_ context.Context, model *projectTagsMode
 		return err
 	}
 
-	tags := make([]string, 0, len(*props))
+	tags := []string{}
 	if props != nil {
+		tags = make([]string, 0, len(*props))
 		for _, p := range *props {
 			if p.Name != nil && len(*p.Name) > 37 {
 				tags = append(tags, (*p.Name)[37:])

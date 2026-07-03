@@ -119,7 +119,7 @@ func (d *ClientConfigDataSource) Read(ctx context.Context, req datasource.ReadRe
 	model.OrganizationURL = types.StringValue(d.client.OrganizationURL)
 	model.Name = types.StringValue(*orgMeta.Name)
 	if orgMeta.Status != nil {
-		model.Status = types.StringValue(string(*orgMeta.Status))
+		model.Status = types.StringValue(*orgMeta.Status)
 	} else {
 		model.Status = types.StringValue("")
 	}
