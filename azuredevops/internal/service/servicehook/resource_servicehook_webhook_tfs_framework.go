@@ -1273,9 +1273,11 @@ func tfsUseStateForUnknown() planmodifier.String { return tfsUseStateForUnknownS
 func (tfsUseStateForUnknownStr) Description(_ context.Context) string {
 	return "use prior state value for unknown"
 }
+
 func (tfsUseStateForUnknownStr) MarkdownDescription(_ context.Context) string {
 	return "use prior state value for unknown"
 }
+
 func (tfsUseStateForUnknownStr) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -1294,9 +1296,11 @@ func tfsRequiresReplace() planmodifier.String { return tfsRequiresReplaceStr{} }
 func (tfsRequiresReplaceStr) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (tfsRequiresReplaceStr) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (tfsRequiresReplaceStr) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -1317,9 +1321,11 @@ func tfsStaticString(v string) defaults.String { return tfsStaticStringDefault{v
 func (d tfsStaticStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d tfsStaticStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%q`", d.value)
 }
+
 func (d tfsStaticStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }
@@ -1332,9 +1338,11 @@ func tfsStaticBool(v bool) defaults.Bool { return tfsStaticBoolDefault{value: v}
 func (d tfsStaticBoolDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %v", d.value)
 }
+
 func (d tfsStaticBoolDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%v`", d.value)
 }
+
 func (d tfsStaticBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(d.value)
 }

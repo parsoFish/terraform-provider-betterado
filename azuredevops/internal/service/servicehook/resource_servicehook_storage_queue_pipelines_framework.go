@@ -423,9 +423,11 @@ func sqpUseStateForUnknown() planmodifier.String { return sqpUseStateForUnknownS
 func (sqpUseStateForUnknownStr) Description(_ context.Context) string {
 	return "use prior state value for unknown"
 }
+
 func (sqpUseStateForUnknownStr) MarkdownDescription(_ context.Context) string {
 	return "use prior state value for unknown"
 }
+
 func (sqpUseStateForUnknownStr) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -445,9 +447,11 @@ func sqpRequiresReplace() planmodifier.String { return sqpRequiresReplaceStr{} }
 func (sqpRequiresReplaceStr) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (sqpRequiresReplaceStr) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (sqpRequiresReplaceStr) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -466,9 +470,11 @@ func sqpStaticInt64(v int64) defaults.Int64 { return sqpInt64Default{value: v} }
 func (d sqpInt64Default) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %d", d.value)
 }
+
 func (d sqpInt64Default) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%d`", d.value)
 }
+
 func (d sqpInt64Default) DefaultInt64(_ context.Context, _ defaults.Int64Request, resp *defaults.Int64Response) {
 	resp.PlanValue = types.Int64Value(d.value)
 }
