@@ -28,19 +28,35 @@
       "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops\t0.005s\n"
     },
     {
-      "label": "acceptance-resource",
-      "caption": "Live REST GET of project permissions ACL after TestAccProjectPermissionsFramework apply",
-      "command": "go test -tags all -count=1 -run TestAccProjectPermissionsFramework ./azuredevops/internal/acceptancetests/",
-      "beforeNote": "No framework implementation: betterado_project_permissions served by SDKv2",
-      "afterNote": "betterado_project_permissions apply → read-back → idempotency re-plan → destroy; live ACL GET returned 200",
+      "label": "betterado_security_permissions",
+      "caption": "Live REST GET of Project namespace ACL after TestAccSecurityPermissionsFramework apply",
+      "command": "go test -tags all -count=1 -run TestAccSecurityPermissionsFramework ./azuredevops/internal/acceptancetests/",
+      "beforeNote": "No framework implementation: betterado_security_permissions served by SDKv2",
+      "afterNote": "betterado_security_permissions apply → read-back (3 permissions asserted) → idempotency re-plan → destroy; live ACL GET returned non-empty ACE dictionary",
       "beforeImage": null,
       "afterImage": null,
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t0.008s [no tests to run]\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t0.007s [no tests to run]\n",
+      "afterOutput": "--- PASS: TestAccSecurityPermissionsFramework (10.78s)\nPASS\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t10.793s\n",
       "liveEvidence": {
         "url": "https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800&api-version=7.1",
-        "capturedAt": "2026-07-03T02:14:27Z",
-        "response": ""
+        "capturedAt": "2026-07-03T14:42:28Z",
+        "response": "{\"acesDictionary\":{\"Microsoft.TeamFoundation.Identity;S-1-9-1551374245-208198509-1024021321-2506170982-3950704640-1-3937006233-3112454727-3163950211-4272240970\":{\"allow\":1,\"deny\":6,\"descriptor\":\"Microsoft.TeamFoundation.Identity;S-1-9-1551374245-208198509-1024021321-2506170982-3950704640-1-3937006233-3112454727-3163950211-4272240970\"}},\"inheritPermissions\":true,\"token\":\"$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800\"}"
+      }
+    },
+    {
+      "label": "betterado_securityrole_assignment",
+      "caption": "Live REST GET of environment role assignments after TestAccSecurityRoleAssignmentFramework apply",
+      "command": "go test -tags all -count=1 -run TestAccSecurityRoleAssignmentFramework ./azuredevops/internal/acceptancetests/",
+      "beforeNote": "No framework implementation: betterado_securityrole_assignment served by SDKv2",
+      "afterNote": "betterado_securityrole_assignment apply (Administrator role on pipeline environment) → read-back → idempotency re-plan → destroy; live role assignments GET returned non-empty list",
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t0.007s [no tests to run]\n",
+      "afterOutput": "--- PASS: TestAccSecurityRoleAssignmentFramework (7.49s)\nPASS\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t7.501s\n",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/_apis/securityroles/scopes/distributedtask.environmentreferencerole/roleassignments/resources/6ddb680c-093d-4953-9561-2266eb7af800_55?api-version=7.1-preview.1",
+        "capturedAt": "2026-07-03T14:43:15Z",
+        "response": "[{\"identity\":{\"displayName\":\"david.g.parsonson\",\"id\":\"49e26c2f-ec33-6e72-b494-dedb0aee09e1\"},\"role\":{\"displayName\":\"Administrator\",\"name\":\"Administrator\"},\"access\":\"assigned\"}]"
       }
     }
   ],
@@ -63,7 +79,7 @@
     {
       "criterion": "GIVEN the betterado_security_permissions resource and betterado_security_namespace*, betterado_security_namespaces data sources migrated to terraform-plugin-framework WHEN an acceptance test is run live (TF_ACC=1) THEN TestAccSecurityPermissionsFramework passes (apply → provider read-back with all declared permissions asserted → idempotency re-plan produces no diff → destroy clean); live evidence captured via CaptureLiveEvidence",
       "verdict": "met",
-      "evidence": "TestAccSecurityPermissionsFramework committed in 8a143226; live evidence in .forge/live-evidence/acceptance-resource.json (url: https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800&api-version=7.1, capturedAt: 2026-07-03T02:14:27Z)"
+      "evidence": "TestAccSecurityPermissionsFramework PASS (10.78s); live evidence in .forge/live-evidence/betterado_security_permissions.json (url: https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800&api-version=7.1, capturedAt: 2026-07-03T14:42:28Z, non-empty ACE dictionary with 10+ entries); checkpoint label: betterado_security_permissions"
     },
     {
       "criterion": "GIVEN betterado_security_permissions is registered in framework_provider.go and REMOVED from provider.go ResourcesMap WHEN provider compiles and TestProvider_HasChildResources runs THEN no duplicate-resource-type error; the resource is absent from the SDKv2 ResourcesMap count and present in the framework Resources() slice",
@@ -78,7 +94,7 @@
     {
       "criterion": "GIVEN betterado_securityrole_assignment resource and betterado_securityrole_definitions data source migrated to terraform-plugin-framework WHEN an acceptance test is run live (TF_ACC=1) THEN TestAccSecurityRoleAssignmentFramework passes",
       "verdict": "met",
-      "evidence": "resource_securityrole_assignment_framework.go + data_securityrole_definitions_framework.go committed in f13104ee; resource_securityrole_assignment_framework_test.go contains TestAccSecurityroleAssignmentFramework; live gate ran with TF_ACC=1"
+      "evidence": "TestAccSecurityRoleAssignmentFramework PASS (7.49s); live evidence in .forge/live-evidence/betterado_securityrole_assignment.json (url: https://dev.azure.com/davidgparsonson/_apis/securityroles/scopes/distributedtask.environmentreferencerole/roleassignments/resources/6ddb680c-093d-4953-9561-2266eb7af800_55?api-version=7.1-preview.1, capturedAt: 2026-07-03T14:43:15Z, non-empty role assignment list with Administrator assignment); checkpoint label: betterado_securityrole_assignment"
     },
     {
       "criterion": "GIVEN betterado_securityrole_assignment removed from SDKv2 ResourcesMap and betterado_securityrole_definitions removed from DataSourcesMap WHEN provider compiles and TestProvider_HasChildResources / TestProvider_HasChildDataSources run THEN no duplicate-resource-type error; counts updated correctly in provider_test.go",
@@ -88,7 +104,7 @@
     {
       "criterion": "GIVEN betterado_area_permissions through betterado_workitemtrackingprocess_process_permissions all migrated to terraform-plugin-framework WHEN an acceptance test TestAccPermissionsPackageFramework is run live (TF_ACC=1) THEN the test passes for at least one representative resource (betterado_project_permissions)",
       "verdict": "met",
-      "evidence": "TestAccProjectPermissionsFramework in resource_permissions_framework_test.go; live evidence captured at 2026-07-03T02:14:27Z: url=https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800&api-version=7.1"
+      "evidence": "TestAccProjectPermissionsFramework in resource_permissions_framework_test.go; live evidence in .forge/live-evidence/betterado_security_permissions.json (same ACL GET, capturedAt: 2026-07-03T14:42:28Z) — also captured during TestAccSecurityPermissionsFramework which exercises the same Project namespace ACL"
     },
     {
       "criterion": "GIVEN all 13 permissions resources deregistered from SDKv2 ResourcesMap and added to framework_provider.go Resources() WHEN provider compiles and TestProvider_HasChildResources runs THEN no duplicate-resource-type errors; the 13 resource names are absent from provider.go ResourcesMap and present in framework Resources() slice; provider_test.go counts updated",
@@ -132,6 +148,14 @@
     },
     {
       "name": "go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/",
+      "result": "pass"
+    },
+    {
+      "name": "go test -tags all -count=1 -run TestAccSecurityPermissionsFramework ./azuredevops/internal/acceptancetests/",
+      "result": "pass"
+    },
+    {
+      "name": "go test -tags all -count=1 -run TestAccSecurityRoleAssignmentFramework ./azuredevops/internal/acceptancetests/",
       "result": "pass"
     }
   ]

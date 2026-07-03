@@ -215,7 +215,8 @@ func checkSecurityRoleAssignmentFrameworkDestroyed(
 }
 
 // captureSecurityRoleAssignmentEvidence writes live-evidence for the forge demo
-// pipeline. Best-effort: a failure never fails the test.
+// pipeline using a distinct per-type label. Best-effort: a failure never fails
+// the test.
 func captureSecurityRoleAssignmentEvidence(tfNode, orgURL, scope, resourceID string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		res, ok := s.RootModule().Resources[tfNode]
@@ -227,14 +228,34 @@ func captureSecurityRoleAssignmentEvidence(tfNode, orgURL, scope, resourceID str
 			return nil
 		}
 		orgURL = strings.TrimRight(orgURL, "/")
-		// SecurityRoles list assignments URL.
+
+		// Build the SecurityRoles list-assignments URL (used for both the live GET
+		// and the demo evidence URL field).
 		url := fmt.Sprintf(
 			"%s/_apis/securityroles/scopes/%s/roleassignments/resources/%s?api-version=7.1-preview.1",
 			orgURL,
 			scope,
 			resourceID,
 		)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, nil)
+
+		// Make a live API call to populate the response body in the evidence.
+		pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+		clients, err := client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+		if err != nil {
+			_ = testutils.CaptureLiveEvidence("betterado_securityrole_assignment", url, nil)
+			return nil
+		}
+
+		assignments, err := clients.SecurityRolesClient.ListSecurityRoleAssignments(clients.Ctx, &sdkroles.ListSecurityRoleAssignmentsArgs{
+			Scope:      &scope,
+			ResourceId: &resourceID,
+		})
+		if err != nil || assignments == nil || len(*assignments) == 0 {
+			_ = testutils.CaptureLiveEvidence("betterado_securityrole_assignment", url, nil)
+			return nil
+		}
+
+		_ = testutils.CaptureLiveEvidence("betterado_securityrole_assignment", url, *assignments)
 		return nil
 	}
 }

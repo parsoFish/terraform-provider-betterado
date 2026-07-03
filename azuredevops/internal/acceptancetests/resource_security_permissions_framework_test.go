@@ -8,10 +8,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/security"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
@@ -180,8 +182,8 @@ func checkSecurityPermissionsFrameworkDestroyed(_ *terraform.State) error {
 }
 
 // captureSecurityPermissionsFrameworkEvidence writes
-// .forge/live-evidence/acceptance-resource.json with a real ADO Security REST API
-// ACL GET URL. Best-effort: a failure never fails the test.
+// .forge/live-evidence/betterado_security_permissions.json with a real ADO
+// Security REST API ACL GET response. Best-effort: a failure never fails the test.
 func captureSecurityPermissionsFrameworkEvidence(tfNode string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		res, ok := s.RootModule().Resources[tfNode]
@@ -193,14 +195,38 @@ func captureSecurityPermissionsFrameworkEvidence(tfNode string) resource.TestChe
 		if namespaceID == "" || token == "" {
 			return nil
 		}
+
+		nsUUID, err := uuid.Parse(namespaceID)
+		if err != nil {
+			return nil
+		}
+
 		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+		pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+		clients, err := client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+		if err != nil {
+			return nil
+		}
+
+		acls, err := clients.SecurityClient.QueryAccessControlLists(clients.Ctx, security.QueryAccessControlListsArgs{
+			SecurityNamespaceId: &nsUUID,
+			Token:               &token,
+		})
+		if err != nil || acls == nil || len(*acls) == 0 {
+			// Fall back to URL-only evidence if the live call fails.
+			url := fmt.Sprintf(
+				"%s/_apis/accesscontrollists/%s?token=%s&api-version=7.1",
+				orgURL, namespaceID, token,
+			)
+			_ = testutils.CaptureLiveEvidence("betterado_security_permissions", url, nil)
+			return nil
+		}
+
 		url := fmt.Sprintf(
 			"%s/_apis/accesscontrollists/%s?token=%s&api-version=7.1",
-			orgURL,
-			namespaceID,
-			token,
+			orgURL, namespaceID, token,
 		)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, nil)
+		_ = testutils.CaptureLiveEvidence("betterado_security_permissions", url, (*acls)[0])
 		return nil
 	}
 }
