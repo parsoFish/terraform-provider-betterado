@@ -3,14 +3,14 @@
   "essence": "Six Work Item Tracking resources/data-sources (betterado_workitem, betterado_workitemtracking_field, betterado_workitemquery, betterado_workitemquery_folder, betterado_area, betterado_iteration) have been migrated from terraform-plugin-sdk/v2 to terraform-plugin-framework and served via the mux provider. All SDKv2 implementations are deleted; framework implementations registered in framework_provider.go. Proven by live acceptance tests against real ADO with CaptureLiveEvidence REST GET evidence.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-workitemtracking",
-  "diffStat": "40 files changed, 4101 insertions(+), 2201 deletions(-)",
+  "diffStat": "84 files changed, 5281 insertions(+), 2835 deletions(-)",
   "summary": {
     "bullets": [
       "All 6 workitemtracking types migrated from SDKv2 to terraform-plugin-framework: betterado_workitem, betterado_workitemtracking_field, betterado_workitemquery, betterado_workitemquery_folder, betterado_area, betterado_iteration.",
       "SDKv2 implementations deleted; framework implementations registered in framework_provider.go; provider.go ResourcesMap/DataSourcesMap cleaned up.",
       "Every migration proved by a live TF_ACC acceptance test against real ADO using GetMuxedProviderFactories; 5 of 6 resource types have real REST GET evidence captured via CaptureLiveEvidence.",
       "Gap matrix (docs/workitemtracking-gap-matrix.md) authored; 6 doc pages regenerated; examples created; CHANGELOG updated; version bumped to 1.2.1.",
-      "CI-equivalent gate green: go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... ok 0.007s."
+      "CI-equivalent gate green: go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... ok 0.008s."
     ],
     "branch": "forge/INIT-2026-07-01-migrate-framework-workitemtracking"
   },
@@ -51,7 +51,7 @@
     {
       "name": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "result": "pass",
-      "delta": "ok 0.007s — CI-equivalent gate green on branch HEAD"
+      "delta": "ok 0.008s — CI-equivalent gate green on branch HEAD"
     },
     {
       "name": "TestAccWorkItem_basic (GetMuxedProviderFactories)",
@@ -90,7 +90,7 @@
       "caption": "CI-equivalent servicehook gate passes on branch HEAD",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "Gate passes on main — servicehook package unaffected by workitemtracking migration",
-      "afterNote": "Gate passes on branch HEAD — provider compiles and servicehook tests green after all 6 workitemtracking migrations"
+      "afterNote": "Gate passes on branch HEAD — provider compiles and servicehook tests green after all 6 workitemtracking migrations (ok 0.008s)"
     },
     {
       "label": "provider-compiles",
@@ -175,7 +175,7 @@
     {
       "criterion": "GIVEN the SDKv2 resource_workitem.go and resource_workitem_test.go are deleted and the old SDKv2 registration removed WHEN go build -mod=vendor . is run THEN the provider compiles with no duplicate-type errors and no orphaned dead files remain",
       "verdict": "met",
-      "evidence": "git diff --name-only main...HEAD confirms resource_workitem.go deleted and resource_workitem_test.go deleted; go build -mod=vendor . exits 0 on branch HEAD (servicehook gate: ok 0.007s)"
+      "evidence": "git diff --name-only main...HEAD confirms resource_workitem.go deleted and resource_workitem_test.go deleted; go build -mod=vendor . exits 0 on branch HEAD (servicehook gate: ok 0.008s)"
     },
     {
       "criterion": "GIVEN the acceptance test TestAccWorkItem_basic runs with TF_ACC=1 WHEN the muxed provider is used (GetMuxedProviderFactories) THEN the test passes against real ADO and CaptureLiveEvidence is called with label acceptance-resource-workitem",
@@ -225,7 +225,7 @@
     {
       "criterion": "GIVEN the SDKv2 data_area.go and data_iteration.go are deleted WHEN go build -mod=vendor . is run THEN the provider compiles; no orphaned SDKv2 data source files remain for these two types",
       "verdict": "met",
-      "evidence": "git diff --name-only main...HEAD confirms data_area.go and data_iteration.go deleted; provider compiles (servicehook gate: ok 0.007s)"
+      "evidence": "git diff --name-only main...HEAD confirms data_area.go and data_iteration.go deleted; provider compiles (servicehook gate: ok 0.008s)"
     },
     {
       "criterion": "GIVEN a live acceptance test TestAccAreaDataSource or TestAccIterationDataSource runs with TF_ACC=1 using GetMuxedProviderFactories WHEN the muxed provider serves betterado_area and betterado_iteration as framework data sources THEN both tests pass against real ADO and CaptureLiveEvidence is called with labels acceptance-resource-area and acceptance-resource-iteration respectively",
