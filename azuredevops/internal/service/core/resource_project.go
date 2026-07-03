@@ -324,7 +324,8 @@ func updateProject(clients *client.AggregatedClient, project *core.TeamProject, 
 			core.UpdateProjectArgs{
 				ProjectUpdate: project,
 				ProjectId:     project.Id,
-			})
+			},
+		)
 		if updateErr != nil {
 			return retry.RetryableError(updateErr)
 		}

@@ -126,7 +126,8 @@ func hclBuildFolderPermissions(projectName string, path string, permissions map[
 		requiredResources = testutils.HclProjectResource(projectName)
 	}
 
-	return fmt.Sprintf(`
+	return fmt.Sprintf(
+		`
 %s
 
 data "betterado_group" "tf-project-readers" {

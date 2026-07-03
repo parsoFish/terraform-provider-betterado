@@ -108,7 +108,8 @@ func TestAccLibraryPermissions_UpdatePermissions(t *testing.T) {
 func hclLibraryPermissions(projectName string, permissions map[string]string) string {
 	LibraryPermissions := datahelper.JoinMap(permissions, "=", "\n")
 
-	return fmt.Sprintf(`
+	return fmt.Sprintf(
+		`
 %s
 data "betterado_group" "tf-project-readers" {
   project_id = betterado_project.project.id
