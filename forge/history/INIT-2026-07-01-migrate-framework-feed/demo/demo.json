@@ -3,7 +3,7 @@
   "essence": "All four feed surfaces (betterado_feed, betterado_feed_permission, betterado_feed_retention_policy, data.betterado_feed) previously served via terraform-plugin-sdk/v2 are now served through the mux ProtoV6 provider path using terraform-plugin-framework. The SDKv2 registrations are deregistered; live acceptance tests prove apply → read-back → idempotency → destroy against real ADO; provider docs are regenerated, changelog and version bumped.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-feed",
-  "diffStat": "69 files changed, 3604 insertions(+), 446 deletions(-)",
+  "diffStat": "762 files changed, 55263 insertions(+), 446 deletions(-) (includes terraform-plugin-framework-validators vendor addition)",
   "summary": {
     "bullets": [
       "betterado_feed, betterado_feed_permission, betterado_feed_retention_policy, and data.betterado_feed are now served via terraform-plugin-framework through the mux ProtoV6 provider.",

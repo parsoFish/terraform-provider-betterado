@@ -154,8 +154,8 @@ feed.NewFeedDataSource()
 | go test ./azuredevops/internal/service/release/... | pass | gate green |
 | go test ./azuredevops/internal/service/taskagent/... | pass | gate green |
 | go test ./azuredevops/internal/service/taskagent/validate/... | pass | gate green |
-| TestAccFeedFramework_orgScopedBasic | pass | +1 new live acceptance test |
-| TestAccFeedFramework_projectScopedBasic | pass | +1 new live acceptance test |
+| TestAccFeedFramework_basic | pass | +1 new live acceptance test |
+| TestAccFeedFramework_withProject | pass | +1 new live acceptance test |
 | TestAccFeedPermissionFramework_basic | pass | +1 new live acceptance test |
 | TestAccFeedRetentionPolicyFramework_projectBasic | pass | +1 new live acceptance test |
 | TestAccFeedRetentionPolicyFramework_update | pass | +1 new live acceptance test (update scenario) |
@@ -175,7 +175,7 @@ feed.NewFeedDataSource()
 - `azuredevops/internal/provider/framework_provider.go` — changed — registers all four new framework resources/data-sources
 - `azuredevops/provider.go` — changed — deregisters four SDKv2 entries
 - `azuredevops/provider_test.go` — changed — updated resource count
-- `azuredevops/internal/acceptancetests/resource_feed_framework_test.go` — new — TestAccFeedFramework_orgScopedBasic + TestAccFeedFramework_projectScopedBasic
+- `azuredevops/internal/acceptancetests/resource_feed_framework_test.go` — new — TestAccFeedFramework_basic + TestAccFeedFramework_withProject
 - `azuredevops/internal/acceptancetests/resource_feed_permission_test.go` — changed — TestAccFeedPermissionFramework_basic added
 - `azuredevops/internal/acceptancetests/resource_feed_retention_policy_test.go` — changed — TestAccFeedRetentionPolicyFramework_projectBasic + _update added
 - `azuredevops/internal/acceptancetests/data_feed_test.go` — changed — TestAccFeedDataSourceFramework_byName + _byId added
@@ -192,7 +192,7 @@ feed.NewFeedDataSource()
 - `acceptancetests.test` — changed — compiled test binary
 
 ```
-69 files changed, 3604 insertions(+), 446 deletions(-)
+762 files changed, 55263 insertions(+), 446 deletions(-) (includes terraform-plugin-framework-validators vendor addition)
 ```
 
 ## Usage

@@ -19,8 +19,8 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   (`_apis/packaging/feeds`). Schema is unchanged (`name`, `project_id`, `id`,
   `features`). Soft-deleted feeds are treated as destroyed and re-created on
   next apply. Verified by live acceptance tests
-  `TestAccFeedFramework_projectScopedBasic` and
-  `TestAccFeedFramework_orgScopedBasic`.
+  `TestAccFeedFramework_basic` and
+  `TestAccFeedFramework_withProject`.
 
 - **`betterado_feed_permission` migrated to terraform-plugin-framework.**
   The resource now uses the terraform-plugin-framework implementation served
