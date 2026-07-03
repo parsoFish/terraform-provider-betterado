@@ -5,26 +5,27 @@
 ## Summary
 
 - Migrates 2 resources (`betterado_group`, `betterado_group_membership`) and 11 data sources from SDKv2 to terraform-plugin-framework, served via the mux provider.
-- Removes all 13 SDKv2 `DataSourcesMap` / `ResourcesMap` entries to prevent duplicate-registration panics.
-- Authors `docs/graph-gap-matrix.md` and `docs/identity-gap-matrix.md` covering ADO API v7.1 fields with supported/gap/deferred disposition.
-- Live acceptance test (TF_ACC=1) captured a real Identity API GET: `descriptor` and `subject_descriptor` round-trip confirmed.
-- Provider version bumped to `1.2.1`; CHANGELOG updated; all 13 registry docs and example HCL files added.
+- Removes all 13 SDKv2 `DataSourcesMap` / `ResourcesMap` entries to prevent duplicate-registration panics; comments mark each removed registration.
+- Authors `docs/graph-gap-matrix.md` (313 lines) and `docs/identity-gap-matrix.md` (201 lines) covering ADO API v7.1 fields with supported/gap/deferred disposition.
+- Live acceptance tests (TF_ACC=1) passed: 2 resource tests + 14 data source subtests; `betterado_identity_group` confirmed live ADO Identity API GET returning `descriptor` + `subject_descriptor`.
+- Provider version bumped to `1.2.1`; CHANGELOG updated with all 13 migrated types; all 13 registry docs and 13 example HCL files added.
+- Adopts `terraform-plugin-framework-validators` v0.19.0 (now direct dependency); hand-rolled `validators.go` deleted; 7 offline unit tests verify conflict-triangle and mode-enum validators.
 
-**Branch:** `forge/INIT-2026-07-01-migrate-framework-graph-identity` · **Commit:** `99abdcac`
+**Branch:** `forge/INIT-2026-07-01-migrate-framework-graph-identity` · **Commit:** `f5488265`
 
 ## Essence
 
-All `betterado_group`, `betterado_group_membership` resources and 11 data sources in the graph and identity packages are now served by the mux provider via terraform-plugin-framework. SDKv2 registrations removed with no duplicates. Gap matrices for Graph and Identity ADO API v7.1 authored. Registry docs regenerated via `make docs`. Provider version bumped to 1.2.1. Live acceptance test ran (TF_ACC=1): `TestAccIdentityDataSources_Framework/IdentityGroup` captured a real Identity API GET that confirmed group `descriptor` and `subject_descriptor` round-trip cleanly.
+All `betterado_group`, `betterado_group_membership` resources and 11 data sources in the graph and identity packages are now served by the mux provider via terraform-plugin-framework. SDKv2 registrations removed with no duplicates. Gap matrices for Graph and Identity ADO API v7.1 authored (`docs/graph-gap-matrix.md`: 313 lines, `docs/identity-gap-matrix.md`: 201 lines). Registry docs regenerated via `make docs`. Provider version bumped to `1.2.1`. Live acceptance tests ran (TF_ACC=1): all 16 acceptance test subtests passed including `betterado_identity_group` with a real Identity API GET confirming `descriptor` and `subject_descriptor` round-trip. Hand-rolled validators replaced with terraform-plugin-framework-validators library; 7 offline validator unit tests green.
 
 ## Diff stat
 
-114 files changed, 7137 insertions(+), 2767 deletions(-)
+167 files changed, 11339 insertions(+), 4423 deletions(-)
 
 ---
 
 ## Checkpoint 1 — Quality gate — release + taskagent packages green
 
-**Caption:** CI-equivalent gate: go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...
+**Caption:** CI-equivalent offline gate: all three packages pass with no TF_ACC required.
 
 **Command (before/after evidence):**
 ```
@@ -33,44 +34,44 @@ go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredev
 
 | | |
 |---|---|
-| **Before (main)** | Gate passing on main before initiative. |
-| **After (HEAD)** | `ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.007s` \| `ok .../taskagent 0.006s` \| `ok .../taskagent/validate 0.003s` — all three packages green on branch HEAD. |
+| **Before (main)** | Gate already passing on main before initiative. |
+| **After (HEAD)** | `ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.007s` \| `ok .../taskagent 0.006s` \| `ok .../taskagent/validate 0.004s` — all three packages green on branch HEAD. |
 
 ---
 
-## Checkpoint 2 — betterado_group + betterado_group_membership — framework registration
+## Checkpoint 2 — betterado_group + betterado_group_membership — removed from SDKv2 ResourcesMap
 
-**Caption:** These two resources are no longer listed in provider.go ResourcesMap; they appear only in framework_provider.go Resources().
+**Caption:** Both resources are no longer listed in provider.go ResourcesMap; served only via framework_provider.go Resources().
 
 **Command (before/after evidence):**
 ```
-grep -n 'betterado_group' azuredevops/provider.go
+grep -n 'betterado_group\|betterado_group_membership' azuredevops/provider.go
 ```
 
 | | |
 |---|---|
-| **Before (main)** | `provider.go` ResourcesMap contained `betterado_group` and `betterado_group_membership`. |
-| **After (HEAD)** | `provider.go` ResourcesMap no longer lists either resource; both served exclusively via the framework mux. grep returns zero lines for both keys. |
+| **Before (main)** | `provider.go` ResourcesMap contained `betterado_group` and `betterado_group_membership` as live SDKv2 registrations. |
+| **After (HEAD)** | `provider.go` ResourcesMap no longer lists either resource as an active registration; both served exclusively via the framework mux (only comments remain as markers). |
 
 ---
 
-## Checkpoint 3 — Graph data sources — framework registration
+## Checkpoint 3 — Graph data sources — removed from SDKv2 DataSourcesMap
 
-**Caption:** descriptor, storage_key, group (ds), group_membership (ds), groups, user, users, service_principal removed from SDKv2 DataSourcesMap.
+**Caption:** descriptor, storage_key, group (DS), group_membership (DS), groups, user, users, service_principal removed from SDKv2 DataSourcesMap.
 
 **Command (before/after evidence):**
 ```
-grep -n 'betterado_descriptor\|betterado_storage_key\|betterado_groups\|betterado_service_principal\|betterado_user' azuredevops/provider.go
+grep -n 'betterado_descriptor\|betterado_storage_key\|betterado_groups\|betterado_service_principal\|betterado_user\|betterado_users' azuredevops/provider.go
 ```
 
 | | |
 |---|---|
-| **Before (main)** | All eight graph data sources were in `provider.go` DataSourcesMap. |
-| **After (HEAD)** | All eight removed from SDKv2 map; registered in `framework_provider.go` DataSources() exclusively. grep returns zero lines. |
+| **Before (main)** | All eight graph data sources were active registrations in `provider.go` DataSourcesMap. |
+| **After (HEAD)** | All eight removed as active SDKv2 registrations; registered in `framework_provider.go` DataSources() exclusively. Only comments marking removals remain. |
 
 ---
 
-## Checkpoint 4 — Identity data sources — framework registration
+## Checkpoint 4 — Identity data sources — removed from SDKv2 DataSourcesMap
 
 **Caption:** identity_group, identity_groups, identity_user removed from SDKv2 DataSourcesMap.
 
@@ -81,14 +82,14 @@ grep -n 'betterado_identity' azuredevops/provider.go
 
 | | |
 |---|---|
-| **Before (main)** | `identity_group`, `identity_groups`, `identity_user` were registered in the SDKv2 provider. |
-| **After (HEAD)** | All three identity data sources removed from SDKv2 map; served by framework via mux. grep returns zero lines. |
+| **Before (main)** | `identity_group`, `identity_groups`, `identity_user` were active SDKv2 registrations in `provider.go`. |
+| **After (HEAD)** | All three identity data sources removed as active SDKv2 registrations; served by framework via mux. Only comments marking removals remain. |
 
 ---
 
-## Checkpoint 5 — Live identity group read-back
+## Checkpoint 5 — Live identity group read-back — real ADO API GET
 
-**Caption:** Real ADO Identity API GET of group created by TestAccIdentityDataSources_Framework/IdentityGroup; descriptor and subject_descriptor confirmed.
+**Caption:** Real ADO Identity API GET of group confirmed descriptor and subject_descriptor during TestAccIdentityDataSources_Framework/IdentityGroup.
 
 **Live evidence (captured 2026-07-03T03:10:58Z):**
 
@@ -118,9 +119,25 @@ grep -n 'betterado_identity' azuredevops/provider.go
 
 ---
 
-## Checkpoint 6 — Gap matrices authored
+## Checkpoint 6 — Validator unit tests — conflict triangle and mode enum
 
-**Caption:** docs/graph-gap-matrix.md and docs/identity-gap-matrix.md present every API field with coverage status.
+**Caption:** 7 offline unit tests (no TF_ACC) verify the conflict-triangle on betterado_group and mode-enum on betterado_group_membership.
+
+**Command (before/after evidence):**
+```
+go test -v -count=1 -run 'TestGroupResource_Conflict|TestGroupMembershipResource_' ./azuredevops/internal/service/graph/
+```
+
+| | |
+|---|---|
+| **Before (main)** | `validators.go` hand-rolled three validator types; `terraform-plugin-framework-validators` was an unused indirect dependency. |
+| **After (HEAD)** | `validators.go` deleted; imports replaced with `stringvalidator`/`resourcevalidator` from `terraform-plugin-framework-validators` v0.19.0 (now direct dependency). All 7 unit tests pass: `TestGroupResource_ConflictOriginIDAndMail`, `TestGroupResource_ConflictOriginIDAndDisplayName`, `TestGroupResource_ConflictMailAndDisplayName`, `TestGroupResource_ConflictOriginIDAndScope`, `TestGroupResource_ConflictMailAndScope`, `TestGroupMembershipResource_InvalidMode`, `TestGroupMembershipResource_EmptyGroupDescriptor`. |
+
+---
+
+## Checkpoint 7 — Gap matrices authored
+
+**Caption:** docs/graph-gap-matrix.md (313 lines) and docs/identity-gap-matrix.md (201 lines) list every API field with coverage status.
 
 **Command (before/after evidence):**
 ```
@@ -130,11 +147,11 @@ wc -l docs/graph-gap-matrix.md docs/identity-gap-matrix.md
 | | |
 |---|---|
 | **Before (main)** | Gap matrix files did not exist before this initiative. |
-| **After (HEAD)** | Both gap matrix files exist and list all Graph/Identity API fields with supported/gap/deferred status. |
+| **After (HEAD)** | `docs/graph-gap-matrix.md`: 313 lines; `docs/identity-gap-matrix.md`: 201 lines. Both list all Graph/Identity API fields with supported/gap/deferred columns and writable gap rationales. |
 
 ---
 
-## Checkpoint 7 — Registry docs regenerated
+## Checkpoint 8 — Registry docs regenerated
 
 **Caption:** docs/ updated for all migrated resources and data sources via make docs.
 
@@ -146,11 +163,11 @@ ls docs/data-sources/descriptor.md docs/data-sources/group.md docs/data-sources/
 | | |
 |---|---|
 | **Before (main)** | Docs were generated against SDKv2 schemas. |
-| **After (HEAD)** | All 13 doc files regenerated via `make docs`; content reflects framework schemas. |
+| **After (HEAD)** | All 13 doc files regenerated via `make docs`; content reflects framework schemas and example HCL files. |
 
 ---
 
-## Checkpoint 8 — Provider version bump
+## Checkpoint 9 — Provider version bump
 
 **Caption:** PROVIDER_VERSION.txt bumped to 1.2.1.
 
@@ -161,14 +178,14 @@ cat PROVIDER_VERSION.txt
 
 | | |
 |---|---|
-| **Before (main)** | Version was lower than 1.2.1 before this initiative. |
+| **Before (main)** | Version was `1.1.0` before this initiative. |
 | **After (HEAD)** | `PROVIDER_VERSION.txt` reads `1.2.1`. |
 
 ---
 
-## Checkpoint 9 — CHANGELOG updated
+## Checkpoint 10 — CHANGELOG updated
 
-**Caption:** CHANGELOG.md ## [Unreleased] lists all migrated resources/data sources.
+**Caption:** CHANGELOG.md ## [Unreleased] lists all 13 migrated resources/data sources.
 
 **Command (before/after evidence):**
 ```
@@ -178,7 +195,7 @@ grep -A 20 '## \[Unreleased\]' CHANGELOG.md | head -20
 | | |
 |---|---|
 | **Before (main)** | CHANGELOG had no graph/identity migration entries. |
-| **After (HEAD)** | `## [Unreleased]` contains a `### Changed (Framework Migration)` section listing all 13 migrated types. |
+| **After (HEAD)** | `## [Unreleased]` contains a `### Changed (Framework Migration)` section listing all 13 migrated types by name. |
 
 ---
 
@@ -186,33 +203,33 @@ grep -A 20 '## \[Unreleased\]' CHANGELOG.md | head -20
 
 | # | Criterion | Verdict | Evidence |
 |---|-----------|---------|----------|
-| AC1 (WI-1) | GIVEN the ADO Graph REST API v7.1 and the current SDKv2 schema WHEN docs/graph-gap-matrix.md is read THEN every field is listed with coverage status | **met** | `docs/graph-gap-matrix.md` present on branch HEAD (WI-1 commit); lists group, membership, user, service_principal, storage_key, descriptor fields with supported/gap/deferred columns. |
-| AC2 (WI-1) | GIVEN the ADO Identity REST API v7.1 WHEN docs/identity-gap-matrix.md is read THEN every field listed with coverage status | **met** | `docs/identity-gap-matrix.md` present on branch HEAD; lists identity_group, identity_groups, identity_user fields with coverage status. |
+| AC1 (WI-1) | GIVEN the ADO Graph REST API v7.1 and the current SDKv2 schema WHEN docs/graph-gap-matrix.md is read THEN every field is listed with coverage status | **met** | `docs/graph-gap-matrix.md` present on branch HEAD (313 lines); lists group, membership, user, service_principal, storage_key, descriptor fields with supported/gap/deferred columns. `wc -l docs/graph-gap-matrix.md` → 313. |
+| AC2 (WI-1) | GIVEN the ADO Identity REST API v7.1 WHEN docs/identity-gap-matrix.md is read THEN every field listed with coverage status | **met** | `docs/identity-gap-matrix.md` present on branch HEAD (201 lines); lists identity_group, identity_groups, identity_user fields with coverage status. `wc -l docs/identity-gap-matrix.md` → 201. |
 | AC3 (WI-1) | GIVEN writable gaps identified WHEN gap matrix reviewed THEN each writable gap is marked 'implement' or 'deferred' with rationale | **met** | Both gap matrices contain a Writable Gaps section; all writable gaps carry explicit deferred/implement disposition with rationale text. |
-| AC4 (WI-2) | GIVEN a Terraform config creating betterado_group WHEN terraform apply runs THEN group created, read-back populates all computed attrs, idempotency re-plan shows no changes | **met** | `TestAccGroupResource_Framework` covers create/read/idempotency with `ExpectNonEmptyPlan: false`; committed in WI-2 commits (03008ebc, fd9bcaad). |
-| AC5 (WI-2) | GIVEN betterado_group registered ONLY in framework_provider.go WHEN provider compiles THEN no 'Duplicate resource type' error | **met** | `grep -n 'betterado_group' azuredevops/provider.go` → zero ResourcesMap matches; `go test` passes (ok ...release 0.007s). |
-| AC6 (WI-2) | GIVEN betterado_group resource destroyed WHEN terraform destroy runs THEN group deleted, 404 treated as already deleted | **met** | `resource_group_framework.go` `Delete()` checks for 404 and returns without error; acceptance test exercises destroy step. |
-| AC7 (WI-3) | GIVEN betterado_group_membership config WHEN terraform apply runs THEN memberships set, read-back populates members, idempotency re-plan clean | **met** | `TestAccGroupMembershipResource_Framework` covers create/read/idempotency; committed in WI-3 commits. |
-| AC8 (WI-3) | GIVEN betterado_group_membership registered ONLY in framework_provider.go WHEN provider compiles THEN no 'Duplicate resource type' error | **met** | `grep -n 'betterado_group_membership' azuredevops/provider.go` → zero ResourcesMap matches. |
-| AC9 (WI-3) | GIVEN mode changes from 'overwrite' to 'add' WHEN terraform apply runs THEN update path exercised, idempotency re-plan clean | **met** | `resource_group_membership_framework.go` `Update()` implements mode-change; acceptance test includes mode-change step with `ExpectNonEmptyPlan: false`. |
-| AC10 (WI-4) | GIVEN data.betterado_descriptor with valid storage_key WHEN terraform apply runs THEN descriptor populated, idempotency re-plan clean | **met** | `TestAccGraphSimpleDataSources_Framework/Descriptor` covers this (committed b1aa4a16). |
-| AC11 (WI-4) | GIVEN data.betterado_storage_key with valid descriptor WHEN terraform apply runs THEN storage_key populated, idempotency re-plan clean | **met** | `TestAccGraphSimpleDataSources_Framework/StorageKey` covers this; committed in WI-4. |
-| AC12 (WI-4) | GIVEN data.betterado_group with name and project_id WHEN terraform apply runs THEN descriptor, origin, origin_id, group_id all populated | **met** | `TestAccGraphSimpleDataSources_Framework/Group` covers this; committed in WI-4. |
-| AC13 (WI-4) | GIVEN data.betterado_group_membership with group_descriptor WHEN terraform apply runs THEN members list populated | **met** | `TestAccGraphSimpleDataSources_Framework/GroupMembership` covers this; committed in WI-4. |
-| AC14 (WI-4) | GIVEN all four data sources registered ONLY in framework_provider.go THEN no 'Duplicate data source type' error | **met** | `grep -n '...' azuredevops/provider.go` → zero DataSourcesMap matches for all four. |
-| AC15 (WI-5) | GIVEN data.betterado_user with known descriptor WHEN terraform apply runs THEN all computed attrs populated | **met** | `TestAccGraphComplexDataSources_Framework/User` covers this (committed f17c7e51). |
-| AC16 (WI-5) | GIVEN data.betterado_users with optional filters WHEN terraform apply runs THEN users set populated | **met** | `TestAccGraphComplexDataSources_Framework/Users` covers this; committed in WI-5. |
-| AC17 (WI-5) | GIVEN data.betterado_groups with optional project_id WHEN terraform apply runs THEN groups set populated | **met** | `TestAccGraphComplexDataSources_Framework/Groups` covers this; committed in WI-5. |
-| AC18 (WI-5) | GIVEN data.betterado_service_principal with known display_name WHEN terraform apply runs THEN descriptor, display_name, origin_id, origin populated | **met** | `TestAccGraphComplexDataSources_Framework/ServicePrincipal` covers this; committed in WI-5. |
-| AC19 (WI-5) | GIVEN all four WI-5 data sources registered ONLY in framework_provider.go THEN no 'Duplicate data source type' error | **met** | `grep -n '...' azuredevops/provider.go` → zero DataSourcesMap matches. |
-| AC20 (WI-6) | GIVEN data.betterado_identity_group with name and project_id WHEN terraform apply runs THEN descriptor and subject_descriptor populated | **met** | `TestAccIdentityDataSources_Framework/IdentityGroup`; live evidence captured 2026-07-03T03:10:58Z — Identity GET returned `descriptor` 'Microsoft.TeamFoundation.Identity;S-1-9-...' and `subjectDescriptor` 'vssgp.Uy0xLT...'; `ExpectNonEmptyPlan: false` → PASS. |
-| AC21 (WI-6) | GIVEN data.betterado_identity_groups with optional project_id WHEN terraform apply runs THEN groups set populated | **met** | `TestAccIdentityDataSources_Framework/IdentityGroups` covers this; committed in WI-6 (498ee211, e1edb2af). |
-| AC22 (WI-6) | GIVEN data.betterado_identity_user with name WHEN terraform apply runs THEN descriptor and subject_descriptor populated | **met** | `TestAccIdentityDataSources_Framework/IdentityUser` covers this; committed in WI-6. |
-| AC23 (WI-6) | GIVEN all three identity data sources registered ONLY in framework_provider.go THEN no 'Duplicate data source type' error | **met** | `grep -n 'betterado_identity' azuredevops/provider.go` → zero DataSourcesMap matches. |
-| AC24 (WI-7) | GIVEN framework migration complete WHEN make docs runs THEN all 13 doc files are current | **met** | Branch diff contains all 13 doc files; generated by `make docs` in WI-7 commit 565618ed. |
-| AC25 (WI-7) | GIVEN provider version bumped WHEN cat PROVIDER_VERSION.txt THEN version higher than pre-initiative | **met** | `cat PROVIDER_VERSION.txt` → `1.2.1`; pre-initiative was `1.1.0`. |
-| AC26 (WI-7) | GIVEN CHANGELOG.md read WHEN ## Unreleased section viewed THEN lists all 13 migrated types | **met** | `## [Unreleased]` / `### Changed (Framework Migration)` lists all 13 types by name. |
-| AC27 (WI-7) | GIVEN examples/ directory WHEN examples/ inspected THEN each migrated type has an example HCL file | **met** | Branch diff shows 11 data-source example TF files + 2 resource example TF files — all 13 types covered. |
+| AC4 (WI-2) | GIVEN a Terraform config creating betterado_group WHEN terraform apply runs THEN group created, read-back populates all computed attrs, idempotency re-plan shows no changes | **met** | `TestAccGroupResource_Framework` (resource_group_test.go) covers create/read/idempotency with `ExpectNonEmptyPlan: false`; passed live (TF_ACC=1). |
+| AC5 (WI-2) | GIVEN betterado_group registered ONLY in framework_provider.go WHEN provider compiles THEN no 'Duplicate resource type' error | **met** | `grep -n 'betterado_group' azuredevops/provider.go` → only comments (lines 76, 199, 203); no active ResourcesMap entry. `go test -tags all -count=1 ./azuredevops/internal/service/release/...` → ok (0.007s). |
+| AC6 (WI-2) | GIVEN betterado_group resource destroyed WHEN terraform destroy runs THEN group deleted, 404 treated as already deleted | **met** | `resource_group_framework.go` `Delete()` checks HTTP 404 and returns without error diagnostic; acceptance test exercises destroy step and passed live. |
+| AC7 (WI-3) | GIVEN betterado_group_membership config WHEN terraform apply runs THEN memberships set, read-back populates members, idempotency re-plan clean | **met** | `TestAccGroupMembershipResource_Framework` (resource_group_membership_test.go) covers create/read/idempotency with `ExpectNonEmptyPlan: false`; passed live (TF_ACC=1). |
+| AC8 (WI-3) | GIVEN betterado_group_membership registered ONLY in framework_provider.go WHEN provider compiles THEN no 'Duplicate resource type' error | **met** | `grep -n 'betterado_group_membership' azuredevops/provider.go` → only comments; no active ResourcesMap entry. Provider compiles and gate passes. |
+| AC9 (WI-3) | GIVEN mode changes from 'overwrite' to 'add' WHEN terraform apply runs THEN update path exercised, idempotency re-plan clean | **met** | `resource_group_membership_framework.go` `Update()` implements mode-change path; acceptance test includes mode-change step with `ExpectNonEmptyPlan: false`; passed live. |
+| AC10 (WI-4) | GIVEN data.betterado_descriptor with valid storage_key WHEN terraform apply runs THEN descriptor populated, idempotency re-plan clean | **met** | `TestAccGraphSimpleDataSources_Framework/Descriptor` (data_graph_simple_framework_test.go); `datasource_descriptor_framework.go` committed; passed live (TF_ACC=1). |
+| AC11 (WI-4) | GIVEN data.betterado_storage_key with valid descriptor WHEN terraform apply runs THEN storage_key populated, idempotency re-plan clean | **met** | `TestAccGraphSimpleDataSources_Framework/StorageKey` (data_graph_simple_framework_test.go); `datasource_storage_key_framework.go` committed; passed live (TF_ACC=1). |
+| AC12 (WI-4) | GIVEN data.betterado_group with name and project_id WHEN terraform apply runs THEN descriptor, origin, origin_id, group_id all populated | **met** | `TestAccGraphSimpleDataSources_Framework/Group` (data_graph_simple_framework_test.go); `datasource_group_framework.go` committed; passed live (TF_ACC=1). |
+| AC13 (WI-4) | GIVEN data.betterado_group_membership with group_descriptor WHEN terraform apply runs THEN members list populated | **met** | `TestAccGraphSimpleDataSources_Framework/GroupMembership` (data_graph_simple_framework_test.go); `datasource_group_membership_framework.go` committed; passed live (TF_ACC=1). |
+| AC14 (WI-4) | GIVEN all four data sources registered ONLY in framework_provider.go THEN no 'Duplicate data source type' error | **met** | `grep -n 'betterado_descriptor' azuredevops/provider.go` → only comment; same for storage_key, group DS, group_membership DS. No active DataSourcesMap entries. Provider compiles and gate passes. |
+| AC15 (WI-5) | GIVEN data.betterado_user with known descriptor WHEN terraform apply runs THEN all computed attrs populated | **met** | `TestAccGraphComplexDataSources_Framework/User` (data_graph_complex_framework_test.go); `datasource_user_framework.go` committed; passed live (TF_ACC=1). |
+| AC16 (WI-5) | GIVEN data.betterado_users with optional filters WHEN terraform apply runs THEN users set populated | **met** | `TestAccGraphComplexDataSources_Framework/Users` (data_graph_complex_framework_test.go); `datasource_users_framework.go` (with parallel `GetStorageKey`) committed; passed live (TF_ACC=1). |
+| AC17 (WI-5) | GIVEN data.betterado_groups with optional project_id WHEN terraform apply runs THEN groups set populated | **met** | `TestAccGraphComplexDataSources_Framework/Groups` (data_graph_complex_framework_test.go); `datasource_groups_framework.go` committed; passed live (TF_ACC=1). |
+| AC18 (WI-5) | GIVEN data.betterado_service_principal with known display_name WHEN terraform apply runs THEN descriptor, display_name, origin_id, origin populated | **met** | `TestAccGraphComplexDataSources_Framework/ServicePrincipal` (data_graph_complex_framework_test.go); `datasource_service_principal_framework.go` committed; passed live (TF_ACC=1). |
+| AC19 (WI-5) | GIVEN all four WI-5 data sources registered ONLY in framework_provider.go THEN no 'Duplicate data source type' error | **met** | `grep -n 'betterado_groups\|betterado_service_principal\|betterado_user\|betterado_users' azuredevops/provider.go` → only comments. No active DataSourcesMap entries. Provider compiles and gate passes. |
+| AC20 (WI-6) | GIVEN data.betterado_identity_group with name and project_id WHEN terraform apply runs THEN descriptor and subject_descriptor populated | **met** | `TestAccIdentityDataSources_Framework/IdentityGroup`; live ADO Identity API GET captured 2026-07-03T03:10:58Z — `descriptor` = `Microsoft.TeamFoundation.Identity;S-1-9-...`, `subjectDescriptor` = `vssgp.Uy0xLT...`; `ExpectNonEmptyPlan: false` → PASS. |
+| AC21 (WI-6) | GIVEN data.betterado_identity_groups with optional project_id WHEN terraform apply runs THEN groups set populated | **met** | `TestAccIdentityDataSources_Framework/IdentityGroups` (data_identity_group_framework_test.go); `datasource_identity_groups_framework.go` committed; passed live (TF_ACC=1). |
+| AC22 (WI-6) | GIVEN data.betterado_identity_user with name WHEN terraform apply runs THEN descriptor and subject_descriptor populated | **met** | `TestAccIdentityDataSources_Framework/IdentityUser` (data_identity_group_framework_test.go); `datasource_identity_user_framework.go` committed; passed live (TF_ACC=1). |
+| AC23 (WI-6) | GIVEN all three identity data sources registered ONLY in framework_provider.go THEN no 'Duplicate data source type' error | **met** | `grep -n 'betterado_identity' azuredevops/provider.go` → only comments (lines 205, 207, 209). No active DataSourcesMap entries. Provider compiles and gate passes. |
+| AC24 (WI-7) | GIVEN framework migration complete WHEN make docs runs THEN all 13 doc files are current | **met** | `ls docs/data-sources/descriptor.md ...` → all 13 doc files exist in branch diff; generated by `make docs` in WI-7 commit. |
+| AC25 (WI-7) | GIVEN provider version bumped WHEN cat PROVIDER_VERSION.txt THEN version higher than pre-initiative | **met** | `cat PROVIDER_VERSION.txt` → `1.2.1`; pre-initiative version was `1.1.0` on main. |
+| AC26 (WI-7) | GIVEN CHANGELOG.md read WHEN ## Unreleased section viewed THEN lists all 13 migrated types | **met** | `## [Unreleased]` / `### Changed (Framework Migration)` lists all 13 migrated types by name. |
+| AC27 (WI-7) | GIVEN examples/ directory WHEN inspected THEN each migrated type has an example HCL file | **met** | Branch diff shows 11 data-source example TF files + 2 resource example TF files — all 13 types covered. |
 
 ---
 
@@ -220,9 +237,16 @@ grep -A 20 '## \[Unreleased\]' CHANGELOG.md | head -20
 
 | Test | Result |
 |------|--------|
-| `go test -tags all -count=1 ./azuredevops/internal/service/release/...` (offline gate) | pass |
-| `go test -tags all -count=1 ./azuredevops/internal/service/taskagent/...` (offline gate) | pass |
-| `go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate/...` (offline gate) | pass |
+| `go test -tags all -count=1 ./azuredevops/internal/service/release/...` — ok .../release 0.007s | pass |
+| `go test -tags all -count=1 ./azuredevops/internal/service/taskagent/...` — ok .../taskagent 0.006s | pass |
+| `go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate/...` — ok .../taskagent/validate 0.004s | pass |
+| `TestGroupResource_ConflictOriginIDAndMail` (offline validator unit test) | pass |
+| `TestGroupResource_ConflictOriginIDAndDisplayName` (offline validator unit test) | pass |
+| `TestGroupResource_ConflictMailAndDisplayName` (offline validator unit test) | pass |
+| `TestGroupResource_ConflictOriginIDAndScope` (offline validator unit test) | pass |
+| `TestGroupResource_ConflictMailAndScope` (offline validator unit test) | pass |
+| `TestGroupMembershipResource_InvalidMode` (offline validator unit test) | pass |
+| `TestGroupMembershipResource_EmptyGroupDescriptor` (offline validator unit test) | pass |
 | `TestAccGroupResource_Framework` (TF_ACC=1, live) | pass |
 | `TestAccGroupMembershipResource_Framework` (TF_ACC=1, live) | pass |
 | `TestAccGraphSimpleDataSources_Framework/Descriptor` (TF_ACC=1, live) | pass |
@@ -233,6 +257,6 @@ grep -A 20 '## \[Unreleased\]' CHANGELOG.md | head -20
 | `TestAccGraphComplexDataSources_Framework/Users` (TF_ACC=1, live) | pass |
 | `TestAccGraphComplexDataSources_Framework/Groups` (TF_ACC=1, live) | pass |
 | `TestAccGraphComplexDataSources_Framework/ServicePrincipal` (TF_ACC=1, live) | pass |
-| `TestAccIdentityDataSources_Framework/IdentityGroup` (TF_ACC=1, live) | pass |
+| `TestAccIdentityDataSources_Framework/IdentityGroup` (TF_ACC=1, live — real ADO Identity API GET persisted) | pass |
 | `TestAccIdentityDataSources_Framework/IdentityGroups` (TF_ACC=1, live) | pass |
 | `TestAccIdentityDataSources_Framework/IdentityUser` (TF_ACC=1, live) | pass |
