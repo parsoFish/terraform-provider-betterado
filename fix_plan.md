@@ -2,12 +2,13 @@
 
 > Checklist for WI-4. Tick items as you complete them; add items as you discover sub-problems.
 
-- [x] AC1: GIVEN betterado_wiki and betterado_wiki_page framework resources are live WHEN the full live acceptance suite runs (TF_ACC=1) for wiki resources THEN TestAccWikiResource_projectWiki, TestAccWikiResource_codeWiki, TestAccWikiPageResource_basic, and TestAccWikiPageResource_update all pass with ExpectNonEmptyPlan: false on each idempotency check step
+- [ ] AC1: GIVEN betterado_wiki and betterado_wiki_page framework resources are live WHEN the full live acceptance suite runs (TF_ACC=1) for wiki resources THEN TestAccWikiResource_projectWiki, TestAccWikiResource_codeWiki, TestAccWikiPageResource_basic, and TestAccWikiPageResource_update all pass with ExpectNonEmptyPlan: false on each idempotency check step
   - [x] (iter 1) Fixed parallel collision: hclWikiPageBasic/Update now use codeWiki (ADO limits to 1 projectWiki per project; parallel tests collided)
   - [x] (iter 2) Fixed wiki page versionDescriptor: added `version` attr to betterado_wiki_page schema; pass GitVersionDescriptor{type:branch, version} in CreateOrUpdatePage for code wikis
   - [x] (iter 2) Fixed projectWiki delete: restored SDKv2 strategy — read wiki to get RepositoryId, call GitReposClient.DeleteRepository. DeleteWiki fails for projectWiki.
   - [x] (iter 3) Fixed projectWiki "already exists": adopt-on-conflict — GetAllWikis, rename to desired name, use as state. Prevents failure when standing project has stale project wiki from prior run.
   - [x] (iter 3) Fixed etag inconsistency (TestAccWikiPageResource_update step 2/3): removed wikiUseStateForUnknown() from etag — etag is now purely Computed so plan doesn't predict a specific value; any returned value is valid after apply.
+  - [ ] (iter 4) GATE FAILURE: "found wiki that should have been deleted" in post-test destroy. Root cause: DeleteRepository doesn't cascade to wiki metadata (eventual consistency or ADO limitation). Fix: 3-strategy deleteProjectWiki (try DeleteWiki first, then DeleteRepository, then poll 60s for IsDisabled=true or 404). checkWikiDestroyedFramework now retries 30s with IsDisabled=true detection.
 - [x] AC2: GIVEN the live acceptance test for betterado_wiki runs WHEN the provider read-back step executes before destroy THEN testutils.CaptureLiveEvidence is called with label 'acceptance-resource-wiki' and a real ADO REST GET URL; .forge/live-evidence/acceptance-resource-wiki.json is written
   - captureWikiEvidence() already implemented in resource_wiki_test.go; calls testutils.CaptureLiveEvidence("acceptance-resource-wiki", url, wikiResp)
 - [x] AC3: GIVEN the live acceptance test for betterado_wiki_page runs WHEN the provider read-back step executes before destroy THEN testutils.CaptureLiveEvidence is called with label 'acceptance-resource-wiki-page' and a real ADO REST GET URL; .forge/live-evidence/acceptance-resource-wiki-page.json is written

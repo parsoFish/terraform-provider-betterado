@@ -49,9 +49,26 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
    - **Root cause**: The `etag` attribute had `wikiUseStateForUnknown()` plan modifier. During `Update`, the plan captured the OLD etag value (the modifier preserved state value). After apply, the API returned a NEW etag. Terraform detected that the applied state (`new etag`) didn't match the plan (`old etag`) → inconsistency error.
    - **Fix**: Removed `Optional: true` and `PlanModifiers` (specifically `wikiUseStateForUnknown()`) from `etag`. It is now purely `Computed: true`. During plan, `etag` stays as "unknown". After apply, any value returned by the API is valid (no inconsistency possible).
 
+### Iteration 4 (WI-4)
+
+**Root cause from .forge/last-gate-failure.md (iteration 3 gate):**
+
+1. **TestAccWikiResource_projectWiki (post-test destroy)**: "found wiki 83c0291d-ee09-404f-a208-e87c25af4b55 that should have been deleted"
+   - **Root cause**: After `DeleteRepository` (Strategy 2 from iteration 2), the wiki record remains visible via `GetWiki` — ADO does NOT cascade repo deletion to the wiki metadata immediately (or at all). The `checkWikiDestroyedFramework` call immediately after Terraform destroy found the wiki still present.
+   - Two scenarios identified:
+     - If RepositoryId is nil (ADO omits it for projectWiki in some cases), `DeleteRepository` is skipped entirely → wiki persists
+     - If DeleteRepository succeeds, the wiki may be marked `IsDisabled=true` instead of returning 404 immediately
+   - **Fix**: Completely rewrote projectWiki `Delete` as `deleteProjectWiki` with 3 strategies:
+     1. Try `DeleteWiki` first (works in some ADO API versions — the "not supported" error from iter 2 may have been transient)
+     2. If fails: `DeleteRepository` on the backing repo
+     3. Poll for up to 60s: check both `GetWiki` returning error AND `IsDisabled=true` — return early when wiki is "gone"
+     4. Final `DeleteWiki` attempt after polling
+   - `checkWikiDestroyedFramework`: Added 30s retry loop with `IsDisabled=true` treatment as "gone"
+   - `Read`: Now treats `IsDisabled=true` as not-found (removes from state to prevent phantom re-create)
+
 ## What worked
 
-- Using `DeleteRepository` (git repo) for projectWiki delete
+- Using `DeleteRepository` (git repo) for projectWiki delete (eventually — see iteration 4's caveat)
 - Adding `versionDescriptor` with type=branch to `CreateOrUpdatePage` for code wikis
 - Switching page test HCL to `codeWiki` to avoid parallel test collisions (iteration 1)
 - Adopt-on-conflict pattern for projectWiki Create (iteration 3)
@@ -59,20 +76,26 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 ## What didn't work
 
-- `DeleteWiki` for projectWiki: returns "Wiki delete operation is not supported on wikis of type 'ProjectWiki'."
+- `DeleteWiki` for projectWiki in iter 2: returned "Wiki delete operation is not supported on wikis of type 'ProjectWiki'." (may have been transient — iter 4 tries it first anyway)
+- `DeleteRepository` alone for projectWiki: the wiki record stays visible in ADO for some time after repo deletion (eventual consistency or ADO limitation)
 - `CreateOrUpdatePage` without `VersionDescriptor` for codeWiki: returns "The versionType should be 'branch' and version cannot not be null"
 - `wikiUseStateForUnknown()` on `etag`: causes "Provider produced inconsistent result" on updates
+- Simple `GetWiki` == error check in `checkWikiDestroyedFramework` without retry: fails when ADO has eventual consistency after DeleteRepository
 
 ## Open questions
 
-_(none)_
+- Does `DeleteWiki` work for projectWiki in this ADO environment (the "not supported" was in iter 2 but may have been transient)? If it does, Strategy 1 in iter 4's `deleteProjectWiki` will be the clean solution.
+- Does ADO set `IsDisabled=true` when the backing repo is soft-deleted, or does it return 404 quickly? The iter 4 code handles both.
 
 ## Notes for reflection
 
 - ADO "one project wiki per project" limit is a key gotcha for acceptance tests using a shared standing project.
-- `DeleteWiki` API works for code wikis only. For project wikis, you must delete the underlying git repository.
+- `DeleteWiki` API MAY work for projectWiki — try it first, fall back to `DeleteRepository`. The "not supported" error may be environment-specific or version-specific.
+- ADO wiki deletion via `DeleteRepository` is eventually consistent: GetWiki still returns the wiki for some seconds (or longer). ALWAYS poll until `GetWiki` returns error or `IsDisabled=true`.
+- ADO may set `IsDisabled=true` on the wiki instead of returning 404 after repo deletion. Check for this in both the Delete polling loop and in `checkWikiDestroyedFramework`.
+- `Read` should also check `IsDisabled=true` and remove from state (so a next run doesn't try to update a non-functional wiki).
 - `CreateOrUpdatePage` for code wikis requires `VersionDescriptor` with `versionType:"branch"`. Project wikis don't require it.
 - The `version` attribute in `betterado_wiki_page` schema serves as the branch reference for code wikis.
 - `wikiUseStateForUnknown()` on attributes that change server-side after every write (like `etag`) causes "Provider produced inconsistent result" — use purely `Computed: true` instead.
-- The adopt-on-conflict pattern for projectWiki: `GetAllWikis(project)` → find projectWiki → `UpdateWiki` to rename to desired name → use as resource state. This allows tests to recover from stale standing-project state without manual cleanup.
+- The adopt-on-conflict pattern for projectWiki: `GetAllWikis(project)` → find projectWiki → `UpdateWiki` to rename to desired name → use as resource state.
 - `GetAllWikisArgs.Project` accepts both project name and UUID.
