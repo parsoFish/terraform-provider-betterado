@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -122,9 +123,24 @@ func checkWikiDestroyedFramework(s *terraform.State) error {
 			continue
 		}
 
-		_, err := clients.WikiClient.GetWiki(clients.Ctx, azwiki.GetWikiArgs{WikiIdentifier: converter.String(res.Primary.ID)})
-		if err == nil {
-			return fmt.Errorf("found wiki %s that should have been deleted", res.Primary.ID)
+		// ADO wiki deletion (especially for projectWiki via repo deletion) can be
+		// eventually consistent: GetWiki may still return the wiki for a few seconds
+		// after the backing repository has been removed. Retry for up to 30 s.
+		wikiID := res.Primary.ID
+		gone := false
+		for attempt := 0; attempt < 7; attempt++ {
+			if attempt > 0 {
+				time.Sleep(5 * time.Second)
+			}
+			_, getErr := clients.WikiClient.GetWiki(clients.Ctx, azwiki.GetWikiArgs{WikiIdentifier: converter.String(wikiID)})
+			if getErr != nil {
+				// Any error (expected: 404 Not Found) means the wiki is no longer accessible.
+				gone = true
+				break
+			}
+		}
+		if !gone {
+			return fmt.Errorf("found wiki %s that should have been deleted", wikiID)
 		}
 	}
 	return nil

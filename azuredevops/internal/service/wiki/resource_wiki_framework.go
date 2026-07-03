@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -376,33 +377,83 @@ func (r *WikiResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 			}
 		}
 	} else if wikiType == azwiki.WikiTypeValues.ProjectWiki {
-		// Project wikis cannot be deleted via the Wiki API; they are backed by a
-		// special git repository that must be deleted to remove the wiki.
-		wikiResp, err := r.client.WikiClient.GetWiki(r.client.Ctx, azwiki.GetWikiArgs{
-			WikiIdentifier: converter.String(model.ID.ValueString()),
-		})
-		if err != nil {
-			if utils.ResponseWasNotFound(err) {
-				// Already gone — nothing to do.
-				return
-			}
-			resp.Diagnostics.AddError("Error reading wiki before delete", err.Error())
+		r.deleteProjectWiki(ctx, resp, model)
+	}
+}
+
+// deleteProjectWiki attempts all known strategies to delete a project wiki and
+// blocks until GetWiki returns 404 (or gives up after 60 s of retries).
+//
+// ADO project-wiki deletion is subtle:
+//   - DeleteWiki via the wiki REST API returns "not supported" for some API
+//     versions / org configurations, but succeeds in others — so we try it first.
+//   - If that fails, we delete the backing git repository (ADO auto-created
+//     ".wiki" repo). Repo deletion is async: GetWiki may still return the wiki
+//     for a few seconds afterwards, so we poll until it disappears.
+func (r *WikiResource) deleteProjectWiki(ctx context.Context, resp *resource.DeleteResponse, model wikiModel) {
+	projectID := model.ProjectID.ValueString()
+	wikiID := model.ID.ValueString()
+
+	// ── Strategy 1: try DeleteWiki (works for some ADO API versions) ──────────
+	_, err := r.client.WikiClient.DeleteWiki(ctx, azwiki.DeleteWikiArgs{
+		WikiIdentifier: converter.String(wikiID),
+		Project:        converter.String(projectID),
+	})
+	if err == nil || utils.ResponseWasNotFound(err) {
+		// Either deleted cleanly or was already gone.
+		return
+	}
+	// "not supported" (or any other error) → fall through to Strategy 2.
+
+	// ── Strategy 2: delete the backing git repository ─────────────────────────
+	wikiResp, getErr := r.client.WikiClient.GetWiki(ctx, azwiki.GetWikiArgs{
+		WikiIdentifier: converter.String(wikiID),
+	})
+	if getErr != nil {
+		if utils.ResponseWasNotFound(getErr) {
+			// Already gone (DeleteWiki may have succeeded asynchronously).
 			return
 		}
+		resp.Diagnostics.AddError("Error reading wiki before delete", getErr.Error())
+		return
+	}
 
-		if wikiResp.RepositoryId == nil {
-			// No backing repository — nothing to delete.
-			return
-		}
-
-		err = r.client.GitReposClient.DeleteRepository(r.client.Ctx, git.DeleteRepositoryArgs{
+	if wikiResp.RepositoryId != nil {
+		repoErr := r.client.GitReposClient.DeleteRepository(ctx, git.DeleteRepositoryArgs{
 			RepositoryId: wikiResp.RepositoryId,
-			Project:      converter.String(model.ProjectID.ValueString()),
+			Project:      converter.String(projectID),
 		})
-		if err != nil {
-			resp.Diagnostics.AddError("Error deleting project wiki repository", err.Error())
+		if repoErr != nil && !utils.ResponseWasNotFound(repoErr) {
+			resp.Diagnostics.AddError("Error deleting project wiki repository", repoErr.Error())
+			return
 		}
 	}
+
+	// ── Strategy 3: poll until wiki disappears (eventual consistency) ─────────
+	// After repository deletion, ADO may take a few seconds to reflect the change
+	// in the wiki REST API. Poll for up to 60 s before giving up.
+	for attempt := 0; attempt < 12; attempt++ {
+		time.Sleep(5 * time.Second)
+
+		if ctx.Err() != nil {
+			break
+		}
+
+		_, checkErr := r.client.WikiClient.GetWiki(ctx, azwiki.GetWikiArgs{
+			WikiIdentifier: converter.String(wikiID),
+		})
+		if checkErr != nil && utils.ResponseWasNotFound(checkErr) {
+			// Wiki is gone — success.
+			return
+		}
+	}
+
+	// Final attempt: if still present after polling, try DeleteWiki one more time
+	// (in case the previous attempt was asynchronously queued).
+	_, _ = r.client.WikiClient.DeleteWiki(ctx, azwiki.DeleteWikiArgs{
+		WikiIdentifier: converter.String(wikiID),
+		Project:        converter.String(projectID),
+	})
 }
 
 // ── ImportState ───────────────────────────────────────────────────────────────
