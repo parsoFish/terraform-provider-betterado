@@ -8,7 +8,7 @@ All 22 service endpoint resources and 7 data sources have been migrated from ter
 
 ## Diff stat
 
-215 files changed, 18390 insertions(+), 10177 deletions(-)
+215 files changed, 18391 insertions(+), 10329 deletions(-)
 
 ---
 
@@ -24,7 +24,7 @@ go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredev
 | | |
 |---|---|
 | **Before (main)** | Gate was already green (these packages not touched by serviceendpoint migration) |
-| **After (HEAD)** | `ok  github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.008s` / `ok .../taskagent 0.006s` / `ok .../taskagent/validate 0.004s` — PASS all 3 packages |
+| **After (HEAD)** | `ok  github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.009s` / `ok .../taskagent 0.007s` / `ok .../taskagent/validate 0.007s` — PASS all 3 packages |
 
 ---
 
