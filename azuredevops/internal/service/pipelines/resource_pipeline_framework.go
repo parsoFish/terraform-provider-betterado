@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	adoBuild "github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 	adoPipelines "github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelines"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
@@ -456,18 +457,16 @@ func patchPipeline(ctx context.Context, agg *client.AggregatedClient, project st
 	return &result, nil
 }
 
-// deletePipeline performs a DELETE on _apis/pipelines/{pipelineId}.
+// deletePipeline removes the pipeline by deleting its backing build definition.
+//
+// The Pipelines v2 REST API (_apis/pipelines) does NOT support HTTP DELETE —
+// the endpoint returns "The requested resource does not support http method
+// 'DELETE'". Every YAML pipeline created via _apis/pipelines is backed by a
+// Build Definition with the same integer ID, so we use the Build Definitions
+// API (_apis/build/definitions/{id}) which does support DELETE.
 func deletePipeline(ctx context.Context, agg *client.AggregatedClient, project string, pipelineID int) error {
-	impl, ok := agg.PipelinesClient.(*adoPipelines.ClientImpl)
-	if !ok {
-		return fmt.Errorf("deletePipeline: cannot access underlying azuredevops.Client")
-	}
-
-	routeValues := map[string]string{
-		"project":    project,
-		"pipelineId": strconv.Itoa(pipelineID),
-	}
-
-	_, err := impl.Client.Send(ctx, http.MethodDelete, pipelineLocationID, "7.1-preview.1", routeValues, nil, nil, "", "application/json", nil)
-	return err
+	return agg.BuildClient.DeleteDefinition(ctx, adoBuild.DeleteDefinitionArgs{
+		Project:      &project,
+		DefinitionId: &pipelineID,
+	})
 }
