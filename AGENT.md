@@ -10,7 +10,31 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 _(updated by each iteration — most recent at the top)_
 
-### Iteration 4 (current)
+### Iteration 5 (current)
+
+**Gate failures from live run (last-gate-failure.md from iter-3 — iteration 4's fixes are committed but not yet live-gate-tested):**
+
+```
+TestAccVariableGroupPermissions_SetPermissions: "Unexpectedly found a variable group that should be deleted"
+TestAccVariableGroupPermissions_UpdatePermissions: "Unexpectedly found a variable group that should be deleted"
+TestAccVariableGroup_basic: "Unexpectedly found a variable group that should be deleted"
+TestAccVariableGroup_secretValue: "Unexpectedly found a variable group that should be deleted"
+TestAccVariableGroup_update: "Unexpectedly found a variable group that should be deleted"
+```
+
+Note: The gate file says "iteration 3" — iteration 4's commits (ContinuousTargetOccurence:3, 60s retry) are already in place but haven't been verified by the live gate yet.
+
+**Root cause analysis:**
+
+The `checkVariableGroupDestroyedMux` 60-second retry window may be insufficient. ADO's variable-group delete is eventually consistent — the provider's own Delete waits for 3 consecutive 404s (ContinuousTargetOccurence:3), but a different API node may still cache and return the VG. The 60s retry in CheckDestroy must cover multi-node ADO cache convergence.
+
+**Fix (commit 50445dc2):**
+
+Increased `checkVariableGroupDestroyedMux` timeout from 60 seconds to 3 minutes. The provider's Delete already waits 20+ seconds (5s delay + 3 × 5s polls for ContinuousTargetOccurence:3). Adding 3 minutes in CheckDestroy gives ADO distributed caches sufficient time to converge on the deleted state.
+
+**Files changed:** `azuredevops/internal/acceptancetests/resource_variable_group_test.go`
+
+### Iteration 4 (prior)
 
 **Gate failures from live run (last-gate-failure.md from iter-3):**
 
@@ -166,7 +190,7 @@ This is a known terraform-plugin-framework bug with `Default` values inside `Set
 - **`types.ListNull(...)` for Optional non-Computed list attributes**: when the user omits the block, the plan is null and the state must also be null (not empty list).
 - **Override configured (non-Computed) attributes with plan values in Update**: `name`, `description`, and similar user-configured attributes should always use plan values as the post-apply state, not the API response. This guards against ADO eventual consistency on updates.
 - **ContinuousTargetOccurence: 3 in Delete wait loop**: prevents a transient API error flash from being treated as successful deletion confirmation.
-- **checkVariableGroupDestroyedMux retry loop (60 s)**: handles ADO eventual consistency in CheckDestroy — poll for up to 60s before declaring failure.
+- **checkVariableGroupDestroyedMux retry loop (3 min)**: handles ADO eventual consistency in CheckDestroy — poll for up to 3 min before declaring failure. 60 s was too short for multi-node ADO cache convergence after deletion (iter-5 increased from 60 s).
 - **ProtoV6ProviderFactories required for tests with framework resources**: any test whose HCL config contains a framework resource (like `betterado_variable_group`) MUST use `GetMuxedProviderFactories()`, NOT `GetProviders()`.
 - **testutils.CheckProjectExists/CheckProjectDestroyed**: these use `GetProvider().Meta()` which is nil in mux tests. Updated to fall back to `GetDirectClient()`.
 - **Fixture project for permissions tests**: `TestAccVariableGroupPermissions_*` and similar tests that previously created a fresh project should use `SharedFixtureProjectName`. Project creation is expensive and subject to org limits (1000 project cap). Only test the resource-specific behavior, not project lifecycle.
