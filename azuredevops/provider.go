@@ -177,9 +177,10 @@ func Provider() *schema.Provider {
 			"betterado_workitemtrackingprocess_process_permissions": permissions.ResourceWorkItemTrackingProcessPermissions(),
 			"betterado_workitemtrackingprocess_state":               workitemtrackingprocess.ResourceState(),
 			"betterado_workitemtrackingprocess_system_control":      workitemtrackingprocess.ResourceSystemControl(),
-			"betterado_workitemtrackingprocess_workitemtype":        workitemtrackingprocess.ResourceWorkItemType(),
-			"betterado_workitemtrackingprocess_field":               workitemtrackingprocess.ResourceField(),
-			"betterado_workitemtrackingprocess_rule":                workitemtrackingprocess.ResourceRule(),
+			// NOTE: betterado_workitemtrackingprocess_workitemtype has been migrated to the
+			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
+			"betterado_workitemtrackingprocess_field": workitemtrackingprocess.ResourceField(),
+			"betterado_workitemtrackingprocess_rule":  workitemtrackingprocess.ResourceRule(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			// NOTE: betterado_release_definition, betterado_release_definition_history,
@@ -227,11 +228,10 @@ func Provider() *schema.Provider {
 			"betterado_user":                           graph.DataUser(),
 			"betterado_users":                          graph.DataUsers(),
 			"betterado_variable_group":                 taskagent.DataVariableGroup(),
-			// NOTE: betterado_workitemtrackingprocess_process and betterado_workitemtrackingprocess_processes
+			// NOTE: betterado_workitemtrackingprocess_process, betterado_workitemtrackingprocess_processes,
+			// betterado_workitemtrackingprocess_workitemtype, and betterado_workitemtrackingprocess_workitemtypes
 			// have been migrated to the terraform-plugin-framework provider (framework_provider.go)
 			// and are no longer registered here.
-			"betterado_workitemtrackingprocess_workitemtype":  workitemtrackingprocess.DataWorkItemType(),
-			"betterado_workitemtrackingprocess_workitemtypes": workitemtrackingprocess.DataWorkItemTypes(),
 		},
 		Schema: map[string]*schema.Schema{
 			"org_service_url": {

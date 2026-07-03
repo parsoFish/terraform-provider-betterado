@@ -208,6 +208,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
 		workitemtrackingprocess.NewProcessResource,
+		workitemtrackingprocess.NewWorkItemTypeResource,
 	}
 }
 
@@ -220,5 +221,7 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseFolderDataSource,
 		workitemtrackingprocess.NewProcessDataSource,
 		workitemtrackingprocess.NewProcessesDataSource,
+		workitemtrackingprocess.NewWorkItemTypeDataSource,
+		workitemtrackingprocess.NewWorkItemTypesDataSource,
 	}
 }

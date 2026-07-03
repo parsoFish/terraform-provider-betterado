@@ -1,3 +1,5 @@
+//go:build (all || data_source_workitemtrackingprocess_workitemtype) && !exclude_data_source_workitemtrackingprocess_workitemtype
+
 package acceptancetests
 
 import (
@@ -17,7 +19,7 @@ func TestAccWorkitemtrackingprocessWorkItemType_DataSource_Get(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
-		CheckDestroy:             testutils.CheckProcessDestroyed,
+		CheckDestroy:             checkWorkItemTypeDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSourceWorkItemType(workItemTypeName, processName),
@@ -31,6 +33,7 @@ func TestAccWorkitemtrackingprocessWorkItemType_DataSource_Get(t *testing.T) {
 					resource.TestCheckResourceAttrPair(tfDataNode, "icon", tfResourceNode, "icon"),
 					resource.TestCheckResourceAttrPair(tfDataNode, "is_enabled", tfResourceNode, "is_enabled"),
 					resource.TestCheckResourceAttrPair(tfDataNode, "url", tfResourceNode, "url"),
+					captureWorkItemTypeEvidence(tfResourceNode),
 				),
 			},
 		},
@@ -38,7 +41,7 @@ func TestAccWorkitemtrackingprocessWorkItemType_DataSource_Get(t *testing.T) {
 }
 
 func hclDataSourceWorkItemType(workItemTypeName string, processName string) string {
-	process := process(processName)
+	proc := process(processName)
 	return fmt.Sprintf(`
 %s
 
@@ -52,5 +55,5 @@ data "betterado_workitemtrackingprocess_workitemtype" "test" {
   process_id     = betterado_workitemtrackingprocess_workitemtype.test.process_id
   reference_name = betterado_workitemtrackingprocess_workitemtype.test.reference_name
 }
-`, process, workItemTypeName)
+`, proc, workItemTypeName)
 }
