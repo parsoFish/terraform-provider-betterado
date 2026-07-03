@@ -7,6 +7,7 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+<<<<<<< HEAD
 ### Changed
 
 - Migrated `betterado_feed`, `betterado_feed_permission`, `betterado_feed_retention_policy`, and `data.betterado_feed` from terraform-plugin-sdk/v2 to terraform-plugin-framework (mux provider).
@@ -46,6 +47,309 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   `days_to_keep_recently_downloaded_packages`). Verified by live acceptance
   tests `TestAccFeedRetentionPolicyFramework_projectBasic` and
   `TestAccFeedRetentionPolicyFramework_update`.
+=======
+### ENHANCEMENTS
+
+- **Migrated `betterado_serviceendpoint_*` (24 resources + 8 data sources) from terraform-plugin-sdk/v2 to terraform-plugin-framework** via the mux provider.
+  All service endpoint resources and data sources now use the framework implementation; SDKv2 registrations
+  have been removed. The following types are included:
+  - Resources: `betterado_serviceendpoint_generic`, `betterado_serviceendpoint_generic_v2`,
+    `betterado_serviceendpoint_generic_git`, `betterado_serviceendpoint_azurerm`, `betterado_serviceendpoint_aws`,
+    `betterado_serviceendpoint_azure_service_bus`, `betterado_serviceendpoint_gcp_terraform`,
+    `betterado_serviceendpoint_dockerregistry`, `betterado_serviceendpoint_azurecr`,
+    `betterado_serviceendpoint_github`, `betterado_serviceendpoint_github_enterprise`,
+    `betterado_serviceendpoint_gitlab`, `betterado_serviceendpoint_bitbucket`,
+    `betterado_serviceendpoint_jenkins`, `betterado_serviceendpoint_argocd`,
+    `betterado_serviceendpoint_incomingwebhook`, `betterado_serviceendpoint_externaltfs`,
+    `betterado_serviceendpoint_azuredevops`, `betterado_serviceendpoint_black_duck`,
+    `betterado_serviceendpoint_checkmarx_one`, `betterado_serviceendpoint_checkmarx_sca`,
+    `betterado_serviceendpoint_checkmarx_sast`, `betterado_serviceendpoint_artifactory`,
+    `betterado_serviceendpoint_dynamics_lifecycle_services`
+  - Data sources: `betterado_serviceendpoint_generic_v2`, `betterado_serviceendpoint_azurerm`,
+    `betterado_serviceendpoint_dockerregistry`, `betterado_serviceendpoint_azurecr`,
+    `betterado_serviceendpoint_github`, `betterado_serviceendpoint_bitbucket`,
+    `betterado_serviceendpoint_npm`, `betterado_serviceendpoint_sonarcloud`
+
+### FEATURES
+
+- **`betterado_serviceendpoint_generic` resource migrated to terraform-plugin-framework.**
+  Supports `url`, `username`, `password`, and optional `description` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_generic_v2` resource and data source migrated to terraform-plugin-framework.**
+  Supports arbitrary endpoint types, authorization schemes, authorization parameters, and data parameters.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_generic_git` resource migrated to terraform-plugin-framework.**
+  Supports `repository_url`, `username`, `password`, and `enable_pipelines_access` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_azurerm` resource and data source migrated to terraform-plugin-framework.**
+  Supports Service Principal (manual and automatic) and Managed Identity authentication modes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_aws` resource migrated to terraform-plugin-framework.**
+  Supports `access_key_id`, `secret_access_key`, and optional `session_token` and `role_to_assume` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_azure_service_bus` resource migrated to terraform-plugin-framework.**
+  Supports `connection_string` for Service Bus endpoint authentication.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_gcp_terraform` resource migrated to terraform-plugin-framework.**
+  Supports GCP service account JSON credentials for Terraform operations.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_dockerregistry` resource and data source migrated to terraform-plugin-framework.**
+  Supports Docker Hub and custom registry types with username + password authentication.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_azurecr` resource and data source migrated to terraform-plugin-framework.**
+  Supports service principal and managed identity authentication for Azure Container Registry.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_github` resource and data source migrated to terraform-plugin-framework.**
+  Supports PAT (`personal_access_token`) and OAuth (`oauth_configuration_id`) authentication schemes.
+  Deregistered from the SDKv2 provider; served through the mux provider. Verified by live acceptance
+  test `TestAccServiceEndpointGitHub_basic` (apply → read-back → idempotency re-plan → destroy).
+
+- **`betterado_serviceendpoint_github_enterprise` resource migrated to terraform-plugin-framework.**
+  Supports PAT and OAuth authentication; schema unchanged (`project_id`, `service_endpoint_name`,
+  `github_enterprise_url`, `personal_access_token`, `oauth_configuration_id`, `description`).
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_gitlab` resource migrated to terraform-plugin-framework.**
+  Username + password basic authentication. Deregistered from the SDKv2 provider; served through
+  the mux provider.
+
+- **`betterado_serviceendpoint_bitbucket` resource and data source migrated to terraform-plugin-framework.**
+  Username + password basic authentication. Deregistered from the SDKv2 provider; served through
+  the mux provider.
+
+- **`betterado_serviceendpoint_jenkins` resource migrated to terraform-plugin-framework.**
+  Supports username + password authentication with optional `accept_untrusted_certs` flag.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_argocd` resource migrated to terraform-plugin-framework.**
+  Supports both token (`authentication_token`) and basic (`authentication_basic`) authentication modes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_incomingwebhook` resource migrated to terraform-plugin-framework.**
+  Supports `webhook_name`, optional `secret`, and optional `http_header` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_externaltfs` resource migrated to terraform-plugin-framework.**
+  Uses `auth_personal` block with `personal_access_token` for Token authentication.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_azuredevops` resource migrated to terraform-plugin-framework.**
+  Supports `org_url`, `release_api_url`, and `personal_access_token` attributes.
+  Deprecated: use `betterado_serviceendpoint_runpipeline` instead.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_black_duck` resource migrated to terraform-plugin-framework.**
+  Supports `server_url` and `api_token` attributes for Black Duck security scanning.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_checkmarx_one` resource migrated to terraform-plugin-framework.**
+  Supports `server_url`, `authentication_url`, `tenant`, `client_id`, and `client_secret` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_checkmarx_sca` resource migrated to terraform-plugin-framework.**
+  Supports `server_url`, `access_control_url`, `tenant`, `username`, and `password` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_checkmarx_sast` resource migrated to terraform-plugin-framework.**
+  Supports `server_url`, `username`, and `password` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_artifactory` resource migrated to terraform-plugin-framework.**
+  Supports both token (`authentication_token`) and basic (`authentication_basic`) authentication modes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_dynamics_lifecycle_services` resource migrated to terraform-plugin-framework.**
+  Uses `authorization_endpoint`, `lifecycle_services_api_endpoint`, `client_id`, `username`, and `password`
+  attributes with `UsernamePassword` authentication scheme.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_npm` data source migrated to terraform-plugin-framework.**
+  Reads an npm service endpoint by `project_id` + `service_endpoint_name`; returns connection details.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_sonarcloud` data source migrated to terraform-plugin-framework.**
+  Reads a SonarCloud service endpoint by `project_id` + `service_endpoint_name`.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+### FEATURES
+
+- **`betterado_wiki` migrated to terraform-plugin-framework.** The resource now
+  uses the terraform-plugin-framework implementation served through the mux
+  provider. CRUD operations target the Azure DevOps Wiki API; the schema is
+  unchanged (`project_id`, `name`, `type`, `repository_id`, `version`,
+  `mapped_path`, `remote_url`, `url`). Project wikis and code wikis are both
+  supported. Delete for project wikis now uses the `DeleteWiki` API directly
+  (previously attempted to delete the underlying git repository, which was
+  unreliable). Verified by live acceptance tests `TestAccWikiResource_projectWiki`
+  and `TestAccWikiResource_codeWiki`.
+
+- **`betterado_wiki_page` migrated to terraform-plugin-framework.** The resource
+  now uses the terraform-plugin-framework implementation served through the mux
+  provider. Schema is unchanged (`project_id`, `wiki_id`, `path`, `content`,
+  `etag`). Concurrent page operations are serialised with a mutex to avoid
+  ADO's "page already updated by another client" conflict. Verified by live
+  acceptance tests `TestAccWikiPageResource_basic` and
+  `TestAccWikiPageResource_update`.
+### Changed
+
+- Migrated `betterado_servicehook_storage_queue_pipelines` to terraform-plugin-framework (schema and behaviour unchanged).
+- Migrated `betterado_servicehook_webhook_tfs` to terraform-plugin-framework (schema and behaviour unchanged).
+### ENHANCEMENTS
+
+- **`betterado_git_repository` resource migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served through
+  the mux provider. Schema is unchanged (`project_id`, `name`, `default_branch`,
+  `disabled`, `parent_repository_id`, `initialization`). Read-only attributes
+  `is_fork`, `remote_url`, `size`, `ssh_url`, `url`, `web_url` remain available.
+  Verified by live acceptance test `TestAccGitRepositoryFramework`.
+
+- **`betterado_git_repository` data source migrated to terraform-plugin-framework.**
+  Reads a single Git repository by `project_id` + `name`; exposes all repository
+  attributes. Served through the mux provider. Verified by live acceptance test
+  `TestAccDataGitRepositoryFramework`.
+
+- **`betterado_git_repositories` data source migrated to terraform-plugin-framework.**
+  Lists Git repositories in an Azure DevOps project; exposes a `repositories` list
+  with full repository details per entry. Served through the mux provider.
+  Verified by live acceptance test `TestAccDataGitRepositoriesFramework`.
+
+- **`betterado_git_repository_branch` resource migrated to terraform-plugin-framework.**
+  Manages a Git branch in an Azure DevOps repository. Schema is unchanged
+  (`repository_id`, `name`, `ref_branch`, `is_default`). Served through the mux
+  provider. Verified by live acceptance test `TestAccGitRepositoryBranchFramework`.
+
+- **`betterado_git_repository_file` resource migrated to terraform-plugin-framework.**
+  Manages a file in an Azure DevOps Git repository. Schema is unchanged
+  (`repository_id`, `file`, `content`, `branch`, `commit_message`,
+  `overwrite_on_create`). Served through the mux provider. Verified by live
+  acceptance test `TestAccGitRepositoryFileFramework`.
+
+- **`betterado_git_repository_file` data source migrated to terraform-plugin-framework.**
+  Reads a file from an Azure DevOps Git repository by `repository_id`, `file`, and
+  optional `branch`. Served through the mux provider. Verified by live acceptance
+  test `TestAccDataGitRepositoryFileFramework`.
+## [1.3.0] - 2026-07-01
+
+### Added
+
+- `betterado_feature_flag` resource and data source — manage ADO Feature Management API state at project or host scope.
+### Changed
+
+- `betterado_dashboard`: migrated to terraform-plugin-framework (parity with existing SDKv2 behaviour; no schema changes)
+- `betterado_extension`: migrated to terraform-plugin-framework (parity with existing SDKv2 behaviour; no schema changes)
+
+### Added
+
+- `docs/dashboard-gap-matrix.md`: field-by-field coverage analysis of the ADO Dashboard API v7.1
+- `docs/extension-gap-matrix.md`: field-by-field coverage analysis of the ADO Extension Management API v7.1
+
+### FEATURES
+
+- **`betterado_extension` migrated to terraform-plugin-framework.** The resource
+  now uses the terraform-plugin-framework implementation served through the mux
+  provider. Schema is unchanged (`extension_id`, `publisher_id`, `disabled`,
+  `version`, `extension_name`, `publisher_name`, `scope`); ForceNew behaviour on
+  `extension_id`/`publisher_id` is preserved. Verified by live acceptance tests
+  `TestAccExtension_basic`, `TestAccExtension_complete`, `TestAccExtension_update`.
+
+- **`betterado_dashboard` migrated to terraform-plugin-framework.** The resource
+  now uses the terraform-plugin-framework implementation served through the mux
+  provider. Schema is unchanged (`project_id`, `team_id`, `name`, `description`,
+  `refresh_interval`, `owner_id`); supports both project-scoped and team-scoped
+  dashboards. Live acceptance tests `TestAccDashboard_project_basic`,
+  `TestAccDashboard_project_update`, `TestAccDashboard_team_basic`,
+  `TestAccDashboard_team_update` verified against ADO with the betterado-standing-demo
+  fixture project; live read-back evidence captured under `dashboard-acceptance-resource`
+  label in `.forge/live-evidence/`.
+
+## [1.3.0] - 2026-07-03
+
+### FEATURES
+
+- **`betterado_user_entitlement` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served through
+  the mux provider. CRUD operations target the Member Entitlement Management API at
+  `{org}/_apis/memberentitlementmanagement/userentitlements`; the schema is unchanged
+  (`principal_name`, `origin_id`, `origin`, `account_license_type`, `licensing_source`,
+  `descriptor`). Verified by live acceptance test `TestAccUserEntitlement_Create`.
+
+- **`betterado_group_entitlement` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served through
+  the mux provider. CRUD operations target the Member Entitlement Management API at
+  `{org}/_apis/memberentitlementmanagement/groupentitlements`; the schema is unchanged
+  (`display_name`, `origin_id`, `origin`, `account_license_type`, `licensing_source`,
+  `principal_name`, `descriptor`). Verified by live acceptance test
+  `TestAccGroupEntitlement_Create`.
+
+- **`betterado_service_principal_entitlement` migrated to terraform-plugin-framework.**
+  The resource now uses the terraform-plugin-framework implementation served through
+  the mux provider. CRUD operations target the Member Entitlement Management API at
+  `{org}/_apis/memberentitlementmanagement/serviceprincipals`; the schema is unchanged
+  (`origin_id`, `origin`, `account_license_type`, `licensing_source`, `display_name`,
+  `descriptor`). Verified by live acceptance test `TestAccServicePrincipalEntitlement_create`.
+- **`betterado_build_definition` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux provider.
+  CRUD operations continue to target the Build API. Implemented attributes: `project_id`,
+  `name`, `path`, `repository` (with `repo_type` validator), `variable` (fully wired in
+  expand and read), `ci_trigger` (with `override` sub-block: batch, branch_filter,
+  path_filter, max_concurrent_builds_per_branch, polling_interval), `pull_request_trigger`
+  (with `override` sub-block and `forks` Required sub-block for SDKv2 parity),
+  `agent_pool_name`, `agent_specification` (schema-present, not wired to API — see
+  `docs/build-gap-matrix.md`), `job_authorization_scope`, `queue_status`, `skip_first_run`.
+  Framework validators added for `name` (StringIsNotWhiteSpace), `path` (path format),
+  `job_authorization_scope` (enum), `queue_status` (enum), `comment_required` (enum),
+  `repo_type` (enum). Cross-attribute conflict validator added: setting both
+  `repository.github_enterprise_url` and `repository.url` raises a plan-time error.
+  **CI/PR trigger read-back wired:** `readIntoModel` now parses `def.Triggers` back into
+  `model.CITrigger`/`model.PullRequestTrigger` via `flattenTriggersIntoModel`, so
+  ADO-side trigger changes are surfaced as drift on `terraform plan`.
+  **`skip_first_run` defaults to `true`** (skip — SDKv2 parity: absent `features` block means no auto-run).
+  Set `skip_first_run = false` to opt-in to an immediate `PipelinesClient.RunPipeline` call on `Create`;
+  a warning is emitted if the run fails (e.g. no YAML file yet) but does not prevent resource creation.
+  **Deliberately NOT migrated this iteration** (documented in `docs/build-gap-matrix.md`):
+  `variable_groups`, `build_completion_trigger`, `schedules`, `jobs` (OtherGit only).
+  Verified by unit tests `TestBuildDefinitionFramework_Schema`,
+  `TestBuildDefinitionFramework_FlattenCITrigger_UseYAML`,
+  `TestBuildDefinitionFramework_FlattenCITrigger_Override`,
+  `TestBuildDefinitionFramework_FlattenPRTrigger`,
+  `TestBuildDefinitionFramework_FlattenFilters`,
+  `TestBuildDefinitionFramework_ValidateConfig_Conflict`,
+  `TestBuildDefinitionFramework_SkipFirstRunDefault`.
+
+- **`betterado_build_folder` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux provider.
+  Schema: `project_id`, `path`, `description`. Framework validator added for `path`
+  (path format: must start with `\`, no invalid characters — SDKv2 parity).
+  Verified by unit test `TestBuildFolderFramework_PathValidator` and live acceptance
+  test `TestAccBuildFolder_Framework_basic`.
+
+- **`betterado_pipeline_authorization` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation. Schema: `project_id`,
+  `pipeline_project_id`, `resource_id`, `type`, `pipeline_id`. Validators: `resource_id`
+  (StringIsNotWhiteSpace), `type` (enum), `pipeline_id` (IntAtLeast(1)).
+  Verified by live acceptance test `TestAccPipelineAuthorization_Framework_allPipeline_queue`.
+
+- **`betterado_resource_authorization` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation. Schema: `project_id`,
+  `resource_id`, `definition_id`, `type`, `authorized`. Verified by unit test.
+
+- **`betterado_build_definition` data source migrated to terraform-plugin-framework.**
+  The data source now uses the framework implementation. Reads a build definition by
+  `project_id`, `name`, and optional `path`; returns `id`, `revision`, `repository`,
+  `ci_trigger`, `pull_request_trigger`, `variable`, `agent_pool_name`,
+  `agent_specification`, `job_authorization_scope`, `queue_status`, `skip_first_run`.
+  **Deliberately NOT migrated this iteration** (documented in `docs/build-gap-matrix.md`):
+  `variable_groups`, `schedules`, `jobs`, `build_completion_trigger`.
+  Verified by live acceptance test `TestAccBuildDefinition_Framework_DataSource`.
+>>>>>>> origin/main
 
 ## [1.2.0] - 2026-07-01
 

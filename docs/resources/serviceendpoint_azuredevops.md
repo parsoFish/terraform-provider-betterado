@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_azuredevops Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an Azure DevOps Service Connection within Azure DevOps. Deprecated: use betterado_serviceendpoint_runpipeline instead.
 ---
 
 # betterado_serviceendpoint_azuredevops (Resource)
 
-
+Manages an Azure DevOps Service Connection within Azure DevOps. Deprecated: use betterado_serviceendpoint_runpipeline instead.
 
 
 
@@ -17,28 +17,17 @@ description: |-
 
 ### Required
 
+- `org_url` (String) The Organization Url.
 - `personal_access_token` (String, Sensitive) The Azure DevOps personal access token.
-- `project_id` (String)
-- `service_endpoint_name` (String)
+- `project_id` (String) The ID of the project.
+- `release_api_url` (String) The Release API Url.
+- `service_endpoint_name` (String) The Service Endpoint name.
 
 ### Optional
 
-- `description` (String)
-- `org_url` (String) The Organization Url.
-- `release_api_url` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `description` (String) The Service Endpoint description.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.

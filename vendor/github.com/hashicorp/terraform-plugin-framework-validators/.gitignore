@@ -1,5 +1,0 @@
-go.work
-go.work.sum
-# JetBrains IDEs project files
-.idea/
-*.iws

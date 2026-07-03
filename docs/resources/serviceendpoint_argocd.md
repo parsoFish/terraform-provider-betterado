@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_argocd Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an ArgoCD Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_argocd (Resource)
 
-
+Manages an ArgoCD Service Connection within Azure DevOps.
 
 
 
@@ -17,23 +17,22 @@ description: |-
 
 ### Required
 
-- `project_id` (String)
-- `service_endpoint_name` (String)
-- `url` (String) Url for the ArgoCD Server
+- `project_id` (String) The ID of the project.
+- `service_endpoint_name` (String) The Service Endpoint name.
+- `url` (String) Url for the ArgoCD Server.
 
 ### Optional
 
-- `authentication_basic` (Block List, Max: 1) (see [below for nested schema](#nestedblock--authentication_basic))
-- `authentication_token` (Block List, Max: 1) (see [below for nested schema](#nestedblock--authentication_token))
-- `description` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `authentication_basic` (Attributes List) An authentication_basic block as documented below. (see [below for nested schema](#nestedatt--authentication_basic))
+- `authentication_token` (Attributes List) An authentication_token block as documented below. (see [below for nested schema](#nestedatt--authentication_token))
+- `description` (String) The Service Endpoint description.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.
 
-<a id="nestedblock--authentication_basic"></a>
+<a id="nestedatt--authentication_basic"></a>
 ### Nested Schema for `authentication_basic`
 
 Required:
@@ -42,20 +41,9 @@ Required:
 - `username` (String, Sensitive) The ArgoCD user name.
 
 
-<a id="nestedblock--authentication_token"></a>
+<a id="nestedatt--authentication_token"></a>
 ### Nested Schema for `authentication_token`
 
 Required:
 
 - `token` (String, Sensitive) The ArgoCD access token.
-
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_gcp_terraform Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a GCP Terraform service endpoint within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_gcp_terraform (Resource)
 
-
+Manages a GCP Terraform service endpoint within Azure DevOps.
 
 
 
@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `gcp_project_id` (String) Scope to be provided
+- `gcp_project_id` (String) GCP project ID.
 - `private_key` (String, Sensitive) Private Key for connecting to the endpoint.
 - `project_id` (String)
 - `service_endpoint_name` (String)
@@ -27,20 +27,9 @@ description: |-
 
 - `client_email` (String) The client email field in the JSON key file for creating the JSON Web Token.
 - `description` (String)
-- `scope` (String) Scope to be provided
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `scope` (String) Scope to be provided.
 
 ### Read-Only
 
 - `authorization` (Map of String)
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
