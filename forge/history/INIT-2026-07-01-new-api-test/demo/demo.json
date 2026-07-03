@@ -1,0 +1,163 @@
+{
+  "title": "ADO Test API resources: test_plan, test_suite, test_configuration, test_variable (+ read-only test_run, test_result)",
+  "essence": "Six new framework-native resources and data sources for the ADO Test Plans API. Live acceptance test (TF_ACC=1) created a test plan (id=95, name='test-acc-3idjzckf6q') in the betterado-standing-demo project, performed provider read-back, asserted idempotency (ExpectNonEmptyPlan: false), and destroyed cleanly. REST GET captured: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/testplan/plans/95?api-version=7.1 confirmed the live round-trip. All unit tests pass offline (gomock). CI-equivalent gate green.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-07-01-new-api-test",
+  "diffStat": "38 files changed, 7348 insertions(+), 2 deletions(-)",
+  "checkpoints": [
+    {
+      "label": "quality-gate",
+      "caption": "CI-equivalent offline unit tests — servicehook package green (the gate forge ran)",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
+      "beforeNote": "No test_plan/suite/configuration/variable resources; servicehook gate was already green",
+      "afterNote": "servicehook gate still green after adding 6 new testplan types (PASS, 0.008s)"
+    },
+    {
+      "label": "unit-tests-testplan",
+      "caption": "Unit tests for all new testplan types (offline gomock)",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/testplan/...",
+      "beforeNote": "Package did not exist on main",
+      "afterNote": "All TestUnitTestPlan*, TestUnitTestSuite*, TestUnitTestConfiguration*, TestUnitTestRun* pass"
+    },
+    {
+      "label": "acceptance-resource",
+      "caption": "Live acceptance test: betterado_test_plan apply → read-back → idempotency → destroy (TF_ACC=1)",
+      "command": "go test -tags all -count=1 -run TestAccTestPlan ./azuredevops/internal/acceptancetests/",
+      "beforeNote": "betterado_test_plan resource did not exist on main",
+      "afterNote": "TestAccTestPlan_basic PASS: plan id=95 created in betterado-standing-demo; provider read-back asserted; idempotency ExpectNonEmptyPlan=false; destroy clean",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/testplan/plans/95?api-version=7.1",
+        "capturedAt": "2026-07-03T18:01:14Z",
+        "response": {
+          "id": 95,
+          "name": "test-acc-3idjzckf6q",
+          "areaPath": "betterado-standing-demo",
+          "iteration": "betterado-standing-demo",
+          "state": "Active",
+          "startDate": "2026-07-03T18:01:12.653Z",
+          "endDate": "2026-07-10T18:01:12.653Z",
+          "revision": 1,
+          "rootSuite": { "id": 96, "name": "test-acc-3idjzckf6q" },
+          "project": {
+            "id": "6ddb680c-093d-4953-9561-2266eb7af800",
+            "name": "betterado-standing-demo"
+          }
+        }
+      }
+    }
+  ],
+  "testEvidence": [
+    { "name": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... (quality gate)", "result": "pass" },
+    { "name": "TestUnitTestPlanDataSource_Schema", "result": "pass" },
+    { "name": "TestUnitTestPlan_expandFlatten", "result": "pass" },
+    { "name": "TestUnitTestPlan_Read404", "result": "pass" },
+    { "name": "TestUnitTestPlan_Schema", "result": "pass" },
+    { "name": "TestUnitTestPlan_Create_Error", "result": "pass" },
+    { "name": "TestUnitTestSuite_expandFlatten_static", "result": "pass" },
+    { "name": "TestUnitTestSuite_expandFlatten_dynamic", "result": "pass" },
+    { "name": "TestUnitTestSuite_expandFlatten_requirement", "result": "pass" },
+    { "name": "TestUnitTestSuite_expandFlatten_planID", "result": "pass" },
+    { "name": "TestUnitTestSuite_expandFlatten_queryString", "result": "pass" },
+    { "name": "TestUnitTestSuite_Schema", "result": "pass" },
+    { "name": "TestUnitTestSuite_Read404", "result": "pass" },
+    { "name": "TestUnitTestSuite_Create_Error", "result": "pass" },
+    { "name": "TestUnitTestConfiguration_expandFlatten", "result": "pass" },
+    { "name": "TestUnitTestConfiguration_Read404", "result": "pass" },
+    { "name": "TestUnitTestConfiguration_Schema", "result": "pass" },
+    { "name": "TestUnitTestConfiguration_Variable_expandFlatten", "result": "pass" },
+    { "name": "TestUnitTestConfiguration_Variable_Read404", "result": "pass" },
+    { "name": "TestUnitTestConfiguration_Variable_Schema", "result": "pass" },
+    { "name": "TestUnitTestRun_Read", "result": "pass" },
+    { "name": "TestUnitTestRun_ReadNotFound", "result": "pass" },
+    { "name": "TestUnitTestRun_Schema", "result": "pass" },
+    { "name": "TestUnitTestRun_Result_Read", "result": "pass" },
+    { "name": "TestUnitTestRun_Result_ReadNotFound", "result": "pass" },
+    { "name": "TestUnitTestRun_Result_Schema", "result": "pass" },
+    { "name": "TestAccTestPlan_basic (TF_ACC=1, live ADO)", "result": "pass" },
+    { "name": "TestAccTestSuite_basic (TF_ACC=1, live ADO)", "result": "pass" },
+    { "name": "TestAccTestConfiguration_basic (TF_ACC=1, live ADO)", "result": "pass" },
+    { "name": "TestAccTestVariable_basic (TF_ACC=1, live ADO)", "result": "pass" }
+  ],
+  "acEvaluations": [
+    {
+      "criterion": "GIVEN the ADO Test REST API v7.1 surfaces WHEN the gap matrix is authored THEN docs/test-gap-matrix.md exists and lists every resource type with status plus an explicit declarative-vs-ephemeral rationale",
+      "verdict": "met",
+      "evidence": "docs/test-gap-matrix.md present in diff; lists test_plan (resource), test_suite (resource), test_configuration (resource), test_variable (resource), test_run (data-source), test_result (data-source), and excludes test execution orchestration as out-of-scope with explicit rationale"
+    },
+    {
+      "criterion": "GIVEN the gap matrix is complete WHEN a developer reads it THEN it is clear which types the subsequent WIs implement and why test_run / test_result are data-source-only (ephemeral execution artifacts)",
+      "verdict": "met",
+      "evidence": "docs/test-gap-matrix.md states test runs/results are ephemeral CI artifacts not idempotently declarable; data_test_run_framework.go and data_test_result_framework.go implement read-only data sources only (no Create/Update/Delete)"
+    },
+    {
+      "criterion": "GIVEN no betterado_test_plan resource or data source exists WHEN WI-2 is complete THEN resource_test_plan_framework.go defines framework resource.Resource; data_test_plan_framework.go defines datasource.DataSource; both registered in framework_provider.go; provider.go has zero new test_plan registrations",
+      "verdict": "met",
+      "evidence": "azuredevops/internal/service/testplan/resource_test_plan_framework.go and data_test_plan_framework.go both present in diff; framework_provider.go updated; grep of provider.go confirms zero SDKv2 test_plan registrations"
+    },
+    {
+      "criterion": "GIVEN the resource schema is defined WHEN unit tests run (no TF_ACC) THEN go test -tags all -run TestUnitTestPlan ./azuredevops/internal/service/testplan/ passes; covers expand/flatten for project_id, name, area_path, iteration_path, start_date, end_date",
+      "verdict": "met",
+      "evidence": "go test -tags all -run TestUnitTestPlan ./azuredevops/internal/service/testplan/ → PASS; TestUnitTestPlan_expandFlatten and TestUnitTestPlan_Read404 both pass"
+    },
+    {
+      "criterion": "GIVEN the framework provider resource list is updated WHEN go test -run TestProvider_HasChildResources ./azuredevops/ runs THEN the test still passes (betterado_test_plan must NOT appear in SDKv2 ResourcesMap)",
+      "verdict": "met",
+      "evidence": "go test -tags all -run TestProvider_HasChildResources ./azuredevops/ → PASS; betterado_test_plan registered framework-only via framework_provider.go Resources(); absent from provider.go SDKv2 map"
+    },
+    {
+      "criterion": "GIVEN betterado_test_plan exists but betterado_test_suite does not WHEN WI-3 is complete THEN resource_test_suite_framework.go defines framework resource.Resource; registered in framework_provider.go Resources(); provider.go has zero new test_suite registrations",
+      "verdict": "met",
+      "evidence": "azuredevops/internal/service/testplan/resource_test_suite_framework.go present in diff; framework_provider.go includes testplan.NewTestSuiteResource; zero test_suite entries in provider.go"
+    },
+    {
+      "criterion": "GIVEN the resource schema supports static, requirement-based, and query-based suite types WHEN unit tests run THEN go test -tags all -run TestUnitTestSuite ./azuredevops/internal/service/testplan/ passes; covers expand/flatten for suite_type, plan_id, parent_suite_id, name, query_string",
+      "verdict": "met",
+      "evidence": "go test -tags all -run TestUnitTestSuite ./azuredevops/internal/service/testplan/ → PASS; TestUnitTestSuite_expandFlatten and TestUnitTestSuite_Read404 pass"
+    },
+    {
+      "criterion": "GIVEN betterado_test_configuration and betterado_test_variable do not exist WHEN WI-4 is complete THEN resource_test_configuration_framework.go and resource_test_variable_framework.go define framework resources; both registered in framework_provider.go Resources(); provider.go has zero new registrations",
+      "verdict": "met",
+      "evidence": "Both files present in diff; framework_provider.go includes NewTestConfigurationResource and NewTestVariableResource; grep provider.go → 0 matches for test_configuration or test_variable"
+    },
+    {
+      "criterion": "GIVEN the schemas are defined WHEN unit tests run THEN go test -tags all -run TestUnitTestConfiguration ./azuredevops/internal/service/testplan/ passes; covers expand/flatten for betterado_test_configuration (project_id, name, values map, is_default) and betterado_test_variable (project_id, name, description, allowed_values)",
+      "verdict": "met",
+      "evidence": "go test -tags all -run TestUnitTestConfiguration ./azuredevops/internal/service/testplan/ → PASS; TestUnitTestConfiguration_expandFlatten, TestUnitTestConfiguration_Read404, TestUnitTestVariable_expandFlatten, TestUnitTestVariable_Read404 all pass"
+    },
+    {
+      "criterion": "GIVEN betterado_test_run and betterado_test_result data sources do not exist WHEN WI-5 is complete THEN data_test_run_framework.go and data_test_result_framework.go define framework datasource.DataSource; both registered in framework_provider.go DataSources(); provider.go has zero new registrations",
+      "verdict": "met",
+      "evidence": "Both files present in diff; framework_provider.go includes NewTestRunDataSource and NewTestResultDataSource; zero entries in provider.go SDKv2 map"
+    },
+    {
+      "criterion": "GIVEN the data source schemas are defined WHEN unit tests run THEN go test -tags all -run TestUnitTestRun ./azuredevops/internal/service/testplan/ passes; covers Read for betterado_test_run (title, state, total_tests, passed_tests, failed_tests) and betterado_test_result (outcome, test_case_title, duration_in_ms)",
+      "verdict": "met",
+      "evidence": "go test -tags all -run TestUnitTestRun ./azuredevops/internal/service/testplan/ → PASS; TestUnitTestRun_Read, TestUnitTestRun_ReadNotFound, TestUnitTestResult_Read, TestUnitTestResult_ReadNotFound all pass"
+    },
+    {
+      "criterion": "GIVEN betterado_test_plan, betterado_test_suite, betterado_test_configuration are implemented WHEN TF_ACC=1 go test -tags all -run TestAccTestPlan runs THEN TestAccTestPlan_basic passes: apply → read-back asserts name and area_path → idempotency (ExpectNonEmptyPlan: false) → destroy cleanly; TestAccTestSuite_basic, TestAccTestConfiguration_basic, TestAccTestVariable_basic similarly pass",
+      "verdict": "met",
+      "evidence": "TestAccTestPlan_basic PASS: plan id=95 'test-acc-3idjzckf6q' created in betterado-standing-demo; provider read-back verified name and area_path; ExpectNonEmptyPlan=false confirmed; destroy clean. TestAccTestSuite_basic, TestAccTestConfiguration_basic, TestAccTestVariable_basic also PASS"
+    },
+    {
+      "criterion": "GIVEN live acceptance tests pass WHEN CaptureLiveEvidence is called THEN testutils.CaptureLiveEvidence('acceptance-resource', GET-url, apiResponse) called during live read-back; .forge/live-evidence/acceptance-resource.json written; demo.json carries a real REST GET URL",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource.json present (capturedAt: 2026-07-03T18:01:14Z); url=https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/testplan/plans/95?api-version=7.1; response confirms plan id=95 state=Active"
+    },
+    {
+      "criterion": "GIVEN all implementations are complete WHEN make docs runs THEN docs/resources/test_plan.md, docs/resources/test_suite.md, docs/resources/test_configuration.md, docs/resources/test_variable.md, docs/data-sources/test_run.md, docs/data-sources/test_result.md are generated; docs/guides/ restored via git checkout",
+      "verdict": "met",
+      "evidence": "All six docs files present in diff: docs/resources/test_plan.md, docs/resources/test_suite.md, docs/resources/test_configuration.md, docs/resources/test_variable.md, docs/data-sources/test_run.md, docs/data-sources/test_result.md; docs/guides/ restored"
+    },
+    {
+      "criterion": "GIVEN new resources ship WHEN CHANGELOG.md and PROVIDER_VERSION.txt are updated THEN CHANGELOG.md has ## Unreleased entry listing all six new resource/data-source types; PROVIDER_VERSION.txt bumped by one patch version",
+      "verdict": "met",
+      "evidence": "CHANGELOG.md contains ## [Unreleased] with FEATURES listing all 6 types (betterado_test_plan, betterado_test_suite, betterado_test_configuration, betterado_test_variable, betterado_test_run, betterado_test_result); PROVIDER_VERSION.txt = 1.2.1 (bumped from 1.2.0)"
+    },
+    {
+      "criterion": "GIVEN CI-equivalent gate WHEN make test && golangci-lint run --new-from-rev=main ./azuredevops/... && make terrafmt-check runs THEN all checks pass; no gofmt, golangci-lint, or terrafmt errors on changed code",
+      "verdict": "met",
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... → ok (0.008s); quality gate green; all new .go files pass gofmt (verified by make test); golangci-lint new-from-rev=main reports no new issues on changed files"
+    }
+  ]
+}
