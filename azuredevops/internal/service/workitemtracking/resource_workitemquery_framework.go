@@ -56,9 +56,11 @@ type wiqStringRequiresReplace struct{}
 func (m wiqStringRequiresReplace) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m wiqStringRequiresReplace) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m wiqStringRequiresReplace) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -75,9 +77,11 @@ type wiqStringUseStateForUnknown struct{}
 func (m wiqStringUseStateForUnknown) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m wiqStringUseStateForUnknown) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m wiqStringUseStateForUnknown) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -97,9 +101,11 @@ type wiqBoolUseStateForUnknown struct{}
 func (m wiqBoolUseStateForUnknown) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m wiqBoolUseStateForUnknown) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m wiqBoolUseStateForUnknown) PlanModifyBool(_ context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -121,9 +127,11 @@ type wiqIsUUIDValidator struct{}
 func (v wiqIsUUIDValidator) Description(_ context.Context) string {
 	return "value must be a valid UUID"
 }
+
 func (v wiqIsUUIDValidator) MarkdownDescription(_ context.Context) string {
 	return "value must be a valid UUID"
 }
+
 func (v wiqIsUUIDValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -140,9 +148,11 @@ type wiqNotEmptyValidator struct{}
 func (v wiqNotEmptyValidator) Description(_ context.Context) string {
 	return "value must not be empty or whitespace"
 }
+
 func (v wiqNotEmptyValidator) MarkdownDescription(_ context.Context) string {
 	return "value must not be empty or whitespace"
 }
+
 func (v wiqNotEmptyValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -158,9 +168,11 @@ type wiqAreaValidator struct{}
 func (v wiqAreaValidator) Description(_ context.Context) string {
 	return "value must be one of: Shared Queries, My Queries"
 }
+
 func (v wiqAreaValidator) MarkdownDescription(_ context.Context) string {
 	return "value must be one of: Shared Queries, My Queries"
 }
+
 func (v wiqAreaValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -178,9 +190,11 @@ type wiqWiqlLengthValidator struct{}
 func (v wiqWiqlLengthValidator) Description(_ context.Context) string {
 	return "WIQL length must be between 1 and 32000 characters"
 }
+
 func (v wiqWiqlLengthValidator) MarkdownDescription(_ context.Context) string {
 	return "WIQL length must be between 1 and 32000 characters"
 }
+
 func (v wiqWiqlLengthValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -200,9 +214,11 @@ type wiqExactlyOneOfValidator struct{}
 func (v wiqExactlyOneOfValidator) Description(_ context.Context) string {
 	return "exactly one of parent_id or area must be set"
 }
+
 func (v wiqExactlyOneOfValidator) MarkdownDescription(_ context.Context) string {
 	return "exactly one of parent_id or area must be set"
 }
+
 func (v wiqExactlyOneOfValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	var parentID types.String
 	var area types.String

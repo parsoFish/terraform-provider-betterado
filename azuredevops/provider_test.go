@@ -134,7 +134,6 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// and is no longer in the SDKv2 provider resource map.
 		// and is no longer in the SDKv2 provider resource map.
 
-
 		"betterado_workitemquery_permissions",
 		"betterado_workitemtrackingprocess_control",
 		"betterado_workitemtrackingprocess_field",
@@ -164,13 +163,13 @@ func TestProvider_HasChildResources(t *testing.T) {
 func TestProvider_HasChildDataSources(t *testing.T) {
 	expectedDataSources := []string{
 		// NOTE: betterado_release_definition, betterado_release_definition_history,
-		// betterado_release_definition_revision, betterado_release_definitions, and
-		// betterado_release_folder have been migrated to the framework provider —
-		// they are no longer registered in the SDKv2 DataSourcesMap.
+		// betterado_release_definition_revision, betterado_release_definitions,
+		// betterado_release_folder, betterado_area, and betterado_iteration have been
+		// migrated to the framework provider — they are no longer registered in the
+		// SDKv2 DataSourcesMap.
 		"betterado_agent_pool",
 		"betterado_agent_pools",
 		"betterado_agent_queue",
-		"betterado_area",
 		"betterado_build_definition",
 		"betterado_client_config",
 		"betterado_descriptor",
@@ -185,7 +184,6 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_identity_group",
 		"betterado_identity_groups",
 		"betterado_identity_user",
-		"betterado_iteration",
 		"betterado_project",
 		"betterado_projects",
 		"betterado_security_namespace",

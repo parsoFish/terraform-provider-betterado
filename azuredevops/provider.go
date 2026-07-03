@@ -34,7 +34,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/wiki"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtracking"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtrackingprocess"
 )
 
@@ -184,13 +183,13 @@ func Provider() *schema.Provider {
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			// NOTE: betterado_release_definition, betterado_release_definition_history,
-			// betterado_release_definition_revision, betterado_release_definitions, and
-			// betterado_release_folder have been migrated to the terraform-plugin-framework
-			// provider (framework_provider.go) and are no longer registered here.
+			// betterado_release_definition_revision, betterado_release_definitions,
+			// betterado_release_folder, betterado_area, and betterado_iteration have been
+			// migrated to the terraform-plugin-framework provider (framework_provider.go)
+			// and are no longer registered here.
 			"betterado_agent_pool":                            taskagent.DataAgentPool(),
 			"betterado_agent_pools":                           taskagent.DataAgentPools(),
 			"betterado_agent_queue":                           taskagent.DataAgentQueue(),
-			"betterado_area":                                  workitemtracking.DataArea(),
 			"betterado_build_definition":                      build.DataBuildDefinition(),
 			"betterado_client_config":                         service.DataClientConfig(),
 			"betterado_descriptor":                            graph.DataDescriptor(),
@@ -205,7 +204,6 @@ func Provider() *schema.Provider {
 			"betterado_identity_group":                        identity.DataIdentityGroup(),
 			"betterado_identity_groups":                       identity.DataIdentityGroups(),
 			"betterado_identity_user":                         identity.DataIdentityUser(),
-			"betterado_iteration":                             workitemtracking.DataIteration(),
 			"betterado_project":                               core.DataProject(),
 			"betterado_projects":                              core.DataProjects(),
 			"betterado_security_namespace":                    security.DataSecurityNamespace(),
