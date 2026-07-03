@@ -7,6 +7,16 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **New resource `betterado_pipeline`** — manages a Pipelines v2 pipeline
+  (`_apis/pipelines`) in Azure DevOps via terraform-plugin-framework. Supports
+  Create, Read, Update (name/folder via PATCH), and Delete. Schema: `project_id`
+  (required, ForceNew), `name` (required), `folder` (optional/computed, default `\`),
+  `configuration_type` (optional/computed, default `yaml`), `id` (computed),
+  `revision` (computed), `url` (computed). Coexists with `betterado_build_definition`
+  — see `docs/pipelines-v2-gap-matrix.md` for the full overlap analysis.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES
