@@ -41,9 +41,18 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - **Fix**: Added `ImportStateVerifyIgnore: []string{"allow_groups"}` to the import step in `TestAccWorkitemtrackingprocessField_Identity` only (the other tests — Basic, Integer, Update — don't set `allow_groups` in their configs, so they don't need it).
 - **Compile**: Clean, all unit tests pass.
 
+### Iteration 3 (complete)
+- **Root cause of gate failure**: `TestAccWorkitemtrackingprocessList_Update` step 5/6 — after reverting from `updatedList` (is_suggested=true, items+Yellow) back to `basicList` (is_suggested=false, items without Yellow), the state still showed the old values (`is_suggested=true`, Yellow in items). This caused perpetual drift.
+- **Root cause**: The `UpdateList` Azure DevOps API can return stale data in its response (e.g. returning the OLD `is_suggested` value before the update propagates). The previous polling logic used `listPickListsEqual(updated, readList)` — where `updated` was the UpdateList response — so if UpdateList returned stale data, polling converged on the stale values and wrote them to state. On the next refresh (Read), the API would return the correct values, revealing drift.
+- **Fix**:
+  1. Changed polling target from `updated` (UpdateList response) to `desired` (a PickList built from plan values). Now we poll until GetList matches what we WANTED to set.
+  2. Changed `listPickListsEqual` to treat nil fields in arg `a` as wildcards (skip comparison). This allows the desired struct to omit the `type` field (type requires-replace, not updated) without causing perpetual mismatch.
+  3. Made type comparison case-insensitive (`strings.EqualFold`) to handle "String" vs "string" from the API.
+- **Compile**: Clean; all unit tests pass.
+
 ## Open questions
 
-- Live acceptance test results: will the `ImportStateVerify` for `betterado_workitemtrackingprocess_list` pass? The SDKv2 version has eventual-consistency polling on Update — the framework version replicates that. The `type` field is normalized to lowercase in flattenListFramework but the API might return it uppercase. Watch for diffs.
+- All known failures fixed. Awaiting live gate run to confirm all 7 acceptance tests pass.
 
 ## Notes for reflection
 

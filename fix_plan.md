@@ -8,3 +8,4 @@
 - [x] AC4: captureListEvidence() added to TestAccWorkitemtrackingprocessList_Basic; calls testutils.CaptureLiveEvidence("acceptance-resource-workitemtrackingprocess-list", url, apiResponse)
 - [x] FIX: checkFieldDestroyed panic (nil Meta()) — fixed in iteration 1: uses env-var client instead of GetProvider().Meta()
 - [x] FIX: TestAccWorkitemtrackingprocessField_Identity ImportStateVerify failure — fixed in iteration 2: added ImportStateVerifyIgnore: []string{"allow_groups"} to import step (allow_groups is write-only, not returned by API on read)
+- [x] FIX: TestAccWorkitemtrackingprocessList_Update step 5/6 drift — fixed in iteration 3: poll GetList against desired plan values (not UpdateList response); make listPickListsEqual treat nil fields as wildcards; case-insensitive type comparison
