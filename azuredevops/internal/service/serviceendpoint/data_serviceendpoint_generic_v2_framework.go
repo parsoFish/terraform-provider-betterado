@@ -146,21 +146,21 @@ func (d *ServiceEndpointGenericV2DataSource) Read(ctx context.Context, req datas
 	} else {
 		// Lookup by name
 		endpointName := config.Name.ValueString()
-		endpointIDStr, findErr := findServiceEndpointByName(ctx, d.client, endpointName, projectID)
+		eps, findErr := d.client.ServiceEndpointClient.GetServiceEndpointsByNames(ctx,
+			serviceendpoint.GetServiceEndpointsByNamesArgs{
+				Project:       &projectID,
+				EndpointNames: &[]string{endpointName},
+			})
 		if findErr != nil {
 			resp.Diagnostics.AddError("Error finding service endpoint by name", findErr.Error())
 			return
 		}
-		endpointID, parseErr := uuid.Parse(endpointIDStr)
-		if parseErr != nil {
-			resp.Diagnostics.AddError("Invalid service endpoint ID from lookup", parseErr.Error())
+		if eps == nil || len(*eps) == 0 {
+			resp.Diagnostics.AddError("Service endpoint not found",
+				fmt.Sprintf("No service endpoint with name %q found in project %q", endpointName, projectID))
 			return
 		}
-		ep, lookupErr = d.client.ServiceEndpointClient.GetServiceEndpointDetails(ctx,
-			serviceendpoint.GetServiceEndpointDetailsArgs{
-				EndpointId: &endpointID,
-				Project:    &projectID,
-			})
+		ep = &(*eps)[0]
 	}
 
 	if lookupErr != nil {

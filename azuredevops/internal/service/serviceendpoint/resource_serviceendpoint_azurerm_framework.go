@@ -778,3 +778,30 @@ func (r *ServiceEndpointAzureRMResource) Delete(ctx context.Context, req resourc
 		resp.Diagnostics.AddError("Error deleting service endpoint", err.Error())
 	}
 }
+
+// validateScopeLevel checks that at least one scope (subscription or managementGroup) is set,
+// and that managementGroup values are either both set or both unset.
+func validateScopeLevel(scopeMap map[string][]string) error {
+	subValues := scopeMap["subscription"]
+	mgmtValues := scopeMap["managementGroup"]
+
+	subEmpty := strings.TrimSpace(strings.Join(subValues, "")) == ""
+	mgmtEmpty := strings.TrimSpace(strings.Join(mgmtValues, "")) == ""
+
+	if subEmpty && mgmtEmpty {
+		return fmt.Errorf("one of either subscription scoped (azurerm_subscription_id, azurerm_subscription_name) or managementGroup scoped (azurerm_management_group_id, azurerm_management_group_name) details must be provided")
+	}
+
+	// Validate managementGroup: both ID and Name must be provided together.
+	var mgmtEmptyCount int
+	for _, ele := range mgmtValues {
+		if ele == "" {
+			mgmtEmptyCount++
+		}
+	}
+	if mgmtEmptyCount == 1 {
+		return fmt.Errorf("azurerm_management_group_id and azurerm_management_group_name must both be provided")
+	}
+
+	return nil
+}
