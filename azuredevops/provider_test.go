@@ -18,6 +18,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// and is no longer in the SDKv2 provider resource map.
 		// betterado_environment is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
+		// betterado_environment_resource_kubernetes is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_area_permissions",
 		"betterado_branch_policy_auto_reviewers",
 		"betterado_branch_policy_build_validation",
