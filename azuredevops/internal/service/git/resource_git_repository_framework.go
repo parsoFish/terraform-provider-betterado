@@ -32,8 +32,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
-import "regexp"
-
 // regexpHTTPSURL matches an http:// or https:// URL, or an empty string (for optional fields).
 var regexpHTTPSURL = regexp.MustCompile(`^(https?://\S+)?$`)
 
@@ -455,6 +453,30 @@ func (r *gitRepositoryResource) ValidateConfig(ctx context.Context, req resource
 			"Conflicting attributes",
 			"\"service_connection_id\" cannot be set together with \"password\".",
 		)
+	}
+}
+
+// ---- ConfigValidators -------------------------------------------------------
+// Implements resourcevalidator.RequiredTogether / Conflicting validators at the
+// resource level (root attributes). These complement the nested block validation
+// in ValidateConfig above.
+
+func (r *gitRepositoryResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	// Uses resourcevalidator.RequiredTogether / Conflicting from
+	// github.com/hashicorp/terraform-plugin-framework-validators.
+	// Nested-block constraints (source_type/source_url/service_connection_id/
+	// username/password inside the initialization block) are handled in
+	// ValidateConfig above, because resourcevalidator path expressions can only
+	// reach root-level attributes.  The root-level constraint below encodes the
+	// fact that parent_repository_id and initialization are not independently
+	// meaningful — the parent_repository_id is only valid in a Fork init.
+	// We pair it with the required initialization block to document that both
+	// must appear together.
+	return []resource.ConfigValidator{
+		resourcevalidator.RequiredTogether(
+			path.MatchRoot("parent_repository_id"),
+			path.MatchRoot("initialization"),
+		),
 	}
 }
 
