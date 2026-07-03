@@ -3,13 +3,16 @@ package securityroles
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	sdkroles "github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/securityroles"
@@ -60,6 +63,9 @@ func (r *securityRoleAssignmentFrameworkResource) Schema(_ context.Context, _ re
 			"scope": schema.StringAttribute{
 				Required:    true,
 				Description: "The security role scope (e.g. `distributedtask.environmentreferencerole`).",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"resource_id": schema.StringAttribute{
 				Required:    true,
@@ -67,14 +73,26 @@ func (r *securityRoleAssignmentFrameworkResource) Schema(_ context.Context, _ re
 				PlanModifiers: []planmodifier.String{
 					sraRequiresReplace(),
 				},
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"identity_id": schema.StringAttribute{
 				Required:    true,
 				Description: "The UUID of the identity (user or group) to assign the role to.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+						"must be a valid UUID",
+					),
+				},
 			},
 			"role_name": schema.StringAttribute{
 				Required:    true,
 				Description: "The name of the security role to assign (e.g. `Administrator`, `User`, `Reader`).",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 		},
 	}

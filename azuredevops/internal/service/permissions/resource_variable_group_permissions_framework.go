@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	sdkschema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -55,6 +58,12 @@ func (r *variableGroupPermissionsFrameworkResource) Schema(_ context.Context, _ 
 				PlanModifiers: []planmodifier.String{
 					ppRequiresReplaceString(),
 				},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+						"must be a valid UUID",
+					),
+				},
 			},
 			"variable_group_id": schema.StringAttribute{
 				Required: true,
@@ -66,6 +75,12 @@ func (r *variableGroupPermissionsFrameworkResource) Schema(_ context.Context, _ 
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					ppRequiresReplaceString(),
+				},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`\S`),
+						"must not be empty or consist entirely of whitespace",
+					),
 				},
 			},
 			"permissions": schema.MapAttribute{

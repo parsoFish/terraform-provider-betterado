@@ -4,14 +4,17 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/security"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -66,6 +69,12 @@ func (r *securityPermissionsFrameworkResource) Schema(_ context.Context, _ resou
 				PlanModifiers: []planmodifier.String{
 					spRequiresReplaceString(),
 				},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+						"must be a valid UUID",
+					),
+				},
 			},
 			"token": schema.StringAttribute{
 				Required:    true,
@@ -73,12 +82,18 @@ func (r *securityPermissionsFrameworkResource) Schema(_ context.Context, _ resou
 				PlanModifiers: []planmodifier.String{
 					spRequiresReplaceString(),
 				},
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"principal": schema.StringAttribute{
 				Required:    true,
 				Description: "The descriptor or identity ID of the principal (user or group).",
 				PlanModifiers: []planmodifier.String{
 					spRequiresReplaceString(),
+				},
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
 				},
 			},
 			"permissions": schema.MapAttribute{
