@@ -42,8 +42,8 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 
 **After output:**
 ```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.017s
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.010s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.007s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.006s
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.004s
 
 ```
@@ -83,7 +83,7 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acce
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests	0.007s [no tests to run]
 
 ```
-- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/c0ac3757-e915-453f-ba2b-93a3720d1994&api-version=7.1` _(captured 2026-07-02T12:44:24Z)_
+- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800&api-version=7.1` _(captured 2026-07-03T02:14:27Z)_
 
 ## Test Evidence
 
@@ -98,5 +98,5 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acce
 ## Files Changed
 
 ```
-66 files changed, 5349 insertions(+), 191 deletions(-)
+88 files changed, 8942 insertions(+), 598 deletions(-)
 ```

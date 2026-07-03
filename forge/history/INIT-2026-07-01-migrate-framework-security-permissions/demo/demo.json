@@ -3,7 +3,7 @@
   "essence": "17 resources and 4 data sources across the security, securityroles, and permissions packages are now served through terraform-plugin-framework via the mux provider. Each resource was deregistered from the SDKv2 ResourcesMap/DataSourcesMap, re-implemented with a framework provider.Resource/DataSource, and verified by a live TF_ACC acceptance test against Azure DevOps. Gap matrix docs for all three packages are also delivered.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-security-permissions",
-  "diffStat": "66 files changed, 5349 insertions(+), 191 deletions(-)",
+  "diffStat": "88 files changed, 8942 insertions(+), 598 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
@@ -14,7 +14,7 @@
       "beforeImage": null,
       "afterImage": null,
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.009s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.005s\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.017s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.010s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n"
     },
     {
       "label": "provider-registry",
@@ -38,8 +38,8 @@
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t0.008s [no tests to run]\n",
       "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t0.007s [no tests to run]\n",
       "liveEvidence": {
-        "url": "https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/c0ac3757-e915-453f-ba2b-93a3720d1994&api-version=7.1",
-        "capturedAt": "2026-07-02T12:44:24Z",
+        "url": "https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800&api-version=7.1",
+        "capturedAt": "2026-07-03T02:14:27Z",
         "response": ""
       }
     }
