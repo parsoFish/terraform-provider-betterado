@@ -9,6 +9,18 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **`betterado_notification_subscription` resource and data source.** Manages
+  Azure DevOps notification subscriptions via the ADO Notification API v7.1.
+  The resource supports creating, reading, updating, and deleting subscriptions
+  with `subscription_type` (event type ID), `subscriber_id` (identity), `channel_type`,
+  `channel_address`, `filter_type`, and `filter_criteria` attributes scoped to a
+  `project_id`. A companion data source reads an existing subscription by ID
+  and exposes all schema attributes as computed outputs. Registered in the
+  framework provider only (not SDKv2 `provider.go`). Verified by live acceptance
+  test `TestAccNotificationSubscription_basic`.
+
+### FEATURES
+
 - **`betterado_area` and `betterado_iteration` data sources migrated to terraform-plugin-framework.** Both data sources are now served through the mux provider using framework implementations (`data_area_framework.go`, `data_iteration_framework.go`). The SDKv2 implementations (`data_area.go`, `data_iteration.go`) have been removed. Schema is unchanged: `project_id`, `path`, `fetch_children`, `name`, `has_children`, `children`. Verified by live acceptance tests `TestAccAreaDataSource_Read` and `TestAccIterationDataSource_Read`.
 - **`betterado_workitemquery` and `betterado_workitemquery_folder` migrated to terraform-plugin-framework.** Both resources are now served through the mux provider using framework implementations (`resource_workitemquery_framework.go`, `resource_workitemquery_folder_framework.go`). The SDKv2 implementations have been removed. All schema attributes are preserved including the `ExactlyOneOf(parent_id, area)` constraint and `ForceNew` fields. Verified by live acceptance tests `TestAccWorkItemQuery_UnderArea` and `TestAccWorkItemQueryFolder_UnderArea`.
 - **`betterado_workitem` migrated to terraform-plugin-framework with full validator parity.** The resource

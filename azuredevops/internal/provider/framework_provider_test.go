@@ -125,3 +125,45 @@ func TestFrameworkProvider_HasServicePrincipalEntitlementResource(t *testing.T) 
 	}
 	require.True(t, found, "framework provider must register betterado_service_principal_entitlement")
 }
+
+func TestFrameworkProvider_HasNotificationSubscriptionResource(t *testing.T) {
+	p := frameworkprovider.NewFrameworkProvider()
+	provWithResources, ok := p.(interface {
+		Resources(context.Context) []func() resource.Resource
+	})
+	require.True(t, ok, "framework provider must implement Resources()")
+
+	factories := provWithResources.Resources(context.Background())
+	found := false
+	for _, factory := range factories {
+		r := factory()
+		var metaResp resource.MetadataResponse
+		r.Metadata(context.Background(), resource.MetadataRequest{ProviderTypeName: "betterado"}, &metaResp)
+		if metaResp.TypeName == "betterado_notification_subscription" {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "framework provider must register betterado_notification_subscription resource")
+}
+
+func TestFrameworkProvider_HasNotificationSubscriptionDataSource(t *testing.T) {
+	p := frameworkprovider.NewFrameworkProvider()
+	provWithDataSources, ok := p.(interface {
+		DataSources(context.Context) []func() datasource.DataSource
+	})
+	require.True(t, ok, "framework provider must implement DataSources()")
+
+	factories := provWithDataSources.DataSources(context.Background())
+	found := false
+	for _, factory := range factories {
+		ds := factory()
+		var metaResp datasource.MetadataResponse
+		ds.Metadata(context.Background(), datasource.MetadataRequest{ProviderTypeName: "betterado"}, &metaResp)
+		if metaResp.TypeName == "betterado_notification_subscription" {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "framework provider must register betterado_notification_subscription data source")
+}

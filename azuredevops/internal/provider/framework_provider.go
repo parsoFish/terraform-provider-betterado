@@ -21,6 +21,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/graph"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/notification"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
@@ -269,6 +270,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		workitemtracking.NewFieldResource,
 		workitemtracking.NewWorkItemQueryResource,
 		workitemtracking.NewWorkItemQueryFolderResource,
+		notification.NewNotificationSubscriptionResource,
 	}
 }
 
@@ -306,5 +308,6 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		identity.NewIdentityUserDataSource,
 		workitemtracking.NewAreaDataSource,
 		workitemtracking.NewIterationDataSource,
+		notification.NewNotificationSubscriptionDataSource,
 	}
 }
