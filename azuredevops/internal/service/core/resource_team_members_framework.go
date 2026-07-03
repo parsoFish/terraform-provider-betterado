@@ -169,10 +169,15 @@ func (r *TeamMembersResource) Create(ctx context.Context, req resource.CreateReq
 	}
 
 	model.ID = types.StringValue(team.ProjectId.String() + "/" + team.Id.String())
-	if err := r.readIntoModel(ctx, &model, team); err != nil {
-		resp.Diagnostics.AddError("reading members after create", err.Error())
-		return
-	}
+	// For Create, use the plan values for non-computed attributes so the
+	// framework's plan-vs-state consistency check passes. The Azure DevOps API
+	// may not immediately reflect membership changes, which would cause
+	// readIntoModel to return a null/empty members set and trigger "Provider
+	// produced inconsistent result after apply". Subsequent Read calls refresh
+	// state from the API.
+	model.ProjectID = types.StringValue(team.ProjectId.String())
+	model.TeamID = types.StringValue(team.Id.String())
+	// members is already set from the plan via req.Plan.Get above
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
@@ -303,7 +308,9 @@ func (r *TeamMembersResource) readIntoModel(ctx context.Context, model *teamMemb
 		stateSet[m] = true
 	}
 
-	var result []string
+	// Use a non-nil slice so that types.SetValueFrom produces an empty Set
+	// (not a null Set) when no members match.
+	result := make([]string, 0)
 	for _, m := range allMembers.List() {
 		s := m.(string)
 		if strings.EqualFold("overwrite", mode) || stateSet[s] {
@@ -311,7 +318,10 @@ func (r *TeamMembersResource) readIntoModel(ctx context.Context, model *teamMemb
 		}
 	}
 
-	membersVal, _ := types.SetValueFrom(ctx, types.StringType, result)
+	membersVal, diags := types.SetValueFrom(ctx, types.StringType, result)
+	if diags.HasError() {
+		return fmt.Errorf("building members set: %s", diags)
+	}
 	model.Members = membersVal
 	model.ProjectID = types.StringValue(team.ProjectId.String())
 	model.TeamID = types.StringValue(team.Id.String())
