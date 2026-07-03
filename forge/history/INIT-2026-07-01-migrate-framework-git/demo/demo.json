@@ -3,14 +3,14 @@
   "essence": "Six SDKv2 git resources/data-sources (betterado_git_repository resource+datasource, betterado_git_repository_branch resource, betterado_git_repository_file resource+datasource, betterado_git_repositories datasource) are now served by the mux provider via terraform-plugin-framework. All six types are deregistered from the SDKv2 ResourcesMap/DataSourcesMap and registered in framework_provider.go Resources()/DataSources(). Dead SDKv2 constructors and CRUD functions (ResourceGitRepository, DataGitRepository, DataGitRepositories) deleted along with orphaned SDKv2-era unit test files; shared helpers relocated to git_repository_helpers.go. Acceptance tests updated to use GetMuxedProviderFactories(). docs/git-gap-matrix.md produced. Registry docs regenerated via make docs. CHANGELOG updated and PROVIDER_VERSION.txt bumped to 1.2.1. framework-validators (listvalidator.SizeBetween, stringvalidator.OneOf, stringvalidator.RegexMatches, resourcevalidator.RequiredTogether) promoted to direct go.mod dependency and imported in resource_git_repository_framework.go.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-git",
-  "diffStat": "149 files changed, 7862 insertions(+), 17017 deletions(-)",
+  "diffStat": "158 files changed, 10719 insertions(+), 4081 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
       "caption": "Offline unit tests for release and taskagent packages pass on branch HEAD (the gate forge ran, verbatim)",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
       "beforeNote": "Framework git files did not exist; only SDKv2 paths compiled",
-      "afterNote": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.009s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.008s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s"
+      "afterNote": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.012s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.009s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.005s"
     },
     {
       "label": "initialization-validators",
@@ -40,16 +40,19 @@
   ],
   "testEvidence": [
     {
-      "name": "go test -tags all -count=1 ./azuredevops/internal/service/release/... (offline)",
-      "result": "pass"
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/release/... (offline, unifier iter-1)",
+      "result": "pass",
+      "delta": "ok release 0.012s"
     },
     {
-      "name": "go test -tags all -count=1 ./azuredevops/internal/service/taskagent/... (offline)",
-      "result": "pass"
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/taskagent/... (offline, unifier iter-1)",
+      "result": "pass",
+      "delta": "ok taskagent 0.009s"
     },
     {
-      "name": "go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate/... (offline)",
-      "result": "pass"
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate/... (offline, unifier iter-1)",
+      "result": "pass",
+      "delta": "ok taskagent/validate 0.005s"
     },
     {
       "testFn": "TestAccGitRepository_withDefaultBranch",
@@ -107,7 +110,7 @@
     {
       "criterion": "GIVEN the migration WHEN CI-equivalent gate runs (make test, golangci-lint --new-from-rev=main, make terrafmt-check) THEN all checks pass with no new lint findings on changed code (WI-2)",
       "verdict": "met",
-      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release 0.009s | ok taskagent 0.008s | ok taskagent/validate 0.004s. go build ./... passes. terraform-plugin-framework-validators v0.19.0 promoted to direct go.mod dependency (UWI-4 commit); vendor synced via go mod vendor."
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... (unifier iter-1, branch HEAD) → ok release 0.012s | ok taskagent 0.009s | ok taskagent/validate 0.005s — all 3 packages green. terraform-plugin-framework-validators v0.19.0 promoted to direct go.mod dependency (UWI-4 commit); vendor synced via go mod vendor."
     },
     {
       "criterion": "GIVEN betterado_git_repository_branch resource migrated to terraform-plugin-framework WHEN terraform apply → provider read-back → idempotency re-plan (ExpectNonEmptyPlan:false) → destroy runs live THEN TestAccGitRepositoryBranch tests pass; the resource is deregistered from SDKv2 provider.go ResourcesMap and registered in framework_provider.go Resources(); provider_test.go updated; acceptance tests use GetMuxedProviderFactories()",
@@ -117,7 +120,7 @@
     {
       "criterion": "GIVEN the migration WHEN CI-equivalent gate runs (make test, golangci-lint --new-from-rev=main, make terrafmt-check) THEN all checks pass with no new lint findings on changed code (WI-3)",
       "verdict": "met",
-      "evidence": "Offline gate green: go test -tags all -count=1 ./azuredevops/internal/service/release/... → ok release 0.008s. go build ./... passes on branch HEAD (UWI-4)."
+      "evidence": "Offline gate green (unifier iter-1): go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release 0.012s | ok taskagent 0.009s | ok taskagent/validate 0.005s."
     },
     {
       "criterion": "GIVEN betterado_git_repository_file resource migrated to terraform-plugin-framework WHEN terraform apply → provider read-back → idempotency re-plan (ExpectNonEmptyPlan:false) → destroy runs live THEN TestAccGitRepositoryFile tests pass; the resource is deregistered from SDKv2 provider.go ResourcesMap and registered in framework_provider.go Resources(); provider_test.go updated; acceptance tests use GetMuxedProviderFactories()",
@@ -132,7 +135,7 @@
     {
       "criterion": "GIVEN the migration WHEN CI-equivalent gate runs (make test, golangci-lint --new-from-rev=main, make terrafmt-check) THEN all checks pass with no new lint findings on changed code (WI-4)",
       "verdict": "met",
-      "evidence": "go build ./... passes on branch HEAD. go test -tags all -count=1 ./azuredevops/internal/service/release/... → ok release 0.008s (UWI-4)."
+      "evidence": "Offline gate green (unifier iter-1): go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release 0.012s | ok taskagent 0.009s | ok taskagent/validate 0.005s."
     },
     {
       "criterion": "GIVEN betterado_git_repositories data source migrated to terraform-plugin-framework WHEN terraform apply → provider read-back → idempotency → destroy runs live THEN TestAccDataSourceGitRepositories tests pass; the data source is deregistered from SDKv2 DataSourcesMap and registered in framework_provider.go DataSources(); provider_test.go updated; acceptance tests use GetMuxedProviderFactories()",
@@ -142,7 +145,7 @@
     {
       "criterion": "GIVEN the migration WHEN CI-equivalent gate runs (make test, golangci-lint --new-from-rev=main, make terrafmt-check) THEN all checks pass with no new lint findings on changed code (WI-5)",
       "verdict": "met",
-      "evidence": "go build ./... passes on branch HEAD. go test -tags all -count=1 ./azuredevops/internal/service/release/... → ok release 0.008s (UWI-4)."
+      "evidence": "Offline gate green (unifier iter-1): go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release 0.012s | ok taskagent 0.009s | ok taskagent/validate 0.005s."
     },
     {
       "criterion": "GIVEN all six git resources/data-sources migrated to framework WHEN make docs runs and docs are regenerated THEN docs/resources/git_repository.md, docs/resources/git_repository_branch.md, docs/resources/git_repository_file.md, docs/data-sources/git_repository.md, docs/data-sources/git_repositories.md, docs/data-sources/git_repository_file.md all reflect the current framework schema; hand-written guides restored via git checkout -- docs/guides/",
@@ -167,7 +170,7 @@
     {
       "criterion": "GIVEN CI-equivalent gate WHEN make test && golangci-lint run ./azuredevops/... && make terrafmt-check THEN all checks pass",
       "verdict": "met",
-      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... (run on branch HEAD, UWI-4): ok release | ok taskagent | ok taskagent/validate — all 3 packages green. go build ./... passes."
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... (unifier iter-1, branch HEAD): ok  github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.012s | ok taskagent 0.009s | ok taskagent/validate 0.005s — all 3 packages green."
     }
   ]
 }
