@@ -46,6 +46,16 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 **Compile check:** `go build -tags all ./azuredevops/internal/acceptancetests/` — clean.
 **Test list check:** `TestAccServicehookStorageQueuePipelinesFramework_basic` appears in listing.
 
+### Iteration 2
+
+**Gate failure:** `Provider produced inconsistent result after apply` — `.stage_state_changed_event[0].stage_name was null, but now cty.StringVal("")` and `.stage_state_changed_event[0].pipeline_id was null, but now cty.StringVal("")`.
+
+**Root cause:** In `flattenSubscription`, all optional string fields were set via `types.StringValue(pi["..."])`. When the attribute is Optional and absent from config, the plan holds `types.StringNull()`. After apply, the Read call returns `""` from ADO for unset fields, and `types.StringValue("")` ≠ `null` — Terraform reports inconsistency.
+
+**Fix:** Added `sqpOptionalString(v string) types.String` helper in the framework resource file: maps `"" → types.StringNull()`, non-empty → `types.StringValue(v)`. Applied to all optional string fields in both `stage_state_changed_event` and `run_state_changed_event` flatten paths.
+
+**Key insight:** For framework resources with Optional (non-Computed) string attributes, ALWAYS use null-preserving helpers when flattening from API responses. The API never returns null — it returns `""` — but the plan has null for unset Optional attributes. Storing `""` causes the "Provider produced inconsistent result" error.
+
 ## Open questions
 
 _(none)_

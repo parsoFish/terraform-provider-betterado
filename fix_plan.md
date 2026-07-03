@@ -8,3 +8,7 @@
 ## Iteration 1 fix
 
 - [x] Fix gate failure: add `account_name = "teststorageacc"` to hclServicehookStorageQueuePipelinesFramework HCL template (was missing; schema requires it as Required)
+
+## Iteration 2 fix
+
+- [x] Fix gate failure: "Provider produced inconsistent result after apply" — stage_name and pipeline_id were null in plan (not set in config) but read-back returned "" (empty string). Added sqpOptionalString helper that maps "" → types.StringNull() so null→null is consistent after apply+read.
