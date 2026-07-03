@@ -74,6 +74,7 @@ func (m seCheckMarxSASTUseStateForUnknownModifier) PlanModifyString(_ context.Co
 type seCheckMarxSASTStringDefault struct{ value string }
 
 func seCheckMarxSASTDefaultString(v string) defaults.String { return seCheckMarxSASTStringDefault{v} }
+
 func (d seCheckMarxSASTStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }

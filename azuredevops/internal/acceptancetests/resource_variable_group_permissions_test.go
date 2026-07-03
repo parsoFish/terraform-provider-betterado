@@ -112,7 +112,8 @@ func TestAccVariableGroupPermissions_UpdatePermissions(t *testing.T) {
 func hclVariableGroupPermissions(projectName string, variableGroupName string, permissions map[string]string) string {
 	variableGroupPermissions := datahelper.JoinMap(permissions, "=", "\n")
 
-	return fmt.Sprintf(`
+	return fmt.Sprintf(
+		`
 %s
 
 resource "betterado_variable_group" "example" {

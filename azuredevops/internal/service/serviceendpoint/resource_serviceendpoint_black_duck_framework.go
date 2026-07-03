@@ -26,6 +26,7 @@ var (
 type seBlackDuckRequiresReplaceModifier struct{}
 
 func seBlackDuckRequiresReplace() planmodifier.String { return seBlackDuckRequiresReplaceModifier{} }
+
 func (m seBlackDuckRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
