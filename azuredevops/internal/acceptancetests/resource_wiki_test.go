@@ -92,6 +92,25 @@ func TestAccWikiResource_codeWiki(t *testing.T) {
 	})
 }
 
+// checkWikiDestroyed is the SDKv2-compatible CheckDestroy used by resource_wiki_page_test.go,
+// which still runs with Providers: testutils.GetProviders(). It uses the provider singleton's
+// Meta() rather than building a direct client, so it works in the non-muxed test cases.
+func checkWikiDestroyed(resourceType string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, res := range s.RootModule().Resources {
+			if res.Type != resourceType {
+				continue
+			}
+			clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+			_, err := clients.WikiClient.GetWiki(clients.Ctx, azwiki.GetWikiArgs{WikiIdentifier: converter.String(res.Primary.ID)})
+			if err == nil {
+				return fmt.Errorf("found wiki that should have been deleted")
+			}
+		}
+		return nil
+	}
+}
+
 func checkWikiDestroyedFramework(s *terraform.State) error {
 	clients, err := getWikiDirectClient()
 	if err != nil {
