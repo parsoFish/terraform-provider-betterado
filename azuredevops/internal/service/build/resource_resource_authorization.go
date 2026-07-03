@@ -93,7 +93,7 @@ func resourceResourceAuthorizationRead(d *schema.ResourceData, m interface{}) er
 			}
 
 			if len(*resourceRefs) == 0 {
-				log.Printf(msgErrorAuthorizationNoLongerExists, *(authorizedResource.Id))
+				log.Printf(msgErrorAuthorizationNoLongerExists, *authorizedResource.Id)
 				d.SetId("")
 				return nil
 			}
@@ -110,7 +110,7 @@ func resourceResourceAuthorizationRead(d *schema.ResourceData, m interface{}) er
 		})
 		if err != nil {
 			if utils.ResponseWasNotFound(err) {
-				log.Printf(msgErrorAuthorizationNoLongerExists, *(authorizedResource.Id))
+				log.Printf(msgErrorAuthorizationNoLongerExists, *authorizedResource.Id)
 				d.SetId("")
 				return nil
 			}
@@ -118,7 +118,7 @@ func resourceResourceAuthorizationRead(d *schema.ResourceData, m interface{}) er
 		}
 
 		if len(*resourceRefs) == 0 {
-			log.Printf(msgErrorAuthorizationNoLongerExists, *(authorizedResource.Id))
+			log.Printf(msgErrorAuthorizationNoLongerExists, *authorizedResource.Id)
 			d.SetId("")
 			return nil
 		}
