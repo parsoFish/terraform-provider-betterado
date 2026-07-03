@@ -24,7 +24,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtracking"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtrackingprocess"
 )
 
@@ -161,11 +160,11 @@ func Provider() *schema.Provider {
 			"betterado_variable_group_variable":    taskagent.ResourceVariableGroupVariable(),
 			// betterado_wiki migrated to the framework provider (framework_provider.go).
 			// betterado_wiki_page migrated to the framework provider (framework_provider.go).
-			"betterado_workitem":                                    workitemtracking.ResourceWorkItem(),
-			"betterado_workitemtracking_field":                      workitemtracking.ResourceField(),
-			"betterado_workitemquery_permissions":                   permissions.ResourceWorkItemQueryPermissions(),
-			"betterado_workitemquery":                               workitemtracking.ResourceQuery(),
-			"betterado_workitemquery_folder":                        workitemtracking.ResourceQueryFolder(),
+			// betterado_workitem is now registered in the framework provider (framework_provider.go)
+			// betterado_workitemtracking_field is now registered in the framework provider (framework_provider.go)
+			"betterado_workitemquery_permissions": permissions.ResourceWorkItemQueryPermissions(),
+			// betterado_workitemquery is now registered in the framework provider (framework_provider.go)
+			// betterado_workitemquery_folder is now registered in the framework provider (framework_provider.go)
 			"betterado_workitemtrackingprocess_control":             workitemtrackingprocess.ResourceControl(),
 			"betterado_workitemtrackingprocess_group":               workitemtrackingprocess.ResourceGroup(),
 			"betterado_workitemtrackingprocess_inherited_control":   workitemtrackingprocess.ResourceInheritedControl(),
@@ -188,10 +187,10 @@ func Provider() *schema.Provider {
 			// provider (framework_provider.go) and are no longer registered here.
 			// betterado_build_definition (data source) has also been migrated to the
 			// framework provider (framework_provider.go); it must NOT be listed here.
-			"betterado_agent_pool":    taskagent.DataAgentPool(),
-			"betterado_agent_pools":   taskagent.DataAgentPools(),
-			"betterado_agent_queue":   taskagent.DataAgentQueue(),
-			"betterado_area":          workitemtracking.DataArea(),
+			"betterado_agent_pool":  taskagent.DataAgentPool(),
+			"betterado_agent_pools": taskagent.DataAgentPools(),
+			"betterado_agent_queue": taskagent.DataAgentQueue(),
+			// betterado_area is now registered in the framework provider (framework_provider.go)
 			"betterado_client_config": service.DataClientConfig(),
 			// betterado_descriptor is now registered in the framework provider (framework_provider.go)
 			"betterado_environment": taskagent.DataEnvironment(),
@@ -205,7 +204,7 @@ func Provider() *schema.Provider {
 			// betterado_identity_group is now registered in the framework provider (framework_provider.go)
 			// betterado_identity_groups is now registered in the framework provider (framework_provider.go)
 			// betterado_identity_user is now registered in the framework provider (framework_provider.go)
-			"betterado_iteration":                workitemtracking.DataIteration(),
+			// betterado_iteration is now registered in the framework provider (framework_provider.go)
 			"betterado_project":                  core.DataProject(),
 			"betterado_projects":                 core.DataProjects(),
 			"betterado_security_namespace":       security.DataSecurityNamespace(),

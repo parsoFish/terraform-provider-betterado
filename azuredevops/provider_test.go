@@ -99,10 +99,10 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_variable_group",
 		"betterado_variable_group_permissions",
 		"betterado_variable_group_variable",
-		"betterado_workitem",
-		"betterado_workitemtracking_field",
-		"betterado_workitemquery",
-		"betterado_workitemquery_folder",
+		// betterado_workitem is now a framework resource (registered in framework_provider.go)
+		// betterado_workitemtracking_field is now a framework resource (registered in framework_provider.go)
+		// betterado_workitemquery is now a framework resource (registered in framework_provider.go)
+		// betterado_workitemquery_folder is now a framework resource (registered in framework_provider.go)
 		"betterado_workitemquery_permissions",
 		"betterado_workitemtrackingprocess_control",
 		"betterado_workitemtrackingprocess_field",
@@ -140,7 +140,7 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_agent_pool",
 		"betterado_agent_pools",
 		"betterado_agent_queue",
-		"betterado_area",
+		// betterado_area is now a framework data source (registered in framework_provider.go)
 		"betterado_client_config",
 		// betterado_descriptor is now a framework data source (registered in framework_provider.go)
 		"betterado_environment",
@@ -153,7 +153,7 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		// betterado_identity_group is now a framework data source (registered in framework_provider.go)
 		// betterado_identity_groups is now a framework data source (registered in framework_provider.go)
 		// betterado_identity_user is now a framework data source (registered in framework_provider.go)
-		"betterado_iteration",
+		// betterado_iteration is now a framework data source (registered in framework_provider.go)
 		"betterado_project",
 		"betterado_projects",
 		"betterado_security_namespace",

@@ -27,6 +27,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/wiki"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtracking"
 )
 
 // BetteradoFrameworkProvider is the terraform-plugin-framework provider stub.
@@ -264,6 +265,10 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		feed.NewFeedRetentionPolicyResource,
 		graph.NewGroupResource,
 		graph.NewGroupMembershipResource,
+		workitemtracking.NewWorkItemResource,
+		workitemtracking.NewFieldResource,
+		workitemtracking.NewWorkItemQueryResource,
+		workitemtracking.NewWorkItemQueryFolderResource,
 	}
 }
 
@@ -299,5 +304,7 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		identity.NewIdentityGroupDataSource,
 		identity.NewIdentityGroupsDataSource,
 		identity.NewIdentityUserDataSource,
+		workitemtracking.NewAreaDataSource,
+		workitemtracking.NewIterationDataSource,
 	}
 }
