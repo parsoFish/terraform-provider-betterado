@@ -167,9 +167,11 @@ func Provider() *schema.Provider {
 			"betterado_workitemtrackingprocess_control":             workitemtrackingprocess.ResourceControl(),
 			"betterado_workitemtrackingprocess_group":               workitemtrackingprocess.ResourceGroup(),
 			"betterado_workitemtrackingprocess_inherited_control":   workitemtrackingprocess.ResourceInheritedControl(),
-			"betterado_workitemtrackingprocess_inherited_page":      workitemtrackingprocess.ResourceInheritedPage(),
-			"betterado_workitemtrackingprocess_list":                workitemtrackingprocess.ResourceList(),
-			"betterado_workitemtrackingprocess_page":                workitemtrackingprocess.ResourcePage(),
+			// NOTE: betterado_workitemtrackingprocess_inherited_page has been migrated to the
+			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
+			"betterado_workitemtrackingprocess_list": workitemtrackingprocess.ResourceList(),
+			// NOTE: betterado_workitemtrackingprocess_page has been migrated to the
+			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
 			// NOTE: betterado_workitemtrackingprocess_process has been migrated to the
 			// terraform-plugin-framework provider (framework_provider.go) and is no longer
 			// registered here.

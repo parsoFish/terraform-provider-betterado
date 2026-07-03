@@ -211,6 +211,8 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		workitemtrackingprocess.NewWorkItemTypeResource,
 		workitemtrackingprocess.NewStateResource,
 		workitemtrackingprocess.NewInheritedStateResource,
+		workitemtrackingprocess.NewPageResource,
+		workitemtrackingprocess.NewInheritedPageResource,
 	}
 }
 

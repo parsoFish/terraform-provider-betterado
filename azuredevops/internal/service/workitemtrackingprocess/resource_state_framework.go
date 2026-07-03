@@ -32,8 +32,10 @@ var (
 
 type stateUseStateForUnknownString struct{}
 
-func (stateUseStateForUnknownString) Description(_ context.Context) string        { return "use prior state" }
-func (stateUseStateForUnknownString) MarkdownDescription(_ context.Context) string { return "use prior state" }
+func (stateUseStateForUnknownString) Description(_ context.Context) string { return "use prior state" }
+func (stateUseStateForUnknownString) MarkdownDescription(_ context.Context) string {
+	return "use prior state"
+}
 func (stateUseStateForUnknownString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -46,8 +48,10 @@ func (stateUseStateForUnknownString) PlanModifyString(_ context.Context, req pla
 
 type stateUseStateForUnknownInt64 struct{}
 
-func (stateUseStateForUnknownInt64) Description(_ context.Context) string        { return "use prior state" }
-func (stateUseStateForUnknownInt64) MarkdownDescription(_ context.Context) string { return "use prior state" }
+func (stateUseStateForUnknownInt64) Description(_ context.Context) string { return "use prior state" }
+func (stateUseStateForUnknownInt64) MarkdownDescription(_ context.Context) string {
+	return "use prior state"
+}
 func (stateUseStateForUnknownInt64) PlanModifyInt64(_ context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -60,8 +64,12 @@ func (stateUseStateForUnknownInt64) PlanModifyInt64(_ context.Context, req planm
 
 type stateRequiresReplaceString struct{}
 
-func (stateRequiresReplaceString) Description(_ context.Context) string        { return "requires replacement if changed" }
-func (stateRequiresReplaceString) MarkdownDescription(_ context.Context) string { return "requires replacement if changed" }
+func (stateRequiresReplaceString) Description(_ context.Context) string {
+	return "requires replacement if changed"
+}
+func (stateRequiresReplaceString) MarkdownDescription(_ context.Context) string {
+	return "requires replacement if changed"
+}
 func (stateRequiresReplaceString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -76,8 +84,12 @@ func (stateRequiresReplaceString) PlanModifyString(_ context.Context, req planmo
 
 type stateColorValidator struct{}
 
-func (v stateColorValidator) Description(_ context.Context) string { return "Must be a hexadecimal color code, e.g. #b2b2b2" }
-func (v stateColorValidator) MarkdownDescription(_ context.Context) string { return "Must be a hexadecimal color code, e.g. `#b2b2b2`" }
+func (v stateColorValidator) Description(_ context.Context) string {
+	return "Must be a hexadecimal color code, e.g. #b2b2b2"
+}
+func (v stateColorValidator) MarkdownDescription(_ context.Context) string {
+	return "Must be a hexadecimal color code, e.g. `#b2b2b2`"
+}
 func (v stateColorValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -89,8 +101,12 @@ func (v stateColorValidator) ValidateString(_ context.Context, req validator.Str
 
 type stateCategoryValidator struct{}
 
-func (v stateCategoryValidator) Description(_ context.Context) string { return "Valid values: Proposed, InProgress, Resolved, Completed, Removed" }
-func (v stateCategoryValidator) MarkdownDescription(_ context.Context) string { return "Valid values: Proposed, InProgress, Resolved, Completed, Removed" }
+func (v stateCategoryValidator) Description(_ context.Context) string {
+	return "Valid values: Proposed, InProgress, Resolved, Completed, Removed"
+}
+func (v stateCategoryValidator) MarkdownDescription(_ context.Context) string {
+	return "Valid values: Proposed, InProgress, Resolved, Completed, Removed"
+}
 func (v stateCategoryValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return

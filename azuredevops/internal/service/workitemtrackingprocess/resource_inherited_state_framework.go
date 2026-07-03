@@ -29,8 +29,12 @@ var (
 
 type inheritedStateUseStateForUnknownString struct{}
 
-func (inheritedStateUseStateForUnknownString) Description(_ context.Context) string        { return "use prior state" }
-func (inheritedStateUseStateForUnknownString) MarkdownDescription(_ context.Context) string { return "use prior state" }
+func (inheritedStateUseStateForUnknownString) Description(_ context.Context) string {
+	return "use prior state"
+}
+func (inheritedStateUseStateForUnknownString) MarkdownDescription(_ context.Context) string {
+	return "use prior state"
+}
 func (inheritedStateUseStateForUnknownString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -43,8 +47,12 @@ func (inheritedStateUseStateForUnknownString) PlanModifyString(_ context.Context
 
 type inheritedStateUseStateForUnknownBool struct{}
 
-func (inheritedStateUseStateForUnknownBool) Description(_ context.Context) string        { return "use prior state" }
-func (inheritedStateUseStateForUnknownBool) MarkdownDescription(_ context.Context) string { return "use prior state" }
+func (inheritedStateUseStateForUnknownBool) Description(_ context.Context) string {
+	return "use prior state"
+}
+func (inheritedStateUseStateForUnknownBool) MarkdownDescription(_ context.Context) string {
+	return "use prior state"
+}
 func (inheritedStateUseStateForUnknownBool) PlanModifyBool(_ context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -57,8 +65,12 @@ func (inheritedStateUseStateForUnknownBool) PlanModifyBool(_ context.Context, re
 
 type inheritedStateRequiresReplaceString struct{}
 
-func (inheritedStateRequiresReplaceString) Description(_ context.Context) string        { return "requires replacement if changed" }
-func (inheritedStateRequiresReplaceString) MarkdownDescription(_ context.Context) string { return "requires replacement if changed" }
+func (inheritedStateRequiresReplaceString) Description(_ context.Context) string {
+	return "requires replacement if changed"
+}
+func (inheritedStateRequiresReplaceString) MarkdownDescription(_ context.Context) string {
+	return "requires replacement if changed"
+}
 func (inheritedStateRequiresReplaceString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return

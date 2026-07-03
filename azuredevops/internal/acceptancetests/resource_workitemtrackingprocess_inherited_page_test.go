@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccWorkitemtrackingprocessInheritedPage_Basic(t *testing.T) {
@@ -168,7 +167,13 @@ func removedWorkItemType(workItemTypeName string, processName string) string {
 
 func checkPageLabelReverted(processIdStr *string, witRefName *string, pageId *string, customLabel string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		// Use getDirectClient (defined in resource_task_group_test.go) rather than
+		// testutils.GetProvider().Meta() — the mux ProtoV6ProviderFactories path does
+		// not configure the SDKv2 singleton, so Meta() would be nil.
+		clients, err := getDirectClient()
+		if err != nil {
+			return fmt.Errorf("building client: %w", err)
+		}
 
 		processId, err := uuid.Parse(*processIdStr)
 		if err != nil {
