@@ -244,5 +244,7 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		serviceendpoint.NewServiceEndpointAzureCRDataSource,
 		serviceendpoint.NewServiceEndpointGitHubDataSource,
 		serviceendpoint.NewServiceEndpointBitBucketDataSource,
+		serviceendpoint.NewServiceEndpointNpmDataSource,
+		serviceendpoint.NewServiceEndpointSonarCloudDataSource,
 	}
 }

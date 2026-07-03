@@ -215,8 +215,8 @@ func Provider() *schema.Provider {
 			// betterado_serviceendpoint_bitbucket data source is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_dockerregistry data source is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_github data source is registered in framework_provider.go (migrated to terraform-plugin-framework)
-			"betterado_serviceendpoint_npm":                   serviceendpoint.DataResourceServiceEndpointNpm(),
-			"betterado_serviceendpoint_sonarcloud":            serviceendpoint.DataResourceServiceEndpointSonarCloud(),
+			// betterado_serviceendpoint_npm data source is registered in framework_provider.go (migrated to terraform-plugin-framework)
+			// betterado_serviceendpoint_sonarcloud data source is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			"betterado_service_principal":                     graph.DataServicePrincipal(),
 			"betterado_storage_key":                           graph.DataStorageKey(),
 			"betterado_team":                                  core.DataTeam(),

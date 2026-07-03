@@ -192,8 +192,8 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		// betterado_serviceendpoint_bitbucket data source migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_dockerregistry data source migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_github data source migrated to framework (registered in framework_provider.go)
-		"betterado_serviceendpoint_npm",
-		"betterado_serviceendpoint_sonarcloud",
+		// betterado_serviceendpoint_npm data source migrated to framework (registered in framework_provider.go)
+		// betterado_serviceendpoint_sonarcloud data source migrated to framework (registered in framework_provider.go)
 		"betterado_storage_key",
 		"betterado_service_principal",
 		"betterado_team",
