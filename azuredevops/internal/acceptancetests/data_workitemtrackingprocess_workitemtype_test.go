@@ -15,9 +15,9 @@ func TestAccWorkitemtrackingprocessWorkItemType_DataSource_Get(t *testing.T) {
 	tfDataNode := "data.betterado_workitemtrackingprocess_workitemtype.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSourceWorkItemType(workItemTypeName, processName),

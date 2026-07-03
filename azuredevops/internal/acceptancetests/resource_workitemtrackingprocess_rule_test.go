@@ -18,9 +18,9 @@ func TestAccWorkitemtrackingprocessRule_Basic(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: multipleConditionsRule(workItemTypeName, processName),
@@ -44,9 +44,9 @@ func TestAccWorkitemtrackingprocessRule_Update(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: multipleConditionsRule(workItemTypeName, processName),
@@ -96,9 +96,9 @@ func TestAccWorkitemtrackingprocessRule_ConditionTypes(t *testing.T) {
 			tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 			resource.ParallelTest(t, resource.TestCase{
-				PreCheck:          func() { testutils.PreCheck(t, nil) },
-				ProviderFactories: testutils.GetProviderFactories(),
-				CheckDestroy:      testutils.CheckProcessDestroyed,
+				PreCheck:                 func() { testutils.PreCheck(t, nil) },
+				ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+				CheckDestroy:             testutils.CheckProcessDestroyed,
 				Steps: []resource.TestStep{
 					{
 						Config: ruleWithConditionType(workItemTypeName, processName, tc.conditionType, tc.field, tc.value),
@@ -132,9 +132,9 @@ func TestAccWorkitemtrackingprocessRule_ConditionGroupMembership(t *testing.T) {
 			tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 			resource.ParallelTest(t, resource.TestCase{
-				PreCheck:          func() { testutils.PreCheck(t, nil) },
-				ProviderFactories: testutils.GetProviderFactories(),
-				CheckDestroy:      testutils.CheckProcessDestroyed,
+				PreCheck:                 func() { testutils.PreCheck(t, nil) },
+				ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+				CheckDestroy:             testutils.CheckProcessDestroyed,
 				Steps: []resource.TestStep{
 					{
 						Config: ruleWithGroupMembershipCondition(workItemTypeName, processName, "", groupName, conditionType),
@@ -181,9 +181,9 @@ func TestAccWorkitemtrackingprocessRule_ActionTypes(t *testing.T) {
 			tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 			resource.ParallelTest(t, resource.TestCase{
-				PreCheck:          func() { testutils.PreCheck(t, nil) },
-				ProviderFactories: testutils.GetProviderFactories(),
-				CheckDestroy:      testutils.CheckProcessDestroyed,
+				PreCheck:                 func() { testutils.PreCheck(t, nil) },
+				ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+				CheckDestroy:             testutils.CheckProcessDestroyed,
 				Steps: []resource.TestStep{
 					{
 						Config: ruleWithActionType(workItemTypeName, processName, tc.actionType, tc.targetField, tc.value),
@@ -211,9 +211,9 @@ func TestAccWorkitemtrackingprocessRule_HideTargetField(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: ruleWithHideTargetField(workItemTypeName, processName, "", groupName, fieldName),
@@ -237,9 +237,9 @@ func TestAccWorkitemtrackingprocessRule_DisallowValue(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_rule.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: ruleWithDisallowValue(workItemTypeName, processName),
