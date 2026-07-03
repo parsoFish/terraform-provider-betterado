@@ -3,12 +3,12 @@
 page_title: "betterado_identity_groups Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Looks up Azure DevOps identity groups with an optional project scope.
 ---
 
 # betterado_identity_groups (Data Source)
 
-
+Looks up Azure DevOps identity groups with an optional project scope.
 
 
 
@@ -17,28 +17,19 @@ description: |-
 
 ### Optional
 
-- `project_id` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `project_id` (String) The ID of the project to scope the group lookup.
 
 ### Read-Only
 
-- `groups` (Set of Object) (see [below for nested schema](#nestedatt--groups))
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
-
+- `groups` (Attributes Set) The set of identity groups. (see [below for nested schema](#nestedatt--groups))
+- `id` (String) A unique identifier for this data source read.
 
 <a id="nestedatt--groups"></a>
 ### Nested Schema for `groups`
 
 Read-Only:
 
-- `descriptor` (String)
-- `id` (String)
-- `name` (String)
-- `subject_descriptor` (String)
+- `descriptor` (String) The descriptor of the identity group.
+- `id` (String) The UUID of the identity group.
+- `name` (String) The display name of the group.
+- `subject_descriptor` (String) The subject descriptor of the identity group.

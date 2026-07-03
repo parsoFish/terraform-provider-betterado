@@ -13,6 +13,7 @@ import (
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/graph"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
@@ -227,5 +228,8 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		graph.NewUsersDataSource,
 		graph.NewGroupsDataSource,
 		graph.NewServicePrincipalDataSource,
+		identity.NewIdentityGroupDataSource,
+		identity.NewIdentityGroupsDataSource,
+		identity.NewIdentityUserDataSource,
 	}
 }

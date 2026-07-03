@@ -22,7 +22,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/feed"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
@@ -203,9 +202,12 @@ func Provider() *schema.Provider {
 			// (framework_provider.go) and must NOT be listed here.
 			// betterado_groups is now registered in the framework provider
 			// (framework_provider.go) and must NOT be listed here.
-			"betterado_identity_group":                 identity.DataIdentityGroup(),
-			"betterado_identity_groups":                identity.DataIdentityGroups(),
-			"betterado_identity_user":                  identity.DataIdentityUser(),
+			// betterado_identity_group is now registered in the framework provider
+			// (framework_provider.go) and must NOT be listed here.
+			// betterado_identity_groups is now registered in the framework provider
+			// (framework_provider.go) and must NOT be listed here.
+			// betterado_identity_user is now registered in the framework provider
+			// (framework_provider.go) and must NOT be listed here.
 			"betterado_iteration":                      workitemtracking.DataIteration(),
 			"betterado_project":                        core.DataProject(),
 			"betterado_projects":                       core.DataProjects(),

@@ -3,12 +3,12 @@
 page_title: "betterado_identity_user Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Looks up an Azure DevOps identity user by name with an optional search filter.
 ---
 
 # betterado_identity_user (Data Source)
 
-
+Looks up an Azure DevOps identity user by name with an optional search filter.
 
 
 
@@ -17,22 +17,14 @@ description: |-
 
 ### Required
 
-- `name` (String)
+- `name` (String) The name to search for the identity user.
 
 ### Optional
 
-- `search_filter` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `search_filter` (String) The search filter to use. One of: AccountName, DisplayName, MailAddress, General. Defaults to General.
 
 ### Read-Only
 
-- `descriptor` (String)
-- `id` (String) The ID of this resource.
-- `subject_descriptor` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `descriptor` (String) The descriptor of the identity user.
+- `id` (String) The identity ID of the user.
+- `subject_descriptor` (String) The subject descriptor of the identity user.

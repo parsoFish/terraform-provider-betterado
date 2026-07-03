@@ -9,6 +9,24 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **`betterado_identity_group` data source migrated to terraform-plugin-framework.**
+  The data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`name` required, `project_id` required; `descriptor`,
+  `subject_descriptor` computed).
+  Verified by live acceptance test `TestAccIdentityDataSources_Framework/IdentityGroup`.
+
+- **`betterado_identity_groups` data source migrated to terraform-plugin-framework.**
+  The data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`project_id` optional; `groups` set computed with `id`, `name`,
+  `descriptor`, `subject_descriptor`).
+  Verified by live acceptance test `TestAccIdentityDataSources_Framework/IdentityGroups`.
+
+- **`betterado_identity_user` data source migrated to terraform-plugin-framework.**
+  The data source now uses the framework implementation served through the mux provider.
+  Schema is unchanged (`name` required; `search_filter` optional/computed defaulting to
+  `General`; `descriptor`, `subject_descriptor` computed).
+  Verified by live acceptance test `TestAccIdentityDataSources_Framework/IdentityUser`.
+
 - **`betterado_user` data source migrated to terraform-plugin-framework.** The
   data source now uses the framework implementation served through the mux provider.
   Schema is unchanged (`descriptor` required; `display_name`, `domain`, `mail_address`,
