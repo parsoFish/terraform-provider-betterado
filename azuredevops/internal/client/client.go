@@ -105,6 +105,13 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 	// discovery call to GetResourceAreas returns a 404/empty result for them
 	// there. A separate connection to https://app.vssps.visualstudio.com is
 	// required so that GetClientByResourceAreaId can resolve their locations.
+	//
+	// We use GetClientByUrl (not GetClientByResourceAreaId / accounts.NewClient)
+	// to avoid resource-area discovery HTTP calls during provider Configure —
+	// those calls can fail with 401 when the PAT scope is restricted to a
+	// single org and poisons the whole provider Configure step. Location-service
+	// discovery is deferred to the first real API call (GetAccounts / GetProfile)
+	// when proper user-facing errors can be surfaced from the data source Read.
 	vsspsConnection := &azuredevops.Connection{
 		AuthProvider:            authProvider,
 		BaseUrl:                 "https://app.vssps.visualstudio.com",
@@ -112,11 +119,8 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 	}
 	setUserAgent(vsspsConnection)
 
-	accountsClient, err := accounts.NewClient(ctx, vsspsConnection)
-	if err != nil {
-		log.Printf("getAzdoClient(): accounts.NewClient failed.")
-		return nil, err
-	}
+	vssspsSdkClient := vsspsConnection.GetClientByUrl("https://app.vssps.visualstudio.com")
+	accountsClient := &accounts.ClientImpl{Client: *vssspsSdkClient}
 
 	coreClient, err := core.NewClient(ctx, connection)
 	if err != nil {
@@ -190,11 +194,9 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 		return nil, err
 	}
 
-	profileClient, err := profile.NewClient(ctx, vsspsConnection)
-	if err != nil {
-		log.Printf("getAzdoClient(): profile.NewClient failed.")
-		return nil, err
-	}
+	// profile.NewClient also uses GetClientByResourceAreaId; bypass it for the
+	// same reason as accounts above (deferred location-service discovery).
+	profileClient := &profile.ClientImpl{Client: *vssspsSdkClient}
 
 	releaseClient, err := release.NewClient(ctx, connection)
 	if err != nil {
