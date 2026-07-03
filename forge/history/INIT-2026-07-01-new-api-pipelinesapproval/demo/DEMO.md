@@ -222,8 +222,8 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 ## Files Changed
 
 ```
-14 files changed, 1132 insertions(+), 1 deletion(-)
- CHANGELOG.md | 11+
+34 files changed, 1751 insertions(+), 1 deletion(-)
+ CHANGELOG.md | 12+
  PROVIDER_VERSION.txt | 2+-
  azuredevops/internal/acceptancetests/resource_pipeline_approval_framework_test.go | 124+
  azuredevops/internal/client/client.go | 9+
@@ -236,5 +236,8 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
  azuredevops/internal/service/pipelinesapproval/gap_matrix_test.go | 54+
  azuredevops/internal/service/pipelinesapproval/resource_pipeline_approval_framework.go | 245+
  azuredevops/internal/service/pipelinesapproval/resource_pipeline_approval_framework_test.go | 81+
+ docs/data-sources/pipeline_approvals.md | 48+
  docs/pipelinesapproval-gap-matrix.md | 148+
+ docs/resources/pipeline_approval.md | 41+
+ forge/history/INIT-2026-07-01-new-api-pipelinesapproval/demo/** | 499+
 ```
