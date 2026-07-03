@@ -1,45 +1,301 @@
 {
   "title": "Migrate betterado_user_entitlement, betterado_group_entitlement, and betterado_service_principal_entitlement to terraform-plugin-framework",
-  "essence": "Three SDKv2 resources (betterado_user_entitlement, betterado_group_entitlement, betterado_service_principal_entitlement) are now served by the mux provider via terraform-plugin-framework. Live acceptance tests ran (TF_ACC=1): TestAccUserEntitlement_Create, TestAccGroupEntitlement_Create, TestAccServicePrincipalEntitlement_create — all passed. Live evidence captured at 2026-07-03T03:18:03Z: ADO REST GET of group entitlement confirmed existence post-apply at dev.azure.com.",
+  "essence": "Three SDKv2 resources — betterado_user_entitlement, betterado_group_entitlement, and betterado_service_principal_entitlement — are now served via the mux provider using terraform-plugin-framework. Prior to this cycle each was registered in provider.go ResourcesMap and used the SDKv2 helper/schema path; after, each is removed from ResourcesMap, added to framework_provider.go Resources(), and backed by a framework resource type whose Configure() wires *client.AggregatedClient. Live acceptance tests (TestAccUserEntitlement_Create, TestAccGroupEntitlement_Create, TestAccServicePrincipalEntitlement_create) each ran apply → read-back → idempotency re-plan → destroy against real ADO with TF_ACC=1; all passed. A gap matrix documents every field in the Member Entitlement Management REST API v7.1 surface vs the three SDKv2 schemas.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-member-entitlement",
-  "diffStat": "18 files changed, 2314 insertions(+), 205 deletions(-)",
+  "diffStat": "26 files changed, 2456 insertions(+), 339 deletions(-)",
+  "summary": {
+    "bullets": [
+      "betterado_user_entitlement, betterado_group_entitlement, betterado_service_principal_entitlement migrated from SDKv2 to terraform-plugin-framework — no schema change visible to users.",
+      "All three resources deregistered from provider.go ResourcesMap and wired into framework_provider.go Resources(); mux provider serves both SDK paths without conflict.",
+      "Acceptance tests updated to use GetMuxedProviderFactories(); live tests confirmed apply → read-back → idempotency → destroy cycle against real ADO.",
+      "docs/memberentitlementmanagement-gap-matrix.md produced: every REST API v7.1 field listed with gap status (covered / gap-deferred).",
+      "CHANGELOG.md updated with DRAFT Unreleased entries; registry docs regenerated; PROVIDER_VERSION.txt bumped to 1.3.0."
+    ],
+    "branch": "forge/INIT-2026-07-01-migrate-framework-member-entitlement",
+    "commitSha": "1a7982b9"
+  },
+  "acEvaluations": [
+    {
+      "criterion": "GIVEN the ADO Member Entitlement Management REST API v7.1 schema WHEN compared against the SDKv2 schemas for user_entitlement, group_entitlement, and service_principal_entitlement THEN docs/memberentitlementmanagement-gap-matrix.md exists and lists every field with writable gaps marked resolved or deferred",
+      "verdict": "met",
+      "evidence": "docs/memberentitlementmanagement-gap-matrix.md exists on branch (added commit 3cc814b3); tables for all three resources list ADO REST fields, terraform attributes, writability, and gap status (covered/gap-deferred). Gate test TestGapMatrixExists → pass (go test -tags all -run TestGapMatrixExists ./azuredevops/internal/service/memberentitlementmanagement/)."
+    },
+    {
+      "criterion": "GIVEN betterado_user_entitlement migrated to terraform-plugin-framework WHEN the framework provider's Resources() is inspected THEN betterado_user_entitlement appears in the list and NOT in provider.go ResourcesMap",
+      "verdict": "met",
+      "evidence": "framework_provider.go Resources() includes memberentitlementmanagement.NewUserEntitlementResource(); provider.go ResourcesMap no longer contains 'betterado_user_entitlement'. TestFrameworkProvider_HasUserEntitlementResource → pass (go test -tags all -run TestFrameworkProvider_HasUserEntitlementResource ./azuredevops/internal/provider/)."
+    },
+    {
+      "criterion": "GIVEN the framework resource is wired with a real AggregatedClient WHEN TestAccUserEntitlement_Create runs with TF_ACC=1 via GetMuxedProviderFactories() THEN apply succeeds, read-back returns correct values, idempotency re-plan shows no diff, destroy cleans up",
+      "verdict": "met",
+      "evidence": "TestAccUserEntitlement_Create ran live (TF_ACC=1); test uses ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(); ExpectNonEmptyPlan: false — PASS. Live acceptance ran apply → read-back → idempotency re-plan → destroy successfully."
+    },
+    {
+      "criterion": "GIVEN betterado_group_entitlement migrated to terraform-plugin-framework WHEN the framework provider's Resources() is inspected THEN betterado_group_entitlement appears in the list and NOT in provider.go ResourcesMap",
+      "verdict": "met",
+      "evidence": "framework_provider.go Resources() includes memberentitlementmanagement.NewGroupEntitlementResource(); provider.go ResourcesMap no longer contains 'betterado_group_entitlement'. TestFrameworkProvider_HasGroupEntitlementResource → pass."
+    },
+    {
+      "criterion": "GIVEN the framework resource is wired with a real AggregatedClient WHEN TestAccGroupEntitlement_Create runs with TF_ACC=1 via GetMuxedProviderFactories() THEN apply succeeds, read-back returns correct values, idempotency re-plan shows no diff, destroy cleans up",
+      "verdict": "met",
+      "evidence": "TestAccGroupEntitlement_Create ran live; REST GET captured at https://dev.azure.com/davidgparsonson/_apis/memberentitlementmanagement/groupentitlements/7bece247-5904-4d44-b7e3-29f96502d9ae?api-version=7.1 (2026-07-03T03:18:03Z) — response: id=7bece247, displayName=group-038c153d, licenseRule.status=active, status=applied. ExpectNonEmptyPlan: false → PASS."
+    },
+    {
+      "criterion": "GIVEN betterado_service_principal_entitlement migrated to terraform-plugin-framework WHEN the framework provider's Resources() is inspected THEN betterado_service_principal_entitlement appears in the list and NOT in provider.go ResourcesMap",
+      "verdict": "met",
+      "evidence": "framework_provider.go Resources() includes memberentitlementmanagement.NewServicePrincipalEntitlementResource(); provider.go ResourcesMap no longer contains 'betterado_service_principal_entitlement'. TestFrameworkProvider_HasServicePrincipalEntitlementResource → pass."
+    },
+    {
+      "criterion": "GIVEN the framework resource is wired with a real AggregatedClient WHEN TestAccServicePrincipalEntitlement_create runs with TF_ACC=1 via GetMuxedProviderFactories() THEN apply succeeds, read-back returns correct values, idempotency re-plan shows no diff, destroy cleans up",
+      "verdict": "met",
+      "evidence": "TestAccServicePrincipalEntitlement_create ran live (AZDO_TEST_AAD_SERVICE_PRINCIPAL_OBJECT_ID set); uses ProtoV6ProviderFactories; ExpectNonEmptyPlan: false → PASS. Apply → read-back → idempotency → destroy all succeeded."
+    },
+    {
+      "criterion": "GIVEN all three entitlement resources migrated to framework WHEN make docs runs and docs are committed THEN docs/resources/user_entitlement.md, docs/resources/group_entitlement.md, docs/resources/service_principal_entitlement.md reflect current framework schemas; docs/guides/ is restored",
+      "verdict": "met",
+      "evidence": "docs/resources/user_entitlement.md, docs/resources/group_entitlement.md, docs/resources/service_principal_entitlement.md present in branch diff (committed 742dfa66). make docs ran + git checkout -- docs/guides/ executed; docs/guides/ restored in same commit."
+    },
+    {
+      "criterion": "GIVEN live evidence captured in WI-2, WI-3, WI-4 acceptance tests WHEN demo.json is inspected THEN a checkpoint exists with liveEvidence.url pointing to a real REST GET URL",
+      "verdict": "met",
+      "evidence": "checkpoint 'acceptance-resource' carries liveEvidence.url = https://dev.azure.com/davidgparsonson/_apis/memberentitlementmanagement/groupentitlements/7bece247-5904-4d44-b7e3-29f96502d9ae?api-version=7.1 (capturedAt 2026-07-03T03:18:03Z; real ADO REST GET response present in response field)."
+    },
+    {
+      "criterion": "GIVEN all three resources migrated WHEN CHANGELOG.md is read THEN an Unreleased entry notes the framework migration of the three entitlement resources",
+      "verdict": "met",
+      "evidence": "CHANGELOG.md ## [Unreleased] section contains FEATURES bullets for betterado_user_entitlement, betterado_group_entitlement, betterado_service_principal_entitlement framework migrations (committed 742dfa66)."
+    },
+    {
+      "criterion": "GIVEN a user-visible schema change has shipped WHEN PROVIDER_VERSION.txt is read THEN the semver has been bumped (patch or minor) relative to its pre-cycle value",
+      "verdict": "met",
+      "evidence": "PROVIDER_VERSION.txt = 1.3.0 (prior release was 1.2.0 per CHANGELOG.md ## [1.2.0] heading; bumped minor for three new framework resource implementations, committed 742dfa66)."
+    }
+  ],
   "checkpoints": [
     {
       "label": "quality-gate",
-      "caption": "Offline unit tests for the framework provider and member entitlement packages pass on branch HEAD",
-      "command": "go test -tags all -run TestFrameworkProvider_HasUserEntitlementResource ./azuredevops/internal/provider/",
-      "beforeNote": "Framework resource files did not exist; only SDKv2 paths compiled",
-      "afterNote": "ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider — TestFrameworkProvider_HasUserEntitlementResource PASS"
+      "caption": "Initiative CI gate (release + taskagent packages) passes on branch HEAD",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "beforeNote": "Gate packages (release, taskagent) were unaffected by the SDKv2 entitlement registrations — these pass on main and remain green after migration",
+      "afterNote": "ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.007s; ok .../taskagent 0.007s; ok .../taskagent/validate 0.004s — all green on branch HEAD"
+    },
+    {
+      "label": "framework-provider-registration",
+      "caption": "Framework provider Resources() lists all three entitlement types; SDKv2 ResourcesMap entries removed",
+      "command": "go test -tags all -count=1 -run TestFrameworkProvider_Has ./azuredevops/internal/provider/",
+      "beforeNote": "Prior: betterado_user_entitlement, betterado_group_entitlement, betterado_service_principal_entitlement registered only in provider.go ResourcesMap (SDKv2 path); framework provider did not list them",
+      "afterNote": "After: TestFrameworkProvider_HasUserEntitlementResource, TestFrameworkProvider_HasGroupEntitlementResource, TestFrameworkProvider_HasServicePrincipalEntitlementResource all PASS; ResourcesMap entries removed"
     },
     {
       "label": "acceptance-resource",
-      "caption": "Live group entitlement created via framework resource; ADO REST GET confirms entitlement exists at memberentitlementmanagement endpoint",
+      "caption": "Live group entitlement created via framework resource path; ADO REST GET confirms entitlement exists",
       "liveEvidence": {
         "url": "https://dev.azure.com/davidgparsonson/_apis/memberentitlementmanagement/groupentitlements/7bece247-5904-4d44-b7e3-29f96502d9ae?api-version=7.1",
         "capturedAt": "2026-07-03T03:18:03Z",
         "response": "{\"id\":\"7bece247-5904-4d44-b7e3-29f96502d9ae\",\"group\":{\"displayName\":\"group-038c153d-c86e-443c-b6f6-3d97378025d0\",\"origin\":\"vsts\",\"originId\":\"7bece247-5904-4d44-b7e3-29f96502d9ae\",\"principalName\":\"[davidgparsonson]\\\\group-038c153d-c86e-443c-b6f6-3d97378025d0\"},\"licenseRule\":{\"accountLicenseType\":\"express\",\"licensingSource\":\"account\",\"status\":\"active\"},\"status\":\"applied\"}"
       },
-      "beforeNote": "betterado_group_entitlement was SDKv2-only; no framework path existed",
-      "afterNote": "Group entitlement 'group-038c153d-c86e-443c-b6f6-3d97378025d0' created via mux→framework provider path; GET response confirms id, displayName, licenseRule, and status=applied match the apply. TestAccGroupEntitlement_Create idempotency re-plan: ExpectNonEmptyPlan: false → PASS"
+      "beforeNote": "Prior: betterado_group_entitlement used SDKv2 helper/schema path; no framework Configure() wiring existed",
+      "afterNote": "After: TestAccGroupEntitlement_Create applied via mux→framework path; GET /groupentitlements/{id} returned id=7bece247, displayName=group-038c153d, licenseRule.status=active, status=applied. ExpectNonEmptyPlan: false → PASS; destroy cleaned up"
+    },
+    {
+      "label": "acceptance-resource-group-entitlement",
+      "kind": "harness",
+      "caption": "Live evidence — acceptance-resource-group-entitlement",
+      "afterNote": "Real API GET against the live system: https://dev.azure.com/davidgparsonson/_apis/memberentitlementmanagement/groupentitlements/7bece247-5904-4d44-b7e3-29f96502d9ae?api-version=7.1",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/_apis/memberentitlementmanagement/groupentitlements/7bece247-5904-4d44-b7e3-29f96502d9ae?api-version=7.1",
+        "capturedAt": "2026-07-03T03:18:03Z",
+        "response": "{\n  \"extensionRules\": [],\n  \"group\": {\n    \"_links\": {\n      \"membershipState\": {\n        \"href\": \"https://vssps.dev.azure.com/davidgparsonson/_apis/Graph/MembershipStates/vssgp.Uy0xLTktMTU1MTM3NDI0NS0xMDkyNDk4Mzc1LTMxODAyNjQyNjYtMjgwODQ0NTIyNS0zOTEzMDQ5NjE1LTEtMzY2NjM1MjYwMC0zOTQ2OTQyMjc4LTMxMjU3MDgwMzktMzcyNDg3MjE2MA\"\n      },\n      \"memberships\": {\n        \"href\": \"https://vssps.dev.azure.com/davidgparsonson/_apis/Graph/Memberships/vssgp.Uy0xLTktMTU1MTM3NDI0NS0xMDkyNDk4Mzc1LTMxODAyNjQyNjYtMjgwODQ0NTIyNS0zOTEzMDQ5NjE1LTEtMzY2NjM1MjYwMC0zOTQ2OTQyMjc4LTMxMjU3MDgwMzktMzcyNDg3MjE2MA\"\n      },\n      \"self\": {\n        \"href\": \"https://vssps.dev.azure.com/davidgparsonson/_apis/Graph/Groups/vssgp.Uy0xLTktMTU1MTM3NDI0NS0xMDkyNDk4Mzc1LTMxODAyNjQyNjYtMjgwODQ0NTIyNS0zOTEzMDQ5NjE1LTEtMzY2NjM1MjYwMC0zOTQ2OTQyMjc4LTMxMjU3MDgwMzktMzcyNDg3MjE2MA\"\n      },\n      \"storageKey\": {\n        \"href\": \"https://vssps.dev.azure.com/davidgparsonson/_apis/Graph/StorageKeys/vssgp.Uy0xLTktMTU1MTM3NDI0NS0xMDkyNDk4Mzc1LTMxODAyNjQyNjYtMjgwODQ0NTIyNS0zOTEzMDQ5NjE1LTEtMzY2NjM1MjYwMC0zOTQ2OTQyMjc4LTMxMjU3MDgwMzktMzcyNDg3MjE2MA\"\n      }\n    },\n    \"descriptor\": \"vssgp.Uy0xLTktMTU1MTM3NDI0NS0xMDkyNDk4Mzc1LTMxODAyNjQyNjYtMjgwODQ0NTIyNS0zOTEzMDQ5NjE1LTEtMzY2NjM1MjYwMC0zOTQ2OTQyMjc4LTMxMjU3MDgwMzktMzcyNDg3MjE2MA\",\n    \"displayName\": \"group-038c153d-c86e-443c-b6f6-3d97378025d0\",\n    \"url\": \"https://vssps.dev.azure.com/davidgparsonson/_apis/Graph/Groups/vssgp.Uy0xLTktMTU1MTM3NDI0NS0xMDkyNDk4Mzc1LTMxODAyNjQyNjYtMjgwODQ0NTIyNS0zOTEzMDQ5NjE1LTEtMzY2NjM1MjYwMC0zOTQ2OTQyMjc4LTMxMjU3MDgwMzktMzcyNDg3MjE2MA\",\n    \"origin\": \"vsts\",\n    \"originId\": \"7bece247-5904-4d44-b7e3-29f96502d9ae\",\n    \"subjectKind\": \"group\",\n    \"domain\": \"vstfs:///Framework/IdentityDomain/c7331e41-8ebd-4afb-a765-7929e93c660f\",\n    \"principalName\": \"[davidgparsonson]\\\\group-038c153d-c86e-443c-b6f6-3d97378025d0\",\n    \"description\": \"\"\n  },\n  \"id\": \"7bece247-5904-4d44-b7e3-29f96502d9ae\",\n  \"lastExecuted\": \"2026-07-03T03:17:59.9689895Z\",\n  \"licenseRule\": {\n    \"accountLicenseType\": \"express\",\n    \"assignmentSource\": \"unknown\",\n    \"licenseDisplayName\": \"Basic\",\n    \"licensingSource\": \"account\",\n    \"msdnLicenseType\": \"none\",\n    \"status\": \"active\",\n    \"statusMessage\": \"\"\n  },\n  \"projectEntitlements\": [],\n  \"status\": \"applied\"\n}"
+      }
     }
   ],
   "testEvidence": [
     {
-      "name": "go test -tags all -run TestFrameworkProvider_HasUserEntitlementResource ./azuredevops/internal/provider/ (offline)",
-      "result": "pass"
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... (initiative CI gate — offline)",
+      "result": "pass",
+      "delta": "3/3 packages green on branch HEAD"
     },
     {
-      "name": "TestAccUserEntitlement_Create (TF_ACC=1, live)",
-      "result": "pass"
+      "name": "TestGapMatrixExists (go test -tags all -run TestGapMatrixExists ./azuredevops/internal/service/memberentitlementmanagement/)",
+      "result": "pass",
+      "delta": "+1 new gate test (WI-1)"
     },
     {
-      "name": "TestAccGroupEntitlement_Create (TF_ACC=1, live)",
-      "result": "pass"
+      "name": "TestNewUserEntitlementResource_Metadata (offline unit, WI-2)",
+      "result": "pass",
+      "delta": "+1 new test"
     },
     {
-      "name": "TestAccServicePrincipalEntitlement_create (TF_ACC=1, live)",
-      "result": "pass"
+      "name": "TestFrameworkProvider_HasUserEntitlementResource (offline unit, WI-2)",
+      "result": "pass",
+      "delta": "+1 new test"
+    },
+    {
+      "name": "TestAccUserEntitlement_Create (TF_ACC=1, live ADO, WI-2)",
+      "result": "pass",
+      "delta": "Updated to GetMuxedProviderFactories(); apply→read-back→idempotency→destroy PASS"
+    },
+    {
+      "name": "TestNewGroupEntitlementResource_Metadata (offline unit, WI-3)",
+      "result": "pass",
+      "delta": "+1 new test"
+    },
+    {
+      "name": "TestFrameworkProvider_HasGroupEntitlementResource (offline unit, WI-3)",
+      "result": "pass",
+      "delta": "+1 new test"
+    },
+    {
+      "name": "TestAccGroupEntitlement_Create (TF_ACC=1, live ADO, WI-3)",
+      "result": "pass",
+      "delta": "Updated to GetMuxedProviderFactories(); live REST GET evidence captured; idempotency PASS"
+    },
+    {
+      "name": "TestNewServicePrincipalEntitlementResource_Metadata (offline unit, WI-4)",
+      "result": "pass",
+      "delta": "+1 new test"
+    },
+    {
+      "name": "TestFrameworkProvider_HasServicePrincipalEntitlementResource (offline unit, WI-4)",
+      "result": "pass",
+      "delta": "+1 new test"
+    },
+    {
+      "name": "TestAccServicePrincipalEntitlement_create (TF_ACC=1, live ADO, WI-4)",
+      "result": "pass",
+      "delta": "Updated to GetMuxedProviderFactories(); apply→read-back→idempotency→destroy PASS"
     }
+  ],
+  "apiDiff": [
+    {
+      "name": "provider.go ResourcesMap — removed betterado_user_entitlement",
+      "change": "removed",
+      "before": "\"betterado_user_entitlement\": memberentitlementmanagement.ResourceUserEntitlement()",
+      "after": "(moved to framework_provider.go Resources() as memberentitlementmanagement.NewUserEntitlementResource())"
+    },
+    {
+      "name": "provider.go ResourcesMap — removed betterado_group_entitlement",
+      "change": "removed",
+      "before": "\"betterado_group_entitlement\": memberentitlementmanagement.ResourceGroupEntitlement()",
+      "after": "(moved to framework_provider.go Resources() as memberentitlementmanagement.NewGroupEntitlementResource())"
+    },
+    {
+      "name": "provider.go ResourcesMap — removed betterado_service_principal_entitlement",
+      "change": "removed",
+      "before": "\"betterado_service_principal_entitlement\": memberentitlementmanagement.ResourceServicePrincipalEntitlement()",
+      "after": "(moved to framework_provider.go Resources() as memberentitlementmanagement.NewServicePrincipalEntitlementResource())"
+    },
+    {
+      "name": "framework_provider.go Resources() — added three entitlement resources",
+      "change": "added",
+      "before": "// betterado_user/group/service_principal_entitlement not in framework provider",
+      "after": "memberentitlementmanagement.NewUserEntitlementResource(),\nmemberentitlementmanagement.NewGroupEntitlementResource(),\nmemberentitlementmanagement.NewServicePrincipalEntitlementResource(),"
+    }
+  ],
+  "filesChanged": [
+    {
+      "path": "azuredevops/internal/service/memberentitlementmanagement/resource_user_entitlement_framework.go",
+      "note": "new file — framework resource implementation (WI-2)"
+    },
+    {
+      "path": "azuredevops/internal/service/memberentitlementmanagement/resource_user_entitlement_framework_test.go",
+      "note": "new file — metadata unit test (WI-2)"
+    },
+    {
+      "path": "azuredevops/internal/service/memberentitlementmanagement/resource_group_entitlement_framework.go",
+      "note": "new file — framework resource implementation (WI-3)"
+    },
+    {
+      "path": "azuredevops/internal/service/memberentitlementmanagement/resource_group_entitlement_framework_test.go",
+      "note": "new file — metadata unit test (WI-3)"
+    },
+    {
+      "path": "azuredevops/internal/service/memberentitlementmanagement/resource_service_principal_entitlement_framework.go",
+      "note": "new file — framework resource implementation (WI-4)"
+    },
+    {
+      "path": "azuredevops/internal/service/memberentitlementmanagement/resource_service_principal_entitlement_framework_test.go",
+      "note": "new file — metadata unit test (WI-4)"
+    },
+    {
+      "path": "azuredevops/internal/service/memberentitlementmanagement/gap_matrix_test.go",
+      "note": "new file — gate test for gap matrix existence (WI-1)"
+    },
+    {
+      "path": "azuredevops/internal/provider/framework_provider.go",
+      "note": "changed — added three NewXxxEntitlementResource() to Resources()"
+    },
+    {
+      "path": "azuredevops/internal/provider/framework_provider_test.go",
+      "note": "changed — added HasXxxEntitlementResource tests"
+    },
+    {
+      "path": "azuredevops/provider.go",
+      "note": "changed — removed three entitlement entries from ResourcesMap"
+    },
+    {
+      "path": "azuredevops/provider_test.go",
+      "note": "changed — SDKv2 resource count decremented by 3"
+    },
+    {
+      "path": "azuredevops/internal/acceptancetests/resource_user_entitlement_test.go",
+      "note": "changed — switched to GetMuxedProviderFactories()"
+    },
+    {
+      "path": "azuredevops/internal/acceptancetests/resource_group_entitlement_test.go",
+      "note": "changed — switched to GetMuxedProviderFactories()"
+    },
+    {
+      "path": "azuredevops/internal/acceptancetests/resource_service_principal_entitlement_test.go",
+      "note": "changed — switched to GetMuxedProviderFactories()"
+    },
+    {
+      "path": "docs/memberentitlementmanagement-gap-matrix.md",
+      "note": "new file — REST API v7.1 field gap matrix (WI-1)"
+    },
+    {
+      "path": "docs/resources/user_entitlement.md",
+      "note": "changed — regenerated by make docs (WI-5)"
+    },
+    {
+      "path": "docs/resources/group_entitlement.md",
+      "note": "changed — regenerated by make docs (WI-5)"
+    },
+    {
+      "path": "docs/resources/service_principal_entitlement.md",
+      "note": "changed — regenerated by make docs (WI-5)"
+    },
+    {
+      "path": "examples/resources/betterado_user_entitlement/resource.tf",
+      "note": "new file — HCL example for docs embed (WI-5)"
+    },
+    {
+      "path": "examples/resources/betterado_group_entitlement/resource.tf",
+      "note": "new file — HCL example for docs embed (WI-5)"
+    },
+    {
+      "path": "examples/resources/betterado_service_principal_entitlement/resource.tf",
+      "note": "new file — HCL example for docs embed (WI-5)"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "note": "changed — DRAFT Unreleased entries for all three migrations (WI-5)"
+    },
+    {
+      "path": "PROVIDER_VERSION.txt",
+      "note": "changed — bumped to 1.3.0 (WI-5)"
+    },
+    {
+      "path": "forge/history/INIT-2026-07-01-migrate-framework-member-entitlement/demo/demo.json",
+      "note": "this file — unifier demo artefact"
+    }
+  ],
+  "usage_example": "# betterado_user_entitlement (now framework-backed)\nresource \"betterado_user_entitlement\" \"example\" {\n  principal_name       = \"user@example.com\"\n  account_license_type = \"express\"\n}\n\n# betterado_group_entitlement (now framework-backed)\nresource \"betterado_group_entitlement\" \"example\" {\n  display_name         = \"my-group\"\n  account_license_type = \"express\"\n}\n\n# betterado_service_principal_entitlement (now framework-backed)\nresource \"betterado_service_principal_entitlement\" \"example\" {\n  origin_id            = \"<aad-service-principal-object-id>\"\n  origin               = \"aad\"\n  account_license_type = \"express\"\n}",
+  "impact": [
+    "All three entitlement resources now use the terraform-plugin-framework code path — better type-safety, cleaner plan/apply diagnostics, aligned with provider long-term architecture.",
+    "No schema change: existing Terraform configurations continue to work without modification.",
+    "Mux provider eliminates any 'Duplicate resource type' risk; both SDK paths coexist with a single authoritative registration per resource.",
+    "docs/memberentitlementmanagement-gap-matrix.md provides a permanent reference for future API surface expansion across these three resources."
   ]
 }
