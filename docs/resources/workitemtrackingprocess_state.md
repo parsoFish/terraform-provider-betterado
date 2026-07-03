@@ -3,12 +3,12 @@
 page_title: "betterado_workitemtrackingprocess_state Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a custom work item state in an Azure DevOps process.
 ---
 
 # betterado_workitemtrackingprocess_state (Resource)
 
-
+Manages a custom work item state in an Azure DevOps process.
 
 
 
@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `color` (String) Color hexadecimal code to represent the state.
+- `color` (String) Color hexadecimal code to represent the state, e.g. #b2b2b2.
 - `name` (String) Name of the state.
 - `process_id` (String) The ID of the process.
 - `state_category` (String) Category of the state. Valid values: Proposed, InProgress, Resolved, Completed, Removed.
@@ -26,19 +26,8 @@ description: |-
 ### Optional
 
 - `order` (Number) Order within the category where the state should appear.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the state.
 - `url` (String) URL of the state.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

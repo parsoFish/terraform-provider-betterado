@@ -182,7 +182,8 @@ func Provider() *schema.Provider {
 			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
 			// NOTE: betterado_workitemtrackingprocess_field has been migrated to the
 			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
-			"betterado_workitemtrackingprocess_rule": workitemtrackingprocess.ResourceRule(),
+			// NOTE: betterado_workitemtrackingprocess_rule has been migrated to the
+			// terraform-plugin-framework provider (framework_provider.go) and is no longer registered here.
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			// NOTE: betterado_release_definition, betterado_release_definition_history,

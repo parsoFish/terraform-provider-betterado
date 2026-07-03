@@ -7,6 +7,10 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### ENHANCEMENTS
+
+- **`betterado_workitemtrackingprocess_rule` migrated to terraform-plugin-framework.** The resource now uses the framework implementation served through the mux provider. The schema is unchanged (`process_id`, `work_item_type_id`, `name`, `is_enabled`, `condition`, `action`, `url`). Condition and action blocks are preserved as sets with full enum validation. Verified by live acceptance tests `TestAccWorkitemtrackingprocessRule_Basic`, `_Update`, `_ConditionTypes`, `_ConditionGroupMembership`, `_ActionTypes`, `_HideTargetField`, and `_DisallowValue`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

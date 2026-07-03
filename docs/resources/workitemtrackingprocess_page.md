@@ -3,12 +3,12 @@
 page_title: "betterado_workitemtrackingprocess_page Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a page in the layout of a work item type in an Azure DevOps process.
 ---
 
 # betterado_workitemtrackingprocess_page (Resource)
 
-
+Manages a page in the layout of a work item type in an Azure DevOps process.
 
 
 
@@ -24,28 +24,16 @@ description: |-
 ### Optional
 
 - `order` (Number) Order in which the page should appear in the layout.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `visible` (Boolean) A value indicating if the page should be visible or not.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-- `sections` (List of Object) The sections of the page. (see [below for nested schema](#nestedatt--sections))
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
-
+- `id` (String) The ID of the page.
+- `sections` (Attributes List) The sections of the page. (see [below for nested schema](#nestedatt--sections))
 
 <a id="nestedatt--sections"></a>
 ### Nested Schema for `sections`
 
 Read-Only:
 
-- `id` (String)
+- `id` (String) The ID of the section.

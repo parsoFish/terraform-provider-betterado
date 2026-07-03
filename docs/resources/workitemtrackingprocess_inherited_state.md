@@ -3,12 +3,12 @@
 page_title: "betterado_workitemtrackingprocess_inherited_state Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages the visibility of an inherited work item state in an Azure DevOps process.
 ---
 
 # betterado_workitemtrackingprocess_inherited_state (Resource)
 
-
+Manages the visibility of an inherited work item state in an Azure DevOps process.
 
 
 
@@ -23,19 +23,8 @@ description: |-
 
 ### Optional
 
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `visible` (Boolean) Whether the state should be visible.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `id` (String) The ID of the state.

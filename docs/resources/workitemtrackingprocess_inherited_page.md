@@ -3,12 +3,12 @@
 page_title: "betterado_workitemtrackingprocess_inherited_page Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages the customisation of an inherited page in an Azure DevOps process work item type layout.
 ---
 
 # betterado_workitemtrackingprocess_inherited_page (Resource)
 
-
+Manages the customisation of an inherited page in an Azure DevOps process work item type layout.
 
 
 
@@ -18,24 +18,10 @@ description: |-
 ### Required
 
 - `label` (String) Label for the page.
-- `page_id` (String) The ID of the inherited page to customize.
+- `page_id` (String) The ID of the inherited page to customise.
 - `process_id` (String) The ID of the process.
 - `work_item_type_id` (String) The ID (reference name) of the work item type.
 
-### Optional
-
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `id` (String) The ID of the page (same as page_id).

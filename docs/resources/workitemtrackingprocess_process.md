@@ -3,12 +3,12 @@
 page_title: "betterado_workitemtrackingprocess_process Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a work item tracking process in Azure DevOps.
 ---
 
 # betterado_workitemtrackingprocess_process (Resource)
 
-
+Manages a work item tracking process in Azure DevOps.
 
 
 
@@ -26,19 +26,8 @@ description: |-
 - `is_default` (Boolean) Is the process default?
 - `is_enabled` (Boolean) Is the process enabled?
 - `reference_name` (String) Reference name of process being created. If not specified, server will assign a unique reference name.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `customization_type` (String) Indicates the type of customization on this process. System Process is default process. Inherited Process is modified process that was System process before.
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `id` (String) The ID of the process.

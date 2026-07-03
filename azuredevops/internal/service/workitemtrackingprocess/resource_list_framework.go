@@ -37,9 +37,11 @@ var (
 type listUseStateForUnknownString struct{}
 
 func (listUseStateForUnknownString) Description(_ context.Context) string { return "use prior state" }
+
 func (listUseStateForUnknownString) MarkdownDescription(_ context.Context) string {
 	return "use prior state"
 }
+
 func (listUseStateForUnknownString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -55,9 +57,11 @@ type listRequiresReplaceString struct{}
 func (listRequiresReplaceString) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (listRequiresReplaceString) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (listRequiresReplaceString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -75,9 +79,11 @@ type listStaticStringDefault struct{ value string }
 func (s listStaticStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("default value %q", s.value)
 }
+
 func (s listStaticStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("default value `%s`", s.value)
 }
+
 func (s listStaticStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(s.value)
 }
@@ -87,9 +93,11 @@ type listStaticBoolDefault struct{ value bool }
 func (s listStaticBoolDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("default value %v", s.value)
 }
+
 func (s listStaticBoolDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("default value `%v`", s.value)
 }
+
 func (s listStaticBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(s.value)
 }

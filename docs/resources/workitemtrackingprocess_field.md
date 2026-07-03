@@ -3,12 +3,12 @@
 page_title: "betterado_workitemtrackingprocess_field Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a field on a work item type in an Azure DevOps process.
 ---
 
 # betterado_workitemtrackingprocess_field (Resource)
 
-
+Manages a field on a work item type in an Azure DevOps process.
 
 
 
@@ -27,21 +27,10 @@ description: |-
 - `default_value` (String) The default value of the field.
 - `read_only` (Boolean) If true, the field cannot be edited.
 - `required` (Boolean) If true, the field cannot be empty.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `customization` (String) Indicates the type of customization on this work item. Possible values are `system`, `inherited`, or `custom`.
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the field assignment (process_id/work_item_type_id/field_id).
 - `is_locked` (Boolean) Indicates whether the field definition is locked for editing.
 - `url` (String) The URL of the field resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

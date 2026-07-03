@@ -31,9 +31,11 @@ var (
 type fieldUseStateForUnknownString struct{}
 
 func (fieldUseStateForUnknownString) Description(_ context.Context) string { return "use prior state" }
+
 func (fieldUseStateForUnknownString) MarkdownDescription(_ context.Context) string {
 	return "use prior state"
 }
+
 func (fieldUseStateForUnknownString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -49,9 +51,11 @@ type fieldRequiresReplaceString struct{}
 func (fieldRequiresReplaceString) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (fieldRequiresReplaceString) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (fieldRequiresReplaceString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -69,9 +73,11 @@ type fieldStaticBoolDefault struct{ value bool }
 func (s fieldStaticBoolDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("default value %v", s.value)
 }
+
 func (s fieldStaticBoolDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("default value `%v`", s.value)
 }
+
 func (s fieldStaticBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(s.value)
 }

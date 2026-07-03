@@ -3,12 +3,12 @@
 page_title: "betterado_workitemtrackingprocess_list Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a picklist (allowed values list) in an Azure DevOps process.
 ---
 
 # betterado_workitemtrackingprocess_list (Resource)
 
-
+Manages a picklist (allowed values list) in an Azure DevOps process.
 
 
 
@@ -23,20 +23,9 @@ description: |-
 ### Optional
 
 - `is_suggested` (Boolean) Indicates whether items outside of the suggested list are allowed.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 - `type` (String) Data type of the list. Valid values: string, integer.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
+- `id` (String) The ID of the list.
 - `url` (String) URL of the list.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

@@ -3,12 +3,12 @@
 page_title: "betterado_workitemtrackingprocess_workitemtypes Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Reads all work item types for an Azure DevOps process.
 ---
 
 # betterado_workitemtrackingprocess_workitemtypes (Data Source)
 
-
+Reads all work item types for an Azure DevOps process.
 
 
 
@@ -19,34 +19,22 @@ description: |-
 
 - `process_id` (String) The ID of the process.
 
-### Optional
-
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-- `work_item_types` (List of Object) A list of work item types for the process. (see [below for nested schema](#nestedatt--work_item_types))
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
-
+- `id` (String) The ID of the process (used as data source ID).
+- `work_item_types` (Attributes Set) A set of work item types for the process. (see [below for nested schema](#nestedatt--work_item_types))
 
 <a id="nestedatt--work_item_types"></a>
 ### Nested Schema for `work_item_types`
 
 Read-Only:
 
-- `color` (String)
-- `customization` (String)
-- `description` (String)
-- `icon` (String)
-- `is_enabled` (Boolean)
-- `name` (String)
-- `parent_work_item_reference_name` (String)
-- `reference_name` (String)
-- `url` (String)
+- `color` (String) Color hexadecimal code to represent the work item type.
+- `customization` (String) Indicates the type of customization on this work item type.
+- `description` (String) Description of the work item type.
+- `icon` (String) Icon to represent the work item type.
+- `is_enabled` (Boolean) Indicates if the work item type is enabled.
+- `name` (String) Name of the work item type.
+- `parent_work_item_reference_name` (String) Parent work item type reference name.
+- `reference_name` (String) Reference name of the work item type.
+- `url` (String) URL of the work item type.
