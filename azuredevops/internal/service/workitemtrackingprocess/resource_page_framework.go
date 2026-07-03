@@ -34,9 +34,11 @@ var (
 type pageUseStateForUnknownString struct{}
 
 func (pageUseStateForUnknownString) Description(_ context.Context) string { return "use prior state" }
+
 func (pageUseStateForUnknownString) MarkdownDescription(_ context.Context) string {
 	return "use prior state"
 }
+
 func (pageUseStateForUnknownString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -52,9 +54,11 @@ type pageRequiresReplaceString struct{}
 func (pageRequiresReplaceString) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (pageRequiresReplaceString) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (pageRequiresReplaceString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -70,9 +74,11 @@ type pageStaticBoolDefault struct{ value bool }
 func (d pageStaticBoolDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %v", d.value)
 }
+
 func (d pageStaticBoolDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%v`", d.value)
 }
+
 func (d pageStaticBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(d.value)
 }

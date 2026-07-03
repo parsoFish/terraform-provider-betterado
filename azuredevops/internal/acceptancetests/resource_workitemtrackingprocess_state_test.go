@@ -122,7 +122,7 @@ func captureStateEvidence(tfNode string) resource.TestCheckFunc {
 		pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
 		agg, err := client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
 		if err != nil {
-			return nil // best-effort: client build failure does not fail the test
+			return nil //nolint:nilerr // best-effort: client build failure does not fail the test
 		}
 
 		apiResponse, err := agg.WorkItemTrackingProcessClient.GetStateDefinition(agg.Ctx, workitemtrackingprocess.GetStateDefinitionArgs{
@@ -131,7 +131,7 @@ func captureStateEvidence(tfNode string) resource.TestCheckFunc {
 			StateId:    converter.UUID(stateID),
 		})
 		if err != nil {
-			return nil // best-effort
+			return nil //nolint:nilerr // best-effort
 		}
 
 		url := fmt.Sprintf("%s/_apis/work/processes/%s/workItemTypes/%s/states/%s?api-version=7.1",

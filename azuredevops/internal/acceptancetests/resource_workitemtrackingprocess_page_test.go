@@ -131,19 +131,19 @@ func capturePageEvidence(tfNode string) resource.TestCheckFunc {
 
 		pageUUID, err := uuid.Parse(pageID)
 		if err != nil {
-			return nil // best-effort: bad ID does not fail the test
+			return nil //nolint:nilerr // best-effort: bad ID does not fail the test
 		}
 		_ = pageUUID
 
 		// Build client directly from env vars (not GetProvider().Meta() — mux path).
-		clients, err := getDirectClient()
+		clients, err := testutils.GetDirectClient()
 		if err != nil {
-			return nil
+			return nil //nolint:nilerr // best-effort: client build failure does not fail the test
 		}
 
 		processUUID, err := uuid.Parse(processID)
 		if err != nil {
-			return nil
+			return nil //nolint:nilerr // best-effort
 		}
 
 		workItemType, err := clients.WorkItemTrackingProcessClient.GetProcessWorkItemType(clients.Ctx,
@@ -153,7 +153,7 @@ func capturePageEvidence(tfNode string) resource.TestCheckFunc {
 				Expand:     &workitemtrackingprocess.GetWorkItemTypeExpandValues.Layout,
 			})
 		if err != nil || workItemType == nil || workItemType.Layout == nil || workItemType.Layout.Pages == nil {
-			return nil
+			return nil //nolint:nilerr // best-effort
 		}
 
 		var apiResponse *workitemtrackingprocess.Page

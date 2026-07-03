@@ -167,10 +167,10 @@ func removedWorkItemType(workItemTypeName string, processName string) string {
 
 func checkPageLabelReverted(processIdStr *string, witRefName *string, pageId *string, customLabel string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// Use getDirectClient (defined in resource_task_group_test.go) rather than
-		// testutils.GetProvider().Meta() — the mux ProtoV6ProviderFactories path does
-		// not configure the SDKv2 singleton, so Meta() would be nil.
-		clients, err := getDirectClient()
+		// Use testutils.GetDirectClient() rather than testutils.GetProvider().Meta()
+		// — the mux ProtoV6ProviderFactories path does not configure the SDKv2
+		// singleton, so Meta() would be nil.
+		clients, err := testutils.GetDirectClient()
 		if err != nil {
 			return fmt.Errorf("building client: %w", err)
 		}

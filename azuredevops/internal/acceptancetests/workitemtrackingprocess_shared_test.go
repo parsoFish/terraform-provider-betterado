@@ -28,6 +28,9 @@ resource "betterado_workitemtrackingprocess_process" "test" {
 }
 
 // disabledProcess is like process but creates the process with is_enabled = false.
+// Used by resource_workitemtrackingprocess_process_test.go (build tag: all).
+//
+//nolint:unused
 func disabledProcess(name string) string {
 	return fmt.Sprintf(`
 resource "betterado_workitemtrackingprocess_process" "test" {

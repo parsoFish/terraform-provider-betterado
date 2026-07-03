@@ -98,7 +98,7 @@ func captureWorkItemTypeEvidence(tfNode string) resource.TestCheckFunc {
 
 		clients, err := getWorkItemTypeDirectClient()
 		if err != nil {
-			return nil // best-effort
+			return nil //nolint:nilerr // best-effort
 		}
 
 		wit, err := clients.WorkItemTrackingProcessClient.GetProcessWorkItemType(clients.Ctx, workitemtrackingprocess.GetProcessWorkItemTypeArgs{
@@ -107,7 +107,7 @@ func captureWorkItemTypeEvidence(tfNode string) resource.TestCheckFunc {
 			Expand:     &workitemtrackingprocess.GetWorkItemTypeExpandValues.Layout,
 		})
 		if err != nil || wit == nil {
-			return nil
+			return nil //nolint:nilerr // best-effort
 		}
 
 		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")

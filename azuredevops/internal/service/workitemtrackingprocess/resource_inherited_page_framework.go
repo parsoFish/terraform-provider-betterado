@@ -39,9 +39,11 @@ type inheritedPageUseStateForUnknownString struct{}
 func (inheritedPageUseStateForUnknownString) Description(_ context.Context) string {
 	return "use prior state"
 }
+
 func (inheritedPageUseStateForUnknownString) MarkdownDescription(_ context.Context) string {
 	return "use prior state"
 }
+
 func (inheritedPageUseStateForUnknownString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -57,9 +59,11 @@ type inheritedPageRequiresReplaceString struct{}
 func (inheritedPageRequiresReplaceString) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (inheritedPageRequiresReplaceString) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (inheritedPageRequiresReplaceString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
