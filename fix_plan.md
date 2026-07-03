@@ -7,24 +7,16 @@
 
 ## Status
 
-Both ACs are implemented in `azuredevops/internal/acceptancetests/resource_feature_flag_test.go`:
+Both ACs are implemented and the root API call bug is fixed.
 
-- TestAccFeatureFlag_basic: 3-step test (enable → disable → idempotency) + checkFeatureFlagDestroyed
-- captureFeatureFlagEvidence: calls testutils.CaptureLiveEvidence("acceptance-resource", url, state) where url
-  is the real REST GET for FeatureManagement (orgURL/_apis/FeatureManagement/FeatureStates/host/project/{projectId}/{featureId}?api-version=7.1-preview.1)
+### Implementation summary
+- `azuredevops/internal/acceptancetests/resource_feature_flag_test.go`: TestAccFeatureFlag_basic (3-step test: enable → disable → idempotency) + checkFeatureFlagDestroyed + captureFeatureFlagEvidence
+- `azuredevops/internal/provider/framework_provider.go`: betterado_feature_flag resource registered
+- `azuredevops/internal/service/featuremanagement/resource_feature_flag_framework.go`: CRUD implementation with **UserScope="host"** fix
 
-Gate will show [no tests to run] in offline mode (no TF_ACC) — this is expected.
-Live gate (TF_ACC=1 + env creds) will execute the test.
+### Iteration fixes
+1. **Iter 0:** Test file created (was missing)
+2. **Iter 1:** Resource registered in provider (was missing from `Resources()`)
+3. **Iter 2:** `UserScope` corrected from `scopeName` to `"host"` — ADO FeatureManagement API requires `UserScope="host"` for project-scoped features (not `"project"`). Fixed in all 5 call sites (set/read/delete helpers + checkDestroyed + evidence capture). Unit tests updated to assert `"host"`.
 
----
-
-## Iteration 1 fix (root cause of gate failure)
-
-The gate failed with "Invalid resource type `betterado_feature_flag`" because the resource
-implementation was never registered in the mux provider.
-
-**Fixed in:** `azuredevops/internal/provider/framework_provider.go`
-- Added `featuremanagement` import
-- Added `featuremanagement.NewFeatureFlagResource` to `Resources()` slice
-
-All unit tests pass, build is clean, test is discoverable. Live gate should now pass.
+All offline tests pass. Live gate (TF_ACC=1 + env creds) should now pass.

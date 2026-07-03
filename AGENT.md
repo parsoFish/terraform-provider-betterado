@@ -34,8 +34,43 @@ N/A — first iteration found the test file missing and created it correctly.
 
 ## Notes for reflection
 
-- The `UserScope` parameter to `GetFeatureStateForScope` doubles as the scope name (pass "project" for project-scoped features), matching the pattern in `resource_feature_flag_framework.go`
-- Evidence URL format for FeatureManagement is the "host" path: `/_apis/FeatureManagement/FeatureStates/host/{scopeName}/{scopeValue}/{featureId}`
+- **CORRECTED (Iter 2):** `UserScope` must be `"host"` (NOT `"project"`). The URL path is `FeatureStates/{userScope}/{scopeName}/{scopeValue}/{featureId}` where userScope="host", scopeName="project", scopeValue={projectId}.
+- Evidence URL format: `/_apis/FeatureManagement/FeatureStates/host/project/{projectId}/{featureId}?api-version=7.1-preview.1`
+
+---
+
+### Iteration 2
+
+**Problem:** Gate failed with:
+```
+SetFeatureStateForScope failed for feature "ms.vss-work.agile" scope "project"/"6ddb680c-...": userId
+```
+
+**Root cause:** The ADO FeatureManagement SDK distinguishes two separate "scope" concepts:
+- `UserScope` — who the setting applies to: `"me"` (current user) or `"host"` (all users / organisation-wide). This is a **route parameter** that determines which feature store to use. For org-wide project-scoped features it must be `"host"`.
+- `ScopeName` / `ScopeValue` — the named scope level (e.g., `"project"`) and its ID.
+
+We were incorrectly passing `scopeName` (e.g., `"project"`) as `UserScope`, which made the ADO REST URL:
+`/_apis/FeatureManagement/FeatureStates/project/project/{projectId}/...`
+…which ADO rejects because `"project"` is not a valid userId segment.
+
+The correct call requires `UserScope: "host"`, `ScopeName: "project"`, `ScopeValue: {projectId}`.
+
+**Confirmed by:** WI spec line 107 evidence URL: `...FeatureStates/host/project/{projectId}/...` = `userScope/scopeName/scopeValue`.
+
+**Fix:** Changed `UserScope` from `converter.String(scopeName)` to `converter.String("host")` in:
+- `setFeatureFlag()` in `resource_feature_flag_framework.go`
+- `readFeatureFlag()` in `resource_feature_flag_framework.go`
+- `deleteFeatureFlag()` in `resource_feature_flag_framework.go`
+- `checkFeatureFlagDestroyed()` in `resource_feature_flag_test.go`
+- `captureFeatureFlagEvidence()` in `resource_feature_flag_test.go`
+- Updated unit test assertions from `"project"` to `"host"` for UserScope.
+
+**Verified:**
+- `go build -tags all ./...` — clean
+- `go test -tags all -count=1 ./azuredevops/internal/service/featuremanagement/...` — all 6 tests pass
+- `make test` — all offline tests pass
+- `TestAccFeatureFlag_basic` is discoverable in the acceptance test list
 
 ---
 
