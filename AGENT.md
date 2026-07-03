@@ -31,9 +31,28 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - `adoPipelines.RunPipelineParameters{}` (empty struct) is sufficient to trigger a run.
 - `adoPipelines.RunStateValues.Completed` for polling termination condition.
 
+### Iteration 2 (WI-5)
+
+- **Gate failure:** Live gate produced `pipeline_id = ` / `run_id = ` (empty) in `terraform_plugin_test.tf` → `Invalid expression` error.
+- **Root cause:** `resource.TestStep.Config` is a **string field** baked at initialization time. The `Steps` slice is built before any step runs. When `hclPipelineRunDataSource(name, &pipelineIDStr, &runIDStr)` is called to produce the string for Step 2's `Config`, the pointers point to their variables but `*pipelineIDStr == ""` and `*runIDStr == ""` at that moment. The string is captured with empty values and never updated.
+- **Fix:** Changed Steps 2 and 3 to use `ConfigFile` instead of `Config`.
+  - `ConfigFile` is a `func(config.TestStepConfigRequest) string` evaluated **lazily per-step** in the test runner loop (not at initialization time).
+  - Step 1's Check (`triggerAndWaitForRun`) now writes the full HCL to a temp file (`os.CreateTemp`) and sets `*configFilePath`.
+  - Steps 2 and 3 use `hclDataSourceConfigFile := func(_ config.TestStepConfigRequest) string { return configFilePath }`.
+  - By the time Step 2's execution starts, Step 1's Check has fully run and `configFilePath` is set.
+- **Provider block requirement:** `ConfigFile` bypasses the framework's `mergedConfig` injection (which adds `terraform { required_providers {} }` only for `Config` string steps). Added the block explicitly in `hclPipelineRunDataSourceContent` using `TF_ACC_PROVIDER_HOST`/`TF_ACC_PROVIDER_NAMESPACE` env vars (defaulting to `registry.terraform.io/hashicorp/betterado`). When `HasTerraformBlock = true`, `mergedConfig` returns `s.Config = ""`, so `confRequest.Raw = ""`, and `Configuration(confRequest)` uses File (our temp file) over Raw. ✓
+- **Framework internals:**
+  - `TestStep.Config string` → evaluated at struct build time.
+  - `TestStep.ConfigFile TestStepConfigFunc` → evaluated lazily at step loop iteration time (before `PreConfig`, which is before `testStepNewConfig`).
+  - `Configuration(req)` priority: Directory > File > Raw.
+  - `mergedConfig` early-returns when `hasTerraformBlock = true`, returning `""`.
+- **Lint:** 0 issues.
+- **go vet:** passes.
+
 ## What didn't work
 
-_(none — first iteration created the file cleanly)_
+- Iteration 1: `Config` string with pointer dereference — string is baked at initialization time, pointers always empty.
+- Iteration 1: `hclPipelineRunDataSource(name, &pipelineIDStr, &runIDStr)` — looks lazy but isn't; the return value is computed immediately.
 
 ## Open questions
 
@@ -42,4 +61,6 @@ _(none — first iteration created the file cleanly)_
 
 ## Notes for reflection
 
-- The `hclPipelineRunDataSource` function uses pointer dereferencing which is a pattern not seen elsewhere in the test suite — worth documenting in brain if it recurs.
+- **NEVER use Config string for IDs that come from a prior step's Check.** Use `ConfigFile` with a closure + a temp file written in the prior step's Check. The `ConfigFile` func is lazy; `Config` string is not.
+- The provider block (`terraform { required_providers {} }`) MUST be included in `ConfigFile` temp files because the framework's `mergedConfig` injection only applies to `Config` string steps.
+- `TF_ACC_PROVIDER_HOST` and `TF_ACC_PROVIDER_NAMESPACE` env vars control the provider source address (defaults: `registry.terraform.io`/`hashicorp`).

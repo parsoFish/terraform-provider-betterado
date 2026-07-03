@@ -11,6 +11,7 @@
   - [x] Asserts `state` + `created_date` are set
   - [x] `ExpectNonEmptyPlan:false` in Step 3
   - [x] No `CheckDestroy` (runs are immutable in ADO)
+  - [x] Fixed `pipeline_id = ` / `run_id = ` empty-value bug (iter 2: ConfigFile + temp file pattern)
   - [ ] **Live gate must pass** (awaiting forge live TF_ACC run)
 - [ ] AC2: GIVEN the live evidence requirement WHEN CaptureLiveEvidence is called THEN .forge/live-evidence/acceptance-resource.json is populated
   - [x] `capturePipelineRunEvidence` calls `testutils.CaptureLiveEvidence("acceptance-resource", url, r)`
