@@ -3,7 +3,7 @@
   "essence": "Both betterado_servicehook_storage_queue_pipelines and betterado_servicehook_webhook_tfs are now served by terraform-plugin-framework through the mux provider. SDKv2 registrations removed. Schema and user-visible behaviour unchanged — pure internal migration. Live acceptance test TestAccServicehookWebhookTfsFramework_basic ran against real ADO org (davidgparsonson) — subscription abcd29b2-15a0-4005-a12b-8b9b75faa3e1 created, confirmed via REST GET (consumerId=webHooks, eventType=git.push, status=enabled), idempotency re-plan → No changes, destroyed cleanly. Storage-queue live acceptance run requires TF_ACC=1 credentials; offline unit gate green. Quality gate: go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → green (3 packages, 0 failures).",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-servicehook",
-  "diffStat": "153 files changed, 9175 insertions(+), 1830 deletions(-)",
+  "diffStat": "155 files changed, 9214 insertions(+), 2813 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
@@ -12,7 +12,7 @@
       "beforeNote": "Tests pass on main (SDKv2 servicehook resources in provider, release/taskagent unaffected)",
       "afterNote": "Tests pass on branch HEAD with both framework servicehook resources registered under mux; 3 packages green",
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.003s\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.012s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.012s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.007s\n"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n"
     },
     {
       "label": "configure-storage-queue",

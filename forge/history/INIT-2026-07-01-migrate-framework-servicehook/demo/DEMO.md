@@ -42,9 +42,9 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 
 **After output:**
 ```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.012s
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.012s
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.007s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.007s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.005s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.004s
 ```
 
 ### Framework Configure() for storage_queue_pipelines — panic-free, stores AggregatedClient
@@ -129,5 +129,5 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops	0.005s
 ## Files Changed
 
 ```
-153 files changed, 9175 insertions(+), 1830 deletions(-)
+155 files changed, 9214 insertions(+), 2813 deletions(-)
 ```
