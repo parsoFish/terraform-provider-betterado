@@ -81,6 +81,22 @@ The org name (`davidgparsonson`) is extracted dynamically at apply time. The "Pr
 
 **For tests with the standing demo project: always use the collection-level identity.**
 
+## Iteration 4 fix — PASSED live
+
+**Problem:** Live gate still failed after iteration 3 fix: `Could not find user with name: Project Collection Build Service (davidgparsonson), with filter: DisplayName`.
+
+**Root cause (confirmed by direct ADO API call):**
+- ADO's Identity API, for built-in service accounts, returns `providerDisplayName` as a GUID (e.g. `"c7331e41-8ebd-4afb-a765-7929e93c660f"`) and the human-readable name in `customDisplayName` (e.g. `"Project Collection Build Service (davidgparsonson)"`).
+- The `validateIdentityUser` helper in `data_identity_user.go` only checked `*user.ProviderDisplayName` for the `DisplayName` filter case.
+- The GUID never matches the search string `"Project Collection Build Service (davidgparsonson)"`, so the function returned `nil` (not found).
+
+**Fix:** Updated `validateIdentityUser` to check BOTH `ProviderDisplayName` AND `CustomDisplayName` for the DisplayName filter case. Both fields are nil-guarded (pointer safety improvement over original).
+
+**Verification:** All three `TestAccIdentityDataSources_Framework/*` subtests pass live with real ADO credentials:
+- IdentityUser PASS (3.88s)
+- IdentityGroups PASS (4.39s)
+- IdentityGroup PASS (4.76s)
+
 ## Open questions
 
 _(none)_
