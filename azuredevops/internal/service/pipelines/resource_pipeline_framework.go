@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
@@ -144,6 +143,16 @@ func (r *PipelineResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				MarkdownDescription: "The configuration type. One of: `yaml`, `designerJson`, `justInTime`, `designerHyphenJson`, `unknown`. Defaults to `yaml`.",
 				Default:             defaultString("yaml"),
 			},
+			"repo_id": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "The ID (GUID) of the Azure Repos Git repository that contains the YAML pipeline file. Required when `configuration_type` is `yaml`.",
+				PlanModifiers:       []planmodifier.String{requiresReplace()},
+			},
+			"yaml_path": schema.StringAttribute{
+				Optional:            true,
+				MarkdownDescription: "The path of the YAML pipeline definition file within the repository (e.g. `/azure-pipelines.yml`). Required when `configuration_type` is `yaml`.",
+				PlanModifiers:       []planmodifier.String{requiresReplace()},
+			},
 			"revision": schema.Int64Attribute{
 				Computed:            true,
 				MarkdownDescription: "The pipeline revision number (optimistic concurrency token).",
@@ -183,6 +192,8 @@ type pipelineModel struct {
 	Name              types.String `tfsdk:"name"`
 	Folder            types.String `tfsdk:"folder"`
 	ConfigurationType types.String `tfsdk:"configuration_type"`
+	RepoID            types.String `tfsdk:"repo_id"`
+	YAMLPath          types.String `tfsdk:"yaml_path"`
 	Revision          types.Int64  `tfsdk:"revision"`
 	URL               types.String `tfsdk:"url"`
 }
@@ -196,17 +207,8 @@ func (r *PipelineResource) Create(ctx context.Context, req resource.CreateReques
 		return
 	}
 
-	params, diags := expandPipeline(model)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
 	project := model.ProjectID.ValueString()
-	pipeline, err := r.client.PipelinesClient.CreatePipeline(ctx, adoPipelines.CreatePipelineArgs{
-		InputParameters: params,
-		Project:         &project,
-	})
+	pipeline, err := createPipelineRaw(ctx, r.client, project, model)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating pipeline", err.Error())
 		return
@@ -334,16 +336,68 @@ func (r *PipelineResource) Delete(ctx context.Context, req resource.DeleteReques
 
 // ── Expand / Flatten helpers ──────────────────────────────────────────────────
 
-// expandPipeline converts the Terraform state model into CreatePipelineParameters.
-func expandPipeline(model pipelineModel) (*adoPipelines.CreatePipelineParameters, diag.Diagnostics) {
-	cfgType := adoPipelines.ConfigurationType(model.ConfigurationType.ValueString())
-	return &adoPipelines.CreatePipelineParameters{
-		Name:   strPtr(model.Name.ValueString()),
-		Folder: strPtr(model.Folder.ValueString()),
-		Configuration: &adoPipelines.CreatePipelineConfigurationParameters{
-			Type: &cfgType,
+// createPipelineRawBody is the extended JSON body for POST _apis/pipelines.
+// The SDK's CreatePipelineConfigurationParameters only has Type; for YAML
+// pipelines the API also requires Path and Repository.
+type createPipelineRawBody struct {
+	Name          string                      `json:"name"`
+	Folder        string                      `json:"folder"`
+	Configuration createPipelineRawConfigBody `json:"configuration"`
+}
+
+type createPipelineRawConfigBody struct {
+	Type       string                     `json:"type"`
+	Path       string                     `json:"path,omitempty"`
+	Repository *createPipelineRawRepoBody `json:"repository,omitempty"`
+}
+
+type createPipelineRawRepoBody struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+}
+
+// createPipelineRaw POSTs the full pipeline create body via raw HTTP so we can
+// include the YAML path and repository fields that the SDK omits.
+func createPipelineRaw(ctx context.Context, agg *client.AggregatedClient, project string, model pipelineModel) (*adoPipelines.Pipeline, error) {
+	impl, ok := agg.PipelinesClient.(*adoPipelines.ClientImpl)
+	if !ok {
+		return nil, fmt.Errorf("createPipelineRaw: cannot access underlying azuredevops.Client")
+	}
+
+	body := createPipelineRawBody{
+		Name:   model.Name.ValueString(),
+		Folder: model.Folder.ValueString(),
+		Configuration: createPipelineRawConfigBody{
+			Type: model.ConfigurationType.ValueString(),
 		},
-	}, nil
+	}
+
+	if !model.RepoID.IsNull() && !model.RepoID.IsUnknown() && model.RepoID.ValueString() != "" {
+		body.Configuration.Repository = &createPipelineRawRepoBody{
+			ID:   model.RepoID.ValueString(),
+			Type: "azureReposGit",
+		}
+	}
+	if !model.YAMLPath.IsNull() && !model.YAMLPath.IsUnknown() && model.YAMLPath.ValueString() != "" {
+		body.Configuration.Path = model.YAMLPath.ValueString()
+	}
+
+	bodyBytes, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	routeValues := map[string]string{"project": project}
+	resp, err := impl.Client.Send(ctx, http.MethodPost, pipelineLocationID, "7.1-preview.1", routeValues, nil, bytes.NewReader(bodyBytes), "application/json", "application/json", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var result adoPipelines.Pipeline
+	if err := impl.Client.UnmarshalBody(resp, &result); err != nil {
+		return nil, err
+	}
+	return &result, nil
 }
 
 // flattenPipeline writes the API response into the Terraform state model.
@@ -417,7 +471,3 @@ func deletePipeline(ctx context.Context, agg *client.AggregatedClient, project s
 	_, err := impl.Client.Send(ctx, http.MethodDelete, pipelineLocationID, "7.1-preview.1", routeValues, nil, nil, "", "application/json", nil)
 	return err
 }
-
-// ── Utility ───────────────────────────────────────────────────────────────────
-
-func strPtr(s string) *string { return &s }

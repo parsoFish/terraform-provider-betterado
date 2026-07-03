@@ -47,10 +47,17 @@ func TestAccDataPipeline_basic(t *testing.T) {
 // hclDataPipelineBasic returns a config that creates a betterado_pipeline resource
 // and then reads it back via the betterado_pipeline data source (by project_id + id).
 // Uses the standing shared fixture project — no new project is created.
+// The pipeline references the default git repo of betterado-standing-demo
+// which always contains an azure-pipelines.yml file.
 func hclDataPipelineBasic(name string) string {
 	return fmt.Sprintf(`
 data "betterado_project" "test" {
   name = %[2]q
+}
+
+data "betterado_git_repository" "test" {
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
 }
 
 resource "betterado_pipeline" "test" {
@@ -58,6 +65,8 @@ resource "betterado_pipeline" "test" {
   name               = %[1]q
   folder             = "\\tf-acc"
   configuration_type = "yaml"
+  repo_id            = data.betterado_git_repository.test.id
+  yaml_path          = "/azure-pipelines.yml"
 }
 
 data "betterado_pipeline" "test" {

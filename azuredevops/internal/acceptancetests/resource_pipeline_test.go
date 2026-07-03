@@ -48,10 +48,17 @@ func TestAccPipeline_basic(t *testing.T) {
 // hclPipelineBasic returns a minimal Terraform config that creates a
 // betterado_pipeline in the standing shared fixture project (no new project
 // is created — the org sits at the 1000-project cap).
+// The pipeline references the default git repo of betterado-standing-demo
+// which always contains an azure-pipelines.yml file.
 func hclPipelineBasic(name string) string {
 	return fmt.Sprintf(`
 data "betterado_project" "test" {
   name = %[2]q
+}
+
+data "betterado_git_repository" "test" {
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
 }
 
 resource "betterado_pipeline" "test" {
@@ -59,6 +66,8 @@ resource "betterado_pipeline" "test" {
   name               = %[1]q
   folder             = "\\tf-acc"
   configuration_type = "yaml"
+  repo_id            = data.betterado_git_repository.test.id
+  yaml_path          = "/azure-pipelines.yml"
 }
 `, name, SharedFixtureProjectName)
 }

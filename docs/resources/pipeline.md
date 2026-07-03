@@ -17,10 +17,18 @@ data "betterado_project" "example" {
   name = "ExampleProject"
 }
 
-resource "betterado_pipeline" "example" {
+data "betterado_git_repository" "example" {
   project_id = data.betterado_project.example.id
-  name       = "My YAML Pipeline"
-  folder     = "\\MyFolder"
+  name       = "ExampleProject"
+}
+
+resource "betterado_pipeline" "example" {
+  project_id         = data.betterado_project.example.id
+  name               = "My YAML Pipeline"
+  folder             = "\\MyFolder"
+  configuration_type = "yaml"
+  repo_id            = data.betterado_git_repository.example.id
+  yaml_path          = "/azure-pipelines.yml"
 }
 ```
 
@@ -36,6 +44,8 @@ resource "betterado_pipeline" "example" {
 
 - `configuration_type` (String) The configuration type. One of: `yaml`, `designerJson`, `justInTime`, `designerHyphenJson`, `unknown`. Defaults to `yaml`.
 - `folder` (String) The folder path of the pipeline. Defaults to `\` (root folder).
+- `repo_id` (String) The ID (GUID) of the Azure Repos Git repository that contains the YAML pipeline file. Required when `configuration_type` is `yaml`.
+- `yaml_path` (String) The path of the YAML pipeline definition file within the repository (e.g. `/azure-pipelines.yml`). Required when `configuration_type` is `yaml`.
 
 ### Read-Only
 
