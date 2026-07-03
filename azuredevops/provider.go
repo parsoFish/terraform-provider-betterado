@@ -194,7 +194,7 @@ func Provider() *schema.Provider {
 			"betterado_area":          workitemtracking.DataArea(),
 			"betterado_client_config": service.DataClientConfig(),
 			// betterado_descriptor is now registered in the framework provider (framework_provider.go)
-			"betterado_environment":   taskagent.DataEnvironment(),
+			"betterado_environment": taskagent.DataEnvironment(),
 			// betterado_feed migrated to the framework provider (framework_provider.go).
 			// betterado_git_repositories migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository migrated to the framework provider (framework_provider.go).
@@ -222,9 +222,9 @@ func Provider() *schema.Provider {
 			// betterado_serviceendpoint_sonarcloud migrated to the framework provider (framework_provider.go).
 			// betterado_service_principal is now registered in the framework provider (framework_provider.go)
 			// betterado_storage_key is now registered in the framework provider (framework_provider.go)
-			"betterado_team":                                  core.DataTeam(),
-			"betterado_task_group":                            taskagent.DataTaskGroup(),
-			"betterado_teams":                                 core.DataTeams(),
+			"betterado_team":       core.DataTeam(),
+			"betterado_task_group": taskagent.DataTaskGroup(),
+			"betterado_teams":      core.DataTeams(),
 			// betterado_user is now registered in the framework provider (framework_provider.go)
 			// betterado_users is now registered in the framework provider (framework_provider.go)
 			"betterado_variable_group":                        taskagent.DataVariableGroup(),
