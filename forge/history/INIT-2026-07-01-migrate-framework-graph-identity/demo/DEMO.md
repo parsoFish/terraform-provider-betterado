@@ -19,7 +19,7 @@ All `betterado_group`, `betterado_group_membership` resources and 11 data source
 
 ## Diff stat
 
-167 files changed, 11339 insertions(+), 4423 deletions(-)
+167 files changed, 11377 insertions(+), 4423 deletions(-)
 
 ---
 
@@ -35,7 +35,7 @@ go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredev
 | | |
 |---|---|
 | **Before (main)** | Gate already passing on main before initiative. |
-| **After (HEAD)** | `ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.007s` \| `ok .../taskagent 0.006s` \| `ok .../taskagent/validate 0.004s` — all three packages green on branch HEAD. |
+| **After (HEAD)** | `ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.006s` \| `ok .../taskagent 0.006s` \| `ok .../taskagent/validate 0.004s` — all three packages green on branch HEAD. |
 
 ---
 

@@ -5,7 +5,7 @@
   "initiativeId": "INIT-2026-07-01-migrate-framework-graph-identity",
   "baseRef": "main",
   "changedRef": "HEAD",
-  "diffStat": "167 files changed, 11339 insertions(+), 4423 deletions(-)",
+  "diffStat": "167 files changed, 11377 insertions(+), 4423 deletions(-)",
   "summary": {
     "bullets": [
       "Migrates 2 resources (betterado_group, betterado_group_membership) and 11 data sources from SDKv2 to terraform-plugin-framework, served via the mux provider.",
@@ -24,7 +24,7 @@
       "caption": "CI-equivalent offline gate: all three packages pass with no TF_ACC required.",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
       "beforeNote": "Gate already passing on main before initiative.",
-      "afterNote": "ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.007s | ok .../taskagent 0.006s | ok .../taskagent/validate 0.004s — all three packages green on branch HEAD."
+      "afterNote": "ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.006s | ok .../taskagent 0.006s | ok .../taskagent/validate 0.004s — all three packages green on branch HEAD."
     },
     {
       "label": "betterado_group + betterado_group_membership — removed from SDKv2 ResourcesMap",
@@ -233,7 +233,7 @@
   ],
   "testEvidence": [
     {
-      "name": "go test -tags all -count=1 ./azuredevops/internal/service/release/... — ok .../release 0.007s",
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/release/... — ok .../release 0.006s",
       "result": "pass"
     },
     {
