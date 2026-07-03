@@ -295,8 +295,8 @@ func (r *BuildDefinitionResource) Schema(_ context.Context, _ resource.SchemaReq
 			"skip_first_run": schema.BoolAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "If true, the first run of the pipeline is skipped after creation. (Promoted from features block — see docs/build-gap-matrix.md.)",
-				Default:     bdFwStaticBool(false),
+				Description: "If true (default), the first run of the pipeline is skipped after creation. Set to false to trigger an immediate pipeline run on Create. (Promoted from features block — see docs/build-gap-matrix.md.)",
+				Default:     bdFwStaticBool(true),
 			},
 			"variable": schema.SetNestedAttribute{
 				Optional:    true,
@@ -557,7 +557,7 @@ func (r *BuildDefinitionResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
-	// AC2: When skip_first_run = false, trigger the first pipeline run (SDKv2 parity).
+	// When skip_first_run = false (opt-in), trigger the first pipeline run. Default is true (skip).
 	if !model.SkipFirstRun.ValueBool() {
 		// Extract branch name from repository block.
 		branchName := "master"

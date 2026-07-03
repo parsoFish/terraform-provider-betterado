@@ -116,7 +116,7 @@ Primary API struct: `BuildDefinition` (inherits `BuildDefinitionReference`).
 
 | Field | SDKv2 location | Framework status | Notes |
 |---|---|---|---|
-| `skip_first_run` | `features[0].skip_first_run` (bool) | Implemented (write-on-create wired) | Promoted to top-level `skip_first_run` bool attribute in framework schema (simpler than nested `features` block). When `false` (default), `Create` calls `PipelinesClient.RunPipeline` to trigger the first pipeline run — SDKv2 parity. ADO does not echo this flag back on GET so it is preserved from plan/state on read. |
+| `skip_first_run` | `features[0].skip_first_run` (bool) | Implemented (write-on-create wired) | Promoted to top-level `skip_first_run` bool attribute in framework schema (simpler than nested `features` block). Default is **`true`** (skip — matches SDKv2 behaviour where an absent `features` block means no auto-run). Set to `false` to opt-in to an immediate `PipelinesClient.RunPipeline` call on `Create`. ADO does not echo this flag back on GET so it is preserved from plan/state on read. |
 | `features` list | `features` block | **NOT migrated** as list | The SDKv2 `features` list wrapper is not present in the framework schema; `skip_first_run` is exposed directly at top level. |
 
 ### 1g. Jobs / Process phases (OtherGit only)

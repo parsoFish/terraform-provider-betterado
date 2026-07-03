@@ -25,9 +25,9 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   **CI/PR trigger read-back wired:** `readIntoModel` now parses `def.Triggers` back into
   `model.CITrigger`/`model.PullRequestTrigger` via `flattenTriggersIntoModel`, so
   ADO-side trigger changes are surfaced as drift on `terraform plan`.
-  **`skip_first_run = false` now calls `PipelinesClient.RunPipeline` on Create** (SDKv2
-  parity) — a warning is emitted if the run fails (e.g. no YAML file yet). Failure does
-  not prevent the resource from being created.
+  **`skip_first_run` defaults to `true`** (skip — SDKv2 parity: absent `features` block means no auto-run).
+  Set `skip_first_run = false` to opt-in to an immediate `PipelinesClient.RunPipeline` call on `Create`;
+  a warning is emitted if the run fails (e.g. no YAML file yet) but does not prevent resource creation.
   **Deliberately NOT migrated this iteration** (documented in `docs/build-gap-matrix.md`):
   `variable_groups`, `build_completion_trigger`, `schedules`, `jobs` (OtherGit only).
   Verified by unit tests `TestBuildDefinitionFramework_Schema`,

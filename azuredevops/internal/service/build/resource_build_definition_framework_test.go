@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -272,7 +273,8 @@ func TestBuildDefinitionFramework_ValidateConfig_Conflict(t *testing.T) {
 }
 
 // TestBuildDefinitionFramework_SkipFirstRunDefault verifies that skip_first_run
-// schema attribute has a default of false (AC2).
+// schema attribute has a default of true (UWI-6: SDKv2 parity — absent features block
+// means no auto-run, so default must be true/skip).
 func TestBuildDefinitionFramework_SkipFirstRunDefault(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
@@ -287,7 +289,12 @@ func TestBuildDefinitionFramework_SkipFirstRunDefault(t *testing.T) {
 	require.True(t, ok, "schema must have skip_first_run attribute")
 	sfBool, ok := sfAttr.(schema.BoolAttribute)
 	require.True(t, ok, "skip_first_run must be BoolAttribute")
-	// It must have a Default set (not nil) so create with skip_first_run=false
-	// can be differentiated from not-set.
-	assert.NotNil(t, sfBool.Default, "skip_first_run must have a Default (AC2 — default false means run IS triggered)")
+	require.NotNil(t, sfBool.Default, "skip_first_run must have a Default")
+
+	// Invoke the default to retrieve the plan value and assert it is true.
+	// default=true means Create() will NOT call RunPipeline — SDKv2 parity.
+	var boolResp defaults.BoolResponse
+	sfBool.Default.DefaultBool(ctx, defaults.BoolRequest{}, &boolResp)
+	assert.True(t, boolResp.PlanValue.ValueBool(),
+		"skip_first_run default must be true so Create() does NOT trigger a live RunPipeline call (UWI-6 / SDKv2 parity)")
 }
