@@ -84,10 +84,11 @@ func TestAccFeedFramework_withProject(t *testing.T) {
 // after destroy. Uses getDirectClient() (same as task group tests) because the
 // mux provider does not wire the SDKv2 meta singleton.
 //
-// ADO's DeleteFeed is a soft delete: the feed moves to a recycle bin but
-// GetFeed by GUID still returns it (with DeletedDate set). We treat a feed
-// with a non-nil DeletedDate as "destroyed" — it is no longer an active feed
-// and Terraform destroy has done its job.
+// ADO's DeleteFeed is a soft delete: the feed moves to a recycle bin.
+// GetFeed by GUID may not populate DeletedDate reliably, so we use
+// GetFeedChange (by name) to confirm the change type is "delete", and fall
+// back to GetFeed (by GUID) checking for 404. Either condition means destroy
+// succeeded.
 func checkFeedFrameworkDestroyed(s *terraform.State) error {
 	clients, err := getDirectClient()
 	if err != nil {
@@ -99,8 +100,28 @@ func checkFeedFrameworkDestroyed(s *terraform.State) error {
 			continue
 		}
 		id := res.Primary.ID
+		name := res.Primary.Attributes["name"]
 		projectID := res.Primary.Attributes["project_id"]
 
+		// Primary check: use GetFeedChange by name to detect soft-delete.
+		// GetFeedChange returns ChangeType="delete" when DeleteFeed was called.
+		if name != "" {
+			change, changeErr := clients.FeedClient.GetFeedChange(clients.Ctx, feedapi.GetFeedChangeArgs{
+				FeedId:  &name,
+				Project: nilIfEmptyStr(projectID),
+			})
+			if changeErr != nil {
+				// Error (e.g. 404) → feed is gone.
+				continue
+			}
+			if change != nil && change.ChangeType != nil &&
+				*change.ChangeType == feedapi.ChangeTypeValues.Delete {
+				// Soft-deleted: destroy succeeded.
+				continue
+			}
+		}
+
+		// Fallback: GetFeed by GUID — a 404 means the feed is gone.
 		feedDetail, err := clients.FeedClient.GetFeed(clients.Ctx, feedapi.GetFeedArgs{
 			FeedId:  &id,
 			Project: nilIfEmptyStr(projectID),
