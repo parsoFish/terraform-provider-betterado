@@ -1,0 +1,9 @@
+version: 2
+project_name: terraform-plugin-framework-validators
+builds:
+  - skip: true
+milestones:
+  - close: true
+release:
+  ids:
+    - 'none'

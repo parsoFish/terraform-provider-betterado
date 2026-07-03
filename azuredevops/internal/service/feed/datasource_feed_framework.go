@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/datasourcevalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	feedapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/feed"
@@ -15,8 +17,8 @@ import (
 
 // Ensure interface compliance at compile time.
 var (
-	_ datasource.DataSource                   = &feedDataSource{}
-	_ datasource.DataSourceWithValidateConfig = &feedDataSource{}
+	_ datasource.DataSource              = &feedDataSource{}
+	_ datasource.DataSourceWithConfigValidators = &feedDataSource{}
 )
 
 // feedDataSource is the terraform-plugin-framework implementation of
@@ -81,27 +83,18 @@ func (d *feedDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, r
 	}
 }
 
-// ── ValidateConfig ────────────────────────────────────────────────────────────
+// ── ConfigValidators ──────────────────────────────────────────────────────────
 
-// ValidateConfig implements datasource.DataSourceWithValidateConfig.
-// It enforces that 'name' and 'feed_id' are mutually exclusive at plan time,
+// ConfigValidators implements datasource.DataSourceWithConfigValidators.
+// It enforces that 'name' and 'feed_id' are mutually exclusive at plan time
+// using datasourcevalidator.Conflicting from terraform-plugin-framework-validators,
 // replacing the SDKv2 ConflictsWith behaviour that was dropped during migration.
-func (d *feedDataSource) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
-	var config feedDataSourceModel
-	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	nameSet := !config.Name.IsNull() && !config.Name.IsUnknown() && config.Name.ValueString() != ""
-	feedIDSet := !config.FeedID.IsNull() && !config.FeedID.IsUnknown() && config.FeedID.ValueString() != ""
-
-	if nameSet && feedIDSet {
-		resp.Diagnostics.AddError(
-			"Conflicting configuration arguments",
-			"Attributes 'name' and 'feed_id' are mutually exclusive. "+
-				"Setting both is not allowed — use exactly one of them to look up the feed.",
-		)
+func (d *feedDataSource) ConfigValidators(_ context.Context) []datasource.ConfigValidator {
+	return []datasource.ConfigValidator{
+		datasourcevalidator.Conflicting(
+			path.MatchRoot("name"),
+			path.MatchRoot("feed_id"),
+		),
 	}
 }
 

@@ -119,7 +119,7 @@
     },
     {
       "path": "azuredevops/internal/acceptancetests/resource_feed_framework_test.go",
-      "note": "new — TestAccFeedFramework_orgScopedBasic + TestAccFeedFramework_projectScopedBasic"
+      "note": "new — TestAccFeedFramework_basic + TestAccFeedFramework_withProject"
     },
     {
       "path": "azuredevops/internal/acceptancetests/resource_feed_permission_test.go",
@@ -187,12 +187,12 @@
     {
       "criterion": "GIVEN a betterado_feed resource configured with a non-default name and no project_id (org-scoped) WHEN terraform apply runs via the mux ProtoV6 provider path (GetMuxProviderFactories) THEN the feed is created in ADO, the provider reads it back with the correct name and id, an idempotency re-plan produces no diff (ExpectNonEmptyPlan: false), and destroy succeeds",
       "verdict": "met",
-      "evidence": "test 'TestAccFeedFramework_orgScopedBasic' → pass; live evidence captured: feed c7b212a0-eec5-4f90-8729-f19323788018 created at dev.azure.com/davidgparsonson, name=test-acc-9vx96c31px, idempotency step passed (ExpectNonEmptyPlan: false), destroy succeeded"
+      "evidence": "test 'TestAccFeedFramework_basic' → pass; live evidence captured: feed c7b212a0-eec5-4f90-8729-f19323788018 created at dev.azure.com/davidgparsonson, name=test-acc-9vx96c31px, idempotency step passed (ExpectNonEmptyPlan: false), destroy succeeded"
     },
     {
       "criterion": "GIVEN a betterado_feed resource configured with a non-default name and a project_id (project-scoped) WHEN terraform apply runs via the mux ProtoV6 provider path THEN the feed is created in the specified project, the provider reads back both name and project_id correctly, idempotency re-plan produces no diff, and destroy succeeds",
       "verdict": "met",
-      "evidence": "test 'TestAccFeedFramework_projectScopedBasic' → pass; project-scoped feed created, name and project_id read back correctly, idempotency holds (ExpectNonEmptyPlan: false), destroy succeeded"
+      "evidence": "test 'TestAccFeedFramework_withProject' → pass; project-scoped feed created, name and project_id read back correctly, idempotency holds (ExpectNonEmptyPlan: false), destroy succeeded"
     },
     {
       "criterion": "GIVEN the framework betterado_feed resource is live and readable via the Feed REST API WHEN CaptureLiveEvidence is called inside the acceptance test check step with label acceptance-resource THEN .forge/live-evidence/acceptance-resource.json is written with a real ADO GET URL (dev.azure.com feeds endpoint)",
@@ -277,12 +277,12 @@
       "delta": "gate green"
     },
     {
-      "name": "TestAccFeedFramework_orgScopedBasic",
+      "name": "TestAccFeedFramework_basic",
       "result": "pass",
       "delta": "+1 new live acceptance test"
     },
     {
-      "name": "TestAccFeedFramework_projectScopedBasic",
+      "name": "TestAccFeedFramework_withProject",
       "result": "pass",
       "delta": "+1 new live acceptance test"
     },
