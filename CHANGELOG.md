@@ -9,6 +9,17 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **New resource `betterado_pipeline_approval`** — manages a Pipelines Approval
+  decision in Azure DevOps via terraform-plugin-framework. Supports reading and
+  updating (approve/reject with optional comment) an existing pipeline approval
+  request using the ADO Pipelines Approvals API (`_apis/pipelines/approvals`).
+  Schema: `project_id` (required), `approval_id` (required), `status` (required,
+  `approved`/`rejected`), `comment` (optional). Approval IDs are ephemeral
+  (bound to a specific pipeline run) and not importable.
+- **New data source `betterado_pipeline_approvals`** — reads pending pipeline
+  approval requests for a project. Returns a list of approvals with `approval_id`,
+  `status`, `pipeline_id`, `stage`, and `approver_id`. Scoped to a `project_id`.
+
 - **7 branch policy resources migrated to terraform-plugin-framework** (`betterado_branch_policy_auto_reviewers`, `betterado_branch_policy_build_validation`, `betterado_branch_policy_comment_resolution`, `betterado_branch_policy_merge_types`, `betterado_branch_policy_min_reviewers`, `betterado_branch_policy_status_check`, `betterado_branch_policy_work_item_linking`). All resources now use the framework implementation served through the mux provider. Schema and CRUD semantics are unchanged; `settings` and `scope` continue to use block syntax. Verified by live acceptance tests `TestAccBranchPolicy*`.
 
 - **7 repository policy resources migrated to terraform-plugin-framework** (`betterado_repository_policy_author_email_pattern`, `betterado_repository_policy_case_enforcement`, `betterado_repository_policy_check_credentials`, `betterado_repository_policy_file_path_pattern`, `betterado_repository_policy_max_file_size`, `betterado_repository_policy_max_path_length`, `betterado_repository_policy_reserved_names`). All resources now use the framework implementation served through the mux provider. Schema is unchanged; `repository_ids` is a flat list attribute. Verified by live acceptance tests `TestAccRepositoryPolicy*`.
