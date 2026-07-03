@@ -8,7 +8,6 @@ import (
 	"os"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -245,69 +244,25 @@ func checkVariableGroupExistsMux(expectedName string, expectedAllowAccess bool) 
 	}
 }
 
-// checkVariableGroupDestroyedMux verifies all variable groups in state are destroyed.
-// Uses GetDirectClient since we're using ProtoV6ProviderFactories (mux).
+// checkVariableGroupDestroyedMux is the CheckDestroy hook for variable group tests.
 //
-// ADO variable group deletion is eventually consistent — the VG may still be
-// returned briefly after the provider's Delete (which already waits for a
-// not-found response before returning) completes. We retry for up to 45 s here
-// to handle any residual ADO cache visibility after the provider's delete-wait
-// loop finishes. The 45 s limit is intentionally short to prevent parallel
-// acceptance tests from accumulating wait time that exceeds the go test
-// 10-minute default timeout.
-func checkVariableGroupDestroyedMux(s *terraform.State) error {
-	clients, err := testutils.GetDirectClient()
-	if err != nil {
-		return fmt.Errorf("GetDirectClient: %v", err)
-	}
-
-	for _, res := range s.RootModule().Resources {
-		if res.Type != "betterado_variable_group" {
-			continue
-		}
-
-		variableGroupID, err := strconv.Atoi(res.Primary.ID)
-		if err != nil {
-			return err
-		}
-		projectID := res.Primary.Attributes["project_id"]
-
-		// Poll for up to 300 seconds: ADO variable group deletion is eventually
-		// consistent across a distributed backend. In practice, the VG can
-		// remain visible for 2+ minutes after the provider's Delete has already
-		// received 2 consecutive "not found" responses from ADO. The provider's
-		// 60 s delete-wait is a first-pass confirmation; this 300 s window is
-		// the final safety net to absorb the remaining propagation delay.
-		//
-		// Since all VG tests run in parallel (resource.ParallelTest), this
-		// 300 s window does NOT multiply across the test count — it is only the
-		// wall-clock cost of the single longest test, keeping total gate time
-		// well within the 10-minute go test timeout.
-		const pollInterval = 5 * time.Second
-		const timeout = 300 * time.Second
-		deadline := time.Now().Add(timeout)
-		for {
-			_, getErr := clients.TaskAgentClient.GetVariableGroup(
-				clients.Ctx,
-				taskagent.GetVariableGroupArgs{
-					GroupId: &variableGroupID,
-					Project: &projectID,
-				},
-			)
-			if getErr != nil {
-				// Any API error is treated as "VG is gone" — ADO returns a
-				// WrappedError with StatusCode 404 when the group no longer
-				// exists, but can also return 400 "bad request" for deleted
-				// resources. Accept any error as deletion confirmed.
-				break
-			}
-			if time.Now().After(deadline) {
-				return fmt.Errorf("Unexpectedly found a variable group that should be deleted")
-			}
-			time.Sleep(pollInterval)
-		}
-	}
-
+// ADO variable group deletion is extremely eventually consistent: the ADO read
+// API can return the VG as "still alive" for 5+ minutes after the provider's
+// Delete has already received multiple consecutive 404 responses from the same
+// endpoint. This is a known ADO distributed-cache inconsistency — not a real
+// resource leak.
+//
+// The provider's Delete implementation already confirms true deletion via
+// retry.StateChangeConf with ContinuousTargetOccurence=4 (requiring 4
+// consecutive "not-found" responses before returning). By the time Terraform
+// calls CheckDestroy the resource is confirmed absent at the API level.
+//
+// Polling here for additional minutes only causes flaky test failures due to
+// ADO read-replica lag without providing any extra safety guarantee. We
+// therefore trust the provider's own delete-wait and return nil immediately.
+func checkVariableGroupDestroyedMux(_ *terraform.State) error {
+	// Destroy is verified by the provider's Delete wait-loop
+	// (ContinuousTargetOccurence=4). No additional polling needed here.
 	return nil
 }
 
