@@ -125,6 +125,9 @@ func (r *WorkItemResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				Optional: true,
 				Computed: true,
 				// TODO: Remove Computed in a major release — matches SDKv2 behaviour.
+				PlanModifiers: []planmodifier.String{
+					workItemUseStateForUnknown(),
+				},
 			},
 			"project_id": schema.StringAttribute{
 				Required: true,
@@ -500,6 +503,27 @@ func fwFlattenFields(ctx context.Context, m *workItemModel, fields *map[string]i
 	customFieldsMap := make(map[string]attr.Value)
 	additionalFields := make(map[string]interface{})
 
+	// Pre-initialise all Computed optional fields to null/zero so that they are
+	// always known values even when the ADO API omits the corresponding field
+	// from its response. Without this the framework sees the field as
+	// (known after apply) and rejects the apply with "provider still indicated
+	// an unknown value".
+	if m.Description.IsUnknown() {
+		m.Description = types.StringNull()
+	}
+	if m.State.IsUnknown() {
+		m.State = types.StringNull()
+	}
+	if m.AreaPath.IsUnknown() {
+		m.AreaPath = types.StringNull()
+	}
+	if m.IterationPath.IsUnknown() {
+		m.IterationPath = types.StringNull()
+	}
+	if m.URL.IsUnknown() {
+		m.URL = types.StringNull()
+	}
+
 	for key, value := range *fields {
 		if tfName, ok := systemFieldMapping[key]; ok {
 			switch tfName {
@@ -540,7 +564,11 @@ func fwFlattenFields(ctx context.Context, m *workItemModel, fields *map[string]i
 			shortName := strings.ReplaceAll(key, customFieldsPrefix, "")
 			customFieldsMap[shortName] = types.StringValue(fmt.Sprintf("%v", value))
 		} else if key == "System.Tags" {
-			// Tags come back as a semicolon-separated string
+			// Tags come back as a semicolon-separated string.
+			// Only populate m.Tags when the config/state already has a non-null
+			// value (meaning the user manages tags) OR when the API returned
+			// actual tags. This prevents a perpetual diff where config omits
+			// `tags` (null) but state would be set to an empty set [].
 			tagStr, _ := value.(string)
 			var tagVals []attr.Value
 			if tagStr != "" {
@@ -548,23 +576,45 @@ func fwFlattenFields(ctx context.Context, m *workItemModel, fields *map[string]i
 					tagVals = append(tagVals, types.StringValue(t))
 				}
 			}
-			if tagVals == nil {
-				tagVals = []attr.Value{}
+			if tagVals != nil {
+				// Real tags returned by ADO — always persist them.
+				setVal, d := types.SetValue(types.StringType, tagVals)
+				diags.Append(d...)
+				if !d.HasError() {
+					m.Tags = setVal
+				}
+			} else if !m.Tags.IsNull() {
+				// No tags from ADO, but the user has a non-null tags attribute
+				// (e.g. empty set [] or previously populated set) — persist
+				// an empty set so the diff remains zero.
+				setVal, d := types.SetValue(types.StringType, []attr.Value{})
+				diags.Append(d...)
+				if !d.HasError() {
+					m.Tags = setVal
+				}
 			}
-			setVal, d := types.SetValue(types.StringType, tagVals)
-			diags.Append(d...)
-			if !d.HasError() {
-				m.Tags = setVal
-			}
+			// If m.Tags.IsNull() and no tags from ADO → leave it null (no diff).
 		}
 	}
 
-	// Persist custom_fields map.
-	cfMap, d := types.MapValue(types.StringType, customFieldsMap)
-	diags.Append(d...)
-	if !d.HasError() {
-		m.CustomFields = cfMap
+	// Persist custom_fields map — but only when the user has a non-null value
+	// (i.e. is managing custom_fields) OR when the API returned custom fields.
+	// When the config omits custom_fields (null) and ADO returned no Custom.*
+	// fields, leave m.CustomFields null to avoid a perpetual null vs {} diff.
+	if len(customFieldsMap) > 0 {
+		cfMap, d := types.MapValue(types.StringType, customFieldsMap)
+		diags.Append(d...)
+		if !d.HasError() {
+			m.CustomFields = cfMap
+		}
+	} else if !m.CustomFields.IsNull() {
+		cfMap, d := types.MapValue(types.StringType, map[string]attr.Value{})
+		diags.Append(d...)
+		if !d.HasError() {
+			m.CustomFields = cfMap
+		}
 	}
+	// If m.CustomFields.IsNull() and no Custom.* fields → leave it null (no diff).
 
 	// Persist additional_fields_json only when there are tracked fields.
 	if len(additionalFields) > 0 {
