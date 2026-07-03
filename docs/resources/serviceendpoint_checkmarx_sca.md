@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_checkmarx_sca Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a Checkmarx SCA Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_checkmarx_sca (Resource)
 
-
+Manages a Checkmarx SCA Service Connection within Azure DevOps.
 
 
 
@@ -17,32 +17,21 @@ description: |-
 
 ### Required
 
-- `access_control_url` (String)
-- `account` (String)
-- `password` (String, Sensitive)
-- `project_id` (String)
-- `server_url` (String)
-- `service_endpoint_name` (String)
-- `username` (String)
-- `web_app_url` (String)
+- `access_control_url` (String) The access control URL for Checkmarx SCA.
+- `account` (String) The Checkmarx SCA account (tenant).
+- `password` (String, Sensitive) The password for authentication.
+- `project_id` (String) The ID of the project.
+- `server_url` (String) The URL of the Checkmarx SCA server.
+- `service_endpoint_name` (String) The Service Endpoint name.
+- `username` (String) The username for authentication.
+- `web_app_url` (String) The web application URL for Checkmarx SCA.
 
 ### Optional
 
-- `description` (String)
-- `team` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `description` (String) The Service Endpoint description.
+- `team` (String) The Checkmarx SCA team.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.

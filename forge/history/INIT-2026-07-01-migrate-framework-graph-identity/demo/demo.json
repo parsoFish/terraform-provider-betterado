@@ -1,0 +1,288 @@
+{
+  "title": "Migrate graph + identity packages to terraform-plugin-framework",
+  "essence": "All betterado_group, betterado_group_membership resources and 11 data sources in the graph and identity packages are now served by the mux provider via terraform-plugin-framework. SDKv2 registrations removed with no duplicates. Gap matrices for Graph and Identity ADO API v7.1 authored. Registry docs regenerated via make docs. Provider version bumped to 1.2.1. Live acceptance test ran (TF_ACC=1): TestAccIdentityDataSources_Framework/IdentityGroup captured a real Identity API GET that confirmed group descriptor and subject_descriptor round-trip cleanly. Hand-rolled validators replaced with terraform-plugin-framework-validators library; validator unit tests added (no TF_ACC required).",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-07-01-migrate-framework-graph-identity",
+  "baseRef": "main",
+  "changedRef": "HEAD",
+  "diffStat": "167 files changed, 11377 insertions(+), 4423 deletions(-)",
+  "summary": {
+    "bullets": [
+      "Migrates 2 resources (betterado_group, betterado_group_membership) and 11 data sources from SDKv2 to terraform-plugin-framework, served via the mux provider.",
+      "Removes all 13 SDKv2 DataSourcesMap / ResourcesMap entries to prevent duplicate-registration panics; comments mark each removed registration.",
+      "Authors docs/graph-gap-matrix.md (313 lines) and docs/identity-gap-matrix.md (201 lines) covering ADO API v7.1 fields with supported/gap/deferred disposition.",
+      "Live acceptance test (TF_ACC=1) captured a real Identity API GET: descriptor and subject_descriptor round-trip confirmed for betterado_identity_group.",
+      "Provider version bumped to 1.2.1; CHANGELOG updated with all 13 migrated types; all 13 registry docs and 13 example HCL files added.",
+      "Adopts terraform-plugin-framework-validators v0.19.0 (now direct dependency); hand-rolled validators.go deleted; 7 offline unit tests verify conflict-triangle and mode-enum validators."
+    ],
+    "branch": "forge/INIT-2026-07-01-migrate-framework-graph-identity",
+    "commitSha": "f5488265"
+  },
+  "checkpoints": [
+    {
+      "label": "Quality gate — release + taskagent packages green",
+      "caption": "CI-equivalent offline gate: all three packages pass with no TF_ACC required.",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "beforeNote": "Gate already passing on main before initiative.",
+      "afterNote": "ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.010s | ok .../taskagent 0.009s | ok .../taskagent/validate 0.005s — all three packages green on branch HEAD (unifier iteration 1, confirmed)."
+    },
+    {
+      "label": "betterado_group + betterado_group_membership — removed from SDKv2 ResourcesMap",
+      "caption": "Both resources are no longer listed in provider.go ResourcesMap; served only via framework_provider.go Resources().",
+      "command": "grep -n 'betterado_group\\|betterado_group_membership' azuredevops/provider.go",
+      "beforeNote": "provider.go ResourcesMap contained 'betterado_group' and 'betterado_group_membership' as live SDKv2 registrations.",
+      "afterNote": "provider.go ResourcesMap no longer lists either resource as an active registration; both served exclusively via the framework mux (only comments remain as markers)."
+    },
+    {
+      "label": "Graph data sources — removed from SDKv2 DataSourcesMap",
+      "caption": "descriptor, storage_key, group (DS), group_membership (DS), groups, user, users, service_principal removed from SDKv2 DataSourcesMap.",
+      "command": "grep -n 'betterado_descriptor\\|betterado_storage_key\\|betterado_groups\\|betterado_service_principal\\|betterado_user\\|betterado_users' azuredevops/provider.go",
+      "beforeNote": "All eight graph data sources were active registrations in provider.go DataSourcesMap.",
+      "afterNote": "All eight removed as active SDKv2 registrations; registered in framework_provider.go DataSources() exclusively. Only comments marking removals remain."
+    },
+    {
+      "label": "Identity data sources — removed from SDKv2 DataSourcesMap",
+      "caption": "identity_group, identity_groups, identity_user removed from SDKv2 DataSourcesMap.",
+      "command": "grep -n 'betterado_identity' azuredevops/provider.go",
+      "beforeNote": "identity_group, identity_groups, identity_user were active SDKv2 registrations in provider.go.",
+      "afterNote": "All three identity data sources removed as active SDKv2 registrations; served by framework via mux. Only comments marking removals remain."
+    },
+    {
+      "label": "Live identity group read-back — real ADO API GET",
+      "caption": "Real ADO Identity API GET of group confirmed descriptor and subject_descriptor during TestAccIdentityDataSources_Framework/IdentityGroup.",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/_apis/identities?identityIds=15360054-c24a-4ed1-ae00-fa298f5d06d5&api-version=7.1",
+        "capturedAt": "2026-07-03T03:10:58Z",
+        "response": "{\n  \"descriptor\": \"Microsoft.TeamFoundation.Identity;S-1-9-1551374245-3436296960-1963285825-2409438698-3826151747-0-0-0-1-2\",\n  \"id\": \"15360054-c24a-4ed1-ae00-fa298f5d06d5\",\n  \"isActive\": true,\n  \"isContainer\": true,\n  \"memberIds\": [],\n  \"memberOf\": [],\n  \"members\": [],\n  \"metaTypeId\": 255,\n  \"properties\": {\n    \"Account\": { \"$type\": \"System.String\", \"$value\": \"Build Administrators\" },\n    \"Description\": { \"$type\": \"System.String\", \"$value\": \"Members of this group can create, modify and delete build definitions and manage queued and completed builds.\" },\n    \"Domain\": { \"$type\": \"System.String\", \"$value\": \"vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800\" },\n    \"ScopeName\": { \"$type\": \"System.String\", \"$value\": \"betterado-standing-demo\" },\n    \"ScopeType\": { \"$type\": \"System.String\", \"$value\": \"TeamProject\" }\n  },\n  \"providerDisplayName\": \"[betterado-standing-demo]\\\\Build Administrators\",\n  \"resourceVersion\": 2,\n  \"subjectDescriptor\": \"vssgp.Uy0xLTktMTU1MTM3NDI0NS0zNDM2Mjk2OTYwLTE5NjMyODU4MjUtMjQwOTQzODY5OC0zODI2MTUxNzQ3LTAtMC0wLTEtMg\"\n}"
+      },
+      "beforeNote": "Identity data sources were SDKv2-only; no framework path existed.",
+      "afterNote": "data.betterado_identity_group read-back via mux provider returned descriptor and subject_descriptor matching live ADO group. TestAccIdentityDataSources_Framework/IdentityGroup: ExpectNonEmptyPlan: false → PASS."
+    },
+    {
+      "label": "Validator unit tests — conflict triangle and mode enum",
+      "caption": "7 offline unit tests (no TF_ACC) verify the conflict-triangle on betterado_group and mode-enum on betterado_group_membership.",
+      "command": "go test -v -count=1 -run 'TestGroupResource_Conflict|TestGroupMembershipResource_' ./azuredevops/internal/service/graph/",
+      "beforeNote": "validators.go hand-rolled three validator types; terraform-plugin-framework-validators was an unused indirect dependency.",
+      "afterNote": "validators.go deleted; imports replaced with stringvalidator/resourcevalidator from terraform-plugin-framework-validators v0.19.0 (now direct dependency). All 7 unit tests pass: TestGroupResource_ConflictOriginIDAndMail, TestGroupResource_ConflictOriginIDAndDisplayName, TestGroupResource_ConflictMailAndDisplayName, TestGroupResource_ConflictOriginIDAndScope, TestGroupResource_ConflictMailAndScope, TestGroupMembershipResource_InvalidMode, TestGroupMembershipResource_EmptyGroupDescriptor."
+    },
+    {
+      "label": "Gap matrices authored",
+      "caption": "docs/graph-gap-matrix.md (313 lines) and docs/identity-gap-matrix.md (201 lines) list every API field with coverage status.",
+      "command": "wc -l docs/graph-gap-matrix.md docs/identity-gap-matrix.md",
+      "beforeNote": "Gap matrix files did not exist before this initiative.",
+      "afterNote": "docs/graph-gap-matrix.md: 313 lines; docs/identity-gap-matrix.md: 201 lines. Both list all Graph/Identity API fields with supported/gap/deferred columns and writable gap rationales."
+    },
+    {
+      "label": "Registry docs regenerated",
+      "caption": "docs/ updated for all migrated resources and data sources via make docs.",
+      "command": "ls docs/data-sources/descriptor.md docs/data-sources/group.md docs/data-sources/group_membership.md docs/data-sources/groups.md docs/data-sources/identity_group.md docs/data-sources/identity_groups.md docs/data-sources/identity_user.md docs/data-sources/service_principal.md docs/data-sources/storage_key.md docs/data-sources/user.md docs/data-sources/users.md docs/resources/group.md docs/resources/group_membership.md",
+      "beforeNote": "Docs were generated against SDKv2 schemas.",
+      "afterNote": "All 13 doc files regenerated via make docs; content reflects framework schemas and example HCL files."
+    },
+    {
+      "label": "Provider version bump",
+      "caption": "PROVIDER_VERSION.txt bumped to 1.2.1.",
+      "command": "cat PROVIDER_VERSION.txt",
+      "beforeNote": "Version was 1.1.0 before this initiative.",
+      "afterNote": "PROVIDER_VERSION.txt reads 1.2.1."
+    },
+    {
+      "label": "CHANGELOG updated",
+      "caption": "CHANGELOG.md ## [Unreleased] lists all 13 migrated resources/data sources.",
+      "command": "grep -A 20 '## \\[Unreleased\\]' CHANGELOG.md | head -20",
+      "beforeNote": "CHANGELOG had no graph/identity migration entries.",
+      "afterNote": "## [Unreleased] contains a '### Changed (Framework Migration)' section listing all 13 migrated types by name."
+    }
+  ],
+  "acEvaluations": [
+    {
+      "criterion": "AC1 (WI-1): GIVEN the ADO Graph REST API v7.1 and the current SDKv2 schema WHEN docs/graph-gap-matrix.md is read THEN every field is listed with coverage status (supported/gap/deferred)",
+      "verdict": "met",
+      "evidence": "docs/graph-gap-matrix.md present on branch HEAD (313 lines); lists group, membership, user, service_principal, storage_key, descriptor fields with supported/gap/deferred columns. wc -l docs/graph-gap-matrix.md → 313."
+    },
+    {
+      "criterion": "AC2 (WI-1): GIVEN the ADO Identity REST API v7.1 WHEN docs/identity-gap-matrix.md is read THEN every field listed with coverage status",
+      "verdict": "met",
+      "evidence": "docs/identity-gap-matrix.md present on branch HEAD (201 lines); lists identity_group, identity_groups, identity_user fields with coverage status. wc -l docs/identity-gap-matrix.md → 201."
+    },
+    {
+      "criterion": "AC3 (WI-1): GIVEN writable gaps identified WHEN gap matrix reviewed THEN each writable gap is marked 'implement' or 'deferred' with rationale",
+      "verdict": "met",
+      "evidence": "Both gap matrices contain a Writable Gaps section; all writable gaps carry explicit deferred/implement disposition with rationale text."
+    },
+    {
+      "criterion": "AC4 (WI-2): GIVEN a Terraform config creating betterado_group WHEN terraform apply runs THEN group created, read-back populates all computed attrs, idempotency re-plan shows no changes",
+      "verdict": "met",
+      "evidence": "TestAccGroupResource_Framework (azuredevops/internal/acceptancetests/resource_group_test.go) covers create/read/idempotency with ExpectNonEmptyPlan: false; test committed in WI-2 and passed live (TF_ACC=1)."
+    },
+    {
+      "criterion": "AC5 (WI-2): GIVEN betterado_group registered ONLY in framework_provider.go WHEN provider compiles THEN no 'Duplicate resource type' error, SDKv2 ResourcesMap no longer contains 'betterado_group'",
+      "verdict": "met",
+      "evidence": "grep -n 'betterado_group' azuredevops/provider.go → only comments (lines 76, 199, 203); no active ResourcesMap entry. go test -tags all -count=1 ./azuredevops/internal/service/release/... passes (ok .../release 0.007s)."
+    },
+    {
+      "criterion": "AC6 (WI-2): GIVEN betterado_group resource destroyed WHEN terraform destroy runs THEN group deleted, 404 treated as already deleted",
+      "verdict": "met",
+      "evidence": "azuredevops/internal/service/graph/resource_group_framework.go Delete() checks HTTP 404 and returns without error diagnostic; acceptance test exercises destroy step and passed live."
+    },
+    {
+      "criterion": "AC7 (WI-3): GIVEN betterado_group_membership config WHEN terraform apply runs THEN memberships set, read-back populates members, idempotency re-plan clean",
+      "verdict": "met",
+      "evidence": "TestAccGroupMembership_Framework (azuredevops/internal/acceptancetests/resource_group_membership_test.go:105) covers create/read/idempotency with ExpectNonEmptyPlan: false; committed in WI-3 commits."
+    },
+    {
+      "criterion": "AC8 (WI-3): GIVEN betterado_group_membership registered ONLY in framework_provider.go WHEN provider compiles THEN no 'Duplicate resource type' error, SDKv2 ResourcesMap no longer contains 'betterado_group_membership'",
+      "verdict": "met",
+      "evidence": "grep -n 'betterado_group_membership' azuredevops/provider.go → only comments (lines 79 comment, 201); no active ResourcesMap entry. Provider compiles and gate passes."
+    },
+    {
+      "criterion": "AC9 (WI-3): GIVEN mode changes from 'overwrite' to 'add' WHEN terraform apply runs THEN update path exercised, idempotency re-plan clean",
+      "verdict": "met",
+      "evidence": "resource_group_membership_framework.go Update() implements mode-change path; TestAccGroupMembership_Framework includes a mode-change test step with ExpectNonEmptyPlan: false; committed in WI-3 commits."
+    },
+    {
+      "criterion": "AC10 (WI-4): GIVEN data.betterado_descriptor with valid storage_key WHEN terraform apply runs THEN descriptor populated, idempotency re-plan clean",
+      "verdict": "missed",
+      "evidence": "TestAccGraphSimpleDataSources_Framework/Descriptor exists in data_graph_simple_framework_test.go and the test function is real, but no CaptureLiveEvidence call was made in this test; no live API response was persisted under the per-type label. Acceptance test requires TF_ACC=1 which was not run with capture for this data source type."
+    },
+    {
+      "criterion": "AC11 (WI-4): GIVEN data.betterado_storage_key with valid descriptor WHEN terraform apply runs THEN storage_key populated, idempotency re-plan clean",
+      "verdict": "missed",
+      "evidence": "TestAccGraphSimpleDataSources_Framework/StorageKey exists in data_graph_simple_framework_test.go and the test function is real, but no CaptureLiveEvidence call was made; no live API response persisted for this data source type."
+    },
+    {
+      "criterion": "AC12 (WI-4): GIVEN data.betterado_group with name and project_id WHEN terraform apply runs THEN descriptor, origin, origin_id, group_id all populated, idempotency re-plan clean",
+      "verdict": "missed",
+      "evidence": "TestAccGraphSimpleDataSources_Framework/Group exists in data_graph_simple_framework_test.go, but no CaptureLiveEvidence call was made; no live API response persisted for this data source type."
+    },
+    {
+      "criterion": "AC13 (WI-4): GIVEN data.betterado_group_membership with group_descriptor WHEN terraform apply runs THEN members list populated, idempotency re-plan clean",
+      "verdict": "missed",
+      "evidence": "TestAccGraphSimpleDataSources_Framework/GroupMembership exists in data_graph_simple_framework_test.go, but no CaptureLiveEvidence call was made; no live API response persisted for this data source type."
+    },
+    {
+      "criterion": "AC14 (WI-4): GIVEN all four data sources registered ONLY in framework_provider.go WHEN provider compiles THEN no 'Duplicate data source type' error, SDKv2 DataSourcesMap no longer contains these four keys",
+      "verdict": "met",
+      "evidence": "grep -n 'betterado_descriptor' azuredevops/provider.go → only comment (line 192); grep -n 'betterado_storage_key' → only comment (line 228); betterado_group DS and betterado_group_membership DS only appear as comments. Provider compiles and gate passes."
+    },
+    {
+      "criterion": "AC15 (WI-5): GIVEN data.betterado_user with known descriptor WHEN terraform apply runs THEN all computed attrs populated, idempotency re-plan clean",
+      "verdict": "missed",
+      "evidence": "TestAccGraphComplexDataSources_Framework/User exists in data_graph_complex_framework_test.go, but no CaptureLiveEvidence call was made for this sub-test; no live API response persisted for this data source type."
+    },
+    {
+      "criterion": "AC16 (WI-5): GIVEN data.betterado_users with optional filters WHEN terraform apply runs THEN users set populated with matching users, idempotency re-plan clean",
+      "verdict": "missed",
+      "evidence": "TestAccGraphComplexDataSources_Framework/Users exists in data_graph_complex_framework_test.go, but no CaptureLiveEvidence call was made; no live API response persisted for this data source type."
+    },
+    {
+      "criterion": "AC17 (WI-5): GIVEN data.betterado_groups with optional project_id WHEN terraform apply runs THEN groups set populated, each group has all attrs, idempotency re-plan clean",
+      "verdict": "missed",
+      "evidence": "TestAccGraphComplexDataSources_Framework/Groups exists in data_graph_complex_framework_test.go, but no CaptureLiveEvidence call was made; no live API response persisted for this data source type."
+    },
+    {
+      "criterion": "AC18 (WI-5): GIVEN data.betterado_service_principal with known display_name WHEN terraform apply runs THEN descriptor, display_name, origin_id, origin populated, idempotency re-plan clean",
+      "verdict": "missed",
+      "evidence": "TestAccGraphComplexDataSources_Framework/ServicePrincipal exists in data_graph_complex_framework_test.go, but no CaptureLiveEvidence call was made; no live API response persisted for this data source type."
+    },
+    {
+      "criterion": "AC19 (WI-5): GIVEN all four WI-5 data sources registered ONLY in framework_provider.go WHEN provider compiles THEN no 'Duplicate data source type' error, SDKv2 DataSourcesMap no longer contains these four keys",
+      "verdict": "met",
+      "evidence": "grep -n 'betterado_groups\\|betterado_service_principal\\|betterado_user\\|betterado_users' azuredevops/provider.go → only comments (lines 203, 226, 228 area). No active DataSourcesMap entries. Provider compiles and gate passes."
+    },
+    {
+      "criterion": "AC20 (WI-6): GIVEN data.betterado_identity_group with name and project_id WHEN terraform apply runs THEN descriptor and subject_descriptor populated, idempotency re-plan clean",
+      "verdict": "met",
+      "evidence": "TestAccIdentityDataSources_Framework/IdentityGroup (azuredevops/internal/acceptancetests/data_identity_group_framework_test.go); live evidence captured at 2026-07-03T03:10:58Z — Identity GET returned descriptor 'Microsoft.TeamFoundation.Identity;S-1-9-1551374245-3436296960-1963285825-2409438698-3826151747-0-0-0-1-2' and subjectDescriptor 'vssgp.Uy0xLTktMTU1MTM3NDI0NS0zNDM2Mjk2OTYwLTE5NjMyODU4MjUtMjQwOTQzODY5OC0zODI2MTUxNzQ3LTAtMC0wLTEtMg'; ExpectNonEmptyPlan: false → PASS."
+    },
+    {
+      "criterion": "AC21 (WI-6): GIVEN data.betterado_identity_groups with optional project_id WHEN terraform apply runs THEN groups set populated, each group has id/name/descriptor/subject_descriptor, idempotency re-plan clean",
+      "verdict": "missed",
+      "evidence": "TestAccIdentityDataSources_Framework/IdentityGroups exists in data_identity_group_framework_test.go, but no CaptureLiveEvidence call was made for this sub-test; no live API response persisted for this data source type."
+    },
+    {
+      "criterion": "AC22 (WI-6): GIVEN data.betterado_identity_user with name WHEN terraform apply runs THEN descriptor and subject_descriptor populated, idempotency re-plan clean",
+      "verdict": "missed",
+      "evidence": "TestAccIdentityDataSources_Framework/IdentityUser exists in data_identity_group_framework_test.go, but no CaptureLiveEvidence call was made for this sub-test; no live API response persisted for this data source type."
+    },
+    {
+      "criterion": "AC23 (WI-6): GIVEN all three identity data sources registered ONLY in framework_provider.go WHEN provider compiles THEN no 'Duplicate data source type' error, SDKv2 DataSourcesMap no longer contains 'betterado_identity_group', 'betterado_identity_groups', 'betterado_identity_user'",
+      "verdict": "met",
+      "evidence": "grep -n 'betterado_identity' azuredevops/provider.go → only comments (lines 205, 207, 209). No active DataSourcesMap entries. Provider compiles and gate passes."
+    },
+    {
+      "criterion": "AC24 (WI-7): GIVEN framework migration complete WHEN make docs runs THEN all 13 doc files are current",
+      "verdict": "met",
+      "evidence": "ls docs/data-sources/descriptor.md docs/data-sources/group.md docs/data-sources/group_membership.md docs/data-sources/groups.md docs/data-sources/identity_group.md docs/data-sources/identity_groups.md docs/data-sources/identity_user.md docs/data-sources/service_principal.md docs/data-sources/storage_key.md docs/data-sources/user.md docs/data-sources/users.md docs/resources/group.md docs/resources/group_membership.md → all 13 exist in branch diff; generated by make docs in WI-7 commit."
+    },
+    {
+      "criterion": "AC25 (WI-7): GIVEN provider version bumped in PROVIDER_VERSION.txt WHEN cat PROVIDER_VERSION.txt THEN version higher than pre-initiative version",
+      "verdict": "met",
+      "evidence": "cat PROVIDER_VERSION.txt → 1.2.1 (branch HEAD); pre-initiative version was 1.1.0 (on main)."
+    },
+    {
+      "criterion": "AC26 (WI-7): GIVEN CHANGELOG.md read WHEN ## Unreleased section viewed THEN lists all migrated graph and identity resources/data sources",
+      "verdict": "met",
+      "evidence": "CHANGELOG.md ## [Unreleased] / ### Changed (Framework Migration) lists all 13 migrated types by name: betterado_group resource, betterado_group_membership resource, betterado_descriptor, betterado_storage_key, betterado_group DS, betterado_group_membership DS, betterado_groups, betterado_user, betterado_users, betterado_service_principal, betterado_identity_group, betterado_identity_groups, betterado_identity_user."
+    },
+    {
+      "criterion": "AC27 (WI-7): GIVEN examples/ directory WHEN examples/data-sources/betterado_group/data-source.tf and similar exist THEN each migrated resource/data source has an example HCL file",
+      "verdict": "met",
+      "evidence": "git diff --name-only main...HEAD includes examples/data-sources/betterado_{descriptor,group,group_membership,groups,identity_group,identity_groups,identity_user,service_principal,storage_key,user,users}/data-source.tf (11 files) and examples/resources/betterado_{group,group_membership}/resource.tf (2 files) — all 13 types covered."
+    }
+  ],
+  "testEvidence": [
+    {
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/release/... — ok .../release 0.006s",
+      "result": "pass"
+    },
+    {
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/taskagent/... — ok .../taskagent 0.006s",
+      "result": "pass"
+    },
+    {
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/taskagent/validate/... — ok .../taskagent/validate 0.004s",
+      "result": "pass"
+    },
+    {
+      "name": "TestGroupResource_ConflictOriginIDAndMail (offline validator unit test)",
+      "result": "pass"
+    },
+    {
+      "name": "TestGroupResource_ConflictOriginIDAndDisplayName (offline validator unit test)",
+      "result": "pass"
+    },
+    {
+      "name": "TestGroupResource_ConflictMailAndDisplayName (offline validator unit test)",
+      "result": "pass"
+    },
+    {
+      "name": "TestGroupResource_ConflictOriginIDAndScope (offline validator unit test)",
+      "result": "pass"
+    },
+    {
+      "name": "TestGroupResource_ConflictMailAndScope (offline validator unit test)",
+      "result": "pass"
+    },
+    {
+      "name": "TestGroupMembershipResource_InvalidMode (offline validator unit test)",
+      "result": "pass"
+    },
+    {
+      "name": "TestGroupMembershipResource_EmptyGroupDescriptor (offline validator unit test)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccGroupResource_Framework (TF_ACC=1, live)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccGroupMembership_Framework (TF_ACC=1, live)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccIdentityDataSources_Framework/IdentityGroup (TF_ACC=1, live — CaptureLiveEvidence persisted)",
+      "result": "pass"
+    }
+  ]
+}

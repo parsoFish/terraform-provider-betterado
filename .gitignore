@@ -35,8 +35,9 @@ crash.log
 # ignore tf files in the root directory
 /*.tf
 
-# unwanted binary file
+# unwanted binary files (compiled test binaries)
 **/debug.test
+*.test
 dist
 
 

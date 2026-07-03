@@ -9,14 +9,15 @@ import (
 )
 
 func TestAccBranchPolicyMergeTypes_basic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	name := testutils.GenerateResourceName()
 	buildValidationTfNode := "betterado_branch_policy_merge_types.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclMergeTypesBasic(name, true, true, true, true, true, true),
+				Config: hclMergeTypesBasic(projectID, name, true, true, true, true, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(buildValidationTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(buildValidationTfNode, "settings.0.allow_squash", "true"),
@@ -25,7 +26,7 @@ func TestAccBranchPolicyMergeTypes_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(buildValidationTfNode, "settings.0.allow_rebase_with_merge", "true"),
 				),
 			}, {
-				Config: hclMergeTypesBasic(name, false, false, false, false, false, false),
+				Config: hclMergeTypesBasic(projectID, name, false, false, false, false, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(buildValidationTfNode, "enabled", "false"),
 					resource.TestCheckResourceAttr(buildValidationTfNode, "settings.0.allow_squash", "false"),
@@ -43,32 +44,30 @@ func TestAccBranchPolicyMergeTypes_basic(t *testing.T) {
 	})
 }
 
-func hclMergeTypesBasic(name string, enabled, blocking, allowSquash, allowRebase, allowNoFastForward, allowRebaseMerge bool) string {
+func hclMergeTypesBasic(projectID, name string, enabled, blocking, allowSquash, allowRebase, allowNoFastForward, allowRebaseMerge bool) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name        = "%[1]s"
-  description = "description"
-}
-
-data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+resource "betterado_git_repository" "test" {
+  project_id = %[1]q
+  name       = "%[2]s"
+  initialization {
+    init_type = "Clean"
+  }
 }
 
 resource "betterado_branch_policy_merge_types" "test" {
-  project_id = betterado_project.test.id
-  enabled    = %[2]t
-  blocking   = %[3]t
+  project_id = %[1]q
+  enabled    = %[3]t
+  blocking   = %[4]t
   settings {
-    allow_squash                  = %[4]t
-    allow_rebase_and_fast_forward = %[5]t
-    allow_basic_no_fast_forward   = %[6]t
-    allow_rebase_with_merge       = %[7]t
+    allow_squash                  = %[5]t
+    allow_rebase_and_fast_forward = %[6]t
+    allow_basic_no_fast_forward   = %[7]t
+    allow_rebase_with_merge       = %[8]t
     scope {
-      repository_id  = data.betterado_git_repository.test.id
+      repository_id  = betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }
   }
-}`, name, enabled, blocking, allowSquash, allowRebase, allowNoFastForward, allowRebaseMerge)
+}`, projectID, name, enabled, blocking, allowSquash, allowRebase, allowNoFastForward, allowRebaseMerge)
 }

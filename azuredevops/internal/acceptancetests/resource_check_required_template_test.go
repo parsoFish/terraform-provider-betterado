@@ -9,7 +9,8 @@ import (
 )
 
 func TestAccCheckRequiredTemplate_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
+	serviceEndpointName := testutils.GenerateResourceName()
 	repositoryName := "test-repo"
 	repositoryRef := "refs/heads/master"
 	templatePath := "templ/path1.yaml"
@@ -17,12 +18,12 @@ func TestAccCheckRequiredTemplate_basic(t *testing.T) {
 	resourceType := "betterado_check_required_template"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckPipelineCheckDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRequiredTemplateCheckResourceBasic(projectName, repositoryName, repositoryRef, templatePath),
+				Config: hclRequiredTemplateCheckResourceBasic(projectID, serviceEndpointName, repositoryName, repositoryRef, templatePath),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttr(tfCheckNode, "required_template.0.repository_name", repositoryName),
@@ -35,7 +36,8 @@ func TestAccCheckRequiredTemplate_basic(t *testing.T) {
 }
 
 func TestAccCheckRequiredTemplate_complete(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
+	serviceEndpointName := testutils.GenerateResourceName()
 	repositoryType := "github"
 	repositoryName := "proj/test-repo"
 	repositoryRef := "refs/heads/master"
@@ -44,12 +46,12 @@ func TestAccCheckRequiredTemplate_complete(t *testing.T) {
 	resourceType := "betterado_check_required_template"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckPipelineCheckDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRequiredTemplateCheckResourceComplete(projectName, repositoryType, repositoryName, repositoryRef, templatePath),
+				Config: hclRequiredTemplateCheckResourceComplete(projectID, serviceEndpointName, repositoryType, repositoryName, repositoryRef, templatePath),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttr(tfCheckNode, "required_template.0.repository_type", repositoryType),
@@ -63,7 +65,8 @@ func TestAccCheckRequiredTemplate_complete(t *testing.T) {
 }
 
 func TestAccCheckRequiredTemplate_update(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
+	serviceEndpointName := testutils.GenerateResourceName()
 	repositoryNameFirst := "test-repo"
 	repositoryRefFirst := "refs/heads/master"
 	templatePathFirst := "templ/path1.yaml"
@@ -76,12 +79,12 @@ func TestAccCheckRequiredTemplate_update(t *testing.T) {
 	resourceType := "betterado_check_required_template"
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckPipelineCheckDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRequiredTemplateCheckResourceBasic(projectName, repositoryNameFirst, repositoryRefFirst, templatePathFirst),
+				Config: hclRequiredTemplateCheckResourceBasic(projectID, serviceEndpointName, repositoryNameFirst, repositoryRefFirst, templatePathFirst),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttr(tfCheckNode, "required_template.0.repository_name", repositoryNameFirst),
@@ -90,7 +93,7 @@ func TestAccCheckRequiredTemplate_update(t *testing.T) {
 				),
 			},
 			{
-				Config: hclRequiredTemplateCheckResourceUpdate(projectName, repositoryTypeSecond, repositoryNameSecond, repositoryRefSecond, templatePathSecond),
+				Config: hclRequiredTemplateCheckResourceUpdate(projectID, serviceEndpointName, repositoryTypeSecond, repositoryNameSecond, repositoryRefSecond, templatePathSecond),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
 					resource.TestCheckResourceAttr(tfCheckNode, "required_template.0.repository_type", repositoryTypeSecond),
@@ -104,10 +107,19 @@ func TestAccCheckRequiredTemplate_update(t *testing.T) {
 	})
 }
 
-func hclRequiredTemplateCheckResourceBasic(projectName, repositoryName, repositoryRef, templatePath string) string {
-	checkResource := fmt.Sprintf(`
+func hclRequiredTemplateCheckResourceBasic(projectID, serviceEndpointName, repositoryName, repositoryRef, templatePath string) string {
+	return fmt.Sprintf(`
+resource "betterado_serviceendpoint_generic" "test" {
+  project_id            = %q
+  service_endpoint_name = "%s"
+  description           = "test"
+  server_url            = "https://test/"
+  username              = "test"
+  password              = "test"
+}
+
 resource "betterado_check_required_template" "test" {
-  project_id           = betterado_project.project.id
+  project_id           = %q
   target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
   required_template {
@@ -115,16 +127,22 @@ resource "betterado_check_required_template" "test" {
     repository_ref  = "%s"
     template_path   = "%s"
   }
-}`, repositoryName, repositoryRef, templatePath)
-
-	genericcheckResource := testutils.HclServiceEndpointGenericResource(projectName, "serviceendpoint", "https://test/", "test", "test")
-	return fmt.Sprintf("%s\n%s", genericcheckResource, checkResource)
+}`, projectID, serviceEndpointName, projectID, repositoryName, repositoryRef, templatePath)
 }
 
-func hclRequiredTemplateCheckResourceComplete(projectName, repository_type, repositoryName, repositoryRef, templatePath string) string {
-	checkResource := fmt.Sprintf(`
+func hclRequiredTemplateCheckResourceComplete(projectID, serviceEndpointName, repository_type, repositoryName, repositoryRef, templatePath string) string {
+	return fmt.Sprintf(`
+resource "betterado_serviceendpoint_generic" "test" {
+  project_id            = %q
+  service_endpoint_name = "%s"
+  description           = "test"
+  server_url            = "https://test/"
+  username              = "test"
+  password              = "test"
+}
+
 resource "betterado_check_required_template" "test" {
-  project_id           = betterado_project.project.id
+  project_id           = %q
   target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
   required_template {
@@ -133,16 +151,22 @@ resource "betterado_check_required_template" "test" {
     repository_ref  = "%s"
     template_path   = "%s"
   }
-}`, repository_type, repositoryName, repositoryRef, templatePath)
-
-	genericcheckResource := testutils.HclServiceEndpointGenericResource(projectName, "serviceendpoint", "https://test/", "test", "test")
-	return fmt.Sprintf("%s\n%s", genericcheckResource, checkResource)
+}`, projectID, serviceEndpointName, projectID, repository_type, repositoryName, repositoryRef, templatePath)
 }
 
-func hclRequiredTemplateCheckResourceUpdate(projectName, repository_type, repositoryName, repositoryRef, templatePath string) string {
-	checkResource := fmt.Sprintf(`
+func hclRequiredTemplateCheckResourceUpdate(projectID, serviceEndpointName, repository_type, repositoryName, repositoryRef, templatePath string) string {
+	return fmt.Sprintf(`
+resource "betterado_serviceendpoint_generic" "test" {
+  project_id            = %q
+  service_endpoint_name = "%s"
+  description           = "test"
+  server_url            = "https://test/"
+  username              = "test"
+  password              = "test"
+}
+
 resource "betterado_check_required_template" "test" {
-  project_id           = betterado_project.project.id
+  project_id           = %q
   target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
   required_template {
@@ -151,9 +175,5 @@ resource "betterado_check_required_template" "test" {
     repository_ref  = "%s"
     template_path   = "%s"
   }
-
-}`, repository_type, repositoryName, repositoryRef, templatePath)
-
-	genericcheckResource := testutils.HclServiceEndpointGenericResource(projectName, "serviceendpoint", "https://test/", "test", "test")
-	return fmt.Sprintf("%s\n%s", genericcheckResource, checkResource)
+}`, projectID, serviceEndpointName, projectID, repository_type, repositoryName, repositoryRef, templatePath)
 }

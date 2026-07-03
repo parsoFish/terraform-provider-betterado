@@ -14,9 +14,9 @@ func TestAccServiceEndpointCheckMarxOne_apiKey(t *testing.T) {
 
 	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_one.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxOneServiceResourceApiKey(projectName, serviceEndpointName),
@@ -35,9 +35,9 @@ func TestAccServiceEndpointCheckMarxOne_apiKeyUpdate(t *testing.T) {
 
 	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_one.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxOneServiceResourceApiKeyUpdate(projectName, serviceEndpointName),
@@ -57,9 +57,9 @@ func TestAccServiceEndpointCheckMarxOne_clientIdSecret(t *testing.T) {
 
 	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_one.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxOneServiceResourceClientIdSecret(projectName, serviceEndpointName),
@@ -78,9 +78,9 @@ func TestAccServiceEndpointCheckMarxOne_clientIdSecretUpdate(t *testing.T) {
 
 	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_one.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxOneServiceResourceClientIdSecret(projectName, serviceEndpointName),
@@ -109,9 +109,9 @@ func TestAccServiceEndpointCheckMarxOne_requiresImportErrorStep(t *testing.T) {
 	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_one.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_one"),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointCheckMarxOneServiceResourceApiKey(projectName, serviceEndpointName),
