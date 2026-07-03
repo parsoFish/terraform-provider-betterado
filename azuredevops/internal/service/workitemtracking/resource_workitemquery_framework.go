@@ -82,6 +82,12 @@ func (m wiqStringUseStateForUnknown) PlanModifyString(_ context.Context, req pla
 	if !req.PlanValue.IsUnknown() {
 		return
 	}
+	// Only copy state when there is a known prior state value.
+	// On first apply state is null; leaving the plan as unknown allows the
+	// provider to set the real value after creation without a consistency error.
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+		return
+	}
 	resp.PlanValue = req.StateValue
 }
 
@@ -96,6 +102,12 @@ func (m wiqBoolUseStateForUnknown) MarkdownDescription(_ context.Context) string
 }
 func (m wiqBoolUseStateForUnknown) PlanModifyBool(_ context.Context, req planmodifier.BoolRequest, resp *planmodifier.BoolResponse) {
 	if !req.PlanValue.IsUnknown() {
+		return
+	}
+	// Only copy state when there is a known prior state value.
+	// On first apply state is null; leaving the plan as unknown allows the
+	// provider to set the real value after creation without a consistency error.
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
 		return
 	}
 	resp.PlanValue = req.StateValue

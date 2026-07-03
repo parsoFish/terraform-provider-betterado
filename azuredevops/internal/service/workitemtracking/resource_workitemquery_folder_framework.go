@@ -78,6 +78,12 @@ func (m wiqfStringUseStateForUnknown) PlanModifyString(_ context.Context, req pl
 	if !req.PlanValue.IsUnknown() {
 		return
 	}
+	// Only copy state when there is a known prior state value.
+	// On first apply state is null; leaving the plan as unknown allows the
+	// provider to set the real value after creation without a consistency error.
+	if req.StateValue.IsNull() || req.StateValue.IsUnknown() {
+		return
+	}
 	resp.PlanValue = req.StateValue
 }
 
