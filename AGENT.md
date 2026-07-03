@@ -62,10 +62,26 @@ When `GetClientByResourceAreaId` is called with the org connection, it calls `Ge
 
 - Using org connection (`https://dev.azure.com/<org>`) for `profile.NewClient` and `accounts.NewClient` — causes "API resource area Id not registered" error during provider Configure, which surfaces as "Invalid provider configuration" to the user.
 
+### Iteration 3
+
+**Problem:** Gate failure (iteration 2 output): `TestAccDataAccounts` failed at plan step with:
+- `Error: Invalid provider configuration` — Provider requires explicit configuration
+- `Error: You are not authorized to access Azure DevOps Organization https://dev.azure.com/davidgparsonson`
+
+**Root cause:** `accounts.NewClient(ctx, vsspsConnection)` and `profile.NewClient(ctx, vsspsConnection)` both call `GetClientByResourceAreaId` which issues an HTTP GET to `https://app.vssps.visualstudio.com/_apis/resourceAreas` at provider Configure time. When the PAT is scoped to a single org, this call can return HTTP 401. The 401 propagates through `GetAzdoClient` → `clientErrorHandle` (using org URL in error msg) → "You are not authorized to access Azure DevOps Organization ..." → provider Configure fails → "Invalid provider configuration" at Terraform level.
+
+**Fix:** Instead of calling `accounts.NewClient()` and `profile.NewClient()` (which trigger resource-area discovery HTTP calls), use `vsspsConnection.GetClientByUrl("https://app.vssps.visualstudio.com")` to get a raw SDK client and construct `accounts.ClientImpl{Client: *sdkClient}` and `profile.ClientImpl{Client: *sdkClient}` directly. No HTTP call is made during provider Configure. Location-service discovery is deferred to the first `GetAccounts`/`GetProfile` call inside the data source `Read` method, where errors surface cleanly to the user.
+
+**File changed:** `azuredevops/internal/client/client.go`
+
+**Verified:** `go build -tags all ./...`, `make test`, `go vet -tags all ./...`, `golangci-lint run --new-from-rev=main ./...` — all clean. Both tests still discoverable.
+
 ## Open questions
 
 _(none)_
 
 ## Notes for reflection
 
-- All ACs complete as of iteration 2. The main blocker was the vssps connection issue for profile/accounts clients.
+- **Pattern**: always use `GetClientByUrl` (no HTTP) when creating clients during provider Configure. Only use `GetClientByResourceAreaId`/`NewClient()` (HTTP call for discovery) at actual API call time (inside Read/Create etc.) where errors can be surfaced to users.
+- `accounts.ClientImpl` and `profile.ClientImpl` are exported structs — constructible directly.
+- The iteration 2 fix resolved the WRONG URL issue (org → vssps). Iteration 3 resolved the WRONG TIMING issue (HTTP at Configure → defer to Read).
