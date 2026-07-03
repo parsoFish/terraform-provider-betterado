@@ -114,7 +114,8 @@ func checkEnvironmentKubernetesDestroyed(s *terraform.State) error {
 
 // Lookup an Environment using the ID and the project ID.
 func readEnvironmentKubernetes(clients *client.AggregatedClient, projectId string, environmentId int, resourceId int) (*taskagent.KubernetesResource, error) {
-	return clients.TaskAgentClient.GetKubernetesResource(clients.Ctx,
+	return clients.TaskAgentClient.GetKubernetesResource(
+		clients.Ctx,
 		taskagent.GetKubernetesResourceArgs{
 			Project:       &projectId,
 			EnvironmentId: &environmentId,
