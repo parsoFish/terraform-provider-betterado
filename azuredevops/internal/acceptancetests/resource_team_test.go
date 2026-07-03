@@ -11,17 +11,17 @@ import (
 )
 
 func TestAccTeam_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	testutils.PreCheck(t, nil)
+	projectID := ResolveFixtureProjectID(t)
 	teamName := testutils.GenerateResourceName()
 
 	tfNode := "betterado_team.test"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:  func() { testutils.PreCheck(t, nil) },
+		Providers: testutils.GetProviders(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclTeamBasic(projectName, teamName),
+				Config: hclTeamBasicFixture(projectID, teamName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "name", teamName),
 					captureTeamEvidence(tfNode),
@@ -183,6 +183,17 @@ func TestAccTeam_complete(t *testing.T) {
 			},
 		},
 	})
+}
+
+// hclTeamBasicFixture creates a team inside the standing-demo fixture project
+// (no new project is provisioned — the project UUID is injected directly).
+func hclTeamBasicFixture(projectID, teamName string) string {
+	return fmt.Sprintf(`
+resource "betterado_team" "test" {
+  project_id = %q
+  name       = %q
+}
+`, projectID, teamName)
 }
 
 func hclTeamBasic(projectName, teamName string) string {
