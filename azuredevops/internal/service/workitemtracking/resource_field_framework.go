@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -20,6 +21,10 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
+
+// referenceNameValidChars matches strings that do NOT contain forbidden characters.
+// Allowed: any character that is NOT in the forbidden set: ,;~:/\*|?"&%$!+=()[]{}<>-
+var referenceNameValidChars = regexp.MustCompile(`^[^,;~:/\\*|?"&%$!+=()[\]{}<>\-]+$`)
 
 // Compile-time interface checks.
 var (
@@ -151,125 +156,6 @@ func (m fieldListUseStateForUnknown) PlanModifyList(_ context.Context, req planm
 	resp.PlanValue = req.StateValue
 }
 
-// ── Validators ─────────────────────────────────────────────────────────────────
-
-// notWhitespaceValidator validates that a string is not empty or whitespace.
-type notWhitespaceValidator struct{}
-
-func (v notWhitespaceValidator) Description(_ context.Context) string {
-	return "value must not be empty or whitespace"
-}
-
-func (v notWhitespaceValidator) MarkdownDescription(_ context.Context) string {
-	return "value must not be empty or whitespace"
-}
-
-func (v notWhitespaceValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	if strings.TrimSpace(req.ConfigValue.ValueString()) == "" {
-		resp.Diagnostics.AddAttributeError(req.Path, "Invalid value", "value must not be empty or whitespace")
-	}
-}
-
-// lengthBetweenValidator validates that a string length is within a range.
-type lengthBetweenValidator struct {
-	min, max int
-}
-
-func (v lengthBetweenValidator) Description(_ context.Context) string {
-	return fmt.Sprintf("string length must be between %d and %d", v.min, v.max)
-}
-
-func (v lengthBetweenValidator) MarkdownDescription(_ context.Context) string {
-	return fmt.Sprintf("string length must be between %d and %d", v.min, v.max)
-}
-
-func (v lengthBetweenValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	l := len(req.ConfigValue.ValueString())
-	if l < v.min || l > v.max {
-		resp.Diagnostics.AddAttributeError(req.Path, "Invalid string length",
-			fmt.Sprintf("expected length in [%d, %d], got %d", v.min, v.max, l))
-	}
-}
-
-// doesNotMatchValidator validates that a string does not match a regex.
-type doesNotMatchValidator struct {
-	re      *regexp.Regexp
-	message string
-}
-
-func (v doesNotMatchValidator) Description(_ context.Context) string {
-	return v.message
-}
-
-func (v doesNotMatchValidator) MarkdownDescription(_ context.Context) string {
-	return v.message
-}
-
-func (v doesNotMatchValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	if v.re.MatchString(req.ConfigValue.ValueString()) {
-		resp.Diagnostics.AddAttributeError(req.Path, "Invalid value", v.message)
-	}
-}
-
-// oneOfValidator validates that a string is one of the allowed values.
-type oneOfValidator struct {
-	allowed []string
-}
-
-func (v oneOfValidator) Description(_ context.Context) string {
-	return fmt.Sprintf("value must be one of: %s", strings.Join(v.allowed, ", "))
-}
-
-func (v oneOfValidator) MarkdownDescription(_ context.Context) string {
-	return fmt.Sprintf("value must be one of: %s", strings.Join(v.allowed, ", "))
-}
-
-func (v oneOfValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	val := req.ConfigValue.ValueString()
-	for _, a := range v.allowed {
-		if a == val {
-			return
-		}
-	}
-	resp.Diagnostics.AddAttributeError(req.Path, "Invalid value",
-		fmt.Sprintf("expected one of [%s], got %q", strings.Join(v.allowed, ", "), val))
-}
-
-// isUUIDValidator validates that a string is a valid UUID.
-type isUUIDValidator struct{}
-
-func (v isUUIDValidator) Description(_ context.Context) string {
-	return "value must be a valid UUID"
-}
-
-func (v isUUIDValidator) MarkdownDescription(_ context.Context) string {
-	return "value must be a valid UUID"
-}
-
-func (v isUUIDValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	if _, err := uuid.Parse(req.ConfigValue.ValueString()); err != nil {
-		resp.Diagnostics.AddAttributeError(req.Path, "Invalid UUID", fmt.Sprintf("%q is not a valid UUID", req.ConfigValue.ValueString()))
-	}
-}
-
-// referenceNameForbiddenChars is the regex for forbidden characters in reference_name.
-var referenceNameForbiddenChars = regexp.MustCompile(`[,;~:/\\*|?"&%$!+=()[\]{}<>\-]`)
-
 // ── Schema ────────────────────────────────────────────────────────────────────
 
 // operationAttrTypes returns the attr.Type map used for nested supported_operations objects.
@@ -293,7 +179,7 @@ func (r *FieldResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Required:    true,
 				Description: "The friendly name of the field.",
 				Validators: []validator.String{
-					notWhitespaceValidator{},
+					stringvalidator.RegexMatches(nonWhitespaceRegexp, "value must not be empty or whitespace"),
 				},
 				PlanModifiers: []planmodifier.String{
 					fieldStringRequiresReplace{},
@@ -303,12 +189,9 @@ func (r *FieldResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Required:    true,
 				Description: "The reference name of the field (e.g., Custom.MyField).",
 				Validators: []validator.String{
-					notWhitespaceValidator{},
-					lengthBetweenValidator{min: 1, max: 128},
-					doesNotMatchValidator{
-						re:      referenceNameForbiddenChars,
-						message: `cannot contain the following characters: ',;~:/\*|?"&%$!+=()[]{}<>-'`,
-					},
+					stringvalidator.RegexMatches(nonWhitespaceRegexp, "value must not be empty or whitespace"),
+					stringvalidator.LengthBetween(1, 128),
+					stringvalidator.RegexMatches(referenceNameValidChars, `cannot contain the following characters: ',;~:/\*|?"&%$!+=()[]{}<>-'`),
 				},
 				PlanModifiers: []planmodifier.String{
 					fieldStringRequiresReplace{},
@@ -318,10 +201,10 @@ func (r *FieldResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Required:    true,
 				Description: "The type of the field. Possible values: `string`, `integer`, `dateTime`, `plainText`, `html`, `treePath`, `history`, `double`, `guid`, `boolean`, `identity`.",
 				Validators: []validator.String{
-					oneOfValidator{allowed: []string{
+					stringvalidator.OneOf(
 						"string", "integer", "dateTime", "plainText", "html",
 						"treePath", "history", "double", "guid", "boolean", "identity",
-					}},
+					),
 				},
 				PlanModifiers: []planmodifier.String{
 					fieldStringRequiresReplace{},
@@ -341,7 +224,7 @@ func (r *FieldResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Computed:    true,
 				Description: "The usage of the field. Possible values: `none`, `workItem`, `workItemLink`, `tree`, `workItemTypeExtension`. Default: `workItem`.",
 				Validators: []validator.String{
-					oneOfValidator{allowed: []string{"none", "workItem", "workItemLink", "tree", "workItemTypeExtension"}},
+					stringvalidator.OneOf("none", "workItem", "workItemLink", "tree", "workItemTypeExtension"),
 				},
 				PlanModifiers: []planmodifier.String{
 					fieldStringUseStateForUnknown{},
@@ -398,7 +281,7 @@ func (r *FieldResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Optional:    true,
 				Description: "The identifier of the picklist associated with this field, if applicable.",
 				Validators: []validator.String{
-					isUUIDValidator{},
+					stringvalidator.RegexMatches(uuidRegexp, "value must be a valid UUID"),
 				},
 				PlanModifiers: []planmodifier.String{
 					fieldStringRequiresReplace{},

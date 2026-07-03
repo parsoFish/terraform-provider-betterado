@@ -3,9 +3,9 @@ package workitemtracking
 import (
 	"context"
 	"fmt"
-	"strings"
 
-	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -119,128 +119,6 @@ func (m wiqBoolUseStateForUnknown) PlanModifyBool(_ context.Context, req planmod
 	resp.PlanValue = req.StateValue
 }
 
-// ── Validators ─────────────────────────────────────────────────────────────────
-
-// wiqIsUUIDValidator validates that a string is a valid UUID.
-type wiqIsUUIDValidator struct{}
-
-func (v wiqIsUUIDValidator) Description(_ context.Context) string {
-	return "value must be a valid UUID"
-}
-
-func (v wiqIsUUIDValidator) MarkdownDescription(_ context.Context) string {
-	return "value must be a valid UUID"
-}
-
-func (v wiqIsUUIDValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	if _, err := uuid.Parse(req.ConfigValue.ValueString()); err != nil {
-		resp.Diagnostics.AddAttributeError(req.Path, "Invalid UUID",
-			fmt.Sprintf("%q is not a valid UUID", req.ConfigValue.ValueString()))
-	}
-}
-
-// wiqNotEmptyValidator validates that a string is not empty or whitespace.
-type wiqNotEmptyValidator struct{}
-
-func (v wiqNotEmptyValidator) Description(_ context.Context) string {
-	return "value must not be empty or whitespace"
-}
-
-func (v wiqNotEmptyValidator) MarkdownDescription(_ context.Context) string {
-	return "value must not be empty or whitespace"
-}
-
-func (v wiqNotEmptyValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	if strings.TrimSpace(req.ConfigValue.ValueString()) == "" {
-		resp.Diagnostics.AddAttributeError(req.Path, "Invalid value", "value must not be empty or whitespace")
-	}
-}
-
-// wiqAreaValidator validates that area is one of the allowed query root values.
-type wiqAreaValidator struct{}
-
-func (v wiqAreaValidator) Description(_ context.Context) string {
-	return "value must be one of: Shared Queries, My Queries"
-}
-
-func (v wiqAreaValidator) MarkdownDescription(_ context.Context) string {
-	return "value must be one of: Shared Queries, My Queries"
-}
-
-func (v wiqAreaValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	val := req.ConfigValue.ValueString()
-	if val != "Shared Queries" && val != "My Queries" {
-		resp.Diagnostics.AddAttributeError(req.Path, "Invalid area",
-			fmt.Sprintf("expected one of [Shared Queries, My Queries], got %q", val))
-	}
-}
-
-// wiqWiqlLengthValidator validates the WIQL string length.
-type wiqWiqlLengthValidator struct{}
-
-func (v wiqWiqlLengthValidator) Description(_ context.Context) string {
-	return "WIQL length must be between 1 and 32000 characters"
-}
-
-func (v wiqWiqlLengthValidator) MarkdownDescription(_ context.Context) string {
-	return "WIQL length must be between 1 and 32000 characters"
-}
-
-func (v wiqWiqlLengthValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	l := len(req.ConfigValue.ValueString())
-	if l < 1 || l > 32000 {
-		resp.Diagnostics.AddAttributeError(req.Path, "Invalid WIQL length",
-			fmt.Sprintf("expected length in [1, 32000], got %d", l))
-	}
-}
-
-// ── ConfigValidator: ExactlyOneOf(parent_id, area) ────────────────────────────
-
-// wiqExactlyOneOfValidator enforces that exactly one of parent_id or area is set.
-type wiqExactlyOneOfValidator struct{}
-
-func (v wiqExactlyOneOfValidator) Description(_ context.Context) string {
-	return "exactly one of parent_id or area must be set"
-}
-
-func (v wiqExactlyOneOfValidator) MarkdownDescription(_ context.Context) string {
-	return "exactly one of parent_id or area must be set"
-}
-
-func (v wiqExactlyOneOfValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
-	var parentID types.String
-	var area types.String
-
-	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("parent_id"), &parentID)...)
-	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("area"), &area)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	parentSet := !parentID.IsNull() && !parentID.IsUnknown()
-	areaSet := !area.IsNull() && !area.IsUnknown()
-
-	if parentSet && areaSet {
-		resp.Diagnostics.AddError("Conflicting attributes",
-			"exactly one of 'parent_id' or 'area' must be set; both are currently set")
-	} else if !parentSet && !areaSet {
-		resp.Diagnostics.AddError("Missing required attribute",
-			"exactly one of 'parent_id' or 'area' must be set; neither is currently set")
-	}
-}
-
 // ── Metadata ──────────────────────────────────────────────────────────────────
 
 func (r *WorkItemQueryResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -267,14 +145,14 @@ func (r *WorkItemQueryResource) Schema(_ context.Context, _ resource.SchemaReque
 					wiqStringRequiresReplace{},
 				},
 				Validators: []validator.String{
-					wiqIsUUIDValidator{},
+					stringvalidator.RegexMatches(uuidRegexp, "value must be a valid UUID"),
 				},
 			},
 			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "The name of the work item query.",
 				Validators: []validator.String{
-					wiqNotEmptyValidator{},
+					stringvalidator.RegexMatches(nonWhitespaceRegexp, "value must not be empty or whitespace"),
 				},
 			},
 			"parent_id": schema.StringAttribute{
@@ -284,7 +162,7 @@ func (r *WorkItemQueryResource) Schema(_ context.Context, _ resource.SchemaReque
 					wiqStringRequiresReplace{},
 				},
 				Validators: []validator.String{
-					wiqIsUUIDValidator{},
+					stringvalidator.RegexMatches(uuidRegexp, "value must be a valid UUID"),
 				},
 			},
 			"area": schema.StringAttribute{
@@ -294,14 +172,14 @@ func (r *WorkItemQueryResource) Schema(_ context.Context, _ resource.SchemaReque
 					wiqStringRequiresReplace{},
 				},
 				Validators: []validator.String{
-					wiqAreaValidator{},
+					stringvalidator.OneOf("Shared Queries", "My Queries"),
 				},
 			},
 			"wiql": schema.StringAttribute{
 				Required:    true,
 				Description: "The WIQL query string.",
 				Validators: []validator.String{
-					wiqWiqlLengthValidator{},
+					stringvalidator.LengthBetween(1, 32000),
 				},
 			},
 			"is_public": schema.BoolAttribute{
@@ -325,9 +203,14 @@ func (r *WorkItemQueryResource) Schema(_ context.Context, _ resource.SchemaReque
 
 // ── ConfigValidators ──────────────────────────────────────────────────────────
 
+// ConfigValidators uses resourcevalidator.ExactlyOneOf from terraform-plugin-framework-validators
+// to enforce that exactly one of parent_id or area is set.
 func (r *WorkItemQueryResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
-		wiqExactlyOneOfValidator{},
+		resourcevalidator.ExactlyOneOf(
+			path.MatchRoot("parent_id"),
+			path.MatchRoot("area"),
+		),
 	}
 }
 

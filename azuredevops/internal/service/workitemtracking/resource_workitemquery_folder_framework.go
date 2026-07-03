@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -91,41 +93,6 @@ func (m wiqfStringUseStateForUnknown) PlanModifyString(_ context.Context, req pl
 	resp.PlanValue = req.StateValue
 }
 
-// ── ConfigValidator: ExactlyOneOf(parent_id, area) for folder ─────────────────
-
-// wiqfExactlyOneOfValidator enforces that exactly one of parent_id or area is set.
-type wiqfExactlyOneOfValidator struct{}
-
-func (v wiqfExactlyOneOfValidator) Description(_ context.Context) string {
-	return "exactly one of parent_id or area must be set"
-}
-
-func (v wiqfExactlyOneOfValidator) MarkdownDescription(_ context.Context) string {
-	return "exactly one of parent_id or area must be set"
-}
-
-func (v wiqfExactlyOneOfValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
-	var parentID types.String
-	var area types.String
-
-	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("parent_id"), &parentID)...)
-	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("area"), &area)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	parentSet := !parentID.IsNull() && !parentID.IsUnknown()
-	areaSet := !area.IsNull() && !area.IsUnknown()
-
-	if parentSet && areaSet {
-		resp.Diagnostics.AddError("Conflicting attributes",
-			"exactly one of 'parent_id' or 'area' must be set; both are currently set")
-	} else if !parentSet && !areaSet {
-		resp.Diagnostics.AddError("Missing required attribute",
-			"exactly one of 'parent_id' or 'area' must be set; neither is currently set")
-	}
-}
-
 // ── Metadata ──────────────────────────────────────────────────────────────────
 
 func (r *WorkItemQueryFolderResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -152,7 +119,7 @@ func (r *WorkItemQueryFolderResource) Schema(_ context.Context, _ resource.Schem
 					wiqfStringRequiresReplace{},
 				},
 				Validators: []validator.String{
-					wiqIsUUIDValidator{},
+					stringvalidator.RegexMatches(uuidRegexp, "value must be a valid UUID"),
 				},
 			},
 			"name": schema.StringAttribute{
@@ -162,7 +129,7 @@ func (r *WorkItemQueryFolderResource) Schema(_ context.Context, _ resource.Schem
 					wiqfStringRequiresReplace{},
 				},
 				Validators: []validator.String{
-					wiqNotEmptyValidator{},
+					stringvalidator.RegexMatches(nonWhitespaceRegexp, "value must not be empty or whitespace"),
 				},
 			},
 			"parent_id": schema.StringAttribute{
@@ -172,7 +139,7 @@ func (r *WorkItemQueryFolderResource) Schema(_ context.Context, _ resource.Schem
 					wiqfStringRequiresReplace{},
 				},
 				Validators: []validator.String{
-					wiqIsUUIDValidator{},
+					stringvalidator.RegexMatches(uuidRegexp, "value must be a valid UUID"),
 				},
 			},
 			"area": schema.StringAttribute{
@@ -182,7 +149,7 @@ func (r *WorkItemQueryFolderResource) Schema(_ context.Context, _ resource.Schem
 					wiqfStringRequiresReplace{},
 				},
 				Validators: []validator.String{
-					wiqAreaValidator{},
+					stringvalidator.OneOf("Shared Queries", "My Queries"),
 				},
 			},
 		},
@@ -191,9 +158,14 @@ func (r *WorkItemQueryFolderResource) Schema(_ context.Context, _ resource.Schem
 
 // ── ConfigValidators ──────────────────────────────────────────────────────────
 
+// ConfigValidators uses resourcevalidator.ExactlyOneOf from terraform-plugin-framework-validators
+// to enforce that exactly one of parent_id or area is set.
 func (r *WorkItemQueryFolderResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
 	return []resource.ConfigValidator{
-		wiqfExactlyOneOfValidator{},
+		resourcevalidator.ExactlyOneOf(
+			path.MatchRoot("parent_id"),
+			path.MatchRoot("area"),
+		),
 	}
 }
 

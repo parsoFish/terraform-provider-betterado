@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -68,7 +69,7 @@ func (d *AreaDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, r
 				Required:    true,
 				Description: "The ID of the project the area belongs to.",
 				Validators: []validator.String{
-					isUUIDValidator{},
+					stringvalidator.RegexMatches(uuidRegexp, "value must be a valid UUID"),
 				},
 			},
 			"path": schema.StringAttribute{
@@ -76,7 +77,7 @@ func (d *AreaDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, r
 				Computed:    true,
 				Description: "The path of the area node.",
 				Validators: []validator.String{
-					notWhitespaceValidator{},
+					stringvalidator.RegexMatches(nonWhitespaceRegexp, "value must not be empty or whitespace"),
 				},
 			},
 			"fetch_children": schema.BoolAttribute{
