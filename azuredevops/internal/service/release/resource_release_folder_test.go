@@ -21,9 +21,11 @@ import (
 
 // ── Package-level fixtures ─────────────────────────────────────────────────
 
-var testReleaseFolderProjectID = uuid.New()
-var testReleaseFolderPath = `\MyFolder`
-var testReleaseFolderDescription = "Test folder description"
+var (
+	testReleaseFolderProjectID   = uuid.New()
+	testReleaseFolderPath        = `\MyFolder`
+	testReleaseFolderDescription = "Test folder description"
+)
 
 var testReleaseFolder = releaseapi.Folder{
 	Path:        converter.String(testReleaseFolderPath),

@@ -212,7 +212,8 @@ func resourceServiceEndpointAzureRMCreate(d *schema.ResourceData, m interface{})
 						(*serviceEndpoint.ServiceEndpointProjectReferences)[0].ProjectReference.Id.String(),
 					},
 					EndpointId: resp.Id,
-				}); delErr != nil {
+				},
+			); delErr != nil {
 				return fmt.Errorf("Delete service endpoint error %v", delErr)
 			}
 			return err

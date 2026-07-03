@@ -10,7 +10,8 @@ import (
 
 func convertColorToApi(d *schema.ResourceData) *string {
 	return converter.String(
-		strings.ReplaceAll(d.Get("color").(string), "#", ""))
+		strings.ReplaceAll(d.Get("color").(string), "#", ""),
+	)
 }
 
 func convertColorToResource(apiFormattedColor string) string {
