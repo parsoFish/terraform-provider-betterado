@@ -302,7 +302,11 @@ func GetProjectFeatureStatesForEvidence(clients *client.AggregatedClient, projec
 }
 
 // applyFeatureStates calls the ADO featuremanagement API to set the given
-// feature → state mapping for a project.
+// feature → state mapping for a project. It verifies the returned state from
+// SetFeatureStateForScope matches the intended state — if the API accepts the
+// request but silently ignores it (e.g. license restrictions on TestPlans), a
+// clear error is returned rather than letting Terraform emit a misleading
+// "inconsistent result after apply" panic.
 func (r *ProjectFeaturesResource) applyFeatureStates(ctx context.Context, projectID string, features map[string]string) error {
 	for k, v := range features {
 		enabledValue := featuremanagement.ContributedFeatureEnabledValue(v)
@@ -310,7 +314,7 @@ func (r *ProjectFeaturesResource) applyFeatureStates(ctx context.Context, projec
 		if !ok {
 			return fmt.Errorf("unknown feature: %s, available: boards, repositories, pipelines, testplans, artifacts", k)
 		}
-		_, err := r.client.FeatureManagementClient.SetFeatureStateForScope(ctx, featuremanagement.SetFeatureStateForScopeArgs{
+		result, err := r.client.FeatureManagementClient.SetFeatureStateForScope(ctx, featuremanagement.SetFeatureStateForScopeArgs{
 			Feature: &featuremanagement.ContributedFeatureState{
 				FeatureId: converter.String(featureAPIID),
 				State:     &enabledValue,
@@ -326,6 +330,19 @@ func (r *ProjectFeaturesResource) applyFeatureStates(ctx context.Context, projec
 		})
 		if err != nil {
 			return fmt.Errorf("failed to update feature %s: %w", k, err)
+		}
+		// Verify the API actually applied the requested state. Some features
+		// (e.g. ms.vss-test-web.test / testplans) require specific licensing;
+		// the API returns HTTP 200 but leaves the state unchanged. Surface this
+		// as an explicit error so callers see a meaningful message instead of a
+		// Terraform "inconsistent result after apply" panic.
+		if result != nil && result.State != nil && string(*result.State) != v {
+			return fmt.Errorf(
+				"feature %q: requested state %q but ADO returned %q — "+
+					"the feature may not be available in this project or organization "+
+					"(check licensing; TestPlans requires a Basic+TestPlans or Visual Studio subscription)",
+				k, v, string(*result.State),
+			)
 		}
 	}
 	return nil

@@ -27,6 +27,11 @@ import (
 // AZDO_TEST_EXISTING_PROJECT first, then auto-discovers the first wellFormed project
 // via GetProjects. This avoids creating a project (which fails when the org is at
 // the 1000-project limit). The project UUID is injected directly into HCL.
+//
+// NOTE: testplans is intentionally excluded from this test because it requires a
+// Basic+TestPlans or Visual Studio subscription — the ADO API returns HTTP 200 but
+// silently leaves the state unchanged when the license is absent. artifacts and
+// boards are license-free and reliably toggle on any project type.
 func TestAccProjectFeatures_roundtrip(t *testing.T) {
 	// smokeResolveProject resolves an existing ADO project without creating one.
 	// Calls testutils.PreCheck which skips immediately if TF_ACC is not set.
@@ -38,23 +43,23 @@ func TestAccProjectFeatures_roundtrip(t *testing.T) {
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
-			// Step 1: disable testplans and artifacts.
+			// Step 1: disable artifacts and boards (license-free features).
 			{
 				Config: hclProjectFeatureBasic(projectID, "disabled", "disabled"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(tfNode, "features.testplans", "disabled"),
 					resource.TestCheckResourceAttr(tfNode, "features.artifacts", "disabled"),
+					resource.TestCheckResourceAttr(tfNode, "features.boards", "disabled"),
 					captureProjectFeaturesEvidence(tfNode),
 				),
 				// Idempotency: re-plan after apply must produce no diff.
 				ExpectNonEmptyPlan: false,
 			},
-			// Step 2: re-enable testplans, keep artifacts disabled.
+			// Step 2: re-enable artifacts, keep boards disabled.
 			{
 				Config: hclProjectFeatureBasic(projectID, "enabled", "disabled"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(tfNode, "features.testplans", "enabled"),
-					resource.TestCheckResourceAttr(tfNode, "features.artifacts", "disabled"),
+					resource.TestCheckResourceAttr(tfNode, "features.artifacts", "enabled"),
+					resource.TestCheckResourceAttr(tfNode, "features.boards", "disabled"),
 				),
 				ExpectNonEmptyPlan: false,
 			},
@@ -97,17 +102,20 @@ func captureProjectFeaturesEvidence(tfNode string) resource.TestCheckFunc {
 	}
 }
 
-// hclProjectFeatureBasic returns Terraform HCL that manages features on an
-// existing project identified by its UUID. No data source or resource create
-// is needed — the project ID is resolved by smokeResolveProject before the
-// Terraform test lifecycle starts.
-func hclProjectFeatureBasic(projectID, testPlanState, artifactState string) string {
+// hclProjectFeatureBasic returns Terraform HCL that manages two license-free
+// features (artifacts, boards) on an existing project identified by its UUID.
+// testplans is intentionally excluded because it requires a paid license and
+// the ADO API silently ignores enable requests when that license is absent,
+// which would produce a "Provider produced inconsistent result after apply" error.
+//
+// artifactState is applied to "artifacts"; boardState is applied to "boards".
+func hclProjectFeatureBasic(projectID, artifactState, boardState string) string {
 	return fmt.Sprintf(`
 resource "betterado_project_features" "test" {
   project_id = %[1]q
   features = {
-    "testplans" = %[2]q
-    "artifacts" = %[3]q
+    "artifacts" = %[2]q
+    "boards"    = %[3]q
   }
-}`, projectID, testPlanState, artifactState)
+}`, projectID, artifactState, boardState)
 }
