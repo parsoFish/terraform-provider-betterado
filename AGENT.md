@@ -36,10 +36,14 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 - Attempted to use `resource/schema/stringplanmodifier.RequiresReplace()` and `resource/schema/booldefault.StaticBool()` — those sub-packages are NOT vendored. Got "cannot find module" error.
 
+### Iteration 2 (complete)
+- **Root cause of gate failure**: `TestAccWorkitemtrackingprocessField_Identity` — `allow_groups` is write-only (not returned by the Azure DevOps API on read). The `identityField()` config sets `allow_groups = true`, so ImportStateVerify fails with "allow_groups" missing after import.
+- **Fix**: Added `ImportStateVerifyIgnore: []string{"allow_groups"}` to the import step in `TestAccWorkitemtrackingprocessField_Identity` only (the other tests — Basic, Integer, Update — don't set `allow_groups` in their configs, so they don't need it).
+- **Compile**: Clean, all unit tests pass.
+
 ## Open questions
 
 - Live acceptance test results: will the `ImportStateVerify` for `betterado_workitemtrackingprocess_list` pass? The SDKv2 version has eventual-consistency polling on Update — the framework version replicates that. The `type` field is normalized to lowercase in flattenListFramework but the API might return it uppercase. Watch for diffs.
-- For `betterado_workitemtrackingprocess_field`: `allow_groups` is write-only (never read back). ImportStateVerify will set it to null — if the test config sets it, ImportStateVerify may fail. The field tests that set `allow_groups` may need `ImportStateVerifyIgnore: []string{"allow_groups"}`.
 
 ## Notes for reflection
 

@@ -7,3 +7,4 @@
 - [x] AC3: resource_list.go, resource_field.go, order.go deleted; deregistered from provider.go; provider_test.go updated; TestProvider_HasChildResources PASSES
 - [x] AC4: captureListEvidence() added to TestAccWorkitemtrackingprocessList_Basic; calls testutils.CaptureLiveEvidence("acceptance-resource-workitemtrackingprocess-list", url, apiResponse)
 - [x] FIX: checkFieldDestroyed panic (nil Meta()) — fixed in iteration 1: uses env-var client instead of GetProvider().Meta()
+- [x] FIX: TestAccWorkitemtrackingprocessField_Identity ImportStateVerify failure — fixed in iteration 2: added ImportStateVerifyIgnore: []string{"allow_groups"} to import step (allow_groups is write-only, not returned by API on read)
