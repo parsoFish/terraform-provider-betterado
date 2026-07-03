@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_dockerregistry Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Use this data source to access information about an existing Docker Registry service endpoint.
 ---
 
 # betterado_serviceendpoint_dockerregistry (Data Source)
 
-
+Use this data source to access information about an existing Docker Registry service endpoint.
 
 
 
@@ -17,28 +17,17 @@ description: |-
 
 ### Required
 
-- `project_id` (String)
+- `project_id` (String) The project ID or project name.
 
 ### Optional
 
-- `service_endpoint_id` (String) The ID of the serviceendpoint
-- `service_endpoint_name` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `service_endpoint_id` (String) The service endpoint ID.
+- `service_endpoint_name` (String) The service endpoint name.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `description` (String)
-- `docker_email` (String)
-- `docker_password` (String)
-- `docker_registry` (String)
-- `docker_username` (String)
-- `id` (String) The ID of this resource.
-- `registry_type` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `docker_email` (String) The DockerRegistry email address.
+- `docker_password` (String, Sensitive) The DockerRegistry password.
+- `docker_registry` (String) The DockerRegistry registry.
+- `docker_username` (String) The DockerRegistry username.
+- `registry_type` (String) The registry type (DockerHub or Others).

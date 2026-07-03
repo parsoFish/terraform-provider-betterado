@@ -2,25 +2,65 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 )
 
+// getFieldDirectClient builds an AggregatedClient directly from AZDO env vars.
+// ProtoV6ProviderFactories does not expose Meta(), so CheckDestroy functions must
+// build their own client.
+func getFieldDirectClient() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+}
+
+// captureFieldEvidence performs a live API GET of the created field and persists
+// the response as forge demo live-evidence. Best-effort: failure never fails the test.
+func captureFieldEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		referenceName := res.Primary.ID
+		clients, clientErr := getFieldDirectClient()
+		if clientErr != nil {
+			return nil //nolint:nilerr // best-effort: evidence capture never fails the test
+		}
+		field, fieldErr := clients.WorkItemTrackingClient.GetWorkItemField(clients.Ctx, workitemtracking.GetWorkItemFieldArgs{
+			FieldNameOrRefName: &referenceName,
+		})
+		if fieldErr != nil || field == nil {
+			return nil //nolint:nilerr // best-effort: evidence capture never fails the test
+		}
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		if len(orgURL) > 0 && orgURL[len(orgURL)-1] == '/' {
+			orgURL = orgURL[:len(orgURL)-1]
+		}
+		url := fmt.Sprintf("%s/_apis/wit/fields/%s?api-version=7.1", orgURL, referenceName)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-workitemtracking-field", url, field)
+		return nil
+	}
+}
+
 func TestAccWorkItemTrackingField_Basic(t *testing.T) {
 	fieldName := generateFieldName()
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldBasic(fieldName),
@@ -34,6 +74,13 @@ func TestAccWorkItemTrackingField_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "read_only", "false"),
 					resource.TestCheckResourceAttr(tfNode, "is_picklist_suggested", "false"),
 					resource.TestCheckResourceAttr(tfNode, "is_locked", "false"),
+					// Computed attributes that must be populated
+					resource.TestCheckResourceAttrSet(tfNode, "can_sort_by"),
+					resource.TestCheckResourceAttrSet(tfNode, "is_queryable"),
+					resource.TestCheckResourceAttrSet(tfNode, "is_identity"),
+					resource.TestCheckResourceAttrSet(tfNode, "is_picklist"),
+					// Live evidence capture
+					captureFieldEvidence(tfNode),
 				),
 			},
 			{
@@ -50,9 +97,9 @@ func TestAccWorkItemTrackingField_Complete(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldComplete(fieldName),
@@ -74,9 +121,9 @@ func TestAccWorkItemTrackingField_Boolean(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldWithType(fieldName, "boolean"),
@@ -98,9 +145,9 @@ func TestAccWorkItemTrackingField_Html(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldWithType(fieldName, "html"),
@@ -122,9 +169,9 @@ func TestAccWorkItemTrackingField_Integer(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldWithType(fieldName, "integer"),
@@ -146,9 +193,9 @@ func TestAccWorkItemTrackingField_DateTime(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldWithType(fieldName, "dateTime"),
@@ -170,9 +217,9 @@ func TestAccWorkItemTrackingField_PlainText(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldWithType(fieldName, "plainText"),
@@ -194,9 +241,9 @@ func TestAccWorkItemTrackingField_Double(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldWithType(fieldName, "double"),
@@ -218,9 +265,9 @@ func TestAccWorkItemTrackingField_Identity(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldWithType(fieldName, "identity"),
@@ -242,9 +289,9 @@ func TestAccWorkItemTrackingField_TreePath(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldWithType(fieldName, "treePath"),
@@ -266,9 +313,9 @@ func TestAccWorkItemTrackingField_History(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldWithType(fieldName, "history"),
@@ -290,9 +337,9 @@ func TestAccWorkItemTrackingField_Guid(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldWithType(fieldName, "guid"),
@@ -314,9 +361,9 @@ func TestAccWorkItemTrackingField_Lock(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldBasic(fieldName),
@@ -349,9 +396,9 @@ func TestAccWorkItemTrackingField_Restore(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldBasic(fieldName),
@@ -389,9 +436,9 @@ func TestAccWorkItemTrackingField_Picklist(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldAndListDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldAndListDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldPicklist(fieldName, listName),
@@ -415,9 +462,9 @@ func TestAccWorkItemTrackingField_PicklistSuggested(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldAndListDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldAndListDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldPicklistSuggested(fieldName, listName),
@@ -441,9 +488,9 @@ func TestAccWorkItemTrackingField_PicklistInteger(t *testing.T) {
 	tfNode := "betterado_workitemtracking_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkFieldAndListDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkFieldAndListDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: fieldPicklistInteger(fieldName, listName),
@@ -583,7 +630,11 @@ func checkFieldAndListDestroyed(s *terraform.State) error {
 // checkFieldDestroyed verifies that all fields referenced in the state are destroyed. This will be invoked
 // *after* terraform destroys the resource but *before* the state is wiped clean.
 func checkFieldDestroyed(s *terraform.State) error {
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+	// ProtoV6ProviderFactories does not expose Meta(), so we build a direct client.
+	clients, err := getFieldDirectClient()
+	if err != nil {
+		return fmt.Errorf("checkFieldDestroyed: failed to build ADO client: %v", err)
+	}
 
 	for _, res := range s.RootModule().Resources {
 		if res.Type != "betterado_workitemtracking_field" {

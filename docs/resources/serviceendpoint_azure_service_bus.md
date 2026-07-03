@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_azure_service_bus Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an Azure Service Bus service endpoint within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_azure_service_bus (Resource)
 
-
+Manages an Azure Service Bus service endpoint within Azure DevOps.
 
 
 
@@ -25,19 +25,8 @@ description: |-
 ### Optional
 
 - `description` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `authorization` (Map of String)
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
