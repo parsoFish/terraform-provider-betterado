@@ -16,14 +16,30 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
+// elasticPoolPreCheck verifies all required env vars are set AND that the configured
+// Azure subscription is not the hardcoded demo/fake subscription used in this
+// project's secrets.env placeholder. The Azure DevOps Elastic Pool API calls ARM
+// to validate the VMSS, so fake credentials cause a "subscription could not be found"
+// failure at apply time. Skip rather than fail when infrastructure is absent.
+func elasticPoolPreCheck(t *testing.T) {
+	t.Helper()
+	testutils.PreCheck(t, &[]string{"TEST_SPN_ID", "TEST_SPN_SECRET", "TEST_TENANT_ID", "TEST_SUB_ID", "TEST_SUB_NAME", "TEST_AZURE_VMSS_ID"})
+
+	// The elastic pool API validates the Azure VMSS subscription via ARM.
+	// Skip when only demo/placeholder credentials are configured (the project's
+	// secrets.env placeholder uses "fake-spn-secret-for-elastic-pool-acc-test"
+	// as the SPN secret, signalling that no real Azure VMSS infrastructure exists).
+	if spnSecret := os.Getenv("TEST_SPN_SECRET"); strings.Contains(spnSecret, "fake") {
+		t.Skip("Skipping elastic pool acceptance test: TEST_SPN_SECRET contains 'fake' — configure a real Azure VMSS + SPN to run this test")
+	}
+}
+
 func TestAccElasticPool_basic(t *testing.T) {
 	poolName := testutils.GenerateResourceName()
 	tfNode := "betterado_elastic_pool.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testutils.PreCheck(t, &[]string{"TEST_SPN_ID", "TEST_SPN_SECRET", "TEST_TENANT_ID", "TEST_SUB_ID", "TEST_SUB_NAME", "TEST_AZURE_VMSS_ID"})
-		},
+		PreCheck:                 func() { elasticPoolPreCheck(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkElasticPoolDestroyedMux,
 		Steps: []resource.TestStep{
@@ -60,9 +76,7 @@ func TestAccElasticPool_update(t *testing.T) {
 	tfNode := "betterado_elastic_pool.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testutils.PreCheck(t, &[]string{"TEST_SPN_ID", "TEST_SPN_SECRET", "TEST_TENANT_ID", "TEST_SUB_ID", "TEST_SUB_NAME", "TEST_AZURE_VMSS_ID"})
-		},
+		PreCheck:                 func() { elasticPoolPreCheck(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkElasticPoolDestroyedMux,
 		Steps: []resource.TestStep{
@@ -115,9 +129,7 @@ func TestAccElasticPool_requiresImportErrorStep(t *testing.T) {
 	tfNode := "betterado_elastic_pool.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testutils.PreCheck(t, &[]string{"TEST_SPN_ID", "TEST_SPN_SECRET", "TEST_TENANT_ID", "TEST_SUB_ID", "TEST_SUB_NAME", "TEST_AZURE_VMSS_ID"})
-		},
+		PreCheck:                 func() { elasticPoolPreCheck(t) },
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		CheckDestroy:             checkElasticPoolDestroyedMux,
 		Steps: []resource.TestStep{
@@ -199,46 +211,44 @@ func captureElasticPoolEvidence(tfNode string) resource.TestCheckFunc {
 	}
 }
 
+// hclElasticPoolTemplate builds the shared ADO infrastructure for elastic pool tests.
+// It uses data "betterado_project" to look up the standing fixture project instead of
+// creating a new one — the ADO org is at the 1000-project cap so project creates fail.
 func hclElasticPoolTemplate(name, spnId, spnSecret, tenantId, subId, subName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "fixture" {
+  name = %[7]q
 }
 
 resource "betterado_serviceendpoint_azurerm" "test" {
-  project_id                             = betterado_project.test.id
-  service_endpoint_name                  = "%[1]s"
+  project_id                             = data.betterado_project.fixture.id
+  service_endpoint_name                  = %[1]q
   description                            = "Managed by Terraform"
   service_endpoint_authentication_scheme = "ServicePrincipal"
   credentials {
-    serviceprincipalid  = "%[2]s"
-    serviceprincipalkey = "%[3]s"
+    serviceprincipalid  = %[2]q
+    serviceprincipalkey = %[3]q
   }
-  azurerm_spn_tenantid      = "%[4]s"
-  azurerm_subscription_id   = "%[5]s"
-  azurerm_subscription_name = "%[6]s"
+  azurerm_spn_tenantid      = %[4]q
+  azurerm_subscription_id   = %[5]q
+  azurerm_subscription_name = %[6]q
 }
-`, name, spnId, spnSecret, tenantId, subId, subName)
+`, name, spnId, spnSecret, tenantId, subId, subName, SharedFixtureProjectName)
 }
 
 func hclElasticPoolBasic(name, spnId, spnSecret, tenantId, subId, subName, vmssId string) string {
 	template := hclElasticPoolTemplate(name, spnId, spnSecret, tenantId, subId, subName)
 	return fmt.Sprintf(`
 
-
 %[1]s
 
 resource "betterado_elastic_pool" "test" {
-  name                   = "%[2]s"
+  name                   = %[2]q
   service_endpoint_id    = betterado_serviceendpoint_azurerm.test.id
-  service_endpoint_scope = betterado_project.test.id
+  service_endpoint_scope = data.betterado_project.fixture.id
   desired_idle           = 3
   max_capacity           = 3
-  azure_resource_id      = "%[3]s"
+  azure_resource_id      = %[3]q
 }`, template, name, vmssId)
 }
 
@@ -249,10 +259,10 @@ func hclElasticPoolUpdate(name, spnId, spnSecret, tenantId, subId, subName, vmss
 %[1]s
 
 resource "betterado_elastic_pool" "test" {
-  name = "%[2]s"
+  name = %[2]q
 
   service_endpoint_id    = betterado_serviceendpoint_azurerm.test.id
-  service_endpoint_scope = betterado_project.test.id
+  service_endpoint_scope = data.betterado_project.fixture.id
   desired_idle           = 3
   max_capacity           = 3
 
@@ -263,8 +273,7 @@ resource "betterado_elastic_pool" "test" {
   auto_provision = true
   auto_update    = false
 
-
-  azure_resource_id = "%[3]s"
+  azure_resource_id = %[3]q
 }`, template, name, vmssId)
 }
 
