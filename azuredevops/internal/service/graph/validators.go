@@ -113,8 +113,10 @@ func conflictingAttrs(primary string, conflicts ...string) resource.ConfigValida
 	}
 }
 
-func (v conflictingAttrsValidator) Description(_ context.Context) string      { return v.description }
-func (v conflictingAttrsValidator) MarkdownDescription(_ context.Context) string { return v.description }
+func (v conflictingAttrsValidator) Description(_ context.Context) string { return v.description }
+func (v conflictingAttrsValidator) MarkdownDescription(_ context.Context) string {
+	return v.description
+}
 
 func (v conflictingAttrsValidator) ValidateResource(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	// Check whether the primary attribute is set to a non-null, non-empty value.

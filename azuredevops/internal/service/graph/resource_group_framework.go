@@ -94,8 +94,8 @@ func (m groupSetUseStateForUnknownModifier) PlanModifySet(_ context.Context, req
 
 // compile-time interface checks
 var (
-	_ resource.Resource                   = (*GroupResource)(nil)
-	_ resource.ResourceWithConfigure      = (*GroupResource)(nil)
+	_ resource.Resource                     = (*GroupResource)(nil)
+	_ resource.ResourceWithConfigure        = (*GroupResource)(nil)
 	_ resource.ResourceWithConfigValidators = (*GroupResource)(nil)
 )
 
@@ -178,8 +178,8 @@ func (r *GroupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Description: "The mail address for the group when creating from an email address. Conflicts with origin_id, display_name, and scope.",
 			},
 			"display_name": schema.StringAttribute{
-				Optional:    true,
-				Computed:    true,
+				Optional: true,
+				Computed: true,
 				Validators: []schemavalidator.String{
 					stringNotEmpty(),
 				},
