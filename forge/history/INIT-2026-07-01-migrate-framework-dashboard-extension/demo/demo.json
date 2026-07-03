@@ -6,7 +6,7 @@
   "diffStat": "27 files changed, 2096 insertions(+), 257 deletions(-)",
   "checkpoints": [
     {
-      "label": "Quality gate — release + taskagent packages green",
+      "label": "Quality gate \u2014 release + taskagent packages green",
       "caption": "go test -tags all -count=1 proves no regressions in release and taskagent packages after provider.go changes",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
       "beforeNote": "Gate ran against pre-migration provider; release/taskagent unaffected baseline",
@@ -52,14 +52,18 @@
     {
       "label": "dashboard-acceptance-resource",
       "kind": "harness",
-      "caption": "Live evidence — dashboard-acceptance-resource",
-      "afterNote": "Real ADO Dashboard API GET response captured by TestAccDashboard_project_basic before destroy; label is distinct from extension evidence (acceptance-resource) so both survive in .forge/live-evidence/",
-      "liveEvidence": null
+      "caption": "Live evidence \u2014 dashboard-acceptance-resource",
+      "afterNote": "Real ADO Dashboard API GET response captured by TestAccDashboard_project_basic before destroy (2026-07-03T07:51:19Z). All seven TestAccDashboard_* tests passed on branch tip after fixing the VS403345 ExpectError regex to match framework diagnostic format. label is distinct from extension evidence (acceptance-resource) so both survive in .forge/live-evidence/.",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/dashboard/dashboards/26cd93be-3f74-4846-a25d-13e21ba67443?api-version=7.1",
+        "capturedAt": "2026-07-03T07:51:19Z",
+        "response": "{\n  \"_links\": {\n    \"group\": {\n      \"href\": \"https://dev.azure.com/davidgparsonson/_apis/Dashboard/Dashboards\"\n    },\n    \"self\": {\n      \"href\": \"https://dev.azure.com/davidgparsonson/_apis/Dashboard/Dashboards/26cd93be-3f74-4846-a25d-13e21ba67443\"\n    }\n  },\n  \"dashboardScope\": \"project\",\n  \"description\": \"\",\n  \"eTag\": \"1\",\n  \"id\": \"26cd93be-3f74-4846-a25d-13e21ba67443\",\n  \"lastAccessedDate\": \"2026-07-03T00:00:00Z\",\n  \"modifiedBy\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n  \"modifiedDate\": \"2026-07-03T07:51:19.13Z\",\n  \"name\": \"test-acc-dvdofo3eup\",\n  \"ownerId\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n  \"position\": 3,\n  \"refreshInterval\": 0,\n  \"url\": \"https://dev.azure.com/davidgparsonson/_apis/Dashboard/Dashboards/26cd93be-3f74-4846-a25d-13e21ba67443\",\n  \"widgets\": []\n}"
+      }
     },
     {
       "label": "acceptance-resource",
       "kind": "harness",
-      "caption": "Live evidence — acceptance-resource",
+      "caption": "Live evidence \u2014 acceptance-resource",
       "afterNote": "Real API GET against the live system: https://extmgmt.dev.azure.com/davidgparsonson/_apis/extensionmanagement/installedextensionsbyname/ms-securitydevops/microsoft-security-devops-azdevops?api-version=7.1",
       "liveEvidence": {
         "url": "https://extmgmt.dev.azure.com/davidgparsonson/_apis/extensionmanagement/installedextensionsbyname/ms-securitydevops/microsoft-security-devops-azdevops?api-version=7.1",
@@ -72,7 +76,7 @@
     {
       "criterion": "GIVEN docs/dashboard-gap-matrix.md does not exist WHEN WI-1 implementation runs THEN docs/dashboard-gap-matrix.md is created and lists every field of the ADO SDK Dashboard struct with mapped/missing/writable status; writable gaps either resolved in the schema or explicitly deferred with rationale",
       "verdict": "met",
-      "evidence": "docs/dashboard-gap-matrix.md present in branch diff (47 lines, +47 insertions). Lists fields: Links, DashboardScope, Description, ETag, GroupId, Id, LastAccessedDate, ModifiedBy, ModifiedDate, Name, OwnerId, Position, RefreshInterval, Widgets — each with mapped/missing/writable status and deferral rationale."
+      "evidence": "docs/dashboard-gap-matrix.md present in branch diff (47 lines, +47 insertions). Lists fields: Links, DashboardScope, Description, ETag, GroupId, Id, LastAccessedDate, ModifiedBy, ModifiedDate, Name, OwnerId, Position, RefreshInterval, Widgets \u2014 each with mapped/missing/writable status and deferral rationale."
     },
     {
       "criterion": "GIVEN betterado_dashboard is registered in azuredevops/provider.go SDKv2 ResourcesMap WHEN WI-1 implementation runs THEN betterado_dashboard is removed from provider.go ResourcesMap and its SDKv2 import dropped; provider_test.go TestProvider_HasChildResources updated",
@@ -92,7 +96,7 @@
     {
       "criterion": "GIVEN the framework Dashboard resource runs the live acceptance test WHEN the acceptance test performs a live read-back before destroy THEN testutils.CaptureLiveEvidence(\"acceptance-resource\", <dashboard GET URL>, <apiResponse>) is called so .forge/live-evidence/acceptance-resource.json is written",
       "verdict": "met",
-      "evidence": "resource_dashboard_test.go diff includes CaptureLiveEvidence call with ADO Dashboard GET URL pattern https://dev.azure.com/<org>/<projectId>/_apis/dashboard/dashboards/<dashboardId>?api-version=7.1 before destroy step."
+      "evidence": "Live run confirmed: .forge/live-evidence/dashboard-acceptance-resource.json written at 2026-07-03T07:51:19Z. Real ADO Dashboard GET response captured from dev.azure.com/davidgparsonson. Both dashboard-acceptance-resource.json and extension acceptance-resource.json coexist in .forge/live-evidence/. TestAccDashboard_project_basic fetched dashboard 26cd93be-3f74-4846-a25d-13e21ba67443 before destroy."
     },
     {
       "criterion": "GIVEN docs/resources/dashboard.md exists WHEN WI-1 implementation runs THEN examples/resources/betterado_dashboard/resource.tf is created with non-default values; make docs run and docs/resources/dashboard.md updated",
@@ -102,12 +106,12 @@
     {
       "criterion": "GIVEN changed Go files WHEN CI-equivalent gate runs THEN gate is green with zero new lint findings on changed files",
       "verdict": "met",
-      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release (0.006s), ok taskagent (0.005s), ok taskagent/validate (0.004s). All green."
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... \u2192 ok release (0.006s), ok taskagent (0.005s), ok taskagent/validate (0.004s). All green."
     },
     {
       "criterion": "GIVEN docs/extension-gap-matrix.md does not exist WHEN WI-2 implementation runs THEN docs/extension-gap-matrix.md is created and lists every field of the ADO SDK InstalledExtension struct with mapped/missing/writable status",
       "verdict": "met",
-      "evidence": "docs/extension-gap-matrix.md present in branch diff (49 lines, +49 insertions). Lists fields: ExtensionId, ExtensionName, PublisherId, PublisherName, Version, Scopes, InstallState/Flags — each with mapped/missing/writable status."
+      "evidence": "docs/extension-gap-matrix.md present in branch diff (49 lines, +49 insertions). Lists fields: ExtensionId, ExtensionName, PublisherId, PublisherName, Version, Scopes, InstallState/Flags \u2014 each with mapped/missing/writable status."
     },
     {
       "criterion": "GIVEN betterado_extension is registered in azuredevops/provider.go SDKv2 ResourcesMap WHEN WI-2 implementation runs THEN betterado_extension is removed from provider.go ResourcesMap and its SDKv2 import dropped; provider_test.go TestProvider_HasChildResources updated",
@@ -137,7 +141,7 @@
     {
       "criterion": "GIVEN changed Go files (extension) WHEN CI-equivalent gate runs THEN gate is green",
       "verdict": "met",
-      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release (0.006s), ok taskagent (0.005s), ok taskagent/validate (0.004s). Extension framework resource compiles without error (no new lint findings in resource_extension_framework.go)."
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... \u2192 ok release (0.006s), ok taskagent (0.005s), ok taskagent/validate (0.004s). Extension framework resource compiles without error (no new lint findings in resource_extension_framework.go)."
     },
     {
       "criterion": "GIVEN betterado_dashboard and betterado_extension have both been migrated to framework WHEN WI-3 implementation runs THEN CHANGELOG.md has a new entry under '## Unreleased' documenting the framework migration",
@@ -152,7 +156,7 @@
     {
       "criterion": "GIVEN changed files WHEN CI-equivalent gate runs (make test) THEN make test exits 0",
       "verdict": "met",
-      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → ok release (0.006s), ok taskagent (0.005s), ok taskagent/validate (0.004s). Quality gate passes on branch tip."
+      "evidence": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... \u2192 ok release (0.006s), ok taskagent (0.005s), ok taskagent/validate (0.004s). Quality gate passes on branch tip."
     }
   ],
   "testEvidence": [

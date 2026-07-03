@@ -352,7 +352,11 @@ func TestAccDashboard_team_requireImportError(t *testing.T) {
 				),
 			},
 			{
-				ExpectError: regexp.MustCompile("Creating Dashboard in Azure DevOps: VS403345: Duplicate name on dashboard. Each dashboard held by a team must use a distinct name"),
+				// The framework plugin emits the summary ("Creating Dashboard in Azure DevOps")
+				// and the ADO error detail ("VS403345: Duplicate name on dashboard…") as
+				// separate lines in the Terraform output.  Match on the VS403345 detail that
+				// the ADO API always returns for a duplicate-name conflict.
+				ExpectError: regexp.MustCompile(`VS403345: Duplicate name on dashboard`),
 				Config:      hclDashboardTeamRequireImport(name),
 			},
 		},
