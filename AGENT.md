@@ -93,6 +93,24 @@ No SDK location-service discovery is issued; the raw `Authorization: Basic <base
 
 **Verified:** `go build -tags all ./...`, `make fmt`, `make test`, `golangci-lint run --new-from-rev=main ./azuredevops/internal/client/ ./azuredevops/internal/service/accounts/ ./azuredevops/internal/service/profile/` → all clean (0 issues). Both tests still discoverable.
 
+### Iteration 5
+
+**Problem:** Gate failure (iteration 4 output): `TestAccDataAccounts` failed with:
+- `Error: Read error ... reading accounts: HTTP 401: ` (empty body)
+
+**Root cause:** `app.vssps.visualstudio.com/_apis/accounts` returns HTTP 401 with an **empty body** for org-scoped PATs. The empty body is the tell: when a global VSSPS endpoint receives an org-scoped PAT, it rejects it silently (no WWW-Authenticate challenge body, no JSON error). The correct URL for org-scoped PATs is `https://vssps.dev.azure.com/<orgname>/_apis/accounts`.
+
+**Fix:** Extract the org name from `AggregatedClient.OrganizationURL` using a new `extractOrgName()` helper, then build org-specific VSSPS URLs:
+- Accounts: `https://vssps.dev.azure.com/<orgname>/_apis/accounts?...`
+- Profile: `https://vssps.dev.azure.com/<orgname>/_apis/profile/profiles/{id}?...`
+Falls back to global `app.vssps.visualstudio.com` when orgURL is not a dev.azure.com pattern (e.g. on-prem Server).
+
+**Files changed:**
+- `azuredevops/internal/service/accounts/data_accounts.go` — added `extractOrgName()`, use org-specific VSSPS URL
+- `azuredevops/internal/service/profile/data_profile.go` — same
+
+**Verified:** `go build -tags all ./...`, `go vet`, `golangci-lint run --new-from-rev=main` → 0 issues. Both tests still discoverable.
+
 ## Open questions
 
 _(none)_
@@ -102,5 +120,6 @@ _(none)_
 - **Pattern**: always use `GetClientByUrl` (no HTTP) when creating clients during provider Configure. Only use `GetClientByResourceAreaId`/`NewClient()` (HTTP call for discovery) at actual API call time (inside Read/Create etc.) where errors can be surfaced to users.
 - `accounts.ClientImpl` and `profile.ClientImpl` are exported structs — constructible directly.
 - The iteration 2 fix resolved the WRONG URL issue (org → vssps). Iteration 3 resolved the WRONG TIMING issue (HTTP at Configure → defer to Read). Iteration 4 resolved the WRONG MECHANISM: even the deferred SDK call hits `OPTIONS /_apis` on vssps which 401s. The only reliable approach is a **raw HTTP call** to the known stable VSSPS endpoint with the Basic auth header.
-- **VSSPS API access with org-scoped PAT**: A PAT scoped to one org CAN call `app.vssps.visualstudio.com/_apis/accounts` and `/_apis/profile/profiles/me` with `Authorization: Basic <base64>`. The PAT is NOT valid for the SDK's OPTIONS discovery probe to vssps (401). Always use raw HTTP for vssps calls.
+- **VSSPS API access with org-scoped PAT**: An org-scoped PAT CANNOT call `app.vssps.visualstudio.com/_apis/accounts` — returns HTTP 401 with an empty body. It CAN call the org-specific VSSPS endpoint `https://vssps.dev.azure.com/<orgname>/_apis/accounts`. The fix: extract org name from `OrganizationURL`, build org-specific URL. Always use raw HTTP for vssps calls (bypass SDK OPTIONS discovery).
+- Iteration 5 lesson: `app.vssps.visualstudio.com` silently rejects org-scoped PATs with empty-body 401. The correct host is `vssps.dev.azure.com/<orgname>` for all org-scoped PAT users.
 - The `BasicAuth` field in `AggregatedClient` is a `"Basic <base64(_:PAT)>"` string — set via `authProvider.GetAuth(ctx)` at GetAzdoClient time. Data sources use it for direct HTTP calls.
