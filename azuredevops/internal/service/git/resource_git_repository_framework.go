@@ -5,11 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -29,12 +32,18 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
+import "regexp"
+
+// regexpHTTPSURL matches an http:// or https:// URL, or an empty string (for optional fields).
+var regexpHTTPSURL = regexp.MustCompile(`^(https?://\S+)?$`)
+
 // Compile-time interface checks.
 var (
-	_ resource.Resource                   = &gitRepositoryResource{}
-	_ resource.ResourceWithConfigure      = &gitRepositoryResource{}
-	_ resource.ResourceWithImportState    = &gitRepositoryResource{}
-	_ resource.ResourceWithValidateConfig = &gitRepositoryResource{}
+	_ resource.Resource                     = &gitRepositoryResource{}
+	_ resource.ResourceWithConfigure        = &gitRepositoryResource{}
+	_ resource.ResourceWithImportState      = &gitRepositoryResource{}
+	_ resource.ResourceWithValidateConfig   = &gitRepositoryResource{}
+	_ resource.ResourceWithConfigValidators = &gitRepositoryResource{}
 )
 
 // ---- plan-modifier / default helpers ----------------------------------------
@@ -141,96 +150,12 @@ func (m gitRequiresReplaceMod) PlanModifyString(_ context.Context, req planmodif
 	resp.RequiresReplace = true
 }
 
-// ---- validators -------------------------------------------------------------
-
-// gitListSizeExactlyOneValidator checks that a List block has exactly one element.
-type gitListSizeExactlyOneValidator struct{}
-
-func gitListSizeExactlyOne() validator.List { return gitListSizeExactlyOneValidator{} }
-func (v gitListSizeExactlyOneValidator) Description(_ context.Context) string {
-	return "list must contain exactly one element"
-}
-
-func (v gitListSizeExactlyOneValidator) MarkdownDescription(_ context.Context) string {
-	return "list must contain exactly one element"
-}
-
-func (v gitListSizeExactlyOneValidator) ValidateList(_ context.Context, req validator.ListRequest, resp *validator.ListResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	if len(req.ConfigValue.Elements()) != 1 {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid initialization block count",
-			fmt.Sprintf("The initialization block must appear exactly once, got %d.", len(req.ConfigValue.Elements())),
-		)
-	}
-}
-
-// gitStringOneOfValidator checks that a string value is one of a set of allowed values.
-type gitStringOneOfValidator struct {
-	allowed []string
-}
-
-func gitStringOneOf(allowed ...string) validator.String {
-	return gitStringOneOfValidator{allowed: allowed}
-}
-
-func (v gitStringOneOfValidator) Description(_ context.Context) string {
-	return fmt.Sprintf("value must be one of: %s", strings.Join(v.allowed, ", "))
-}
-
-func (v gitStringOneOfValidator) MarkdownDescription(_ context.Context) string {
-	return fmt.Sprintf("value must be one of: `%s`", strings.Join(v.allowed, "`, `"))
-}
-
-func (v gitStringOneOfValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	val := req.ConfigValue.ValueString()
-	for _, a := range v.allowed {
-		if strings.EqualFold(val, a) {
-			return
-		}
-	}
-	resp.Diagnostics.AddAttributeError(
-		req.Path,
-		"Invalid value",
-		fmt.Sprintf("%q is not a valid value. Allowed values: %s", val, strings.Join(v.allowed, ", ")),
-	)
-}
-
-// gitURLHTTPSValidator checks that a string is a valid HTTP or HTTPS URL.
-type gitURLHTTPSValidator struct{}
-
-func gitURLHTTPS() validator.String { return gitURLHTTPSValidator{} }
-func (v gitURLHTTPSValidator) Description(_ context.Context) string {
-	return "value must be a valid HTTP or HTTPS URL"
-}
-
-func (v gitURLHTTPSValidator) MarkdownDescription(_ context.Context) string {
-	return "value must be a valid HTTP or HTTPS URL"
-}
-
-func (v gitURLHTTPSValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	val := req.ConfigValue.ValueString()
-	if val == "" {
-		return
-	}
-	u, err := url.ParseRequestURI(val)
-	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
-		resp.Diagnostics.AddAttributeError(
-			req.Path,
-			"Invalid URL",
-			fmt.Sprintf("%q is not a valid HTTP or HTTPS URL.", val),
-		)
-	}
-}
+// ---- validators (via terraform-plugin-framework-validators) -----------------
+// Hand-rolled custom validators replaced with the official library:
+//   - listvalidator.SizeBetween(1,1)  — initialization block exactly-once check
+//   - stringvalidator.OneOf(...)      — enum checks for init_type and source_type
+//   - stringvalidator.RegexMatches    — URL format check for source_url
+//   - resourcevalidator.RequiredTogether / Conflicting — attribute co-occurrence rules
 
 // ---- gitRepositoryResource --------------------------------------------------
 
@@ -354,7 +279,8 @@ func (r *gitRepositoryResource) Schema(_ context.Context, _ resource.SchemaReque
 			"initialization": schema.ListNestedBlock{
 				Description: "How the repository is initialized. Exactly one block is required.",
 				Validators: []validator.List{
-					gitListSizeExactlyOne(),
+					// listvalidator.SizeBetween from terraform-plugin-framework-validators
+					listvalidator.SizeBetween(1, 1),
 				},
 				NestedObject: schema.NestedBlockObject{
 					Attributes: map[string]schema.Attribute{
@@ -362,7 +288,8 @@ func (r *gitRepositoryResource) Schema(_ context.Context, _ resource.SchemaReque
 							Required:    true,
 							Description: "The type of repository initialization. Valid values are `Clean`, `Fork`, `Import`, `Uninitialized`.",
 							Validators: []validator.String{
-								gitStringOneOf(
+								// stringvalidator.OneOf from terraform-plugin-framework-validators
+								stringvalidator.OneOf(
 									string(RepoInitTypeValues.Clean),
 									string(RepoInitTypeValues.Fork),
 									string(RepoInitTypeValues.Import),
@@ -377,7 +304,8 @@ func (r *gitRepositoryResource) Schema(_ context.Context, _ resource.SchemaReque
 							Default:     gitDefaultString(""),
 							Description: "Type of the source repository. Only `Git` is supported.",
 							Validators: []validator.String{
-								gitStringOneOf("Git"),
+								// stringvalidator.OneOf from terraform-plugin-framework-validators
+								stringvalidator.OneOf("Git", ""),
 							},
 							PlanModifiers: []planmodifier.String{gitRequiresReplace()},
 						},
@@ -387,7 +315,12 @@ func (r *gitRepositoryResource) Schema(_ context.Context, _ resource.SchemaReque
 							Default:     gitDefaultString(""),
 							Description: "The URL of the source repository. Must be a valid HTTP or HTTPS URL.",
 							Validators: []validator.String{
-								gitURLHTTPS(),
+								// stringvalidator.RegexMatches from terraform-plugin-framework-validators
+								// validates http:// or https:// URLs (empty string is also accepted — optional field)
+								stringvalidator.RegexMatches(
+									regexpHTTPSURL,
+									"must be a valid HTTP or HTTPS URL (or empty)",
+								),
 							},
 							PlanModifiers: []planmodifier.String{gitRequiresReplace()},
 						},
