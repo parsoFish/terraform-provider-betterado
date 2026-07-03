@@ -259,7 +259,7 @@ func (r *processResource) Create(ctx context.Context, req resource.CreateRequest
 
 	if needsUpdate {
 		processTypeID := created.TypeId
-		_, err2 := r.client.WorkItemTrackingProcessClient.EditProcess(ctx, workitemtrackingprocess.EditProcessArgs{
+		edited, err2 := r.client.WorkItemTrackingProcessClient.EditProcess(ctx, workitemtrackingprocess.EditProcessArgs{
 			ProcessTypeId: processTypeID,
 			UpdateRequest: &workitemtrackingprocess.UpdateProcessModel{
 				Name:        converter.String(model.Name.ValueString()),
@@ -275,17 +275,18 @@ func (r *processResource) Create(ctx context.Context, req resource.CreateRequest
 			resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 			return
 		}
-		// Re-read from ADO to get ground-truth state; the EditProcess response
-		// may not reflect the updated is_enabled/is_default values immediately.
-		refreshed, err3 := r.client.WorkItemTrackingProcessClient.GetProcessByItsId(ctx, workitemtrackingprocess.GetProcessByItsIdArgs{
-			ProcessTypeId: processTypeID,
-			Expand:        &workitemtrackingprocess.GetProcessExpandLevelValues.None,
-		})
-		if err3 != nil {
-			resp.Diagnostics.AddError("Post-create read error", fmt.Sprintf("reading process after create: %s", err3))
-			return
+		// Use the EditProcess response directly (mirrors the old SDK behaviour).
+		// GetProcessByItsId can return stale or partial data immediately after
+		// an edit; the PATCH response is the authoritative ground-truth for
+		// is_enabled / is_default.  If any field is nil in the edited response,
+		// fall back to the corresponding value from the create response.
+		if edited.IsEnabled == nil {
+			edited.IsEnabled = converter.Bool(model.IsEnabled.ValueBool())
 		}
-		r.flattenProcess(&model, refreshed)
+		if edited.IsDefault == nil {
+			edited.IsDefault = converter.Bool(model.IsDefault.ValueBool())
+		}
+		r.flattenProcess(&model, edited)
 	} else {
 		r.flattenProcess(&model, created)
 	}
@@ -351,7 +352,7 @@ func (r *processResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	_, err = r.client.WorkItemTrackingProcessClient.EditProcess(ctx, workitemtrackingprocess.EditProcessArgs{
+	edited, err2 := r.client.WorkItemTrackingProcessClient.EditProcess(ctx, workitemtrackingprocess.EditProcessArgs{
 		ProcessTypeId: &processTypeID,
 		UpdateRequest: &workitemtrackingprocess.UpdateProcessModel{
 			Name:        converter.String(model.Name.ValueString()),
@@ -360,24 +361,24 @@ func (r *processResource) Update(ctx context.Context, req resource.UpdateRequest
 			IsEnabled:   converter.Bool(model.IsEnabled.ValueBool()),
 		},
 	})
-	if err != nil {
-		resp.Diagnostics.AddError("Update error", fmt.Sprintf("updating process: %s", err))
+	if err2 != nil {
+		resp.Diagnostics.AddError("Update error", fmt.Sprintf("updating process: %s", err2))
 		return
 	}
 
-	// Re-read from ADO to get ground-truth state; the EditProcess response
-	// may not reflect updated is_enabled/is_default values reliably.
-	refreshed, err2 := r.client.WorkItemTrackingProcessClient.GetProcessByItsId(ctx, workitemtrackingprocess.GetProcessByItsIdArgs{
-		ProcessTypeId: &processTypeID,
-		Expand:        &workitemtrackingprocess.GetProcessExpandLevelValues.None,
-	})
-	if err2 != nil {
-		resp.Diagnostics.AddError("Post-update read error", fmt.Sprintf("reading process after update: %s", err2))
-		return
+	// Use the EditProcess response directly (mirrors the old SDK behaviour).
+	// GetProcessByItsId can lag behind immediately after a PATCH due to eventual
+	// consistency; the PATCH response is authoritative for is_enabled/is_default.
+	// If any field is nil in the edited response, fall back to the plan value.
+	if edited.IsEnabled == nil {
+		edited.IsEnabled = converter.Bool(model.IsEnabled.ValueBool())
+	}
+	if edited.IsDefault == nil {
+		edited.IsDefault = converter.Bool(model.IsDefault.ValueBool())
 	}
 
 	model.ID = stateModel.ID
-	r.flattenProcess(&model, refreshed)
+	r.flattenProcess(&model, edited)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
@@ -457,28 +458,4 @@ func (r *processResource) flattenProcess(model *processResourceModel, process *w
 	if process.CustomizationType != nil {
 		model.CustomizationType = types.StringValue(string(*process.CustomizationType))
 	}
-}
-
-// getProcessByID retrieves a process by ID via the list API. It is kept as a
-// fallback helper for cases where the single-get endpoint does not reliably
-// return all fields. Currently unused in Read/ImportState — those paths use
-// GetProcessByItsId directly with flattenProcess's nil-to-false defaulting for
-// IsEnabled. Returns (process, found, error).
-func (r *processResource) getProcessByID(ctx context.Context, processID string) (*workitemtrackingprocess.ProcessInfo, bool, error) {
-	processes, err := r.client.WorkItemTrackingProcessClient.GetListOfProcesses(ctx, workitemtrackingprocess.GetListOfProcessesArgs{
-		Expand: &workitemtrackingprocess.GetProcessExpandLevelValues.None,
-	})
-	if err != nil {
-		return nil, false, fmt.Errorf("listing processes: %w", err)
-	}
-	if processes == nil {
-		return nil, false, nil
-	}
-	for i := range *processes {
-		p := (*processes)[i]
-		if p.TypeId != nil && p.TypeId.String() == processID {
-			return &p, true, nil
-		}
-	}
-	return nil, false, nil
 }
