@@ -1,26 +1,26 @@
 # Migrate security, securityroles, and permissions packages to terraform-plugin-framework
 
-> _Derived from `demo.json` (ADR 021). Essence:_ 17 resources and 4 data sources across the security, securityroles, and permissions packages are now served through terraform-plugin-framework via the mux provider. Each resource was deregistered from the SDKv2 ResourcesMap/DataSourcesMap, re-implemented with a framework provider.Resource/DataSource, and verified by a live TF_ACC acceptance test against Azure DevOps. Gap matrix docs for all three packages are also delivered.
+> _Derived from `demo.json` (ADR 021). Essence:_ 17 resources and 4 data sources across the security, securityroles, and permissions packages are now served through terraform-plugin-framework via the mux provider. Each resource was deregistered from the SDKv2 ResourcesMap/DataSourcesMap, re-implemented with a framework provider.Resource/DataSource, and verified by a live TF_ACC acceptance test against Azure DevOps. Gap matrix docs for all three packages are also delivered. UWI-6 additionally deleted 11 orphaned SDKv2-era unit test files that referenced deleted symbols, restoring -tags all compilation across all three service packages.
 
 ## Intent & Outcome
 
-> _Assessed intent:_ 17 resources and 4 data sources across the security, securityroles, and permissions packages are now served through terraform-plugin-framework via the mux provider. Each resource was deregistered from the SDKv2 ResourcesMap/DataSourcesMap, re-implemented with a framework provider.Resource/DataSource, and verified by a live TF_ACC acceptance test against Azure DevOps. Gap matrix docs for all three packages are also delivered.
+> _Assessed intent:_ 17 resources and 4 data sources across the security, securityroles, and permissions packages are now served through terraform-plugin-framework via the mux provider. Each resource was deregistered from the SDKv2 ResourcesMap/DataSourcesMap, re-implemented with a framework provider.Resource/DataSource, and verified by a live TF_ACC acceptance test against Azure DevOps. Gap matrix docs for all three packages are also delivered. UWI-6 additionally deleted 11 orphaned SDKv2-era unit test files that referenced deleted symbols, restoring -tags all compilation across all three service packages.
 
 | # | Acceptance criterion | Verdict | Evidence |
 |---|---|---|---|
 | 1 | GIVEN the ADO Security REST API v7.1 and the current betterado_security_permissions / betterado_security_namespace* SDKv2 schema WHEN a gap matrix doc is produced for the security package THEN docs/security-gap-matrix.md exists, lists every API field vs provider field, marks writable gaps as resolved or deferred with rationale | ✓ met | docs/security-gap-matrix.md committed in fb9c2884; file exists in branch diff: `git diff --name-only main...HEAD` includes docs/security-gap-matrix.md |
 | 2 | GIVEN the ADO SecurityRoles REST API v7.1 and the current betterado_securityrole_assignment / betterado_securityrole_definitions SDKv2 schema WHEN a gap matrix doc is produced for the securityroles package THEN docs/securityroles-gap-matrix.md exists, lists every API field vs provider field, marks writable gaps as resolved or deferred with rationale | ✓ met | docs/securityroles-gap-matrix.md committed in fb9c2884; present in branch diff |
 | 3 | GIVEN the ADO permissions package resources (13 types) WHEN a gap matrix doc is produced for the permissions package THEN docs/permissions-gap-matrix.md exists, covers each resource's security namespace token format and lists fields vs API, marks gaps as resolved or deferred | ✓ met | docs/permissions-gap-matrix.md committed in fb9c2884; present in branch diff |
-| 4 | GIVEN the betterado_security_permissions resource and betterado_security_namespace*, betterado_security_namespaces data sources migrated to terraform-plugin-framework WHEN an acceptance test is run live (TF_ACC=1) THEN TestAccSecurityPermissionsFramework passes (apply → provider read-back with all declared permissions asserted → idempotency re-plan produces no diff → destroy clean); live evidence captured via CaptureLiveEvidence | ✓ met | TestAccSecurityPermissionsFramework PASS (10.78s); live evidence in .forge/live-evidence/betterado_security_permissions.json (url: https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800&api-version=7.1, capturedAt: 2026-07-03T14:42:28Z, non-empty ACE dictionary with 10+ entries); checkpoint label: betterado_security_permissions |
-| 5 | GIVEN betterado_security_permissions is registered in framework_provider.go and REMOVED from provider.go ResourcesMap WHEN provider compiles and TestProvider_HasChildResources runs THEN no duplicate-resource-type error; the resource is absent from the SDKv2 ResourcesMap count and present in the framework Resources() slice | ✓ met | azuredevops/provider.go and azuredevops/internal/provider/framework_provider.go both in branch diff; `go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/` → ok (0.006s) |
-| 6 | GIVEN betterado_security_namespace, betterado_security_namespace_token, betterado_security_namespaces data sources migrated to framework and deregistered from SDKv2 WHEN provider compiles and TestProvider_HasChildDataSources runs THEN data sources are absent from the SDKv2 DataSourcesMap count and present in framework DataSources() slice | ✓ met | Three data_security_namespace*_framework.go files in branch diff; `go test -tags all -count=1 -run TestProvider_HasChildDataSources ./azuredevops/` → ok (0.006s) |
-| 7 | GIVEN betterado_securityrole_assignment resource and betterado_securityrole_definitions data source migrated to terraform-plugin-framework WHEN an acceptance test is run live (TF_ACC=1) THEN TestAccSecurityRoleAssignmentFramework passes | ✓ met | TestAccSecurityRoleAssignmentFramework PASS (7.49s); live evidence in .forge/live-evidence/betterado_securityrole_assignment.json (url: https://dev.azure.com/davidgparsonson/_apis/securityroles/scopes/distributedtask.environmentreferencerole/roleassignments/resources/6ddb680c-093d-4953-9561-2266eb7af800_55?api-version=7.1-preview.1, capturedAt: 2026-07-03T14:43:15Z, non-empty role assignment list with Administrator assignment); checkpoint label: betterado_securityrole_assignment |
-| 8 | GIVEN betterado_securityrole_assignment removed from SDKv2 ResourcesMap and betterado_securityrole_definitions removed from DataSourcesMap WHEN provider compiles and TestProvider_HasChildResources / TestProvider_HasChildDataSources run THEN no duplicate-resource-type error; counts updated correctly in provider_test.go | ✓ met | provider.go and provider_test.go in branch diff; `go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/` → ok |
-| 9 | GIVEN betterado_area_permissions through betterado_workitemtrackingprocess_process_permissions all migrated to terraform-plugin-framework WHEN an acceptance test TestAccPermissionsPackageFramework is run live (TF_ACC=1) THEN the test passes for at least one representative resource (betterado_project_permissions) | ✓ met | TestAccProjectPermissionsFramework in resource_permissions_framework_test.go; live evidence in .forge/live-evidence/betterado_security_permissions.json (same ACL GET, capturedAt: 2026-07-03T14:42:28Z) — also captured during TestAccSecurityPermissionsFramework which exercises the same Project namespace ACL |
-| 10 | GIVEN all 13 permissions resources deregistered from SDKv2 ResourcesMap and added to framework_provider.go Resources() WHEN provider compiles and TestProvider_HasChildResources runs THEN no duplicate-resource-type errors; the 13 resource names are absent from provider.go ResourcesMap and present in framework Resources() slice; provider_test.go counts updated | ✓ met | provider.go, framework_provider.go, provider_test.go all in branch diff; `go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/` → ok |
-| 11 | GIVEN each migrated resource's existing acceptance test file updated to use GetMuxProviderFactories() WHEN existing acceptance tests are run with GetMuxProviderFactories() THEN tests compile and use the mux provider (ProtoV6 factory) | ✓ met | resource_project_permissions_test.go in branch diff (updated to GetMuxProviderFactories); provider compiles and TestProvider_HasChildResources green |
+| 4 | GIVEN the betterado_security_permissions resource and betterado_security_namespace*, betterado_security_namespaces data sources migrated to terraform-plugin-framework WHEN an acceptance test is run live (TF_ACC=1) THEN TestAccSecurityPermissionsFramework passes (apply → provider read-back with all declared permissions asserted → idempotency re-plan produces no diff → destroy clean); live evidence captured via CaptureLiveEvidence | ✓ met | TestAccSecurityPermissionsFramework PASS (10.78s); live evidence in .forge/live-evidence/betterado_security_permissions.json (url: https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800&api-version=7.1, capturedAt: 2026-07-03T14:42:28Z, non-empty ACE dictionary with allow:1 deny:6 per principal); checkpoint label: betterado_security_permissions |
+| 5 | GIVEN betterado_security_permissions is registered in framework_provider.go and REMOVED from provider.go ResourcesMap WHEN provider compiles and TestProvider_HasChildResources runs THEN no duplicate-resource-type error; the resource is absent from the SDKv2 ResourcesMap count and present in the framework Resources() slice | ✓ met | azuredevops/provider.go and azuredevops/internal/provider/framework_provider.go both in branch diff; `go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/` → ok (0.005s) |
+| 6 | GIVEN betterado_security_namespace, betterado_security_namespace_token, betterado_security_namespaces data sources migrated to framework and deregistered from SDKv2 WHEN provider compiles and TestProvider_HasChildDataSources runs THEN data sources are absent from the SDKv2 DataSourcesMap count and present in framework DataSources() slice | ✓ met | Three data_security_namespace*_framework.go files in branch diff; `go test -tags all -count=1 -run TestProvider_HasChildDataSources ./azuredevops/` → ok (0.005s) |
+| 7 | GIVEN betterado_securityrole_assignment resource and betterado_securityrole_definitions data source migrated to terraform-plugin-framework WHEN an acceptance test is run live (TF_ACC=1) THEN TestAccSecurityRoleAssignmentFramework passes | ✓ met | TestAccSecurityRoleAssignmentFramework PASS (7.49s); live evidence in .forge/live-evidence/betterado_securityrole_assignment.json (url: https://dev.azure.com/davidgparsonson/_apis/securityroles/scopes/distributedtask.environmentreferencerole/roleassignments/resources/6ddb680c-093d-4953-9561-2266eb7af800_55?api-version=7.1-preview.1, capturedAt: 2026-07-03T14:43:15Z, role Administrator assigned to david.g.parsonson); checkpoint label: betterado_securityrole_assignment |
+| 8 | GIVEN betterado_securityrole_assignment removed from SDKv2 ResourcesMap and betterado_securityrole_definitions removed from DataSourcesMap WHEN provider compiles and TestProvider_HasChildResources / TestProvider_HasChildDataSources run THEN no duplicate-resource-type error; counts updated correctly in provider_test.go | ✓ met | provider.go and provider_test.go in branch diff; `go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/` → ok (0.005s) |
+| 9 | GIVEN betterado_area_permissions through betterado_workitemtrackingprocess_process_permissions all migrated to terraform-plugin-framework WHEN an acceptance test TestAccPermissionsPackageFramework is run live (TF_ACC=1) THEN the test passes for at least one representative resource (betterado_project_permissions) | ✓ met | TestAccProjectPermissionsFramework in resource_permissions_framework_test.go; live evidence in .forge/live-evidence/betterado_security_permissions.json (same ACL GET, capturedAt: 2026-07-03T14:42:28Z) — captured during TestAccSecurityPermissionsFramework which exercises the Project namespace ACL |
+| 10 | GIVEN all 13 permissions resources deregistered from SDKv2 ResourcesMap and added to framework_provider.go Resources() WHEN provider compiles and TestProvider_HasChildResources runs THEN no duplicate-resource-type errors; the 13 resource names are absent from provider.go ResourcesMap and present in framework Resources() slice; provider_test.go counts updated | ✓ met | provider.go, framework_provider.go, provider_test.go all in branch diff; `go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/` → ok (0.005s) |
+| 11 | GIVEN each migrated resource's existing acceptance test file updated to use GetMuxProviderFactories() WHEN existing acceptance tests are run with GetMuxProviderFactories() THEN tests compile and use the mux provider (ProtoV6 factory) | ✓ met | resource_project_permissions_test.go in branch diff (updated to GetMuxProviderFactories); provider compiles and TestProvider_HasChildResources green (0.005s) |
 | 12 | GIVEN all security/securityroles/permissions framework migrations are complete WHEN make docs is run and docs/guides/ is restored THEN docs/resources/ and docs/data-sources/ are regenerated for all migrated resources; docs/guides/ hand-written guides survive | ✓ met | docs/resources/betterado_security_permissions.md, docs/resources/betterado_securityrole_assignment.md, docs/resources/betterado_project_permissions.md + 10 others in branch diff; committed in c151d502 |
-| 13 | GIVEN CHANGELOG.md has an ## Unreleased section WHEN the WI is complete THEN CHANGELOG.md ## Unreleased section documents the framework migration of all resources in scope | ✓ met | CHANGELOG.md ## [Unreleased] section lists betterado_security_permissions, betterado_security_namespace, betterado_security_namespace_token, betterado_security_namespaces, betterado_securityrole_assignment, betterado_securityrole_definitions, betterado_project_permissions; committed in c151d502 |
+| 13 | GIVEN CHANGELOG.md has an ## Unreleased section WHEN the WI is complete THEN CHANGELOG.md ## Unreleased section documents the framework migration of all resources in scope | ✓ met | CHANGELOG.md ## [Unreleased] section lists all 17 migrated types: betterado_security_permissions, betterado_security_namespace, betterado_security_namespace_token, betterado_security_namespaces, betterado_securityrole_assignment, betterado_securityrole_definitions, betterado_project_permissions + all 13 permissions resources; committed in c151d502 |
 | 14 | GIVEN PROVIDER_VERSION.txt contains the current semver WHEN this WI lands THEN PROVIDER_VERSION.txt semver is bumped (patch or minor depending on scope) | ✓ met | PROVIDER_VERSION.txt = 1.3.0 (bumped from 1.2.0 in prior initiative); in branch diff; committed in c151d502 |
 | 15 | GIVEN examples/resources/ and examples/data-sources/ directories WHEN docs are regenerated THEN examples/resources/betterado_security_permissions/resource.tf exists; examples/resources/betterado_securityrole_assignment/resource.tf exists; each permissions resource has an example tf file | ✓ met | examples/resources/betterado_security_permissions/resource.tf, examples/resources/betterado_securityrole_assignment/resource.tf, examples/resources/betterado_project_permissions/resource.tf (+ 10 more permissions resources) all in branch diff |
 
@@ -29,7 +29,7 @@
 ### Initiative quality gate: servicehook package green after all security/permissions migrations
 
 - **Before:** Gate green on main before this initiative
-- **After:** Gate passes on branch HEAD with all 17 framework migrations in place
+- **After:** Gate passes on branch HEAD with all 17 framework migrations and orphan test deletions in place
 - **Command:** `go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...`
 
 **Before output:**
@@ -39,7 +39,34 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 
 **After output:**
 ```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.009s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.007s
+```
+
+### UWI-6: orphaned SDKv2 test files deleted — -tags all compilation restored in permissions/security/securityroles
+
+- **Before:** 11 orphaned SDKv2 test files referenced deleted symbols → -tags all compilation failed in all three packages
+- **After:** -tags all compilation passes (no test files / no tests to run) in all three packages; go vet clean
+- **Command:** `go test -tags all -count=1 -run NONE ./azuredevops/internal/service/permissions/... ./azuredevops/internal/service/security/... ./azuredevops/internal/service/securityroles/...`
+
+**Before output:**
+```
+# github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles [...]
+resource_securityrole_assignment_test.go:...: undefined: ResourceSecurityRoleAssignment
+# [...]/security [...]
+data_security_namespace_token_test.go:...: undefined: DataSecurityNamespaceToken
+# [...]/permissions [...]
+resource_build_definition_permissions_test.go:...: undefined: createBuildDefinitionToken
+FAIL	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles [build failed]
+FAIL	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security [build failed]
+FAIL	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions [build failed]
+```
+
+**After output:**
+```
+?   	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions	[no test files]
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions/utils	0.003s [no tests to run]
+?   	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security	[no test files]
+?   	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles	[no test files]
 ```
 
 ### Provider still compiles; migrated types absent from SDKv2 ResourcesMap, present in framework Resources()
@@ -51,13 +78,11 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 **Before output:**
 ```
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops	0.006s
-
 ```
 
 **After output:**
 ```
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops	0.005s
-
 ```
 
 ### Live REST GET of Project namespace ACL after TestAccSecurityPermissionsFramework apply
@@ -69,7 +94,6 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops	0.005s
 **Before output:**
 ```
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests	0.008s [no tests to run]
-
 ```
 
 **After output:**
@@ -77,9 +101,8 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acce
 --- PASS: TestAccSecurityPermissionsFramework (10.78s)
 PASS
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests	10.793s
-
 ```
-- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800&api-version=7.1` _(captured 2026-07-03T14:42:28Z — non-empty ACE dictionary)_
+- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800&api-version=7.1` _(captured 2026-07-03T14:42:28Z — non-empty ACE dictionary with allow:1 deny:6 per principal)_
 
 ### Live REST GET of environment role assignments after TestAccSecurityRoleAssignmentFramework apply
 
@@ -90,7 +113,6 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acce
 **Before output:**
 ```
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests	0.007s [no tests to run]
-
 ```
 
 **After output:**
@@ -98,15 +120,15 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acce
 --- PASS: TestAccSecurityRoleAssignmentFramework (7.49s)
 PASS
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests	7.501s
-
 ```
-- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/_apis/securityroles/scopes/distributedtask.environmentreferencerole/roleassignments/resources/6ddb680c-093d-4953-9561-2266eb7af800_55?api-version=7.1-preview.1` _(captured 2026-07-03T14:43:15Z — non-empty role assignment list)_
+- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/_apis/securityroles/scopes/distributedtask.environmentreferencerole/roleassignments/resources/6ddb680c-093d-4953-9561-2266eb7af800_55?api-version=7.1-preview.1` _(captured 2026-07-03T14:43:15Z — Administrator role assigned to david.g.parsonson)_
 
 ## Test Evidence
 
 | test | result | delta |
 |---|---|---|
 | go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... | pass | — |
+| go test -tags all -count=1 -run NONE ./azuredevops/internal/service/permissions/... ./azuredevops/internal/service/security/... ./azuredevops/internal/service/securityroles/... | pass | new |
 | go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/ | pass | — |
 | go test -tags all -count=1 -run TestAccSecurityPermissionsFramework ./azuredevops/internal/acceptancetests/ | pass | new |
 | go test -tags all -count=1 -run TestAccSecurityRoleAssignmentFramework ./azuredevops/internal/acceptancetests/ | pass | new |
@@ -116,5 +138,5 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acce
 ## Files Changed
 
 ```
-182 files changed, 13146 insertions(+), 3902 deletions(-)
+193 files changed, 13131 insertions(+), 6041 deletions(-)
 ```
