@@ -83,8 +83,10 @@ func TestAccIdentityGroupsDataSource_Framework_Read(t *testing.T) {
 // populates descriptor and subject_descriptor when given a name (and optional search_filter),
 // using the muxed (framework) provider.
 //
-// Uses the build service account for the shared project, which is a stable known-good
-// identity that exists in every ADO project without needing a user entitlement.
+// Uses "Project Collection Build Service ({OrgName})" — the collection-level ADO build
+// service identity that is always present in every organisation, regardless of whether
+// any pipelines have been run. The org name is extracted at apply time from
+// betterado_client_config.organization_url so no hard-coded org name is needed.
 func TestAccIdentityUserDataSource_Framework_Read(t *testing.T) {
 	tfNode := "data.betterado_identity_user.test"
 
@@ -141,18 +143,18 @@ data "betterado_identity_groups" "test" {
 `, SharedFixtureProjectName)
 }
 
-// hclIdentityUserFrameworkRead looks up the shared project's build service identity
-// user by display name. The build service account follows the ADO naming convention
-// "{ProjectName} Build Service ({OrgName})" and is a stable system identity that
-// exists without requiring a user entitlement. The org name is extracted dynamically
-// from betterado_client_config.organization_url to avoid hard-coding.
+// hclIdentityUserFrameworkRead looks up the "Project Collection Build Service ({OrgName})"
+// identity user by DisplayName. This is the collection-level build service account that is
+// a permanent system identity present in every ADO organisation, so it is always findable
+// without creating new projects or user entitlements. The org name is extracted at apply
+// time from betterado_client_config.organization_url.
 func hclIdentityUserFrameworkRead() string {
-	return fmt.Sprintf(`
+	return `
 data "betterado_client_config" "current" {}
 
 data "betterado_identity_user" "test" {
-  name          = "%[1]s Build Service (${compact(split("/", data.betterado_client_config.current.organization_url))[2]})"
+  name          = "Project Collection Build Service (${compact(split("/", data.betterado_client_config.current.organization_url))[2]})"
   search_filter = "DisplayName"
 }
-`, SharedFixtureProjectName)
+`
 }
