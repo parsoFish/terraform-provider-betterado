@@ -175,19 +175,32 @@ func TestAccWikiPageResource_update(t *testing.T) {
 	})
 }
 
-// hclWikiPageBasic creates a betterado_wiki (projectWiki) in the standing fixture
-// project and a betterado_wiki_page within that wiki. Uses SharedFixtureProjectName
-// to avoid the org's 1000-project cap.
+// hclWikiPageBasic creates a betterado_wiki (codeWiki) backed by a new git repo
+// in the standing fixture project, and a betterado_wiki_page within that wiki.
+// Uses codeWiki (not projectWiki) so parallel runs don't collide on the
+// one-project-wiki-per-project ADO limit. Uses SharedFixtureProjectName to
+// avoid the org's 1000-project cap.
 func hclWikiPageBasic(wikiName string) string {
 	return fmt.Sprintf(`
 data "betterado_project" "fixture" {
   name = %[2]q
 }
 
-resource "betterado_wiki" "test" {
+resource "betterado_git_repository" "wiki_repo" {
   project_id = data.betterado_project.fixture.id
   name       = %[1]q
-  type       = "projectWiki"
+  initialization {
+    init_type = "Clean"
+  }
+}
+
+resource "betterado_wiki" "test" {
+  project_id    = data.betterado_project.fixture.id
+  repository_id = betterado_git_repository.wiki_repo.id
+  name          = %[1]q
+  version       = "master"
+  type          = "codeWiki"
+  mapped_path   = "/"
 }
 
 resource "betterado_wiki_page" "test" {
@@ -206,10 +219,21 @@ data "betterado_project" "fixture" {
   name = %[2]q
 }
 
-resource "betterado_wiki" "test" {
+resource "betterado_git_repository" "wiki_repo" {
   project_id = data.betterado_project.fixture.id
   name       = %[1]q
-  type       = "projectWiki"
+  initialization {
+    init_type = "Clean"
+  }
+}
+
+resource "betterado_wiki" "test" {
+  project_id    = data.betterado_project.fixture.id
+  repository_id = betterado_git_repository.wiki_repo.id
+  name          = %[1]q
+  version       = "master"
+  type          = "codeWiki"
+  mapped_path   = "/"
 }
 
 resource "betterado_wiki_page" "test" {

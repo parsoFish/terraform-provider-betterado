@@ -7,6 +7,26 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_wiki` migrated to terraform-plugin-framework.** The resource now
+  uses the terraform-plugin-framework implementation served through the mux
+  provider. CRUD operations target the Azure DevOps Wiki API; the schema is
+  unchanged (`project_id`, `name`, `type`, `repository_id`, `version`,
+  `mapped_path`, `remote_url`, `url`). Project wikis and code wikis are both
+  supported. Delete for project wikis now uses the `DeleteWiki` API directly
+  (previously attempted to delete the underlying git repository, which was
+  unreliable). Verified by live acceptance tests `TestAccWikiResource_projectWiki`
+  and `TestAccWikiResource_codeWiki`.
+
+- **`betterado_wiki_page` migrated to terraform-plugin-framework.** The resource
+  now uses the terraform-plugin-framework implementation served through the mux
+  provider. Schema is unchanged (`project_id`, `wiki_id`, `path`, `content`,
+  `etag`). Concurrent page operations are serialised with a mutex to avoid
+  ADO's "page already updated by another client" conflict. Verified by live
+  acceptance tests `TestAccWikiPageResource_basic` and
+  `TestAccWikiPageResource_update`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES
