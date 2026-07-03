@@ -15,3 +15,16 @@ Both ACs are implemented in `azuredevops/internal/acceptancetests/resource_featu
 
 Gate will show [no tests to run] in offline mode (no TF_ACC) — this is expected.
 Live gate (TF_ACC=1 + env creds) will execute the test.
+
+---
+
+## Iteration 1 fix (root cause of gate failure)
+
+The gate failed with "Invalid resource type `betterado_feature_flag`" because the resource
+implementation was never registered in the mux provider.
+
+**Fixed in:** `azuredevops/internal/provider/framework_provider.go`
+- Added `featuremanagement` import
+- Added `featuremanagement.NewFeatureFlagResource` to `Resources()` slice
+
+All unit tests pass, build is clean, test is discoverable. Live gate should now pass.

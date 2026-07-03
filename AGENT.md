@@ -36,3 +36,20 @@ N/A — first iteration found the test file missing and created it correctly.
 
 - The `UserScope` parameter to `GetFeatureStateForScope` doubles as the scope name (pass "project" for project-scoped features), matching the pattern in `resource_feature_flag_framework.go`
 - Evidence URL format for FeatureManagement is the "host" path: `/_apis/FeatureManagement/FeatureStates/host/{scopeName}/{scopeValue}/{featureId}`
+
+---
+
+### Iteration 1
+
+**Problem:** Gate failed with "The provider hashicorp/betterado does not support resource type `betterado_feature_flag`". The resource implementation existed in `azuredevops/internal/service/featuremanagement/resource_feature_flag_framework.go` but was never registered in the framework provider.
+
+**Root cause:** `featuremanagement.NewFeatureFlagResource` was absent from `azuredevops/internal/provider/framework_provider.go`'s `Resources()` slice.
+
+**Fix:** Added `featuremanagement` import and `featuremanagement.NewFeatureFlagResource` to `Resources()` in `framework_provider.go`. One 2-line change.
+
+**Verified:**
+- `go build -tags all ./...` — clean
+- `go vet -tags all ./azuredevops/internal/provider/... ./azuredevops/internal/acceptancetests/...` — clean
+- `go test -tags all ./azuredevops/internal/provider/... ./azuredevops/internal/service/featuremanagement/...` — all pass
+- `go test -tags all -run TestAccFeatureFlag -list '.*' ...` — lists `TestAccFeatureFlag_basic` (discoverable)
+- Committed: `feat(provider): register betterado_feature_flag in framework provider`
