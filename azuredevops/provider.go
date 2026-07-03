@@ -102,7 +102,7 @@ func Provider() *schema.Provider {
 			"betterado_resource_authorization":                 build.ResourceResourceAuthorization(),
 			"betterado_security_permissions":                   security.ResourceGenericPermissions(),
 			"betterado_securityrole_assignment":                securityroles.ResourceSecurityRoleAssignment(),
-			"betterado_serviceendpoint_generic_v2":             serviceendpoint.ResourceServiceEndpointGenericV2(),
+			// betterado_serviceendpoint_generic_v2 is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_argocd is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_artifactory is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_aws is registered in framework_provider.go (migrated to terraform-plugin-framework)
@@ -120,7 +120,7 @@ func Provider() *schema.Provider {
 			// betterado_serviceendpoint_externaltfs is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_gcp_terraform is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_generic is registered in framework_provider.go (migrated to terraform-plugin-framework)
-			"betterado_serviceendpoint_generic_git": serviceendpoint.ResourceServiceEndpointGenericGit(),
+			// betterado_serviceendpoint_generic_git is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_github is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_github_enterprise is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_gitlab is registered in framework_provider.go (migrated to terraform-plugin-framework)
@@ -184,32 +184,32 @@ func Provider() *schema.Provider {
 			// betterado_release_definition_revision, betterado_release_definitions, and
 			// betterado_release_folder have been migrated to the terraform-plugin-framework
 			// provider (framework_provider.go) and are no longer registered here.
-			"betterado_agent_pool":                 taskagent.DataAgentPool(),
-			"betterado_agent_pools":                taskagent.DataAgentPools(),
-			"betterado_agent_queue":                taskagent.DataAgentQueue(),
-			"betterado_area":                       workitemtracking.DataArea(),
-			"betterado_build_definition":           build.DataBuildDefinition(),
-			"betterado_client_config":              service.DataClientConfig(),
-			"betterado_descriptor":                 graph.DataDescriptor(),
-			"betterado_environment":                taskagent.DataEnvironment(),
-			"betterado_feed":                       feed.DataFeed(),
-			"betterado_git_repositories":           git.DataGitRepositories(),
-			"betterado_git_repository":             git.DataGitRepository(),
-			"betterado_git_repository_file":        git.DataGitRepositoryFile(),
-			"betterado_group":                      graph.DataGroup(),
-			"betterado_group_membership":           graph.DataGroupMembership(),
-			"betterado_groups":                     graph.DataGroups(),
-			"betterado_identity_group":             identity.DataIdentityGroup(),
-			"betterado_identity_groups":            identity.DataIdentityGroups(),
-			"betterado_identity_user":              identity.DataIdentityUser(),
-			"betterado_iteration":                  workitemtracking.DataIteration(),
-			"betterado_project":                    core.DataProject(),
-			"betterado_projects":                   core.DataProjects(),
-			"betterado_security_namespace":         security.DataSecurityNamespace(),
-			"betterado_security_namespace_token":   security.DataSecurityNamespaceToken(),
-			"betterado_security_namespaces":        security.DataSecurityNamespaces(),
-			"betterado_securityrole_definitions":   securityroles.DataSecurityRoleDefinitions(),
-			"betterado_serviceendpoint_generic_v2": serviceendpoint.DataServiceEndpointGenericV2(),
+			"betterado_agent_pool":               taskagent.DataAgentPool(),
+			"betterado_agent_pools":              taskagent.DataAgentPools(),
+			"betterado_agent_queue":              taskagent.DataAgentQueue(),
+			"betterado_area":                     workitemtracking.DataArea(),
+			"betterado_build_definition":         build.DataBuildDefinition(),
+			"betterado_client_config":            service.DataClientConfig(),
+			"betterado_descriptor":               graph.DataDescriptor(),
+			"betterado_environment":              taskagent.DataEnvironment(),
+			"betterado_feed":                     feed.DataFeed(),
+			"betterado_git_repositories":         git.DataGitRepositories(),
+			"betterado_git_repository":           git.DataGitRepository(),
+			"betterado_git_repository_file":      git.DataGitRepositoryFile(),
+			"betterado_group":                    graph.DataGroup(),
+			"betterado_group_membership":         graph.DataGroupMembership(),
+			"betterado_groups":                   graph.DataGroups(),
+			"betterado_identity_group":           identity.DataIdentityGroup(),
+			"betterado_identity_groups":          identity.DataIdentityGroups(),
+			"betterado_identity_user":            identity.DataIdentityUser(),
+			"betterado_iteration":                workitemtracking.DataIteration(),
+			"betterado_project":                  core.DataProject(),
+			"betterado_projects":                 core.DataProjects(),
+			"betterado_security_namespace":       security.DataSecurityNamespace(),
+			"betterado_security_namespace_token": security.DataSecurityNamespaceToken(),
+			"betterado_security_namespaces":      security.DataSecurityNamespaces(),
+			"betterado_securityrole_definitions": securityroles.DataSecurityRoleDefinitions(),
+			// betterado_serviceendpoint_generic_v2 data source is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_azurecr data source is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_azurerm data source is registered in framework_provider.go (migrated to terraform-plugin-framework)
 			// betterado_serviceendpoint_bitbucket data source is registered in framework_provider.go (migrated to terraform-plugin-framework)

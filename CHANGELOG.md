@@ -9,10 +9,11 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### ENHANCEMENTS
 
-- **Migrated `betterado_serviceendpoint_*` (22 resources + 7 data sources) from terraform-plugin-sdk/v2 to terraform-plugin-framework** via the mux provider.
+- **Migrated `betterado_serviceendpoint_*` (25 resources + 8 data sources) from terraform-plugin-sdk/v2 to terraform-plugin-framework** via the mux provider.
   All service endpoint resources and data sources now use the framework implementation; SDKv2 registrations
   have been removed. The following types are included:
-  - Resources: `betterado_serviceendpoint_generic`, `betterado_serviceendpoint_azurerm`, `betterado_serviceendpoint_aws`,
+  - Resources: `betterado_serviceendpoint_generic`, `betterado_serviceendpoint_generic_v2`,
+    `betterado_serviceendpoint_generic_git`, `betterado_serviceendpoint_azurerm`, `betterado_serviceendpoint_aws`,
     `betterado_serviceendpoint_azure_service_bus`, `betterado_serviceendpoint_gcp_terraform`,
     `betterado_serviceendpoint_dockerregistry`, `betterado_serviceendpoint_azurecr`,
     `betterado_serviceendpoint_github`, `betterado_serviceendpoint_github_enterprise`,
@@ -23,15 +24,23 @@ from the upstream `microsoft/azuredevops` provider is preserved in
     `betterado_serviceendpoint_checkmarx_one`, `betterado_serviceendpoint_checkmarx_sca`,
     `betterado_serviceendpoint_checkmarx_sast`, `betterado_serviceendpoint_artifactory`,
     `betterado_serviceendpoint_dynamics_lifecycle_services`
-  - Data sources: `betterado_serviceendpoint_azurerm`, `betterado_serviceendpoint_dockerregistry`,
-    `betterado_serviceendpoint_azurecr`, `betterado_serviceendpoint_github`,
-    `betterado_serviceendpoint_bitbucket`, `betterado_serviceendpoint_npm`,
-    `betterado_serviceendpoint_sonarcloud`
+  - Data sources: `betterado_serviceendpoint_generic_v2`, `betterado_serviceendpoint_azurerm`,
+    `betterado_serviceendpoint_dockerregistry`, `betterado_serviceendpoint_azurecr`,
+    `betterado_serviceendpoint_github`, `betterado_serviceendpoint_bitbucket`,
+    `betterado_serviceendpoint_npm`, `betterado_serviceendpoint_sonarcloud`
 
 ### FEATURES
 
 - **`betterado_serviceendpoint_generic` resource migrated to terraform-plugin-framework.**
   Supports `url`, `username`, `password`, and optional `description` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_generic_v2` resource and data source migrated to terraform-plugin-framework.**
+  Supports arbitrary endpoint types, authorization schemes, authorization parameters, and data parameters.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_generic_git` resource migrated to terraform-plugin-framework.**
+  Supports `repository_url`, `username`, `password`, and `enable_pipelines_access` attributes.
   Deregistered from the SDKv2 provider; served through the mux provider.
 
 - **`betterado_serviceendpoint_azurerm` resource and data source migrated to terraform-plugin-framework.**

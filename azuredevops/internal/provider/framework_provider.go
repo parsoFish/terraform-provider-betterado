@@ -229,6 +229,8 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		serviceendpoint.NewServiceEndpointCheckMarxSASTResource,
 		serviceendpoint.NewServiceEndpointArtifactoryResource,
 		serviceendpoint.NewServiceEndpointDynamicsLifecycleServicesResource,
+		serviceendpoint.NewServiceEndpointGenericV2Resource,
+		serviceendpoint.NewServiceEndpointGenericGitResource,
 	}
 }
 
@@ -246,5 +248,6 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		serviceendpoint.NewServiceEndpointBitBucketDataSource,
 		serviceendpoint.NewServiceEndpointNpmDataSource,
 		serviceendpoint.NewServiceEndpointSonarCloudDataSource,
+		serviceendpoint.NewServiceEndpointGenericV2DataSource,
 	}
 }

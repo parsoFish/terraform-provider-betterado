@@ -68,7 +68,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_resource_authorization",
 		"betterado_security_permissions",
 		"betterado_securityrole_assignment",
-		"betterado_serviceendpoint_generic_v2",
+		// betterado_serviceendpoint_generic_v2 migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_argocd migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_artifactory migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_aws migrated to framework (registered in framework_provider.go)
@@ -86,7 +86,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// betterado_serviceendpoint_externaltfs migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_gcp_terraform migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_generic migrated to framework (registered in framework_provider.go)
-		"betterado_serviceendpoint_generic_git",
+		// betterado_serviceendpoint_generic_git migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_github migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_github_enterprise migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_gitlab migrated to framework (registered in framework_provider.go)
@@ -186,7 +186,7 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_security_namespace_token",
 		"betterado_security_namespaces",
 		"betterado_securityrole_definitions",
-		"betterado_serviceendpoint_generic_v2",
+		// betterado_serviceendpoint_generic_v2 data source migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_azurecr data source migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_azurerm data source migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_bitbucket data source migrated to framework (registered in framework_provider.go)
