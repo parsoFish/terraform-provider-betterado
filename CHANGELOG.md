@@ -7,6 +7,8 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-03
+
 ### FEATURES
 
 - **`betterado_user_entitlement` migrated to terraform-plugin-framework.**
