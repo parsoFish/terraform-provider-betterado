@@ -3,12 +3,12 @@
 page_title: "betterado_environment Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an Azure DevOps Environment.
 ---
 
 # betterado_environment (Resource)
 
-
+Manages an Azure DevOps Environment.
 
 
 
@@ -17,24 +17,13 @@ description: |-
 
 ### Required
 
-- `name` (String)
-- `project_id` (String)
+- `name` (String) The name of the environment.
+- `project_id` (String) The ID of the project.
 
 ### Optional
 
-- `description` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `description` (String) A description of the environment.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

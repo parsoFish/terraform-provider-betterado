@@ -3,12 +3,12 @@
 page_title: "betterado_agent_queue Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an Azure DevOps Agent Queue.
 ---
 
 # betterado_agent_queue (Resource)
 
-
+Manages an Azure DevOps Agent Queue.
 
 
 
@@ -17,23 +17,13 @@ description: |-
 
 ### Required
 
-- `project_id` (String)
+- `project_id` (String) The ID of the project.
 
 ### Optional
 
-- `agent_pool_id` (Number)
-- `name` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `agent_pool_id` (Number) The ID of the agent pool to use.
+- `name` (String) The name of the agent queue. Populated from the pool when agent_pool_id is used.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)

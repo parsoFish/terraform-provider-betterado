@@ -3,12 +3,12 @@
 page_title: "betterado_agent_queue Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Use this data source to access information about an existing Azure DevOps Agent Queue.
 ---
 
 # betterado_agent_queue (Data Source)
 
-
+Use this data source to access information about an existing Azure DevOps Agent Queue.
 
 
 
@@ -17,21 +17,10 @@ description: |-
 
 ### Required
 
-- `name` (String)
-- `project_id` (String)
-
-### Optional
-
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `name` (String) The name of the agent queue to look up.
+- `project_id` (String) The ID of the project.
 
 ### Read-Only
 
-- `agent_pool_id` (Number)
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `agent_pool_id` (Number) The ID of the underlying agent pool.
+- `id` (String) The ID of the agent queue.
