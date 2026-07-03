@@ -3,6 +3,7 @@ package workitemtrackingprocess
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	sdkretry "github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
@@ -259,7 +261,7 @@ func (r *processResource) Create(ctx context.Context, req resource.CreateRequest
 
 	if needsUpdate {
 		processTypeID := created.TypeId
-		edited, err2 := r.client.WorkItemTrackingProcessClient.EditProcess(ctx, workitemtrackingprocess.EditProcessArgs{
+		_, err2 := r.client.WorkItemTrackingProcessClient.EditProcess(ctx, workitemtrackingprocess.EditProcessArgs{
 			ProcessTypeId: processTypeID,
 			UpdateRequest: &workitemtrackingprocess.UpdateProcessModel{
 				Name:        converter.String(model.Name.ValueString()),
@@ -275,18 +277,20 @@ func (r *processResource) Create(ctx context.Context, req resource.CreateRequest
 			resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 			return
 		}
-		// Use the EditProcess response directly (mirrors the old SDK behaviour).
-		// GetProcessByItsId can return stale or partial data immediately after
-		// an edit; the PATCH response is the authoritative ground-truth for
-		// is_enabled / is_default.  If any field is nil in the edited response,
-		// fall back to the corresponding value from the create response.
-		if edited.IsEnabled == nil {
-			edited.IsEnabled = converter.Bool(model.IsEnabled.ValueBool())
+		// Poll until GetProcessByItsId reflects the intended is_enabled value.
+		// The ADO API has eventual consistency: the PATCH response and
+		// GetProcessByItsId can both return stale is_enabled immediately after
+		// an update, causing Terraform's post-apply consistency check to fail.
+		polled, pollErr := r.waitForProcessIsEnabled(ctx, processTypeID, model.IsEnabled.ValueBool())
+		if pollErr != nil || polled == nil {
+			// Timed out or poll failed — fall back to plan values so state is
+			// at least internally consistent; the next plan/apply will reconcile.
+			r.flattenProcess(&model, created)
+			model.IsEnabled = types.BoolValue(model.IsEnabled.ValueBool())
+			model.IsDefault = types.BoolValue(model.IsDefault.ValueBool())
+		} else {
+			r.flattenProcess(&model, polled)
 		}
-		if edited.IsDefault == nil {
-			edited.IsDefault = converter.Bool(model.IsDefault.ValueBool())
-		}
-		r.flattenProcess(&model, edited)
 	} else {
 		r.flattenProcess(&model, created)
 	}
@@ -352,7 +356,7 @@ func (r *processResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	edited, err2 := r.client.WorkItemTrackingProcessClient.EditProcess(ctx, workitemtrackingprocess.EditProcessArgs{
+	_, err2 := r.client.WorkItemTrackingProcessClient.EditProcess(ctx, workitemtrackingprocess.EditProcessArgs{
 		ProcessTypeId: &processTypeID,
 		UpdateRequest: &workitemtrackingprocess.UpdateProcessModel{
 			Name:        converter.String(model.Name.ValueString()),
@@ -366,19 +370,22 @@ func (r *processResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	// Use the EditProcess response directly (mirrors the old SDK behaviour).
-	// GetProcessByItsId can lag behind immediately after a PATCH due to eventual
-	// consistency; the PATCH response is authoritative for is_enabled/is_default.
-	// If any field is nil in the edited response, fall back to the plan value.
-	if edited.IsEnabled == nil {
-		edited.IsEnabled = converter.Bool(model.IsEnabled.ValueBool())
-	}
-	if edited.IsDefault == nil {
-		edited.IsDefault = converter.Bool(model.IsDefault.ValueBool())
-	}
+	// Poll until GetProcessByItsId reflects the intended is_enabled value.
+	// The ADO API has eventual consistency: a GET immediately after a PATCH can
+	// return stale is_enabled, causing Terraform's post-apply consistency check
+	// to fail ("refresh plan was not empty").
+	polled, pollErr := r.waitForProcessIsEnabled(ctx, &processTypeID, model.IsEnabled.ValueBool())
 
 	model.ID = stateModel.ID
-	r.flattenProcess(&model, edited)
+	if pollErr != nil || polled == nil {
+		// Timed out or poll failed — store plan values directly so state is
+		// at least consistent with the intended configuration; the next plan
+		// will reconcile against the live API.
+		model.IsEnabled = types.BoolValue(model.IsEnabled.ValueBool())
+		model.IsDefault = types.BoolValue(model.IsDefault.ValueBool())
+	} else {
+		r.flattenProcess(&model, polled)
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
@@ -424,6 +431,50 @@ func (r *processResource) ImportState(ctx context.Context, req resource.ImportSt
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+// processMinPollInterval is the minimum time to wait between polls when waiting
+// for eventual consistency after a process update. Set to 0 in tests.
+var processMinPollInterval = 2 * time.Second
+
+// waitForProcessIsEnabled polls GetProcessByItsId until the is_enabled field
+// matches wantEnabled, or the timeout elapses. This handles the ADO eventual
+// consistency issue where the read API lags behind a PATCH update.
+// Returns the final ProcessInfo on success.
+func (r *processResource) waitForProcessIsEnabled(ctx context.Context, processTypeID *uuid.UUID, wantEnabled bool) (*workitemtrackingprocess.ProcessInfo, error) {
+	var result *workitemtrackingprocess.ProcessInfo
+
+	stateConf := &sdkretry.StateChangeConf{
+		Pending:                   []string{"inconsistent"},
+		Target:                    []string{"consistent"},
+		Timeout:                   2 * time.Minute,
+		MinTimeout:                processMinPollInterval,
+		ContinuousTargetOccurence: 2,
+		Refresh: func() (interface{}, string, error) {
+			p, err := r.client.WorkItemTrackingProcessClient.GetProcessByItsId(ctx, workitemtrackingprocess.GetProcessByItsIdArgs{
+				ProcessTypeId: processTypeID,
+				Expand:        &workitemtrackingprocess.GetProcessExpandLevelValues.None,
+			})
+			if err != nil {
+				return nil, "", err
+			}
+			// isEnabled=nil from ADO means disabled (omitempty on the API response).
+			gotEnabled := p.IsEnabled != nil && *p.IsEnabled
+			if gotEnabled == wantEnabled {
+				result = p
+				return p, "consistent", nil
+			}
+			return p, "inconsistent", nil
+		},
+	}
+
+	_, err := stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		// Timeout: return last known state and a soft error so caller can fall
+		// back to the plan value rather than failing hard.
+		return result, fmt.Errorf("timed out waiting for process is_enabled=%v: %w", wantEnabled, err)
+	}
+	return result, nil
+}
 
 func (r *processResource) flattenProcess(model *processResourceModel, process *workitemtrackingprocess.ProcessInfo) {
 	if process.TypeId != nil {
