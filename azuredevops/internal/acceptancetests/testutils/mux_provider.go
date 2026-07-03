@@ -33,7 +33,8 @@ func GetMuxedProviderFactories() map[string]func() (tfprotov6.ProviderServer, er
 			}
 
 			// Build the mux that combines upgraded SDKv2 + framework provider.
-			mux, err := tf6muxserver.NewMuxServer(ctx,
+			mux, err := tf6muxserver.NewMuxServer(
+				ctx,
 				func() tfprotov6.ProviderServer { return upgradedSdkv2 },
 				providerserver.NewProtocol6(azuredevops.NewFrameworkProvider()),
 			)
