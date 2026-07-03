@@ -65,7 +65,7 @@ func SetPrincipalPermissions(d *schema.ResourceData, sn *SecurityNamespace, forc
 
 			bInsnyc := false
 			for key := range permissionMap {
-				value, ok := ((*currentPermissions)[0]).Permissions[key]
+				value, ok := (*currentPermissions)[0].Permissions[key]
 				bInsnyc = ok && strings.EqualFold(string(permissionMap[key]), string(value))
 				if !bInsnyc {
 					break
@@ -114,9 +114,9 @@ func GetPrincipalPermissions(d *schema.ResourceData, sn *SecurityNamespace) (*Pr
 	if len(*principalPermissions) != 1 {
 		return nil, fmt.Errorf("Failed to retrieve current permissions for principal [%s]", principalList[0])
 	}
-	for key := range ((*principalPermissions)[0]).Permissions {
+	for key := range (*principalPermissions)[0].Permissions {
 		if _, ok := permissions.(map[string]interface{})[string(key)]; !ok {
-			delete(((*principalPermissions)[0]).Permissions, key)
+			delete((*principalPermissions)[0].Permissions, key)
 		}
 	}
 	return &(*principalPermissions)[0], nil
