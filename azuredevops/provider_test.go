@@ -20,9 +20,11 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_branch_policy_min_reviewers",
 		"betterado_branch_policy_status_check",
 		"betterado_branch_policy_work_item_linking",
-		"betterado_build_definition",
+		// betterado_build_definition is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_build_definition_permissions",
-		"betterado_build_folder",
+		// betterado_build_folder is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_build_folder_permissions",
 		"betterado_check_approval",
 		"betterado_check_branch_control",
@@ -30,25 +32,29 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_check_exclusive_lock",
 		"betterado_check_required_template",
 		"betterado_check_rest_api",
-		"betterado_dashboard",
+		// betterado_dashboard is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_deployment_group",
 		"betterado_elastic_pool",
 		"betterado_environment",
 		"betterado_environment_resource_kubernetes",
-		"betterado_extension",
+		// betterado_extension is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_feed",
 		"betterado_feed_permission",
 		"betterado_feed_retention_policy",
 		"betterado_git_permissions",
-		"betterado_git_repository",
-		"betterado_git_repository_branch",
-		"betterado_git_repository_file",
+		// "betterado_git_repository" migrated to terraform-plugin-framework provider
+		// "betterado_git_repository_branch" migrated to terraform-plugin-framework provider
+		// "betterado_git_repository_file" migrated to terraform-plugin-framework provider
 		"betterado_group",
-		"betterado_group_entitlement",
+		// betterado_group_entitlement is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_group_membership",
 		"betterado_iteration_permissions",
 		"betterado_library_permissions",
-		"betterado_pipeline_authorization",
+		// betterado_pipeline_authorization is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_project",
 		"betterado_project_features",
 		"betterado_project_permissions",
@@ -65,7 +71,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_repository_policy_max_file_size",
 		"betterado_repository_policy_max_path_length",
 		"betterado_repository_policy_reserved_names",
-		"betterado_resource_authorization",
+		// betterado_resource_authorization is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_security_permissions",
 		"betterado_securityrole_assignment",
 		"betterado_serviceendpoint_generic_v2",
@@ -112,18 +119,15 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_serviceendpoint_ssh",
 		"betterado_serviceendpoint_visualstudiomarketplace",
 		"betterado_servicehook_permissions",
-		"betterado_servicehook_storage_queue_pipelines",
-		"betterado_servicehook_webhook_tfs",
-		"betterado_service_principal_entitlement",
+		// betterado_service_principal_entitlement is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_tagging_permissions",
 		"betterado_team",
 		"betterado_team_administrators",
 		"betterado_team_members",
-		"betterado_user_entitlement",
 		"betterado_variable_group",
 		"betterado_variable_group_permissions",
 		"betterado_variable_group_variable",
-		// betterado_wiki and betterado_wiki_page are now registered on the framework provider (see framework_provider.go).
 		"betterado_workitem",
 		"betterado_workitemtracking_field",
 		"betterado_workitemquery",
@@ -160,18 +164,19 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		// betterado_release_definition_revision, betterado_release_definitions, and
 		// betterado_release_folder have been migrated to the framework provider —
 		// they are no longer registered in the SDKv2 DataSourcesMap.
+		// betterado_build_definition (data source) has also been migrated to the
+		// framework provider and is no longer listed here.
 		"betterado_agent_pool",
 		"betterado_agent_pools",
 		"betterado_agent_queue",
 		"betterado_area",
-		"betterado_build_definition",
 		"betterado_client_config",
 		"betterado_descriptor",
 		"betterado_environment",
 		"betterado_feed",
-		"betterado_git_repositories",
-		"betterado_git_repository",
-		"betterado_git_repository_file",
+		// "betterado_git_repositories" data source migrated to terraform-plugin-framework provider
+		// "betterado_git_repository" data source migrated to terraform-plugin-framework provider
+		// "betterado_git_repository_file" data source migrated to terraform-plugin-framework provider
 		"betterado_group",
 		"betterado_group_membership",
 		"betterado_groups",
