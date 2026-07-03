@@ -3,7 +3,7 @@
   "essence": "20 SDKv2 resources (7 branch policy, 7 repository policy, 6 approvalsandchecks) are now served via the mux provider using terraform-plugin-framework. Gap matrices (docs/policy-gap-matrix.md and docs/approvalsandchecks-gap-matrix.md) document API parity. Live acceptance tests re-run 2026-07-03 (after 14:45Z rework window) with TF_ACC=1 confirming all three resource families produce real policy/check configurations in ADO. REST GET evidence captured for branch_policy (min_reviewers id=262), repository_policy (max_file_size id=263), and check (approval id=115) families.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-policy-branch",
-  "diffStat": "261 files changed, 18197 insertions(+), 5609 deletions(-)",
+  "diffStat": "263 files changed, 18917 insertions(+), 5609 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
