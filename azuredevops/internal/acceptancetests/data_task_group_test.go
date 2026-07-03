@@ -47,15 +47,12 @@ func TestAccTaskGroupDataSource_basic(t *testing.T) {
 
 func hclTaskGroupDataSourceBasic(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_task_group" "test" {
-  project_id    = betterado_project.test.id
+  project_id    = data.betterado_project.test.id
   name          = "%[1]s"
   friendly_name = "%[1]s"
   description   = "Acceptance test task group"
@@ -84,13 +81,13 @@ data "betterado_task_group" "test" {
   project_id = betterado_task_group.test.project_id
   id         = betterado_task_group.test.id
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 // captureTaskGroupDataSourceEvidence performs a real live API GET of the task group
 // resource (before destroy) and writes forge demo evidence to
-// .forge/live-evidence/task-group-datasource-acceptance.json, satisfying the
-// AC1 evidence requirement. Best-effort: never fails the test.
+// .forge/live-evidence/acceptance-resource-task-group-datasource.json, satisfying the
+// AC3 evidence requirement. Best-effort: never fails the test.
 func captureTaskGroupDataSourceEvidence(tfResNode string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		res, ok := s.RootModule().Resources[tfResNode]
@@ -115,7 +112,7 @@ func captureTaskGroupDataSourceEvidence(tfResNode string) resource.TestCheckFunc
 		}
 		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
 		url := fmt.Sprintf("%s/%s/_apis/distributedtask/taskgroups/%s?api-version=7.1", orgURL, projectID, tgID)
-		_ = testutils.CaptureLiveEvidence("task-group-datasource-acceptance", url, (*taskGroups)[0])
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-task-group-datasource", url, (*taskGroups)[0])
 		return nil
 	}
 }
