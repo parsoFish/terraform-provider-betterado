@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -39,7 +40,7 @@ type variableGroupDataModel struct {
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
 	AllowAccess types.Bool   `tfsdk:"allow_access"`
-	Variable    types.Set    `tfsdk:"variable"`
+	Variable    types.List   `tfsdk:"variable"`
 	KeyVault    types.List   `tfsdk:"key_vault"`
 }
 
@@ -88,7 +89,11 @@ func (d *VariableGroupDataSource) Schema(_ context.Context, _ datasource.SchemaR
 				Computed:    true,
 				Description: "Whether this variable group is shared by all pipelines in the project.",
 			},
-			"variable": schema.SetNestedAttribute{
+			// variable uses ListNestedAttribute (not Set) for consistency with the resource
+			// schema and to avoid the set-hash/sensitive-attribute bug.  Since all attributes
+			// are Computed-only there is no Default-in-set issue, but using List also gives
+			// a stable alphabetical ordering that users can rely on.
+			"variable": schema.ListNestedAttribute{
 				Computed:    true,
 				Description: "One or more variable blocks.",
 				NestedObject: schema.NestedAttributeObject{
@@ -195,6 +200,7 @@ func (d *VariableGroupDataSource) Read(ctx context.Context, req datasource.ReadR
 }
 
 // flattenToDataModel converts an AzDO VariableGroup into the data source state model.
+// Variables are sorted by name for a stable canonical list ordering.
 func (d *VariableGroupDataSource) flattenToDataModel(ctx context.Context, vg *taskagent.VariableGroup, projectID string) (variableGroupDataModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	model := variableGroupDataModel{
@@ -205,9 +211,17 @@ func (d *VariableGroupDataSource) flattenToDataModel(ctx context.Context, vg *ta
 		AllowAccess: types.BoolValue(false),
 	}
 
+	// Sort variable names for stable list ordering.
+	varNames := make([]string, 0, len(*vg.Variables))
+	for varName := range *vg.Variables {
+		varNames = append(varNames, varName)
+	}
+	sort.Strings(varNames)
+
 	isKeyVault := isKeyVaultVariableGroupType(vg.Type)
 	varObjects := make([]attr.Value, 0, len(*vg.Variables))
-	for varName, varVal := range *vg.Variables {
+	for _, varName := range varNames {
+		varVal := (*vg.Variables)[varName]
 		varJSON, err := json.Marshal(varVal)
 		if err != nil {
 			diags.AddError("Error marshaling variable", err.Error())
@@ -266,12 +280,12 @@ func (d *VariableGroupDataSource) flattenToDataModel(ctx context.Context, vg *ta
 		varObjects = append(varObjects, obj)
 	}
 
-	varSet, dSet := types.SetValue(types.ObjectType{AttrTypes: variableDataAttrTypes}, varObjects)
-	diags.Append(dSet...)
+	varList, dList := types.ListValue(types.ObjectType{AttrTypes: variableDataAttrTypes}, varObjects)
+	diags.Append(dList...)
 	if diags.HasError() {
 		return model, diags
 	}
-	model.Variable = varSet
+	model.Variable = varList
 
 	// Key vault block
 	if isKeyVault {
@@ -309,6 +323,8 @@ func (d *VariableGroupDataSource) flattenToDataModel(ctx context.Context, vg *ta
 		}
 		model.KeyVault = kvList
 	} else {
+		// Data source key_vault is Computed, so empty list is fine here
+		// (no user-planned value to mismatch against).
 		model.KeyVault = types.ListValueMust(types.ObjectType{AttrTypes: keyVaultDataAttrTypes}, []attr.Value{})
 	}
 

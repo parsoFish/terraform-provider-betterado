@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
 	"strconv"
 	"time"
 
@@ -40,7 +41,7 @@ func NewVariableGroupResource() resource.Resource {
 	return &VariableGroupResource{}
 }
 
-// variableModel is the state model for one variable entry inside the set.
+// variableModel is the state model for one variable entry inside the list.
 type variableModel struct {
 	Name        types.String `tfsdk:"name"`
 	Value       types.String `tfsdk:"value"`
@@ -65,7 +66,7 @@ type variableGroupModel struct {
 	Name        types.String `tfsdk:"name"`
 	Description types.String `tfsdk:"description"`
 	AllowAccess types.Bool   `tfsdk:"allow_access"`
-	Variable    types.Set    `tfsdk:"variable"`
+	Variable    types.List   `tfsdk:"variable"`
 	KeyVault    types.List   `tfsdk:"key_vault"`
 }
 
@@ -124,7 +125,14 @@ func (r *VariableGroupResource) Schema(_ context.Context, _ resource.SchemaReque
 				Default:     defaultBool(false),
 				Description: "Boolean that indicate if this variable group is shared by all pipelines of this project.",
 			},
-			"variable": schema.SetNestedAttribute{
+			// variable is a ListNestedAttribute (not Set) so that:
+			//   1. HCL syntax is unchanged: variable = [{ name = "..." ... }]
+			//   2. List uses positional indexing which avoids the set-hash bug where
+			//      Default values applied to nested sensitive attributes change the
+			//      element hash mid-transform, causing sibling defaults to fail and
+			//      producing "inconsistent values for sensitive attribute" errors.
+			// Elements are returned sorted by name to give a stable canonical ordering.
+			"variable": schema.ListNestedAttribute{
 				Required:    true,
 				Description: "One or more variable blocks as documented below.",
 				NestedObject: schema.NestedAttributeObject{
@@ -300,12 +308,26 @@ func (r *VariableGroupResource) Create(ctx context.Context, req resource.CreateR
 		return
 	}
 
+	// Build state using plan as prior-state so that secret values and ordering
+	// are preserved faithfully (the API never returns secret values, and the
+	// plan already has the correct user-supplied values).
 	state, diags2 := r.flattenToModel(ctx, created, projectID, &plan)
 	resp.Diagnostics.Append(diags2...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	state.AllowAccess = types.BoolValue(extractAllowAccess(projectResources, vgIDStr))
+
+	// Preserve the plan's variable list order and sensitive values verbatim.
+	// The API never returns secret values and may iterate map keys in a
+	// different order; using the plan list avoids "inconsistent values for
+	// sensitive attribute" errors from Terraform core's post-apply check.
+	mergedVars, mergeDiags := r.mergeVariableListWithPlan(ctx, state.Variable, plan.Variable)
+	resp.Diagnostics.Append(mergeDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	state.Variable = mergedVars
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -415,12 +437,22 @@ func (r *VariableGroupResource) Update(ctx context.Context, req resource.UpdateR
 		return
 	}
 
+	// Build state using plan as prior-state so that secret values and ordering
+	// are preserved faithfully.
 	newState, diags2 := r.flattenToModel(ctx, updated, projectID, &plan)
 	resp.Diagnostics.Append(diags2...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 	newState.AllowAccess = types.BoolValue(extractAllowAccess(projectResources, vgIDStr))
+
+	// Preserve plan order and sensitive values verbatim.
+	mergedVarsU, mergeDiagsU := r.mergeVariableListWithPlan(ctx, newState.Variable, plan.Variable)
+	resp.Diagnostics.Append(mergeDiagsU...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	newState.Variable = mergedVarsU
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &newState)...)
 }
@@ -481,7 +513,7 @@ func (r *VariableGroupResource) expandToParams(ctx context.Context, plan *variab
 		return nil, diags
 	}
 
-	// Expand variables from set
+	// Expand variables from list
 	var variableElems []variableModel
 	diags.Append(plan.Variable.ElementsAs(ctx, &variableElems, false)...)
 	if diags.HasError() {
@@ -549,7 +581,15 @@ func (r *VariableGroupResource) expandToParams(ctx context.Context, plan *variab
 			}
 			params.Type = converter.String(azureKeyVaultType)
 
-			kvSecrets, invalidSecrets, err := searchAzureKVSecrets(r.client, projectID, kvName, seID, nil, depth)
+			// searchAzureKVSecrets expects variables as []interface{} with a "name" key
+			// in each element (matches the SDKv2 TypeSet element format).
+			kvVarList := make([]interface{}, 0, len(variableElems))
+			for _, v := range variableElems {
+				kvVarList = append(kvVarList, map[string]interface{}{
+					"name": v.Name.ValueString(),
+				})
+			}
+			kvSecrets, invalidSecrets, err := searchAzureKVSecrets(r.client, projectID, kvName, seID, kvVarList, depth)
 			if err != nil {
 				diags.AddError("Error fetching Key Vault secrets", err.Error())
 				return nil, diags
@@ -566,7 +606,15 @@ func (r *VariableGroupResource) expandToParams(ctx context.Context, plan *variab
 }
 
 // flattenToModel converts an AzDO VariableGroup into the Terraform state model.
-// priorState is used to recover secret_value from state (API never returns secret values).
+//
+// priorState is used to:
+//   - recover secret_value (API never returns secret values), and
+//   - determine the ordering of the variable list. Variables are emitted in
+//     the same order as they appear in priorState (to avoid spurious list-
+//     index diffs on subsequent plans); API variables not present in priorState
+//     are appended alphabetically at the end.
+//
+// When priorState is nil (import) variables are returned sorted alphabetically.
 func (r *VariableGroupResource) flattenToModel(ctx context.Context, vg *taskagent.VariableGroup, projectID string, priorState *variableGroupModel) (variableGroupModel, diag.Diagnostics) {
 	var diags diag.Diagnostics
 	model := variableGroupModel{
@@ -577,9 +625,10 @@ func (r *VariableGroupResource) flattenToModel(ctx context.Context, vg *taskagen
 		AllowAccess: types.BoolValue(false), // filled by caller
 	}
 
-	// Build prior secret map for recovering secret_value from state
+	// Build prior-state maps for secret recovery and ordering.
 	priorSecrets := map[string]string{}
-	priorIsSecrets := map[string]bool{}
+	priorOrder := []string{} // ordered names from prior state
+	priorSet := map[string]bool{}
 	if priorState != nil && !priorState.Variable.IsNull() {
 		var priorVars []variableModel
 		diags.Append(priorState.Variable.ElementsAs(ctx, &priorVars, false)...)
@@ -587,15 +636,42 @@ func (r *VariableGroupResource) flattenToModel(ctx context.Context, vg *taskagen
 			return model, diags
 		}
 		for _, pv := range priorVars {
-			priorSecrets[pv.Name.ValueString()] = pv.SecretValue.ValueString()
-			priorIsSecrets[pv.Name.ValueString()] = pv.IsSecret.ValueBool()
+			n := pv.Name.ValueString()
+			priorSecrets[n] = pv.SecretValue.ValueString()
+			priorOrder = append(priorOrder, n)
+			priorSet[n] = true
 		}
 	}
 
-	// Build variables set
+	// Build the ordered variable name list:
+	//   1. Names present in prior state, in prior state order (skip API-deleted ones).
+	//   2. Names in the API result not present in prior state, alphabetically appended.
+	apiVarSet := make(map[string]bool, len(*vg.Variables))
+	for varName := range *vg.Variables {
+		apiVarSet[varName] = true
+	}
+
+	varNames := make([]string, 0, len(*vg.Variables))
+	for _, n := range priorOrder {
+		if apiVarSet[n] {
+			varNames = append(varNames, n)
+		}
+	}
+	// Append new names (in API result but not prior state) alphabetically.
+	newNames := make([]string, 0)
+	for n := range apiVarSet {
+		if !priorSet[n] {
+			newNames = append(newNames, n)
+		}
+	}
+	sort.Strings(newNames)
+	varNames = append(varNames, newNames...)
+
+	// Build variables list (sorted by name).
 	isKeyVault := isKeyVaultVariableGroupType(vg.Type)
 	varObjects := make([]attr.Value, 0, len(*vg.Variables))
-	for varName, varVal := range *vg.Variables {
+	for _, varName := range varNames {
+		varVal := (*vg.Variables)[varName]
 		varJSON, err := json.Marshal(varVal)
 		if err != nil {
 			diags.AddError("Error marshaling variable", err.Error())
@@ -658,14 +734,16 @@ func (r *VariableGroupResource) flattenToModel(ctx context.Context, vg *taskagen
 		varObjects = append(varObjects, obj)
 	}
 
-	varSet, d := types.SetValue(types.ObjectType{AttrTypes: variableAttrTypes}, varObjects)
+	varList, d := types.ListValue(types.ObjectType{AttrTypes: variableAttrTypes}, varObjects)
 	diags.Append(d...)
 	if diags.HasError() {
 		return model, diags
 	}
-	model.Variable = varSet
+	model.Variable = varList
 
-	// Key vault block
+	// Key vault block — return null when not a key-vault VG so that the planned
+	// null matches the state null (returning an empty list would cause Terraform
+	// to report "was null, but now cty.ListValEmpty(...)").
 	if isKeyVault {
 		providerDataJSON, err := json.Marshal(vg.ProviderData)
 		if err != nil {
@@ -709,10 +787,91 @@ func (r *VariableGroupResource) flattenToModel(ctx context.Context, vg *taskagen
 		}
 		model.KeyVault = kvList
 	} else {
-		model.KeyVault = types.ListValueMust(types.ObjectType{AttrTypes: keyVaultAttrTypes}, []attr.Value{})
+		// Return null (not empty list) for key_vault when the VG is not a
+		// key-vault type.  The schema marks key_vault as Optional (not
+		// Computed), so the plan value is null when the user omits it; an
+		// empty list would mismatch and trigger an "inconsistent result"
+		// error from Terraform core.
+		model.KeyVault = types.ListNull(types.ObjectType{AttrTypes: keyVaultAttrTypes})
 	}
 
 	return model, diags
+}
+
+// mergeVariableListWithPlan returns the API-derived list but re-ordered and
+// re-valued to match the plan's variable list.  This is necessary for two
+// reasons:
+//
+//  1. Plan order: the plan list is in user-config order; the API-derived list
+//     is sorted alphabetically by name (flattenToModel's stable ordering).
+//     Terraform's post-apply consistency check compares by list index, so the
+//     orders must match.
+//
+//  2. Sensitive values: the API never returns secret values. flattenToModel
+//     recovers them from priorState, but for Create the priorState is the
+//     plan (secret_value is known in plan, unknown in "prior state").  By
+//     copying plan elements for variables that exist in the plan, we ensure
+//     the returned state has the exact sensitive values Terraform planned,
+//     which satisfies the "inconsistent values for sensitive attribute" check.
+func (r *VariableGroupResource) mergeVariableListWithPlan(ctx context.Context, apiList, planList types.List) (types.List, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	var planVars []variableModel
+	if d := planList.ElementsAs(ctx, &planVars, false); d.HasError() {
+		diags.Append(d...)
+		return apiList, diags
+	}
+
+	var apiVars []variableModel
+	if d := apiList.ElementsAs(ctx, &apiVars, false); d.HasError() {
+		diags.Append(d...)
+		return apiList, diags
+	}
+
+	// Build name→apiVar lookup for computed fields (content_type, enabled, expires).
+	apiByName := make(map[string]variableModel, len(apiVars))
+	for _, v := range apiVars {
+		apiByName[v.Name.ValueString()] = v
+	}
+
+	// Build result in plan order: prefer plan values for configured attributes,
+	// take computed attributes from the API result.
+	merged := make([]attr.Value, 0, len(planVars))
+	for _, pv := range planVars {
+		name := pv.Name.ValueString()
+		av, inAPI := apiByName[name]
+
+		m := variableModel{
+			Name:        pv.Name,
+			Value:       pv.Value,
+			SecretValue: pv.SecretValue,
+			IsSecret:    pv.IsSecret,
+		}
+		// Computed-only fields come from the API result when available.
+		if inAPI {
+			m.ContentType = av.ContentType
+			m.Enabled = av.Enabled
+			m.Expires = av.Expires
+		} else {
+			m.ContentType = types.StringValue("")
+			m.Enabled = types.BoolValue(false)
+			m.Expires = types.StringValue("")
+		}
+
+		obj, d := types.ObjectValueFrom(ctx, variableAttrTypes, m)
+		if d.HasError() {
+			diags.Append(d...)
+			return apiList, diags
+		}
+		merged = append(merged, obj)
+	}
+
+	result, d := types.ListValue(types.ObjectType{AttrTypes: variableAttrTypes}, merged)
+	if d.HasError() {
+		diags.Append(d...)
+		return apiList, diags
+	}
+	return result, diags
 }
 
 // createVariableGroupWithRetry creates a variable group and waits until it is ready.
