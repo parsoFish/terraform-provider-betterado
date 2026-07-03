@@ -7,6 +7,8 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-03
+
 ### FEATURES
 
 - **`betterado_build_definition` resource migrated to terraform-plugin-framework.**
