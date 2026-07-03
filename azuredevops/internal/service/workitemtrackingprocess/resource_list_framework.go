@@ -344,7 +344,7 @@ func (r *listResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		Items:       &items,
 	}
 
-	updated, err := r.client.WorkItemTrackingProcessClient.UpdateList(ctx, workitemtrackingprocess.UpdateListArgs{
+	_, err = r.client.WorkItemTrackingProcessClient.UpdateList(ctx, workitemtrackingprocess.UpdateListArgs{
 		ListId:   &listID,
 		Picklist: picklist,
 	})
@@ -352,16 +352,20 @@ func (r *listResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		resp.Diagnostics.AddError("Update error", fmt.Sprintf("updating list %s: %s", state.ID.ValueString(), err))
 		return
 	}
-	if updated == nil {
-		resp.Diagnostics.AddError("Update error", "updated list is nil")
-		return
-	}
-	if updated.Items == nil {
-		resp.Diagnostics.AddError("Update error", "updated list items is nil")
-		return
+
+	// Poll GetList until it reflects the desired plan values (eventual consistency).
+	// We compare against the desired values rather than the UpdateList response,
+	// because the Azure DevOps API can return stale data in the UpdateList response
+	// which would cause perpetual drift if we used it as the polling target.
+	desiredIsSuggested := isSuggested
+	desiredItems := items
+	desired := &workitemtrackingprocess.PickList{
+		Id:          &listID,
+		Name:        &name,
+		IsSuggested: &desiredIsSuggested,
+		Items:       &desiredItems,
 	}
 
-	// Poll until the read is consistent with the update response (eventual consistency).
 	stateConf := &sdkretry.StateChangeConf{
 		Pending:                   []string{"inconsistent"},
 		Target:                    []string{"consistent"},
@@ -373,7 +377,7 @@ func (r *listResource) Update(ctx context.Context, req resource.UpdateRequest, r
 			if err != nil {
 				return nil, "", err
 			}
-			if !listPickListsEqual(updated, readList) {
+			if !listPickListsEqual(desired, readList) {
 				return nil, "inconsistent", nil
 			}
 			return readList, "consistent", nil
@@ -492,13 +496,34 @@ func expandListItemsFramework(_ context.Context, list types.List) ([]string, dia
 	return items, d
 }
 
+// listPickListsEqual reports whether the two picklists are equal for the fields
+// that are set (non-nil) in a. Fields that are nil in a are treated as wildcards
+// (not compared). This allows callers to build a partial "desired" struct with
+// only the fields they updated and compare it against the full API response.
+// Type comparison is case-insensitive to handle "String" vs "string" from the API.
 func listPickListsEqual(a, b *workitemtrackingprocess.PickList) bool {
 	if a == nil || b == nil {
 		return a == nil && b == nil
 	}
-	nameEq := (a.Name == nil && b.Name == nil) || (a.Name != nil && b.Name != nil && *a.Name == *b.Name)
-	typeEq := (a.Type == nil && b.Type == nil) || (a.Type != nil && b.Type != nil && *a.Type == *b.Type)
-	suggEq := (a.IsSuggested == nil && b.IsSuggested == nil) || (a.IsSuggested != nil && b.IsSuggested != nil && *a.IsSuggested == *b.IsSuggested)
-	itemsEq := (a.Items == nil && b.Items == nil) || (a.Items != nil && b.Items != nil && slices.Equal(*a.Items, *b.Items))
-	return nameEq && typeEq && suggEq && itemsEq
+	if a.Name != nil {
+		if b.Name == nil || *a.Name != *b.Name {
+			return false
+		}
+	}
+	if a.Type != nil {
+		if b.Type == nil || !strings.EqualFold(*a.Type, *b.Type) {
+			return false
+		}
+	}
+	if a.IsSuggested != nil {
+		if b.IsSuggested == nil || *a.IsSuggested != *b.IsSuggested {
+			return false
+		}
+	}
+	if a.Items != nil {
+		if b.Items == nil || !slices.Equal(*a.Items, *b.Items) {
+			return false
+		}
+	}
+	return true
 }
