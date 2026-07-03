@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	feedapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/feed"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/webapi"
@@ -69,12 +70,18 @@ func (r *feedFrameworkResource) Schema(_ context.Context, _ resource.SchemaReque
 				PlanModifiers: []planmodifier.String{
 					requiresReplace(),
 				},
+				Validators: []validator.String{
+					stringNotWhiteSpace(),
+				},
 			},
 			"project_id": schema.StringAttribute{
 				Optional:    true,
 				Description: "The ID of the project the feed belongs to. Omit for an org-scoped feed.",
 				PlanModifiers: []planmodifier.String{
 					requiresReplace(),
+				},
+				Validators: []validator.String{
+					stringIsUUID(),
 				},
 			},
 		},

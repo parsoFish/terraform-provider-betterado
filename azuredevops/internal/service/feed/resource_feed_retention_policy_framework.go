@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	feedapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/feed"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -67,6 +68,9 @@ func (r *feedRetentionPolicyFrameworkResource) Schema(_ context.Context, _ resou
 				PlanModifiers: []planmodifier.String{
 					requiresReplace(),
 				},
+				Validators: []validator.String{
+					stringIsUUID(),
+				},
 			},
 			"project_id": schema.StringAttribute{
 				Optional:    true,
@@ -74,14 +78,23 @@ func (r *feedRetentionPolicyFrameworkResource) Schema(_ context.Context, _ resou
 				PlanModifiers: []planmodifier.String{
 					requiresReplace(),
 				},
+				Validators: []validator.String{
+					stringIsUUID(),
+				},
 			},
 			"count_limit": schema.Int64Attribute{
 				Required:    true,
 				Description: "The maximum number of versions per package to keep (1–5000).",
+				Validators: []validator.Int64{
+					int64Between(1, 5000),
+				},
 			},
 			"days_to_keep_recently_downloaded_packages": schema.Int64Attribute{
 				Required:    true,
 				Description: "The number of days to keep recently downloaded packages (1–4000).",
+				Validators: []validator.Int64{
+					int64Between(1, 4000),
+				},
 			},
 		},
 	}

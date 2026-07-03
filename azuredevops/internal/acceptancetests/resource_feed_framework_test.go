@@ -16,10 +16,10 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
-// TestAccFeedFramework_basic verifies the betterado_feed resource (framework
-// path) for an org-scoped feed: create → read-back with name and id set →
-// idempotency re-plan → destroy.
-func TestAccFeedFramework_basic(t *testing.T) {
+// TestAccFeedFramework_orgScopedBasic verifies the betterado_feed resource
+// (framework path) for an org-scoped feed: create → read-back with name and
+// id set → idempotency re-plan → destroy.
+func TestAccFeedFramework_orgScopedBasic(t *testing.T) {
 	feedName := testutils.GenerateResourceName()
 	tfNode := "betterado_feed.test"
 
@@ -46,14 +46,14 @@ func TestAccFeedFramework_basic(t *testing.T) {
 	})
 }
 
-// TestAccFeedFramework_withProject verifies the betterado_feed resource
+// TestAccFeedFramework_projectScopedBasic verifies the betterado_feed resource
 // (framework path) for a project-scoped feed: create → read-back with name,
 // id and project_id set → idempotency re-plan → destroy.
 //
 // Uses SharedFixtureProjectName (betterado-standing-demo) via a data source
 // so no new ADO project is created — the org is at the 1000-project cap, so
 // any project-create attempt would fail immediately.
-func TestAccFeedFramework_withProject(t *testing.T) {
+func TestAccFeedFramework_projectScopedBasic(t *testing.T) {
 	feedName := testutils.GenerateResourceName()
 	tfNode := "betterado_feed.test"
 

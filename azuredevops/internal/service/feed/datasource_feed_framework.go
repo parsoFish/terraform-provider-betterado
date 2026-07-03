@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	feedapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/feed"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -13,7 +14,10 @@ import (
 )
 
 // Ensure interface compliance at compile time.
-var _ datasource.DataSource = &feedDataSource{}
+var (
+	_ datasource.DataSource                   = &feedDataSource{}
+	_ datasource.DataSourceWithValidateConfig = &feedDataSource{}
+)
 
 // feedDataSource is the terraform-plugin-framework implementation of
 // data.betterado_feed.
@@ -53,18 +57,51 @@ func (d *feedDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, r
 				Optional:    true,
 				Computed:    true,
 				Description: "The name of the feed. Exactly one of name or feed_id must be set.",
+				Validators: []validator.String{
+					stringNotWhiteSpace(),
+				},
 			},
 			"feed_id": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "The UUID of the feed. Exactly one of name or feed_id must be set.",
+				Validators: []validator.String{
+					stringIsUUID(),
+				},
 			},
 			"project_id": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "The ID of the project the feed belongs to. Omit for an org-scoped feed.",
+				Validators: []validator.String{
+					stringIsUUID(),
+				},
 			},
 		},
+	}
+}
+
+// ── ValidateConfig ────────────────────────────────────────────────────────────
+
+// ValidateConfig implements datasource.DataSourceWithValidateConfig.
+// It enforces that 'name' and 'feed_id' are mutually exclusive at plan time,
+// replacing the SDKv2 ConflictsWith behaviour that was dropped during migration.
+func (d *feedDataSource) ValidateConfig(ctx context.Context, req datasource.ValidateConfigRequest, resp *datasource.ValidateConfigResponse) {
+	var config feedDataSourceModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	nameSet := !config.Name.IsNull() && !config.Name.IsUnknown() && config.Name.ValueString() != ""
+	feedIDSet := !config.FeedID.IsNull() && !config.FeedID.IsUnknown() && config.FeedID.ValueString() != ""
+
+	if nameSet && feedIDSet {
+		resp.Diagnostics.AddError(
+			"Conflicting configuration arguments",
+			"Attributes 'name' and 'feed_id' are mutually exclusive. "+
+				"Setting both is not allowed — use exactly one of them to look up the feed.",
+		)
 	}
 }
 

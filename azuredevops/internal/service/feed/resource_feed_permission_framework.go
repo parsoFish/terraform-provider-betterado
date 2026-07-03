@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
@@ -73,12 +74,18 @@ func (r *feedPermissionFrameworkResource) Schema(_ context.Context, _ resource.S
 				PlanModifiers: []planmodifier.String{
 					requiresReplace(),
 				},
+				Validators: []validator.String{
+					stringIsUUID(),
+				},
 			},
 			"identity_descriptor": schema.StringAttribute{
 				Required:    true,
 				Description: "The identity descriptor of the group or user.",
 				PlanModifiers: []planmodifier.String{
 					requiresReplace(),
+				},
+				Validators: []validator.String{
+					stringNotWhiteSpace(),
 				},
 			},
 			"identity_id": schema.StringAttribute{
@@ -91,12 +98,18 @@ func (r *feedPermissionFrameworkResource) Schema(_ context.Context, _ resource.S
 			"role": schema.StringAttribute{
 				Required:    true,
 				Description: "The role to assign: reader, contributor, administrator, or collaborator.",
+				Validators: []validator.String{
+					stringOneOf("reader", "contributor", "administrator", "collaborator"),
+				},
 			},
 			"project_id": schema.StringAttribute{
 				Optional:    true,
 				Description: "The project ID (UUID) for a project-scoped feed. Omit for org-scoped feeds.",
 				PlanModifiers: []planmodifier.String{
 					requiresReplace(),
+				},
+				Validators: []validator.String{
+					stringIsUUID(),
 				},
 			},
 			"display_name": schema.StringAttribute{
@@ -105,6 +118,9 @@ func (r *feedPermissionFrameworkResource) Schema(_ context.Context, _ resource.S
 				Description: "The display name for the permission entry.",
 				PlanModifiers: []planmodifier.String{
 					useStateForUnknown(),
+				},
+				Validators: []validator.String{
+					stringNotWhiteSpace(),
 				},
 			},
 		},
