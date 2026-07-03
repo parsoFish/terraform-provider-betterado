@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_checkmarx_sast Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a Checkmarx SAST Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_checkmarx_sast (Resource)
 
-
+Manages a Checkmarx SAST Service Connection within Azure DevOps.
 
 
 
@@ -17,30 +17,19 @@ description: |-
 
 ### Required
 
-- `password` (String, Sensitive)
-- `project_id` (String)
-- `server_url` (String)
-- `service_endpoint_name` (String)
-- `username` (String)
+- `password` (String, Sensitive) The password for authentication.
+- `project_id` (String) The ID of the project.
+- `server_url` (String) The URL of the Checkmarx SAST server.
+- `service_endpoint_name` (String) The Service Endpoint name.
+- `username` (String) The username for authentication.
 
 ### Optional
 
-- `description` (String)
-- `preset` (String)
-- `team` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `description` (String) The Service Endpoint description.
+- `preset` (String) The Checkmarx preset.
+- `team` (String) The Checkmarx team.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.

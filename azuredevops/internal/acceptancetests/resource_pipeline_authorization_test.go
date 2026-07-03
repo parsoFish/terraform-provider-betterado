@@ -275,7 +275,6 @@ func TestAccPipelineAuthorization_pipeline_cross_project_repository(t *testing.T
 }
 
 func TestAccPipelineAuthorization_queue_import(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	resourceName := "betterado_pipeline_authorization.import_test"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -283,7 +282,7 @@ func TestAccPipelineAuthorization_queue_import(t *testing.T) {
 		Providers: testutils.GetProviders(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclPipelineAuthorizationQueueConfig(projectName),
+				Config: hclPipelineAuthorizationQueueConfig(testutils.GenerateResourceName()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "type", "queue"),
 				),
@@ -312,64 +311,65 @@ func TestAccPipelineAuthorization_queue_import(t *testing.T) {
 	})
 }
 
+// ── HCL fixtures ─────────────────────────────────────────────────────────────
+//
+// All fixtures use the shared standing fixture project (betterado-standing-demo)
+// via a data source lookup. The org is at the 1000-project cap; creating a new
+// project per test run will fail. Per-run sub-resources (agent pools, queues,
+// environments, variable groups, service endpoints, build definitions) are
+// created with unique names and destroyed in the test's CheckDestroy / Terraform
+// destroy phase — they don't count toward the project cap.
+
 func hclAllPipelineAuthQueue(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_agent_pool" "test" {
-  name           = "%[1]s"
+  name           = %[1]q
   auto_provision = false
   auto_update    = false
 }
 
 resource "betterado_agent_queue" "test" {
-  project_id    = betterado_project.test.id
+  project_id    = data.betterado_project.test.id
   agent_pool_id = betterado_agent_pool.test.id
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = betterado_agent_queue.test.id
   type        = "queue"
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 func hclPipelineAuthQueue(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_agent_pool" "test" {
-  name           = "%[1]s"
+  name           = %[1]q
   auto_provision = false
   auto_update    = false
 }
 
 resource "betterado_agent_queue" "test" {
-  project_id    = betterado_project.test.id
+  project_id    = data.betterado_project.test.id
   agent_pool_id = betterado_agent_pool.test.id
 }
 
 data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
 }
 
 resource "betterado_build_definition" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[1]q
 
   repository {
     repo_type = "TfsGit"
@@ -379,43 +379,39 @@ resource "betterado_build_definition" "test" {
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = betterado_agent_queue.test.id
   pipeline_id = betterado_build_definition.test.id
   type        = "queue"
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 func hclMultiPipelineAuthQueue(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_agent_pool" "test" {
-  name           = "%[1]s"
+  name           = %[1]q
   auto_provision = false
   auto_update    = false
 }
 
 resource "betterado_agent_queue" "test" {
-  project_id    = betterado_project.test.id
+  project_id    = data.betterado_project.test.id
   agent_pool_id = betterado_agent_pool.test.id
 }
 
 data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
 }
 
 resource "betterado_build_definition" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[1]q
 
   repository {
     repo_type = "TfsGit"
@@ -425,8 +421,8 @@ resource "betterado_build_definition" "test" {
 }
 
 resource "betterado_build_definition" "test2" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s2"
+  project_id = data.betterado_project.test.id
+  name       = "%[1]s-2"
 
   repository {
     repo_type = "TfsGit"
@@ -436,51 +432,47 @@ resource "betterado_build_definition" "test2" {
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = betterado_agent_queue.test.id
   pipeline_id = betterado_build_definition.test.id
   type        = "queue"
 }
 
 resource "betterado_pipeline_authorization" "test2" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = betterado_agent_queue.test.id
   pipeline_id = betterado_build_definition.test2.id
   type        = "queue"
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 func hclAllPipelineWithPipoelineAuthQueue(name string) string {
 	{
 		return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_agent_pool" "test" {
-  name           = "%[1]s"
+  name           = %[1]q
   auto_provision = false
   auto_update    = false
 }
 
 resource "betterado_agent_queue" "test" {
-  project_id    = betterado_project.test.id
+  project_id    = data.betterado_project.test.id
   agent_pool_id = betterado_agent_pool.test.id
 }
 
 data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
 }
 
 resource "betterado_build_definition" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[1]q
 
   repository {
     repo_type = "TfsGit"
@@ -490,68 +482,60 @@ resource "betterado_build_definition" "test" {
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = betterado_agent_queue.test.id
   pipeline_id = betterado_build_definition.test.id
   type        = "queue"
 }
 
 resource "betterado_pipeline_authorization" "test_all" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = betterado_agent_queue.test.id
   type        = "queue"
 }
 
-`, name)
+`, name, SharedFixtureProjectName)
 	}
 }
 
 func hclAllPipelineAuthEnvironment(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_environment" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[1]q
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = betterado_environment.test.id
   type        = "environment"
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 func hclPipelineAuthEnvironment(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_environment" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[1]q
 }
 
 data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
 }
 
 resource "betterado_build_definition" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[1]q
 
   repository {
     repo_type = "TfsGit"
@@ -561,27 +545,23 @@ resource "betterado_build_definition" "test" {
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = betterado_environment.test.id
   type        = "environment"
   pipeline_id = betterado_build_definition.test.id
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 func hclAllPipelineAuthVariableGroup(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_variable_group" "test" {
-  project_id   = betterado_project.test.id
-  name         = "%[1]s"
+  project_id   = data.betterado_project.test.id
+  name         = %[1]q
   allow_access = true
 
   variable {
@@ -591,26 +571,22 @@ resource "betterado_variable_group" "test" {
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = betterado_variable_group.test.id
   type        = "variablegroup"
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 func hclPipelineAuthVariableGroup(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_variable_group" "test" {
-  project_id   = betterado_project.test.id
-  name         = "%[1]s"
+  project_id   = data.betterado_project.test.id
+  name         = %[1]q
   allow_access = true
 
   variable {
@@ -620,13 +596,13 @@ resource "betterado_variable_group" "test" {
 }
 
 data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
 }
 
 resource "betterado_build_definition" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[1]q
 
   repository {
     repo_type = "TfsGit"
@@ -636,27 +612,23 @@ resource "betterado_build_definition" "test" {
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = betterado_variable_group.test.id
   type        = "variablegroup"
   pipeline_id = betterado_build_definition.test.id
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 func hclAllPipelineAuthEndpoint(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_serviceendpoint_github" "test" {
-  project_id            = betterado_project.test.id
-  service_endpoint_name = "%[1]s"
+  project_id            = data.betterado_project.test.id
+  service_endpoint_name = %[1]q
 
   auth_personal {
     personal_access_token = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -664,26 +636,22 @@ resource "betterado_serviceendpoint_github" "test" {
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = betterado_serviceendpoint_github.test.id
   type        = "endpoint"
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 func hclPipelineAuthEndpoint(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 resource "betterado_serviceendpoint_github" "test" {
-  project_id            = betterado_project.test.id
-  service_endpoint_name = "%[1]s"
+  project_id            = data.betterado_project.test.id
+  service_endpoint_name = %[1]q
 
   auth_personal {
     personal_access_token = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -691,13 +659,13 @@ resource "betterado_serviceendpoint_github" "test" {
 }
 
 data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
 }
 
 resource "betterado_build_definition" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[1]q
 
   repository {
     repo_type = "TfsGit"
@@ -707,55 +675,47 @@ resource "betterado_build_definition" "test" {
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = betterado_serviceendpoint_github.test.id
   type        = "endpoint"
   pipeline_id = betterado_build_definition.test.id
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 func hclAllPipelineAuthRepository(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = data.betterado_git_repository.test.id
   type        = "repository"
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
 func hclPipelineAuthRepository(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
 }
 
 resource "betterado_build_definition" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[1]q
 
   repository {
     repo_type = "TfsGit"
@@ -765,45 +725,32 @@ resource "betterado_build_definition" "test" {
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   resource_id = data.betterado_git_repository.test.id
   pipeline_id = betterado_build_definition.test.id
   type        = "repository"
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
+// hclPipelineAuthCrossProjectRepository creates a pipeline authorization that
+// allows a pipeline in the standing-demo project to access a repository in
+// the same standing-demo project (cross-project is simulated using the same
+// project for both ends since we cannot create new projects).
 func hclPipelineAuthCrossProjectRepository(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
-}
-
-resource "betterado_project" "remote_repo" {
-  name               = "%[1]s2"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
-}
-
-data "betterado_git_repository" "remote_repo" {
-  project_id = betterado_project.remote_repo.id
-  name       = betterado_project.remote_repo.name
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
 }
 
 resource "betterado_build_definition" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+  project_id = data.betterado_project.test.id
+  name       = %[1]q
 
   repository {
     repo_type = "TfsGit"
@@ -813,31 +760,33 @@ resource "betterado_build_definition" "test" {
 }
 
 resource "betterado_pipeline_authorization" "test" {
-  project_id  = betterado_project.remote_repo.id
-  resource_id = data.betterado_git_repository.remote_repo.id
+  project_id  = data.betterado_project.test.id
+  resource_id = data.betterado_git_repository.test.id
   type        = "repository"
 
   pipeline_id         = betterado_build_definition.test.id
-  pipeline_project_id = betterado_project.test.id
+  pipeline_project_id = data.betterado_project.test.id
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
-func hclPipelineAuthorizationQueueConfig(projectName string) string {
+// hclPipelineAuthorizationQueueConfig creates a pipeline authorization for
+// a queue in the standing-demo project (no new project created).
+func hclPipelineAuthorizationQueueConfig(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = %q
+data "betterado_project" "test" {
+  name = %[2]q
 }
 
 data "betterado_agent_queue" "default" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.test.id
   name       = "Default"
 }
 
 resource "betterado_pipeline_authorization" "import_test" {
-  project_id  = betterado_project.test.id
+  project_id  = data.betterado_project.test.id
   type        = "queue"
   resource_id = data.betterado_agent_queue.default.id
 }
-`, projectName)
+`, name, SharedFixtureProjectName)
 }
