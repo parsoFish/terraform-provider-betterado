@@ -1,0 +1,45 @@
+{
+  "title": "Migrate betterado_user_entitlement, betterado_group_entitlement, and betterado_service_principal_entitlement to terraform-plugin-framework",
+  "essence": "Three SDKv2 resources (betterado_user_entitlement, betterado_group_entitlement, betterado_service_principal_entitlement) are now served by the mux provider via terraform-plugin-framework. Live acceptance tests ran (TF_ACC=1): TestAccUserEntitlement_Create, TestAccGroupEntitlement_Create, TestAccServicePrincipalEntitlement_create — all passed. Live evidence captured at 2026-07-03T03:18:03Z: ADO REST GET of group entitlement confirmed existence post-apply at dev.azure.com.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-07-01-migrate-framework-member-entitlement",
+  "diffStat": "18 files changed, 2314 insertions(+), 205 deletions(-)",
+  "checkpoints": [
+    {
+      "label": "quality-gate",
+      "caption": "Offline unit tests for the framework provider and member entitlement packages pass on branch HEAD",
+      "command": "go test -tags all -run TestFrameworkProvider_HasUserEntitlementResource ./azuredevops/internal/provider/",
+      "beforeNote": "Framework resource files did not exist; only SDKv2 paths compiled",
+      "afterNote": "ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider — TestFrameworkProvider_HasUserEntitlementResource PASS"
+    },
+    {
+      "label": "acceptance-resource",
+      "caption": "Live group entitlement created via framework resource; ADO REST GET confirms entitlement exists at memberentitlementmanagement endpoint",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/_apis/memberentitlementmanagement/groupentitlements/7bece247-5904-4d44-b7e3-29f96502d9ae?api-version=7.1",
+        "capturedAt": "2026-07-03T03:18:03Z",
+        "response": "{\"id\":\"7bece247-5904-4d44-b7e3-29f96502d9ae\",\"group\":{\"displayName\":\"group-038c153d-c86e-443c-b6f6-3d97378025d0\",\"origin\":\"vsts\",\"originId\":\"7bece247-5904-4d44-b7e3-29f96502d9ae\",\"principalName\":\"[davidgparsonson]\\\\group-038c153d-c86e-443c-b6f6-3d97378025d0\"},\"licenseRule\":{\"accountLicenseType\":\"express\",\"licensingSource\":\"account\",\"status\":\"active\"},\"status\":\"applied\"}"
+      },
+      "beforeNote": "betterado_group_entitlement was SDKv2-only; no framework path existed",
+      "afterNote": "Group entitlement 'group-038c153d-c86e-443c-b6f6-3d97378025d0' created via mux→framework provider path; GET response confirms id, displayName, licenseRule, and status=applied match the apply. TestAccGroupEntitlement_Create idempotency re-plan: ExpectNonEmptyPlan: false → PASS"
+    }
+  ],
+  "testEvidence": [
+    {
+      "name": "go test -tags all -run TestFrameworkProvider_HasUserEntitlementResource ./azuredevops/internal/provider/ (offline)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccUserEntitlement_Create (TF_ACC=1, live)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccGroupEntitlement_Create (TF_ACC=1, live)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccServicePrincipalEntitlement_create (TF_ACC=1, live)",
+      "result": "pass"
+    }
+  ]
+}
