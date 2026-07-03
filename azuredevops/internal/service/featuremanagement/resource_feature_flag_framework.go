@@ -10,7 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	featuremanagementapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/featuremanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 // Compile-time interface checks.
@@ -115,29 +118,237 @@ func (r *FeatureFlagResource) Configure(_ context.Context, req resource.Configur
 	r.client = agg
 }
 
-// ── CRUD stubs (WI-3 fills in the implementation) ─────────────────────────────
+// ── CRUD ──────────────────────────────────────────────────────────────────────
 
-func (r *FeatureFlagResource) Create(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
-	resp.Diagnostics.Append(notImplemented("Create")...)
+func (r *FeatureFlagResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	if r.client == nil {
+		resp.Diagnostics.AddError("Client not configured", "betterado_feature_flag Create: provider client not configured")
+		return
+	}
+
+	var model featureFlagModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(setFeatureFlag(ctx, r.client.FeatureManagementClient, &model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	readDiags := readFeatureFlag(ctx, r.client.FeatureManagementClient, &model)
+	if hasNotFoundDiag(readDiags) {
+		resp.Diagnostics.AddError("Feature flag not found after create", "GetFeatureStateForScope returned not-found immediately after create")
+		return
+	}
+	resp.Diagnostics.Append(readDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
-func (r *FeatureFlagResource) Read(_ context.Context, _ resource.ReadRequest, resp *resource.ReadResponse) {
-	resp.Diagnostics.Append(notImplemented("Read")...)
+func (r *FeatureFlagResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	if r.client == nil {
+		resp.Diagnostics.AddError("Client not configured", "betterado_feature_flag Read: provider client not configured")
+		return
+	}
+
+	var model featureFlagModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	readDiags := readFeatureFlag(ctx, r.client.FeatureManagementClient, &model)
+	if hasNotFoundDiag(readDiags) {
+		// 404 or state == "undefined": remove from Terraform state.
+		resp.State.RemoveResource(ctx)
+		return
+	}
+	resp.Diagnostics.Append(readDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
-func (r *FeatureFlagResource) Update(_ context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse) {
-	resp.Diagnostics.Append(notImplemented("Update")...)
+func (r *FeatureFlagResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	if r.client == nil {
+		resp.Diagnostics.AddError("Client not configured", "betterado_feature_flag Update: provider client not configured")
+		return
+	}
+
+	var model featureFlagModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(setFeatureFlag(ctx, r.client.FeatureManagementClient, &model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	readDiags := readFeatureFlag(ctx, r.client.FeatureManagementClient, &model)
+	if hasNotFoundDiag(readDiags) {
+		resp.Diagnostics.AddError("Feature flag not found after update", "GetFeatureStateForScope returned not-found immediately after update")
+		return
+	}
+	resp.Diagnostics.Append(readDiags...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
-func (r *FeatureFlagResource) Delete(_ context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse) {
-	resp.Diagnostics.Append(notImplemented("Delete")...)
+func (r *FeatureFlagResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	if r.client == nil {
+		resp.Diagnostics.AddError("Client not configured", "betterado_feature_flag Delete: provider client not configured")
+		return
+	}
+
+	var model featureFlagModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &model)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(deleteFeatureFlag(ctx, r.client.FeatureManagementClient, &model)...)
 }
 
-// notImplemented returns an error diagnostic for stub CRUD methods.
-func notImplemented(op string) diag.Diagnostics {
+// ── Internal helpers (called by CRUD + unit tests) ────────────────────────────
+
+// setFeatureFlag calls SetFeatureStateForScope for Create and Update.
+func setFeatureFlag(ctx context.Context, fc featuremanagementapi.Client, model *featureFlagModel) diag.Diagnostics {
 	var d diag.Diagnostics
-	d.AddError(op+" not implemented", "CRUD logic will be added in WI-3")
+
+	featureID := model.FeatureID.ValueString()
+	scopeName := model.ScopeName.ValueString()
+	scopeValue := model.ScopeValue.ValueString()
+	stateStr := model.State.ValueString()
+
+	enabledValue := featuremanagementapi.ContributedFeatureEnabledValue(stateStr)
+
+	_, err := fc.SetFeatureStateForScope(ctx, featuremanagementapi.SetFeatureStateForScopeArgs{
+		Feature: &featuremanagementapi.ContributedFeatureState{
+			FeatureId: converter.String(featureID),
+			State:     &enabledValue,
+			Scope: &featuremanagementapi.ContributedFeatureSettingScope{
+				SettingScope: converter.String(scopeName),
+				UserScoped:   converter.Bool(false),
+			},
+		},
+		FeatureId:  converter.String(featureID),
+		UserScope:  converter.String(scopeName),
+		ScopeName:  converter.String(scopeName),
+		ScopeValue: converter.String(scopeValue),
+	})
+	if err != nil {
+		d.AddError(
+			"Error setting feature flag",
+			fmt.Sprintf("SetFeatureStateForScope failed for feature %q scope %q/%q: %s", featureID, scopeName, scopeValue, err),
+		)
+	}
 	return d
+}
+
+// readFeatureFlag calls GetFeatureStateForScope and populates the model.
+// Returns a diagnostic with summary "NotFound" when the API returns 404 or
+// the state is "undefined" (resource no longer managed).
+func readFeatureFlag(ctx context.Context, fc featuremanagementapi.Client, model *featureFlagModel) diag.Diagnostics {
+	var d diag.Diagnostics
+
+	featureID := model.FeatureID.ValueString()
+	scopeName := model.ScopeName.ValueString()
+	scopeValue := model.ScopeValue.ValueString()
+
+	state, err := fc.GetFeatureStateForScope(ctx, featuremanagementapi.GetFeatureStateForScopeArgs{
+		FeatureId:  converter.String(featureID),
+		UserScope:  converter.String(scopeName),
+		ScopeName:  converter.String(scopeName),
+		ScopeValue: converter.String(scopeValue),
+	})
+
+	if err != nil {
+		if utils.ResponseWasNotFound(err) {
+			d.AddError("NotFound", fmt.Sprintf("feature flag %q at scope %q/%q not found (404)", featureID, scopeName, scopeValue))
+			return d
+		}
+		d.AddError(
+			"Error reading feature flag",
+			fmt.Sprintf("GetFeatureStateForScope failed for feature %q scope %q/%q: %s", featureID, scopeName, scopeValue, err),
+		)
+		return d
+	}
+
+	if state == nil || state.State == nil || *state.State == featuremanagementapi.ContributedFeatureEnabledValueValues.Undefined {
+		d.AddError("NotFound", fmt.Sprintf("feature flag %q at scope %q/%q is undefined (treated as deleted)", featureID, scopeName, scopeValue))
+		return d
+	}
+
+	model.State = types.StringValue(string(*state.State))
+
+	if state.Overridden != nil {
+		model.Overridden = types.BoolValue(*state.Overridden)
+	} else {
+		model.Overridden = types.BoolValue(false)
+	}
+
+	if state.Reason != nil {
+		model.Reason = types.StringValue(*state.Reason)
+	} else {
+		model.Reason = types.StringValue("")
+	}
+
+	return d
+}
+
+// deleteFeatureFlag sets the feature state to "undefined" (removes management).
+func deleteFeatureFlag(ctx context.Context, fc featuremanagementapi.Client, model *featureFlagModel) diag.Diagnostics {
+	var d diag.Diagnostics
+
+	featureID := model.FeatureID.ValueString()
+	scopeName := model.ScopeName.ValueString()
+	scopeValue := model.ScopeValue.ValueString()
+
+	undefinedState := featuremanagementapi.ContributedFeatureEnabledValueValues.Undefined
+
+	_, err := fc.SetFeatureStateForScope(ctx, featuremanagementapi.SetFeatureStateForScopeArgs{
+		Feature: &featuremanagementapi.ContributedFeatureState{
+			FeatureId: converter.String(featureID),
+			State:     &undefinedState,
+			Scope: &featuremanagementapi.ContributedFeatureSettingScope{
+				SettingScope: converter.String(scopeName),
+				UserScoped:   converter.Bool(false),
+			},
+		},
+		FeatureId:  converter.String(featureID),
+		UserScope:  converter.String(scopeName),
+		ScopeName:  converter.String(scopeName),
+		ScopeValue: converter.String(scopeValue),
+	})
+	if err != nil {
+		d.AddError(
+			"Error deleting feature flag",
+			fmt.Sprintf("SetFeatureStateForScope(undefined) failed for feature %q scope %q/%q: %s", featureID, scopeName, scopeValue, err),
+		)
+	}
+	return d
+}
+
+// hasNotFoundDiag returns true if diags contains an error with summary "NotFound".
+func hasNotFoundDiag(d diag.Diagnostics) bool {
+	for _, diagItem := range d {
+		if diagItem.Summary() == "NotFound" {
+			return true
+		}
+	}
+	return false
 }
 
 // ── Inline validators ─────────────────────────────────────────────────────────
