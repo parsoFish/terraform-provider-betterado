@@ -19,6 +19,16 @@
 - make docs + regenerated workitemquery.md + workitemquery_folder.md
 - CHANGELOG entry added
 
+## Completed this iteration (1)
+
+- Fixed UseStateForUnknown plan modifiers in resource_workitemquery_framework.go and
+  resource_workitemquery_folder_framework.go: added `if req.StateValue.IsNull() || req.StateValue.IsUnknown() { return }`
+  guard to prevent copying null prior-state into the plan on first apply.
+  Root cause: plan modifiers were turning computed attributes from "unknown" to null
+  during first-apply planning, causing "Provider produced inconsistent result after apply"
+  for id, is_public, path.
+- go build -mod=vendor . ✅
+
 ## Pending
 
-- Live gate run (forge will validate with TF_ACC=1)
+- Live gate run with TF_ACC=1 (forge will validate)

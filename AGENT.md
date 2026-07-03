@@ -39,6 +39,16 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - First attempt had bad imports (boolplanmodifier, stringplanmodifier, frameworkvalidator packages not in vendor)
 - resourcevalidator.Default was a nil type — removed that spurious import
 
+### Iteration 1 (2026-07-03)
+
+**Gate failure:** "Provider produced inconsistent result after apply" — `.id`, `.is_public`, `.path` were null in plan but got actual values after Create.
+
+**Root cause:** `wiqStringUseStateForUnknown` and `wiqBoolUseStateForUnknown` plan modifiers were missing the null-state guard. When `PlanValue.IsUnknown()` AND `StateValue.IsNull()` (first apply), the modifier was copying null state into the plan value, turning "unknown" into null. After Create set the real values, Terraform detected the mismatch.
+
+**Fix:** Added `if req.StateValue.IsNull() || req.StateValue.IsUnknown() { return }` early exit in both modifiers in both resource_workitemquery_framework.go and resource_workitemquery_folder_framework.go. This matches the correct pattern already used in resource_workitem_framework.go (`workItemStringUseStateForUnknown` line 104).
+
+**Verified:** `go build -mod=vendor .` ✅, `go test ./azuredevops/internal/provider/...` ✅
+
 ## Open questions
 
 _(none blocking)_
@@ -47,3 +57,4 @@ _(none blocking)_
 
 - The 1000-project ADO org cap requires ALL acceptance tests that used `betterado_project` resource to use SharedFixtureProjectName pattern instead
 - The wiqfExactlyOneOfValidator (folder variant) could share logic with wiqExactlyOneOfValidator but it's simpler to keep separate since they're in the same package
+- **CRITICAL PATTERN:** UseStateForUnknown modifiers MUST guard against null/unknown StateValue — always add `if req.StateValue.IsNull() || req.StateValue.IsUnknown() { return }` BEFORE `resp.PlanValue = req.StateValue`. Omitting this guard causes "Provider produced inconsistent result after apply" on first create.
