@@ -2,9 +2,11 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
@@ -95,6 +97,7 @@ resource "betterado_team_members" "team_members" {
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					resource.TestCheckResourceAttrSet(tfNode, "team_id"),
 					resource.TestCheckResourceAttr(tfNode, "members.#", "1"),
+					captureTeamMembersEvidence(tfNode),
 				),
 			},
 			{
@@ -115,6 +118,31 @@ resource "betterado_team_members" "team_members" {
 			},
 		},
 	})
+}
+
+// captureTeamMembersEvidence captures live evidence of the team_members resource
+// for the forge demo pipeline. Best-effort: never fails the test check.
+func captureTeamMembersEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		if orgURL == "" {
+			return nil
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		teamID := rs.Primary.Attributes["team_id"]
+		apiURL := fmt.Sprintf("%s/_apis/projects/%s/teams/%s/members?api-version=7.1", orgURL, projectID, teamID)
+		attrs := map[string]string{
+			"project_id":   projectID,
+			"team_id":      teamID,
+			"members_count": rs.Primary.Attributes["members.#"],
+		}
+		_ = testutils.CaptureLiveEvidence("team-members", apiURL, attrs)
+		return nil
+	}
 }
 
 func TestAccTeamMembers_CreateAndUpdate_Overwrite(t *testing.T) {

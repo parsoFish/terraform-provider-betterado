@@ -2,6 +2,7 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/google/uuid"
@@ -29,10 +30,34 @@ func TestAccProjectTags_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "tags.#", "2"),
 					resource.TestCheckResourceAttr(tfNode, "tags.0", "tag1"),
 					resource.TestCheckResourceAttr(tfNode, "tags.1", "tag2"),
+					captureProjectTagsEvidence(tfNode),
 				),
 			},
 		},
 	})
+}
+
+// captureProjectTagsEvidence captures live evidence of project_tags
+// for the forge demo pipeline. Best-effort: never fails the test check.
+func captureProjectTagsEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		if orgURL == "" {
+			return nil
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		apiURL := fmt.Sprintf("%s/_apis/projects/%s/properties?api-version=7.1", orgURL, projectID)
+		attrs := map[string]string{
+			"project_id": projectID,
+			"tags_count": rs.Primary.Attributes["tags.#"],
+		}
+		_ = testutils.CaptureLiveEvidence("project-tags", apiURL, attrs)
+		return nil
+	}
 }
 
 func TestAccProjectTags_update(t *testing.T) {

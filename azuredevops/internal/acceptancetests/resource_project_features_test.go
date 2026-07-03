@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	adocore "github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
@@ -23,19 +24,20 @@ import (
 // It uses GetMuxedProviderFactories so both betterado_project (framework) and
 // betterado_project_features (framework) are available in the same test.
 //
-// The test resolves an existing ADO project via smokeResolveProject — which checks
-// AZDO_TEST_EXISTING_PROJECT first, then auto-discovers the first wellFormed project
-// via GetProjects. This avoids creating a project (which fails when the org is at
-// the 1000-project limit). The project UUID is injected directly into HCL.
+// The test resolves the standing-demo fixture project (betterado-standing-demo) so
+// no new project is created — the org is at the 1000-project limit. The project UUID
+// is injected directly into HCL.
 //
 // NOTE: testplans is intentionally excluded from this test because it requires a
 // Basic+TestPlans or Visual Studio subscription — the ADO API returns HTTP 200 but
 // silently leaves the state unchanged when the license is absent. artifacts and
 // boards are license-free and reliably toggle on any project type.
 func TestAccProjectFeatures_roundtrip(t *testing.T) {
-	// smokeResolveProject resolves an existing ADO project without creating one.
-	// Calls testutils.PreCheck which skips immediately if TF_ACC is not set.
-	projectID, _ := smokeResolveProject(t)
+	// Use the standing-demo fixture project so we always run against a controlled
+	// project with known feature configuration. Falls back to AZDO_TEST_EXISTING_PROJECT
+	// if set (for local dev overrides).
+	testutils.PreCheck(t, nil)
+	projectID := resolveStandingDemoProjectID(t)
 
 	tfNode := "betterado_project_features.test"
 
@@ -94,12 +96,60 @@ func captureProjectFeaturesEvidence(tfNode string) resource.TestCheckFunc {
 					"%s/_apis/FeatureManagement/FeatureStatesForScope/host/project/%s?api-version=7.1",
 					orgURL, projectID,
 				)
-				_ = testutils.CaptureLiveEvidence("acceptance-resource", apiURL, states)
+				_ = testutils.CaptureLiveEvidence("project-features", apiURL, states)
 			}
 		}
 
 		return nil
 	}
+}
+
+// resolveStandingDemoProjectID returns the UUID of the betterado-standing-demo
+// fixture project. It honours AZDO_TEST_EXISTING_PROJECT for local dev overrides
+// but always defaults to SharedFixtureProjectName (betterado-standing-demo) to
+// guarantee a controlled project with known feature subscriptions — avoiding the
+// "Provider produced inconsistent result after apply" error that occurs when the
+// ADO API silently ignores license-restricted feature-set requests on arbitrary
+// projects. Fails loudly if the fixture project is not found.
+func resolveStandingDemoProjectID(t *testing.T) string {
+	t.Helper()
+
+	if name := os.Getenv("AZDO_TEST_EXISTING_PROJECT"); name != "" {
+		// Caller override: look up the specified project and return its UUID.
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+		clients, err := client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+		if err != nil {
+			t.Fatalf("resolveStandingDemoProjectID: GetAzdoClient: %v", err)
+		}
+		p, err := clients.CoreClient.GetProject(clients.Ctx, adocore.GetProjectArgs{
+			ProjectId: &name,
+		})
+		if err != nil || p == nil || p.Id == nil {
+			t.Fatalf("resolveStandingDemoProjectID: project %q not found: %v", name, err)
+		}
+		t.Logf("resolveStandingDemoProjectID: using override project %q (%s)", *p.Name, p.Id)
+		return p.Id.String()
+	}
+
+	// Default: use the standing-demo shared fixture.
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	clients, err := client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+	if err != nil {
+		t.Fatalf("resolveStandingDemoProjectID: GetAzdoClient: %v", err)
+	}
+	name := SharedFixtureProjectName
+	p, err := clients.CoreClient.GetProject(clients.Ctx, adocore.GetProjectArgs{
+		ProjectId: &name,
+	})
+	if err != nil || p == nil || p.Id == nil {
+		t.Fatalf("resolveStandingDemoProjectID: fixture project %q not found (%v). "+
+			"Restore it from the ADO recycle bin or set AZDO_TEST_EXISTING_PROJECT.",
+			name, err)
+	}
+	t.Logf("resolveStandingDemoProjectID: using standing-demo project %q (%s)", *p.Name, p.Id)
+	return p.Id.String()
 }
 
 // hclProjectFeatureBasic returns Terraform HCL that manages two license-free

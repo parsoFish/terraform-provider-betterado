@@ -2,9 +2,11 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
@@ -22,10 +24,36 @@ func TestAccTeam_basic(t *testing.T) {
 				Config: hclTeamBasic(projectName, teamName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "name", teamName),
+					captureTeamEvidence(tfNode),
 				),
 			},
 		},
 	})
+}
+
+// captureTeamEvidence captures live evidence of the betterado_team resource
+// for the forge demo pipeline. Best-effort: never fails the test check.
+func captureTeamEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		if orgURL == "" {
+			return nil
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		teamID := rs.Primary.Attributes["id"]
+		apiURL := fmt.Sprintf("%s/_apis/projects/%s/teams/%s?api-version=7.1", orgURL, projectID, teamID)
+		attrs := map[string]string{
+			"id":         teamID,
+			"name":       rs.Primary.Attributes["name"],
+			"project_id": projectID,
+		}
+		_ = testutils.CaptureLiveEvidence("team", apiURL, attrs)
+		return nil
+	}
 }
 
 func TestAccTeam_update(t *testing.T) {

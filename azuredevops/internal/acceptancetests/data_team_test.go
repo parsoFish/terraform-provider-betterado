@@ -2,9 +2,11 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
@@ -25,10 +27,36 @@ func TestAccTeam_DataSource_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfNode, "description"),
 					resource.TestCheckResourceAttrSet(tfNode, "administrators.#"),
 					resource.TestCheckResourceAttrSet(tfNode, "members.#"),
+					captureTeamDataSourceEvidence(tfNode),
 				),
 			},
 		},
 	})
+}
+
+// captureTeamDataSourceEvidence captures live evidence of the data_team data source
+// for the forge demo pipeline. Best-effort: never fails the test check.
+func captureTeamDataSourceEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		if orgURL == "" {
+			return nil
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		teamID := rs.Primary.Attributes["id"]
+		apiURL := fmt.Sprintf("%s/_apis/projects/%s/teams/%s?api-version=7.1", orgURL, projectID, teamID)
+		attrs := map[string]string{
+			"id":         teamID,
+			"name":       rs.Primary.Attributes["name"],
+			"project_id": projectID,
+		}
+		_ = testutils.CaptureLiveEvidence("data-team", apiURL, attrs)
+		return nil
+	}
 }
 
 func hclTeamDataSourceBasic(name string) string {
