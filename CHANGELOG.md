@@ -7,6 +7,18 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_notification_subscription` resource and data source.** Manages
+  Azure DevOps notification subscriptions via the ADO Notification API v7.1.
+  The resource supports creating, reading, updating, and deleting subscriptions
+  with `subscription_type` (event type ID), `subscriber_id` (identity), `channel_type`,
+  `channel_address`, `filter_type`, and `filter_criteria` attributes scoped to a
+  `project_id`. A companion data source reads an existing subscription by ID
+  and exposes all schema attributes as computed outputs. Registered in the
+  framework provider only (not SDKv2 `provider.go`). Verified by live acceptance
+  test `TestAccNotificationSubscription_basic`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

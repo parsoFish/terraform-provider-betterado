@@ -213,6 +213,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 
 func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
+		notification.NewNotificationSubscriptionDataSource,
 		release.NewReleaseDefinitionDataSource,
 		release.NewReleaseDefinitionHistoryDataSource,
 		release.NewReleaseDefinitionRevisionDataSource,
