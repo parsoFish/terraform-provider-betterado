@@ -3,15 +3,26 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
+
+// getSystemControlDirectClient builds an AggregatedClient directly from AZDO env vars.
+// Used because ProtoV6ProviderFactories does not configure the SDKv2 provider singleton,
+// so testutils.GetProvider().Meta() would be nil when using GetMuxedProviderFactories().
+func getSystemControlDirectClient() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+}
 
 func TestAccWorkitemtrackingprocessSystemControl_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
@@ -125,7 +136,10 @@ func TestAccWorkitemtrackingprocessSystemControl_Revert(t *testing.T) {
 
 func testCheckSystemControlReverted(processId, witRefName, controlId *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		clients, err := getSystemControlDirectClient()
+		if err != nil {
+			return fmt.Errorf("building client: %w", err)
+		}
 
 		controls, err := clients.WorkItemTrackingProcessClient.GetSystemControls(context.Background(),
 			workitemtrackingprocess.GetSystemControlsArgs{

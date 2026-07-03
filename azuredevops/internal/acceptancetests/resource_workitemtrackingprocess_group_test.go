@@ -1,13 +1,93 @@
 package acceptancetests
 
 import (
+	"context"
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
+
+// getGroupDirectClient builds an AggregatedClient directly from AZDO env vars.
+// Used because ProtoV6ProviderFactories does not configure the SDKv2 provider singleton,
+// so testutils.GetProvider().Meta() would be nil when using GetMuxedProviderFactories().
+func getGroupDirectClient() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+}
+
+// captureGroupEvidence performs a real live API GET of the created group and persists
+// the response as forge demo live-evidence (before the resource is destroyed).
+// Best-effort: a capture failure never fails the test.
+func captureGroupEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		processId := res.Primary.Attributes["process_id"]
+		witRefName := res.Primary.Attributes["work_item_type_reference_name"]
+		groupId := res.Primary.ID
+
+		clients, err := getGroupDirectClient()
+		if err != nil {
+			return nil //nolint:nilerr // best-effort: client build failure does not fail the test
+		}
+
+		expand := workitemtrackingprocess.GetWorkItemTypeExpandValues.Layout
+		workItemType, err := clients.WorkItemTrackingProcessClient.GetProcessWorkItemType(context.Background(),
+			workitemtrackingprocess.GetProcessWorkItemTypeArgs{
+				ProcessId:  converter.UUID(processId),
+				WitRefName: &witRefName,
+				Expand:     &expand,
+			})
+		if err != nil || workItemType == nil || workItemType.Layout == nil {
+			return nil //nolint:nilerr // best-effort: API failure does not fail the test
+		}
+
+		// Find the group in the layout
+		var foundGroup *workitemtrackingprocess.Group
+		if workItemType.Layout.Pages != nil {
+			for _, page := range *workItemType.Layout.Pages {
+				if page.Sections == nil {
+					continue
+				}
+				for _, section := range *page.Sections {
+					if section.Groups == nil {
+						continue
+					}
+					for _, g := range *section.Groups {
+						if g.Id != nil && *g.Id == groupId {
+							gCopy := g
+							foundGroup = &gCopy
+							break
+						}
+					}
+					if foundGroup != nil {
+						break
+					}
+				}
+				if foundGroup != nil {
+					break
+				}
+			}
+		}
+
+		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+		url := fmt.Sprintf("%s/_apis/work/processdefinitions/%s/workItemTypes/%s/layout?api-version=7.1", orgURL, processId, witRefName)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-workitemtrackingprocess-group", url, foundGroup)
+		return nil
+	}
+}
 
 func TestAccWorkitemtrackingprocessGroup_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
@@ -30,6 +110,7 @@ func TestAccWorkitemtrackingprocessGroup_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "visible", "true"),
 					resource.TestCheckResourceAttrSet(tfNode, "id"),
 					resource.TestCheckResourceAttrSet(tfNode, "order"),
+					captureGroupEvidence(tfNode),
 				),
 			},
 			{

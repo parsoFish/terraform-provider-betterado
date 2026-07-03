@@ -3,15 +3,26 @@ package acceptancetests
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
+
+// getInheritedControlDirectClient builds an AggregatedClient directly from AZDO env vars.
+// Used because ProtoV6ProviderFactories does not configure the SDKv2 provider singleton,
+// so testutils.GetProvider().Meta() would be nil when using GetMuxedProviderFactories().
+func getInheritedControlDirectClient() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+}
 
 func TestAccWorkitemtrackingprocessInheritedControl_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
@@ -233,7 +244,10 @@ func findControlInGroup(group *workitemtrackingprocess.Group, controlId string) 
 
 func checkInheritedControlRevertedFunc(processId, witRefName, groupId, controlId *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		clients, err := getInheritedControlDirectClient()
+		if err != nil {
+			return fmt.Errorf("building client: %w", err)
+		}
 
 		// Get the work item type layout to verify the control still exists and is no longer overridden
 		args := workitemtrackingprocess.GetProcessWorkItemTypeArgs{
