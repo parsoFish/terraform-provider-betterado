@@ -133,7 +133,8 @@ func createEnvironment(clients *client.AggregatedClient, environment *taskagent.
 				Name:        environment.Name,
 				Description: environment.Description,
 			},
-		})
+		},
+	)
 }
 
 func updateEnvironment(clients *client.AggregatedClient, environment *taskagent.EnvironmentInstance) (*taskagent.EnvironmentInstance, error) {
@@ -146,7 +147,8 @@ func updateEnvironment(clients *client.AggregatedClient, environment *taskagent.
 				Name:        environment.Name,
 				Description: environment.Description,
 			},
-		})
+		},
+	)
 }
 
 func expandEnvironment(d *schema.ResourceData) (*taskagent.EnvironmentInstance, error) {

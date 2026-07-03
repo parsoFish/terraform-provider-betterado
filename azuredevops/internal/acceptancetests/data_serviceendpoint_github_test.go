@@ -11,7 +11,8 @@ import (
 func TestAccServiceEndpointGitHub_dataSource_with_serviceEndpointID(t *testing.T) {
 	serviceEndpointGitHubName := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
-	createServiceEndpointGitHubWithServiceEndpointIDData := fmt.Sprintf("%s\n%s",
+	createServiceEndpointGitHubWithServiceEndpointIDData := fmt.Sprintf(
+		"%s\n%s",
 		testutils.HclServiceEndpointGitHubResource(projectName, serviceEndpointGitHubName),
 		testutils.HclServiceEndpointGitHubDataSourceWithServiceEndpointID(),
 	)
@@ -35,7 +36,8 @@ func TestAccServiceEndpointGitHub_dataSource_with_serviceEndpointID(t *testing.T
 func TestAccServiceEndpointGitHub_dataSource_with_serviceEndpointName_DataSource(t *testing.T) {
 	serviceEndpointGitHubName := testutils.GenerateResourceName()
 	projectName := testutils.GenerateResourceName()
-	createServiceEndpointGitHubWithServiceEndpointNameData := fmt.Sprintf("%s\n%s",
+	createServiceEndpointGitHubWithServiceEndpointNameData := fmt.Sprintf(
+		"%s\n%s",
 		testutils.HclServiceEndpointGitHubResource(projectName, serviceEndpointGitHubName),
 		testutils.HclServiceEndpointGitHubDataSourceWithServiceEndpointName(serviceEndpointGitHubName),
 	)

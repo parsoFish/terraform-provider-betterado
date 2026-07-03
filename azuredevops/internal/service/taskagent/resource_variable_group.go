@@ -291,7 +291,8 @@ func createVariableGroup(clients *client.AggregatedClient, variableGroupParams *
 		clients.Ctx,
 		taskagent.AddVariableGroupArgs{
 			VariableGroupParameters: variableGroupParams,
-		})
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +335,8 @@ func updateVariableGroup(clients *client.AggregatedClient, parameters *taskagent
 		taskagent.UpdateVariableGroupArgs{
 			GroupId:                 variableGroupID,
 			VariableGroupParameters: parameters,
-		})
+		},
+	)
 
 	return updatedVariableGroup, err
 }
@@ -346,7 +348,8 @@ func deleteVariableGroup(clients *client.AggregatedClient, projectId *string, va
 		taskagent.DeleteVariableGroupArgs{
 			ProjectIds: &[]string{*projectId},
 			GroupId:    variableGroupID,
-		})
+		},
+	)
 
 	return err
 }
@@ -608,7 +611,8 @@ func updateDefinitionResourceAuth(clients *client.AggregatedClient, definitionRe
 		clients.Ctx, build.AuthorizeProjectResourcesArgs{
 			Resources: &definitionResource,
 			Project:   project,
-		})
+		},
+	)
 
 	return definitionResourceReference, err
 }
@@ -634,7 +638,8 @@ func deleteDefinitionResourceAuth(clients *client.AggregatedClient, variableGrou
 		clients.Ctx, build.AuthorizeProjectResourcesArgs{
 			Resources: &ArrayDefinitionResourceReference,
 			Project:   project,
-		})
+		},
+	)
 
 	return definitionResourceReference, err
 }
