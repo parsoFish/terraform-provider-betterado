@@ -3,7 +3,7 @@
   "essence": "Before this initiative, the betterado provider had no support for the ADO Pipelines v2 REST API (_apis/pipelines). Operators had to manage YAML-based pipelines via the older Build Definitions API, which lacks the cleaner Pipelines v2 surface. After: betterado_pipeline (resource + data source) and betterado_pipeline_run (data source) are implemented as framework-native types, registered only on the plugin-framework provider (not SDKv2), fully tested with unit and acceptance tests, and documented in the Terraform Registry. configuration_type is now validated at plan time (stringvalidator.OneOf: yaml/designerJson/justInTime) and is ForceNew so changes don't silently drop.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-new-api-pipelines-v2",
-  "diffStat": "90 files changed, 6094 insertions(+), 9669 deletions(-)",
+  "diffStat": "57 files changed, 6053 insertions(+), 186 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
