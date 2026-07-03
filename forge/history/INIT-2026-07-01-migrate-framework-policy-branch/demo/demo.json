@@ -1,9 +1,9 @@
 {
   "title": "Migrate all branch policy, repository policy, and approvalsandchecks resources to terraform-plugin-framework",
-  "essence": "20 SDKv2 resources (7 branch policy, 7 repository policy, 6 approvalsandchecks) are now served via the mux provider using terraform-plugin-framework. Gap matrices (docs/policy-gap-matrix.md and docs/approvalsandchecks-gap-matrix.md) document API parity. Live acceptance tests passed (TF_ACC=1) for all 20 resources. Live REST GET evidence captured at 2026-07-03T01:25:01Z confirming a real check_approval configuration exists in ADO.",
+  "essence": "20 SDKv2 resources (7 branch policy, 7 repository policy, 6 approvalsandchecks) are now served via the mux provider using terraform-plugin-framework. Gap matrices (docs/policy-gap-matrix.md and docs/approvalsandchecks-gap-matrix.md) document API parity. Live acceptance tests passed (TF_ACC=1) for all 20 resources. Live REST GET evidence captured at 2026-07-03T03:29:37Z confirming a real check_approval configuration exists in ADO.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-policy-branch",
-  "diffStat": "172 files changed, 10873 insertions(+), 5609 deletions(-)",
+  "diffStat": "261 files changed, 18197 insertions(+), 5609 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
@@ -16,12 +16,12 @@
       "label": "acceptance-resource",
       "caption": "Live check_approval created via framework resource; ADO REST GET confirms the check configuration exists at the pipelines/checks/configurations endpoint",
       "liveEvidence": {
-        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/pipelines/checks/configurations/80?api-version=7.1",
-        "capturedAt": "2026-07-03T01:25:01Z",
-        "response": "{\"id\":80,\"resource\":{\"id\":\"b3e4930e-58cc-4e1a-8ab6-ef1c08c74047\",\"type\":\"endpoint\"},\"type\":{\"id\":\"8c6f20a7-a545-4486-9777-f762fafe0d4d\",\"name\":\"Approval\"},\"url\":\"https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/pipelines/checks/configurations/80?%24expand=1\",\"createdBy\":{\"displayName\":\"david.g.parsonson\",\"id\":\"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\"uniqueName\":\"david.g.parsonson@gmail.com\"},\"createdOn\":\"2026-07-03T01:25:00.9728182Z\",\"settings\":{\"approvers\":[{\"id\":\"86a019ea-473f-4ce1-91b9-fd2f3bce14d9\"}],\"minRequiredApprovers\":0,\"requesterCannotBeApprover\":true},\"timeout\":43200,\"version\":1}"
+        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/pipelines/checks/configurations/101?api-version=7.1",
+        "capturedAt": "2026-07-03T03:29:37Z",
+        "response": "{\n  \"id\": 101,\n  \"resource\": {\n    \"id\": \"29e89eb5-0877-4e15-86c9-7a27fe3c18e5\",\n    \"type\": \"endpoint\"\n  },\n  \"type\": {\n    \"id\": \"8c6f20a7-a545-4486-9777-f762fafe0d4d\",\n    \"name\": \"Approval\"\n  },\n  \"url\": \"https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/pipelines/checks/configurations/101?%24expand=1\",\n  \"_links\": {\n    \"self\": {\n      \"href\": \"https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/pipelines/checks/configurations/101?%24expand=1\"\n    }\n  },\n  \"createdBy\": {\n    \"descriptor\": \"msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx\",\n    \"displayName\": \"david.g.parsonson\",\n    \"id\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"uniqueName\": \"david.g.parsonson@gmail.com\"\n  },\n  \"createdOn\": \"2026-07-03T03:29:35.0643212Z\",\n  \"modifiedBy\": {\n    \"descriptor\": \"msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx\",\n    \"displayName\": \"david.g.parsonson\",\n    \"id\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"uniqueName\": \"david.g.parsonson@gmail.com\"\n  },\n  \"modifiedOn\": \"2026-07-03T03:29:35.0643212Z\",\n  \"settings\": {\n    \"approvers\": [\n      {\n        \"displayName\": null,\n        \"id\": \"5323c3dd-f44f-476c-ae81-6c3eb566387d\"\n      }\n    ],\n    \"blockedApprovers\": [],\n    \"instructions\": \"\",\n    \"minRequiredApprovers\": 0,\n    \"requesterCannotBeApprover\": true\n  },\n  \"timeout\": 43200,\n  \"version\": 1\n}"
       },
       "beforeNote": "betterado_check_approval was SDKv2-only; no framework path existed",
-      "afterNote": "Approval check id=80 created via mux→framework provider path; GET response confirms resource type 'Approval' (8c6f20a7), approvers list, requesterCannotBeApprover:true, timeout:43200. TestAccCheckApproval idempotency re-plan: ExpectNonEmptyPlan: false → PASS"
+      "afterNote": "Approval check id=101 created via mux→framework provider path; GET response confirms resource type 'Approval' (8c6f20a7), approvers list, requesterCannotBeApprover:true, timeout:43200. TestAccCheckApproval idempotency re-plan: ExpectNonEmptyPlan: false → PASS"
     }
   ],
   "testEvidence": [
@@ -188,7 +188,7 @@
     {
       "criterion": "GIVEN the forge demo evidence is inspected WHEN checking forge/history/INIT-2026-07-01-migrate-framework-policy-branch/demo/ THEN demo.json contains a checkpoint with liveEvidence.url pointing to a real ADO Policy or Checks REST GET response",
       "verdict": "met",
-      "evidence": "forge/history/INIT-2026-07-01-migrate-framework-policy-branch/demo/demo.json checkpoint 'acceptance-resource' carries liveEvidence.url = https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/pipelines/checks/configurations/80?api-version=7.1 (real ADO Checks REST GET, capturedAt: 2026-07-03T01:25:01Z). Response includes check id=80, type 'Approval', approvers, timeout:43200."
+      "evidence": "forge/history/INIT-2026-07-01-migrate-framework-policy-branch/demo/demo.json checkpoint 'acceptance-resource' carries liveEvidence.url = https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/pipelines/checks/configurations/101?api-version=7.1 (real ADO Checks REST GET, capturedAt: 2026-07-03T03:29:37Z). Response includes check id=101, type 'Approval', approvers, timeout:43200."
     }
   ]
 }
