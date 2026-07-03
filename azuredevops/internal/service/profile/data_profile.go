@@ -2,24 +2,26 @@ package profile
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	profileapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/profile"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 // Ensure interface compliance.
-var _ datasource.DataSource = &profileDataSource{}
-var _ datasource.DataSourceWithConfigure = &profileDataSource{}
+var (
+	_ datasource.DataSource              = &profileDataSource{}
+	_ datasource.DataSourceWithConfigure = &profileDataSource{}
+)
 
 // profileDataSource implements the betterado_profile framework data source.
 type profileDataSource struct {
-	profileClient profileapi.Client
+	client *client.AggregatedClient
 }
 
 // NewProfileDataSource returns a new framework data source for betterado_profile.
@@ -34,6 +36,21 @@ type profileDataModel struct {
 	EmailAddress types.String `tfsdk:"email_address"`
 	PublicAlias  types.String `tfsdk:"public_alias"`
 	AvatarURL    types.String `tfsdk:"avatar_url"`
+}
+
+// vspsProfile is the wire-format response from the VSSPS profile REST endpoint.
+type vspsProfile struct {
+	ID             string                     `json:"id"`
+	DisplayName    string                     `json:"displayName"`
+	EmailAddress   string                     `json:"emailAddress"`
+	PublicAlias    string                     `json:"publicAlias"`
+	CoreAttributes map[string]vspsProfileAttr `json:"coreAttributes"`
+}
+
+// vspsProfileAttr holds one entry from the coreAttributes map.
+type vspsProfileAttr struct {
+	Descriptor string      `json:"descriptor"`
+	Value      interface{} `json:"value"`
 }
 
 func (d *profileDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -81,11 +98,11 @@ func (d *profileDataSource) Configure(_ context.Context, req datasource.Configur
 		)
 		return
 	}
-	d.profileClient = c.ProfileClient
+	d.client = c
 }
 
 func (d *profileDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	if d.profileClient == nil {
+	if d.client == nil {
 		resp.Diagnostics.AddError("Client not configured", "betterado_profile data source Read: provider client not configured")
 		return
 	}
@@ -102,13 +119,14 @@ func (d *profileDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	details := true
-	coreAttrs := "Email,Avatar,DisplayName,ContactWithOffers"
-	p, err := d.profileClient.GetProfile(ctx, profileapi.GetProfileArgs{
-		Id:             &id,
-		Details:        &details,
-		CoreAttributes: &coreAttrs,
-	})
+	// Call the VSSPS profile endpoint directly, bypassing the SDK's
+	// location-service discovery (OPTIONS /_apis) which can return 401 when
+	// the PAT is scoped to a single org and the request hits app.vssps.visualstudio.com.
+	endpointURL := fmt.Sprintf(
+		"https://app.vssps.visualstudio.com/_apis/profile/profiles/%s?api-version=7.1-preview.3&details=true&coreAttributes=Email,Avatar,DisplayName,ContactWithOffers",
+		id,
+	)
+	p, err := fetchProfile(ctx, endpointURL, d.client.BasicAuth)
 	if err != nil {
 		if isNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -123,42 +141,68 @@ func (d *profileDataSource) Read(ctx context.Context, req datasource.ReadRequest
 		return
 	}
 
-	// Extract the profile ID (UUID).
-	profileID := ""
-	if p.Id != nil {
-		profileID = p.Id.String()
-	}
-	model.ID = types.StringValue(profileID)
+	model.ID = types.StringValue(p.ID)
+	model.DisplayName = types.StringValue(p.DisplayName)
+	model.EmailAddress = types.StringValue(p.EmailAddress)
+	model.PublicAlias = types.StringValue(p.PublicAlias)
 
-	// Extract core attributes from the CoreAttributes map.
-	model.DisplayName = types.StringValue("")
-	model.EmailAddress = types.StringValue("")
-	model.PublicAlias = types.StringValue("")
-	model.AvatarURL = types.StringValue("")
-
+	// Avatar is a coreAttribute — extract if present.
+	avatarURL := ""
 	if p.CoreAttributes != nil {
-		attrs := *p.CoreAttributes
-
-		if attr, ok := attrs["DisplayName"]; ok {
-			model.DisplayName = types.StringValue(extractStringValue(attr.Value))
-		}
-		if attr, ok := attrs["Email"]; ok {
-			model.EmailAddress = types.StringValue(extractStringValue(attr.Value))
-		}
-		if attr, ok := attrs["PublicAlias"]; ok {
-			model.PublicAlias = types.StringValue(extractStringValue(attr.Value))
-		}
-		if attr, ok := attrs["Avatar"]; ok {
-			model.AvatarURL = types.StringValue(extractAvatarValue(attr.Value))
+		if attr, ok := p.CoreAttributes["Avatar"]; ok {
+			avatarURL = extractStringAttr(attr.Value)
 		}
 	}
+	model.AvatarURL = types.StringValue(avatarURL)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
-// extractStringValue converts an interface{} value from CoreProfileAttribute.Value to a string.
-// The value may be a string, a JSON-encoded string, or a map with a "value" key.
-func extractStringValue(v interface{}) string {
+// fetchProfile makes a direct REST call to the VSSPS profile endpoint and
+// returns the profile object. It uses the supplied basicAuth header (e.g.
+// "Basic <base64>") to authenticate, bypassing the SDK's location-service
+// discovery which issues an OPTIONS /_apis probe that can 401 on vssps.
+func fetchProfile(ctx context.Context, endpointURL, basicAuth string) (*vspsProfile, error) {
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, endpointURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating request: %w", err)
+	}
+	httpReq.Header.Set("Authorization", basicAuth)
+	httpReq.Header.Set("Accept", "application/json")
+
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("executing request: %w", err)
+	}
+	defer httpResp.Body.Close() //nolint:errcheck
+
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("reading response body: %w", err)
+	}
+
+	if httpResp.StatusCode == 404 {
+		return nil, fmt.Errorf("404 Not Found")
+	}
+
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		snippet := string(body)
+		if len(snippet) > 200 {
+			snippet = snippet[:200]
+		}
+		return nil, fmt.Errorf("HTTP %d: %s", httpResp.StatusCode, snippet)
+	}
+
+	var profile vspsProfile
+	if err := json.Unmarshal(body, &profile); err != nil {
+		return nil, fmt.Errorf("decoding response: %w", err)
+	}
+	return &profile, nil
+}
+
+// extractStringAttr converts an interface{} value from a core profile attribute
+// to a string.
+func extractStringAttr(v interface{}) string {
 	if v == nil {
 		return ""
 	}
@@ -170,7 +214,6 @@ func extractStringValue(v interface{}) string {
 			return s
 		}
 	}
-	// Try JSON-marshalled representation.
 	b, err := json.Marshal(v)
 	if err != nil {
 		return ""
@@ -180,26 +223,6 @@ func extractStringValue(v interface{}) string {
 		return s
 	}
 	return string(b)
-}
-
-// extractAvatarValue extracts and base64-encodes the avatar bytes from CoreProfileAttribute.Value.
-// The Avatar value is typically a JSON object: {"value": "<base64>", ...} or raw bytes.
-func extractAvatarValue(v interface{}) string {
-	if v == nil {
-		return ""
-	}
-	switch val := v.(type) {
-	case []byte:
-		return base64.StdEncoding.EncodeToString(val)
-	case string:
-		return val
-	case map[string]interface{}:
-		// The value field may be a base64 string directly.
-		if s, ok := val["value"].(string); ok {
-			return s
-		}
-	}
-	return ""
 }
 
 // isNotFound returns true when the ADO API responded with a 404.

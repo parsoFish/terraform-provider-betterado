@@ -49,7 +49,13 @@ import (
 // allow for mocking to support unit testing of the funcs that invoke the
 // Azure DevOps client.
 type AggregatedClient struct {
-	OrganizationURL               string
+	OrganizationURL string
+	// BasicAuth is the pre-computed "Basic <base64>" Authorization header value
+	// for the configured credentials. It is stored here so that data sources
+	// that must call VSSPS endpoints (accounts, profile) can build their own
+	// HTTP requests without going through the SDK's location-service discovery,
+	// which may return 401 when the PAT is scoped to a single org.
+	BasicAuth                     string
 	AccountsClient                accounts.Client
 	CoreClient                    core.Client
 	BuildClient                   build.Client
@@ -98,6 +104,16 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 	}
 
 	setUserAgent(connection)
+
+	// Pre-compute the Basic auth header so that data sources making direct
+	// HTTP calls to VSSPS endpoints (accounts, profile) can authenticate
+	// without going through the SDK's location-service discovery.
+	basicAuth := ""
+	if authProvider != nil {
+		if authHeader, authErr := authProvider.GetAuth(ctx); authErr == nil {
+			basicAuth = authHeader
+		}
+	}
 
 	// The Profile and Accounts APIs are hosted on the global VSSPS endpoint.
 	// Their resource area IDs (8ccfef3d-... and 0d55247a-...) are NOT
@@ -263,6 +279,7 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 
 	aggregatedClient := &AggregatedClient{
 		OrganizationURL:               organizationURL,
+		BasicAuth:                     basicAuth,
 		AccountsClient:                accountsClient,
 		CoreClient:                    coreClient,
 		BuildClient:                   buildClient,

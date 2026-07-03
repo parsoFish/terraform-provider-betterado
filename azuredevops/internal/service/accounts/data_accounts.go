@@ -2,19 +2,24 @@ package accounts
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	accountsapi "github.com/microsoft/azure-devops-go-api/azuredevops/v7/accounts"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 // Ensure interface compliance.
-var _ datasource.DataSource = &accountsDataSource{}
-var _ datasource.DataSourceWithConfigure = &accountsDataSource{}
+var (
+	_ datasource.DataSource              = &accountsDataSource{}
+	_ datasource.DataSourceWithConfigure = &accountsDataSource{}
+)
 
 // accountsDataSource implements the betterado_accounts framework data source.
 type accountsDataSource struct {
@@ -40,6 +45,15 @@ type accountsDataModel struct {
 	ID       types.String   `tfsdk:"id"`
 	MemberID types.String   `tfsdk:"member_id"`
 	Accounts []accountModel `tfsdk:"accounts"`
+}
+
+// vspsAccount is a wire-format account from the VSSPS REST API.
+type vspsAccount struct {
+	AccountID        string `json:"accountId"`
+	AccountName      string `json:"accountName"`
+	AccountURI       string `json:"accountUri"`
+	AccountType      string `json:"accountType"`
+	OrganizationName string `json:"organizationName"`
 }
 
 func (d *accountsDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -117,41 +131,37 @@ func (d *accountsDataSource) Read(ctx context.Context, req datasource.ReadReques
 		return
 	}
 
-	args := accountsapi.GetAccountsArgs{}
+	// Build query params for the VSSPS accounts endpoint.
+	params := url.Values{}
+	params.Set("api-version", "7.1-preview.1")
 	if !model.MemberID.IsNull() && !model.MemberID.IsUnknown() && model.MemberID.ValueString() != "" {
-		memberUUID, err := uuid.Parse(model.MemberID.ValueString())
-		if err != nil {
+		memberID := model.MemberID.ValueString()
+		if _, err := uuid.Parse(memberID); err != nil {
 			resp.Diagnostics.AddError("Invalid member_id", fmt.Sprintf("member_id must be a valid UUID: %s", err))
 			return
 		}
-		args.MemberId = &memberUUID
+		params.Set("memberId", memberID)
 	}
 
-	accts, err := d.client.AccountsClient.GetAccounts(d.client.Ctx, args)
+	// Call the VSSPS accounts endpoint directly, bypassing the SDK's
+	// location-service discovery (OPTIONS /_apis) which can return 401 when
+	// the PAT is scoped to a single org and the request hits app.vssps.visualstudio.com.
+	endpointURL := "https://app.vssps.visualstudio.com/_apis/accounts?" + params.Encode()
+	accts, err := fetchAccounts(ctx, endpointURL, d.client.BasicAuth)
 	if err != nil {
-		// 404 → treat as empty list per WI spec.
-		if isNotFound(err) {
-			model.ID = types.StringValue("accounts")
-			model.Accounts = []accountModel{}
-			resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
-			return
-		}
 		resp.Diagnostics.AddError("Read error", fmt.Sprintf("reading accounts: %s", err))
 		return
 	}
 
 	var accountItems []accountModel
-	if accts != nil {
-		for _, a := range *accts {
-			item := accountModel{
-				AccountID:        stringFromUUID(a.AccountId),
-				AccountName:      stringFromPtr(a.AccountName),
-				AccountURI:       stringFromPtr(a.AccountUri),
-				AccountType:      accountTypeString(a.AccountType),
-				OrganizationName: stringFromPtr(a.OrganizationName),
-			}
-			accountItems = append(accountItems, item)
-		}
+	for _, a := range accts {
+		accountItems = append(accountItems, accountModel{
+			AccountID:        types.StringValue(a.AccountID),
+			AccountName:      types.StringValue(a.AccountName),
+			AccountURI:       types.StringValue(a.AccountURI),
+			AccountType:      types.StringValue(a.AccountType),
+			OrganizationName: types.StringValue(a.OrganizationName),
+		})
 	}
 	if accountItems == nil {
 		accountItems = []accountModel{}
@@ -162,44 +172,50 @@ func (d *accountsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
-func stringFromPtr(s *string) types.String {
-	if s == nil {
-		return types.StringValue("")
+// fetchAccounts makes a direct REST call to the VSSPS accounts endpoint and
+// returns the list of accounts. It uses the supplied basicAuth header (e.g.
+// "Basic <base64>") to authenticate, bypassing the SDK's location-service
+// discovery which issues an OPTIONS /_apis probe that can 401 on vssps.
+func fetchAccounts(ctx context.Context, endpointURL, basicAuth string) ([]vspsAccount, error) {
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, endpointURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating request: %w", err)
 	}
-	return types.StringValue(*s)
-}
+	httpReq.Header.Set("Authorization", basicAuth)
+	httpReq.Header.Set("Accept", "application/json")
 
-func stringFromUUID(u *uuid.UUID) types.String {
-	if u == nil {
-		return types.StringValue("")
+	httpResp, err := http.DefaultClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("executing request: %w", err)
 	}
-	return types.StringValue(u.String())
-}
+	defer httpResp.Body.Close() //nolint:errcheck
 
-func accountTypeString(at *accountsapi.AccountType) types.String {
-	if at == nil {
-		return types.StringValue("")
+	body, err := io.ReadAll(httpResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("reading response body: %w", err)
 	}
-	return types.StringValue(string(*at))
-}
 
-// isNotFound returns true when the ADO API responded with a 404.
-func isNotFound(err error) bool {
-	if err == nil {
-		return false
-	}
-	return fmt.Sprintf("%s", err) == "404 Not Found" || contains(err.Error(), "404")
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsAt(s, substr))
-}
-
-func containsAt(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
+	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
+		// Trim body to avoid leaking large HTML error pages in diagnostics.
+		snippet := string(body)
+		if len(snippet) > 200 {
+			snippet = snippet[:200]
 		}
+		return nil, fmt.Errorf("HTTP %d: %s", httpResp.StatusCode, snippet)
 	}
-	return false
+
+	// The VSSPS accounts endpoint returns a collection object: {"count": N, "value": [...]}
+	var wrapper struct {
+		Count int           `json:"count"`
+		Value []vspsAccount `json:"value"`
+	}
+	if err := json.Unmarshal(body, &wrapper); err != nil {
+		// Fallback: try parsing as a plain array.
+		var direct []vspsAccount
+		if err2 := json.Unmarshal(body, &direct); err2 != nil {
+			return nil, fmt.Errorf("decoding response: %w (body snippet: %.200s)", err, body)
+		}
+		return direct, nil
+	}
+	return wrapper.Value, nil
 }
