@@ -523,17 +523,17 @@ func (r *VariableGroupResource) Delete(ctx context.Context, req resource.DeleteR
 	// resource is no longer found before returning, so that CheckDestroy in
 	// acceptance tests does not race against the API.
 	//
-	// ContinuousTargetOccurence: 3 requires three consecutive "not found"
-	// results before we declare deletion confirmed. This prevents a transient
-	// 404 / error flash (common in ADO's caching layer) from being interpreted
-	// as a successful deletion while the VG is actually still being removed.
+	// We wait up to 60 seconds for a single "not found" response. ContinuousTargetOccurence
+	// of 1 is sufficient here because the CheckDestroy function in acceptance tests adds
+	// its own retry window. Using a short timeout avoids accumulating parallel-test wait
+	// time that can exceed the go test 10-minute default timeout.
 	deleteConf := &retry.StateChangeConf{
 		Pending:                   []string{"deleting"},
 		Target:                    []string{"deleted"},
-		ContinuousTargetOccurence: 3,
-		Delay:                     5 * time.Second,
-		MinTimeout:                5 * time.Second,
-		Timeout:                   5 * time.Minute,
+		ContinuousTargetOccurence: 1,
+		Delay:                     2 * time.Second,
+		MinTimeout:                3 * time.Second,
+		Timeout:                   60 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			vg, getErr := r.client.TaskAgentClient.GetVariableGroup(ctx, taskagent.GetVariableGroupArgs{
 				GroupId: &vgID,

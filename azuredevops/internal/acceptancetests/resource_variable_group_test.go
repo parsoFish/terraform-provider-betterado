@@ -249,9 +249,12 @@ func checkVariableGroupExistsMux(expectedName string, expectedAllowAccess bool) 
 // Uses GetDirectClient since we're using ProtoV6ProviderFactories (mux).
 //
 // ADO variable group deletion is eventually consistent — the VG may still be
-// returned briefly after the provider's Delete (which already waits for
-// deletion) returns. We retry for up to 60 s here so that residual ADO cache
-// visibility doesn't cause spurious test failures.
+// returned briefly after the provider's Delete (which already waits for a
+// not-found response before returning) completes. We retry for up to 45 s here
+// to handle any residual ADO cache visibility after the provider's delete-wait
+// loop finishes. The 45 s limit is intentionally short to prevent parallel
+// acceptance tests from accumulating wait time that exceeds the go test
+// 10-minute default timeout.
 func checkVariableGroupDestroyedMux(s *terraform.State) error {
 	clients, err := testutils.GetDirectClient()
 	if err != nil {
@@ -269,17 +272,11 @@ func checkVariableGroupDestroyedMux(s *terraform.State) error {
 		}
 		projectID := res.Primary.Attributes["project_id"]
 
-		// Poll for up to 3 minutes: the VG must return a not-found error before
-		// we consider it destroyed. ADO variable-group deletion is eventually
-		// consistent — the VG may still be returned by GET for a substantial
-		// window after deletion, even after the provider's own delete-wait loop
-		// (which already requires 3 consecutive 404s) returns.
-		//
-		// Only treat HTTP 404 / not-found responses as confirmation of deletion.
-		// Transient network errors (5xx, timeout) are retried so they don't
-		// produce a false "not found" signal.
+		// Poll for up to 45 seconds: the provider's Delete already waits for
+		// the VG to disappear before returning, so this is a short safety-net
+		// for any remaining ADO cache inconsistency.
 		const pollInterval = 5 * time.Second
-		const timeout = 3 * time.Minute
+		const timeout = 45 * time.Second
 		deadline := time.Now().Add(timeout)
 		for {
 			_, getErr := clients.TaskAgentClient.GetVariableGroup(
