@@ -369,6 +369,18 @@ func expandNotificationSubscriptionUpdate(model *notificationSubscriptionModel) 
 }
 
 // flattenNotificationSubscription maps the API response struct to the Terraform state model.
+//
+// IMPORTANT: every Computed (or Optional+Computed) field MUST be set to a known
+// value here, even if the API does not return it. Leaving a field as types.Unknown
+// after Create/Read causes Terraform to error with "provider still indicated an
+// unknown value … after apply".
+//
+// Fields that the ADO notification API does not return (ISubscriptionFilter has
+// no Criteria field; ISubscriptionChannel has no Address field) are left at
+// their current model value when that value is already known, or set to
+// types.StringNull() when the model value is unknown/null. This preserves the
+// config-supplied value on Create (model was populated from Plan before flatten)
+// while guaranteeing a known value in state on every code path.
 func flattenNotificationSubscription(sub *notificationapi.NotificationSubscription, model *notificationSubscriptionModel) {
 	if sub == nil {
 		return
@@ -378,19 +390,39 @@ func flattenNotificationSubscription(sub *notificationapi.NotificationSubscripti
 		model.ID = types.StringValue(*sub.Id)
 	}
 
-	// Channel fields
+	// Channel type
 	if sub.Channel != nil && sub.Channel.Type != nil {
 		model.ChannelType = types.StringValue(*sub.Channel.Type)
+	}
+
+	// channel_address: the ADO ISubscriptionChannel interface only carries Type;
+	// the address is not surfaced in the Go API wrapper. Keep the model value if
+	// it is already known (set from Plan on Create / from State on Read), otherwise
+	// ensure we write a known (null) value so Terraform does not see Unknown in state.
+	if model.ChannelAddress.IsUnknown() {
+		model.ChannelAddress = types.StringNull()
 	}
 
 	// Filter fields
 	if sub.Filter != nil {
 		if sub.Filter.Type != nil {
 			model.FilterType = types.StringValue(*sub.Filter.Type)
+		} else if model.FilterType.IsUnknown() {
+			model.FilterType = types.StringNull()
 		}
 		if sub.Filter.EventType != nil {
 			model.SubscriptionType = types.StringValue(*sub.Filter.EventType)
 		}
+	} else {
+		if model.FilterType.IsUnknown() {
+			model.FilterType = types.StringNull()
+		}
+	}
+
+	// filter_criteria: ADO ISubscriptionFilter has no Criteria field in the Go
+	// wrapper; keep the model value if known, otherwise write null so state is known.
+	if model.FilterCriteria.IsUnknown() {
+		model.FilterCriteria = types.StringNull()
 	}
 
 	// Subscriber
@@ -406,5 +438,7 @@ func flattenNotificationSubscription(sub *notificationapi.NotificationSubscripti
 	// Status
 	if sub.Status != nil {
 		model.Status = types.StringValue(string(*sub.Status))
+	} else if model.Status.IsUnknown() {
+		model.Status = types.StringNull()
 	}
 }
