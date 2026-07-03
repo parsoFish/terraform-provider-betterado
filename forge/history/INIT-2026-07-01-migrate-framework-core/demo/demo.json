@@ -3,21 +3,29 @@
   "essence": "Migrates all 7 core resources (betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members) and 5 data sources (data.betterado_project, data.betterado_projects, data.betterado_team, data.betterado_teams, data.betterado_client_config) to terraform-plugin-framework, served through the mux provider. Produces a gap matrix (docs/core-gap-matrix.md) comparing all core resource schemas against the ADO REST API v7.1. Bug fix: applyFeatureStates surfaces silent ADO feature-state rejections (testplans license restriction). Fixture safety hardened. Missing validators and features attribute in betterado_project schema are documented as deferred regressions. provider_test.go updated to reflect all SDKv2 deregistrations.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-core",
-  "diffStat": "187 files changed, 13603 insertions(+), 3451 deletions(-)",
+  "diffStat": "193 files changed, 13687 insertions(+), 4938 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
       "caption": "Offline unit gate: servicehook package green — verbatim gate forge ran",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "Gate runs against main branch (pre-migration)",
-      "afterNote": "Gate passes on branch HEAD: ok servicehook 0.008s"
+      "afterNote": "Gate passes on branch HEAD: ok servicehook 0.008s",
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s",
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.008s"
     },
     {
       "label": "provider-registration",
       "caption": "Framework provider registers all migrated resources/data-sources; SDKv2 maps fully updated",
       "command": "go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/",
       "beforeNote": "betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members in SDKv2 ResourcesMap; betterado_team, betterado_teams, betterado_client_config in DataSourcesMap",
-      "afterNote": "All 7 core resources and 5 data sources removed from SDKv2 maps; all registered in framework_provider.go Resources()/DataSources(). TestProvider_HasChildResources + TestProvider_HasChildDataSources pass."
+      "afterNote": "All 7 core resources and 5 data sources removed from SDKv2 maps; all registered in framework_provider.go Resources()/DataSources(). TestProvider_HasChildResources + TestProvider_HasChildDataSources pass.",
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops\t0.005s",
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops\t0.007s"
     },
     {
       "label": "acceptance-resource",
@@ -30,7 +38,11 @@
         "capturedAt": "2026-07-02T09:17:10Z",
         "label": "acceptance-resource",
         "response": "{\"artifacts\":\"disabled\",\"boards\":\"enabled\",\"pipelines\":\"enabled\",\"repositories\":\"enabled\",\"testplans\":\"disabled\"}"
-      }
+      },
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeNote": "betterado_project_features served via SDKv2 schema helper; testplans feature toggle silently failed (license restriction) causing 'inconsistent result after apply' panic — live test skipped (TF_ACC not set on main) with reason: sdkv2 resource never calls CaptureLiveEvidence",
+      "afterNote": "betterado_project_features served via framework resource.Resource; applyFeatureStates checks ContributedFeatureState return — surfaces license errors; test uses artifacts+boards (license-free); live GET response captured at 2026-07-02T09:17:10Z: {\"artifacts\":\"disabled\",\"boards\":\"enabled\",\"pipelines\":\"enabled\",\"repositories\":\"enabled\",\"testplans\":\"disabled\"}"
     }
   ],
   "acEvaluations": [
