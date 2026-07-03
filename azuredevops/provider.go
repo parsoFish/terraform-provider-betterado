@@ -153,7 +153,6 @@ func Provider() *schema.Provider {
 			"betterado_team":                                        core.ResourceTeam(),
 			"betterado_team_administrators":                         core.ResourceTeamAdministrators(),
 			"betterado_team_members":                                core.ResourceTeamMembers(),
-			"betterado_user_entitlement":                            memberentitlementmanagement.ResourceUserEntitlement(),
 			"betterado_variable_group":                              taskagent.ResourceVariableGroup(),
 			"betterado_variable_group_permissions":                  permissions.ResourceVariableGroupPermissions(),
 			"betterado_variable_group_variable":                     taskagent.ResourceVariableGroupVariable(),
