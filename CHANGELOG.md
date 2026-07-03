@@ -7,6 +7,35 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### Changed
+
+- `betterado_dashboard`: migrated to terraform-plugin-framework (parity with existing SDKv2 behaviour; no schema changes)
+- `betterado_extension`: migrated to terraform-plugin-framework (parity with existing SDKv2 behaviour; no schema changes)
+
+### Added
+
+- `docs/dashboard-gap-matrix.md`: field-by-field coverage analysis of the ADO Dashboard API v7.1
+- `docs/extension-gap-matrix.md`: field-by-field coverage analysis of the ADO Extension Management API v7.1
+
+### FEATURES
+
+- **`betterado_extension` migrated to terraform-plugin-framework.** The resource
+  now uses the terraform-plugin-framework implementation served through the mux
+  provider. Schema is unchanged (`extension_id`, `publisher_id`, `disabled`,
+  `version`, `extension_name`, `publisher_name`, `scope`); ForceNew behaviour on
+  `extension_id`/`publisher_id` is preserved. Verified by live acceptance tests
+  `TestAccExtension_basic`, `TestAccExtension_complete`, `TestAccExtension_update`.
+
+- **`betterado_dashboard` migrated to terraform-plugin-framework.** The resource
+  now uses the terraform-plugin-framework implementation served through the mux
+  provider. Schema is unchanged (`project_id`, `team_id`, `name`, `description`,
+  `refresh_interval`, `owner_id`); supports both project-scoped and team-scoped
+  dashboards. Live acceptance tests `TestAccDashboard_project_basic`,
+  `TestAccDashboard_project_update`, `TestAccDashboard_team_basic`,
+  `TestAccDashboard_team_update` verified against ADO with the betterado-standing-demo
+  fixture project; live read-back evidence captured under `dashboard-acceptance-resource`
+  label in `.forge/live-evidence/`.
+
 ## [1.3.0] - 2026-07-03
 
 ### FEATURES
