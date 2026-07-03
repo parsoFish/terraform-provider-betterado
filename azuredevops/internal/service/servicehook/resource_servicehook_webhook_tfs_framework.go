@@ -1136,131 +1136,141 @@ func (r *servicehookWebhookTfsResource) flattenSubscription(ctx context.Context,
 		switch *sub.EventType {
 		case "build.complete":
 			model.BuildCompleted = []buildCompletedModel{{
-				DefinitionName: types.StringValue(pi["definitionName"]),
-				BuildStatus:    types.StringValue(pi["buildStatus"]),
+				DefinitionName: tfsOptionalString(pi["definitionName"]),
+				BuildStatus:    tfsOptionalString(pi["buildStatus"]),
 			}}
 
 		case "ms.vss-code.git-pullrequest-comment-event":
 			model.GitPullRequestCommented = []gitPullRequestCommentedModel{{
-				RepositoryID: types.StringValue(pi["repository"]),
-				Branch:       types.StringValue(pi["branch"]),
+				RepositoryID: tfsOptionalString(pi["repository"]),
+				Branch:       tfsOptionalString(pi["branch"]),
 			}}
 
 		case "git.pullrequest.created":
 			model.GitPullRequestCreated = []gitPullRequestCreatedModel{{
-				RepositoryID:                 types.StringValue(pi["repository"]),
-				PullRequestCreatedBy:         types.StringValue(pi["pullrequestCreatedBy"]),
-				PullRequestReviewersContains: types.StringValue(pi["pullrequestReviewersContains"]),
-				Branch:                       types.StringValue(pi["branch"]),
+				RepositoryID:                 tfsOptionalString(pi["repository"]),
+				PullRequestCreatedBy:         tfsOptionalString(pi["pullrequestCreatedBy"]),
+				PullRequestReviewersContains: tfsOptionalString(pi["pullrequestReviewersContains"]),
+				Branch:                       tfsOptionalString(pi["branch"]),
 			}}
 
 		case "git.pullrequest.merged":
 			model.GitPullRequestMergeAttempted = []gitPullRequestMergeAttemptedModel{{
-				RepositoryID:                 types.StringValue(pi["repository"]),
-				PullRequestCreatedBy:         types.StringValue(pi["pullrequestCreatedBy"]),
-				PullRequestReviewersContains: types.StringValue(pi["pullrequestReviewersContains"]),
-				Branch:                       types.StringValue(pi["branch"]),
-				MergeResult:                  types.StringValue(pi["mergeResult"]),
+				RepositoryID:                 tfsOptionalString(pi["repository"]),
+				PullRequestCreatedBy:         tfsOptionalString(pi["pullrequestCreatedBy"]),
+				PullRequestReviewersContains: tfsOptionalString(pi["pullrequestReviewersContains"]),
+				Branch:                       tfsOptionalString(pi["branch"]),
+				MergeResult:                  tfsOptionalString(pi["mergeResult"]),
 			}}
 
 		case "git.pullrequest.updated":
 			model.GitPullRequestUpdated = []gitPullRequestUpdatedModel{{
-				NotificationType:             types.StringValue(pi["notificationType"]),
-				RepositoryID:                 types.StringValue(pi["repository"]),
-				PullRequestCreatedBy:         types.StringValue(pi["pullrequestCreatedBy"]),
-				PullRequestReviewersContains: types.StringValue(pi["pullrequestReviewersContains"]),
-				Branch:                       types.StringValue(pi["branch"]),
+				NotificationType:             tfsOptionalString(pi["notificationType"]),
+				RepositoryID:                 tfsOptionalString(pi["repository"]),
+				PullRequestCreatedBy:         tfsOptionalString(pi["pullrequestCreatedBy"]),
+				PullRequestReviewersContains: tfsOptionalString(pi["pullrequestReviewersContains"]),
+				Branch:                       tfsOptionalString(pi["branch"]),
 			}}
 
 		case "git.push":
 			model.GitPush = []gitPushModel{{
-				Branch:       types.StringValue(pi["branch"]),
-				PushedBy:     types.StringValue(pi["pushedBy"]),
-				RepositoryID: types.StringValue(pi["repository"]),
+				Branch:       tfsOptionalString(pi["branch"]),
+				PushedBy:     tfsOptionalString(pi["pushedBy"]),
+				RepositoryID: tfsOptionalString(pi["repository"]),
 			}}
 
 		case "git.repo.created":
 			model.RepositoryCreated = []repositoryCreatedModel{{
-				ProjectID: types.StringValue(pi["projectId"]),
+				ProjectID: tfsOptionalString(pi["projectId"]),
 			}}
 
 		case "git.repo.deleted":
 			model.RepositoryDeleted = []repositoryDeletedModel{{
-				RepositoryID: types.StringValue(pi["repository"]),
+				RepositoryID: tfsOptionalString(pi["repository"]),
 			}}
 
 		case "git.repo.forked":
 			model.RepositoryForked = []repositoryForkedModel{{
-				RepositoryID: types.StringValue(pi["repository"]),
+				RepositoryID: tfsOptionalString(pi["repository"]),
 			}}
 
 		case "git.repo.renamed":
 			model.RepositoryRenamed = []repositoryRenamedModel{{
-				RepositoryID: types.StringValue(pi["repository"]),
+				RepositoryID: tfsOptionalString(pi["repository"]),
 			}}
 
 		case "git.repo.statuschanged":
 			model.RepositoryStatusChanged = []repositoryStatusChangedModel{{
-				RepositoryID: types.StringValue(pi["repository"]),
+				RepositoryID: tfsOptionalString(pi["repository"]),
 			}}
 
 		case "ms.vss-endpoint.endpoint-created":
 			model.ServiceConnectionCreated = []serviceConnectionCreatedModel{{
-				ProjectID: types.StringValue(pi["project"]),
+				ProjectID: tfsOptionalString(pi["project"]),
 			}}
 
 		case "ms.vss-endpoint.endpoint-updated":
 			model.ServiceConnectionUpdated = []serviceConnectionUpdatedModel{{
-				ProjectID: types.StringValue(pi["project"]),
+				ProjectID: tfsOptionalString(pi["project"]),
 			}}
 
 		case "tfvc.checkin":
 			model.TfvcCheckin = []tfvcCheckinModel{{
-				Path: types.StringValue(pi["path"]),
+				Path: types.StringValue(pi["path"]), // Required field — always set
 			}}
 
 		case "workitem.commented":
 			model.WorkItemCommented = []workItemCommentedModel{{
-				AreaPath:       types.StringValue(pi["areaPath"]),
-				CommentPattern: types.StringValue(pi["commentPattern"]),
-				WorkItemType:   types.StringValue(pi["workItemType"]),
-				Tag:            types.StringValue(pi["tag"]),
+				AreaPath:       tfsOptionalString(pi["areaPath"]),
+				CommentPattern: tfsOptionalString(pi["commentPattern"]),
+				WorkItemType:   tfsOptionalString(pi["workItemType"]),
+				Tag:            tfsOptionalString(pi["tag"]),
 			}}
 
 		case "workitem.created":
 			model.WorkItemCreated = []workItemCreatedModel{{
-				AreaPath:     types.StringValue(pi["areaPath"]),
-				WorkItemType: types.StringValue(pi["workItemType"]),
+				AreaPath:     tfsOptionalString(pi["areaPath"]),
+				WorkItemType: tfsOptionalString(pi["workItemType"]),
 				LinksChanged: types.BoolNull(),
-				Tag:          types.StringValue(pi["tag"]),
+				Tag:          tfsOptionalString(pi["tag"]),
 			}}
 
 		case "workitem.deleted":
 			model.WorkItemDeleted = []workItemDeletedModel{{
-				AreaPath:     types.StringValue(pi["areaPath"]),
-				WorkItemType: types.StringValue(pi["workItemType"]),
-				Tag:          types.StringValue(pi["tag"]),
+				AreaPath:     tfsOptionalString(pi["areaPath"]),
+				WorkItemType: tfsOptionalString(pi["workItemType"]),
+				Tag:          tfsOptionalString(pi["tag"]),
 			}}
 
 		case "workitem.restored":
 			model.WorkItemRestored = []workItemRestoredModel{{
-				AreaPath:     types.StringValue(pi["areaPath"]),
-				WorkItemType: types.StringValue(pi["workItemType"]),
-				Tag:          types.StringValue(pi["tag"]),
+				AreaPath:     tfsOptionalString(pi["areaPath"]),
+				WorkItemType: tfsOptionalString(pi["workItemType"]),
+				Tag:          tfsOptionalString(pi["tag"]),
 			}}
 
 		case "workitem.updated":
 			model.WorkItemUpdated = []workItemUpdatedModel{{
-				AreaPath:      types.StringValue(pi["areaPath"]),
-				ChangedFields: types.StringValue(pi["changedFields"]),
-				WorkItemType:  types.StringValue(pi["workItemType"]),
+				AreaPath:      tfsOptionalString(pi["areaPath"]),
+				ChangedFields: tfsOptionalString(pi["changedFields"]),
+				WorkItemType:  tfsOptionalString(pi["workItemType"]),
 				LinksChanged:  types.BoolNull(),
-				Tag:           types.StringValue(pi["tag"]),
+				Tag:           tfsOptionalString(pi["tag"]),
 			}}
 		}
 	}
 
 	return nil
+}
+
+// tfsOptionalString converts an API string value to a types.String:
+// empty string → null (preserves plan-time null for unset Optional attributes,
+// preventing "Provider produced inconsistent result after apply" drift).
+func tfsOptionalString(v string) types.String {
+	if v == "" {
+		return types.StringNull()
+	}
+	return types.StringValue(v)
 }
 
 // ── Inline plan modifiers (tfs namespace) ─────────────────────────────────────
