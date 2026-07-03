@@ -3,12 +3,12 @@
 page_title: "betterado_workitemtrackingprocess_process_permissions Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages work item tracking process ACL permissions in Azure DevOps.
 ---
 
 # betterado_workitemtrackingprocess_process_permissions (Resource)
 
-
+Manages work item tracking process ACL permissions in Azure DevOps.
 
 ## Example Usage
 
@@ -47,18 +47,7 @@ resource "betterado_workitemtrackingprocess_process_permissions" "example" {
 ### Optional
 
 - `replace` (Boolean)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

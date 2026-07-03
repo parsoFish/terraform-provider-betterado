@@ -3,12 +3,12 @@
 page_title: "betterado_variable_group_permissions Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages variable group ACL permissions in Azure DevOps.
 ---
 
 # betterado_variable_group_permissions (Resource)
 
-
+Manages variable group ACL permissions in Azure DevOps.
 
 ## Example Usage
 
@@ -66,18 +66,7 @@ resource "betterado_variable_group_permissions" "example" {
 ### Optional
 
 - `replace` (Boolean)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

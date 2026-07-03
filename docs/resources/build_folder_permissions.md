@@ -3,12 +3,12 @@
 page_title: "betterado_build_folder_permissions Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages build folder ACL permissions in Azure DevOps.
 ---
 
 # betterado_build_folder_permissions (Resource)
 
-
+Manages build folder ACL permissions in Azure DevOps.
 
 ## Example Usage
 
@@ -54,18 +54,7 @@ resource "betterado_build_folder_permissions" "example" {
 ### Optional
 
 - `replace` (Boolean)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

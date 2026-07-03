@@ -3,12 +3,12 @@
 page_title: "betterado_servicehook_permissions Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages service hook ACL permissions in Azure DevOps.
 ---
 
 # betterado_servicehook_permissions (Resource)
 
-
+Manages service hook ACL permissions in Azure DevOps.
 
 ## Example Usage
 
@@ -52,18 +52,7 @@ resource "betterado_servicehook_permissions" "example" {
 
 - `project_id` (String)
 - `replace` (Boolean)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

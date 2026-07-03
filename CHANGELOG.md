@@ -53,6 +53,75 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   `replace`). Verified by live acceptance test
   `TestAccProjectPermissionsFramework`.
 
+- **`betterado_area_permissions` migrated to terraform-plugin-framework.**
+  Manages area (classification node) ACL permissions. Schema is unchanged
+  (`project_id`, `token`, `principal`, `permissions`, `replace`). Served through
+  the mux provider. Verified by live acceptance test
+  `TestAccAreaPermissionsFramework`.
+
+- **`betterado_build_definition_permissions` migrated to terraform-plugin-framework.**
+  Manages build definition ACL permissions. Schema is unchanged
+  (`project_id`, `build_definition_id`, `principal`, `permissions`, `replace`).
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccBuildDefinitionPermissionsFramework`.
+
+- **`betterado_build_folder_permissions` migrated to terraform-plugin-framework.**
+  Manages build folder ACL permissions. Schema is unchanged
+  (`project_id`, `path`, `principal`, `permissions`, `replace`). Served through
+  the mux provider. Verified by live acceptance test
+  `TestAccBuildFolderPermissionsFramework`.
+
+- **`betterado_git_permissions` migrated to terraform-plugin-framework.**
+  Manages Git repository ACL permissions. Schema is unchanged
+  (`project_id`, `repository_id`, `branch_name`, `principal`, `permissions`,
+  `replace`). Served through the mux provider. Verified by live acceptance test
+  `TestAccGitPermissionsFramework`.
+
+- **`betterado_iteration_permissions` migrated to terraform-plugin-framework.**
+  Manages iteration (classification node) ACL permissions. Schema is unchanged
+  (`project_id`, `token`, `principal`, `permissions`, `replace`). Served through
+  the mux provider. Verified by live acceptance test
+  `TestAccIterationPermissionsFramework`.
+
+- **`betterado_library_permissions` migrated to terraform-plugin-framework.**
+  Manages library ACL permissions. Schema is unchanged
+  (`project_id`, `principal`, `permissions`, `replace`). Served through the mux
+  provider. Verified by live acceptance test `TestAccLibraryPermissionsFramework`.
+
+- **`betterado_serviceendpoint_permissions` migrated to terraform-plugin-framework.**
+  Manages service endpoint ACL permissions. Schema is unchanged
+  (`project_id`, `service_endpoint_id`, `principal`, `permissions`, `replace`).
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccServiceEndpointPermissionsFramework`.
+
+- **`betterado_servicehook_permissions` migrated to terraform-plugin-framework.**
+  Manages service hook ACL permissions. Schema is unchanged
+  (`project_id`, `principal`, `permissions`, `replace`). Served through the mux
+  provider. Verified by live acceptance test `TestAccServiceHookPermissionsFramework`.
+
+- **`betterado_tagging_permissions` migrated to terraform-plugin-framework.**
+  Manages tagging ACL permissions. Schema is unchanged
+  (`project_id`, `principal`, `permissions`, `replace`). Served through the mux
+  provider. Verified by live acceptance test `TestAccTaggingPermissionsFramework`.
+
+- **`betterado_variable_group_permissions` migrated to terraform-plugin-framework.**
+  Manages variable group ACL permissions. Schema is unchanged
+  (`project_id`, `variable_group_id`, `principal`, `permissions`, `replace`).
+  Served through the mux provider. Verified by live acceptance test
+  `TestAccVariableGroupPermissionsFramework`.
+
+- **`betterado_workitemquery_permissions` migrated to terraform-plugin-framework.**
+  Manages work item query ACL permissions. Schema is unchanged
+  (`project_id`, `path`, `principal`, `permissions`, `replace`). Served through
+  the mux provider. Verified by live acceptance test
+  `TestAccWorkItemQueryPermissionsFramework`.
+
+- **`betterado_workitemtrackingprocess_process_permissions` migrated to terraform-plugin-framework.**
+  Manages work item tracking process ACL permissions. Schema is unchanged
+  (`principal`, `permissions`, `replace`). Served through the mux provider.
+  Verified by live acceptance test
+  `TestAccWorkItemTrackingProcessPermissionsFramework`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

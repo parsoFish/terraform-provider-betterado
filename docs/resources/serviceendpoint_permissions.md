@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_permissions Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages service endpoint ACL permissions in Azure DevOps.
 ---
 
 # betterado_serviceendpoint_permissions (Resource)
 
-
+Manages service endpoint ACL permissions in Azure DevOps.
 
 ## Example Usage
 
@@ -54,18 +54,7 @@ resource "betterado_serviceendpoint_permissions" "example" {
 
 - `replace` (Boolean)
 - `serviceendpoint_id` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

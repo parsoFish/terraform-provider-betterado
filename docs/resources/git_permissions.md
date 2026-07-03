@@ -3,12 +3,12 @@
 page_title: "betterado_git_permissions Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages Git repository ACL permissions in Azure DevOps.
 ---
 
 # betterado_git_permissions (Resource)
 
-
+Manages Git repository ACL permissions in Azure DevOps.
 
 ## Example Usage
 
@@ -63,18 +63,7 @@ resource "betterado_git_permissions" "example" {
 - `branch_name` (String)
 - `replace` (Boolean)
 - `repository_id` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
