@@ -2,7 +2,7 @@
 
 > **Initiative:** INIT-2026-07-01-migrate-framework-build
 > **Branch:** forge/INIT-2026-07-01-migrate-framework-build
-> **Diff:** 85 files changed, 6553 insertions(+), 845 deletions(-)
+> **Diff:** 85 files changed, 6571 insertions(+), 845 deletions(-)
 
 ---
 
@@ -13,6 +13,7 @@
 - Unit schema tests for all five resources/data-sources pass offline (no `TF_ACC` required); 15 unit tests total including trigger read-back, validator, and skip_first_run tests.
 - Acceptance tests implemented with `CaptureLiveEvidence` hooks for all five resources — live REST GET evidence wired.
 - `docs/build-gap-matrix.md` produced; Terraform registry docs regenerated; CHANGELOG draft added; `PROVIDER_VERSION.txt` bumped.
+- **`skip_first_run` default corrected to `true`** (SDKv2 parity: absent `features` block means no auto-run on create).
 
 ---
 
@@ -42,7 +43,7 @@
 
 | | Before | After |
 |---|--------|-------|
-| **Gate** | Gate covers release/taskagent packages (the project's offline gate); build package framework files did not exist on main | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.014s`<br>`ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.034s`<br>`ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.018s` |
+| **Gate** | Gate covers release/taskagent packages (the project's offline gate); build package framework files did not exist on main | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.006s`<br>`ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.005s`<br>`ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.003s` |
 
 ---
 
@@ -52,7 +53,7 @@
 
 | | Before | After |
 |---|--------|-------|
-| **Result** | No framework schema tests existed on main; TestBuildGapMatrixExists and all _Framework_Schema tests did not exist | `--- PASS: TestBuildGapMatrixExists (0.00s)`<br>`--- PASS: TestBuildDefinitionDataSourceFramework_Schema (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_StringNotWhitespace (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_PathValidator (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_Schema (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_FlattenCITrigger_UseYAML (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_FlattenCITrigger_Override (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_FlattenPRTrigger (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_FlattenFilters (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_ValidateConfig_Conflict (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_SkipFirstRunDefault (0.00s)`<br>`--- PASS: TestResourceAuthorizationFramework_Schema (0.00s)`<br>`--- PASS: TestBuildFolderFramework_PathValidator (0.00s)`<br>`--- PASS: TestBuildFolderFramework_Schema (0.00s)`<br>`--- PASS: TestPipelineAuthorizationFramework_Schema (0.00s)`<br>`PASS`<br>`ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build	0.006s` |
+| **Result** | No framework schema tests existed on main; TestBuildGapMatrixExists and all _Framework_Schema tests did not exist | `--- PASS: TestBuildGapMatrixExists (0.00s)`<br>`--- PASS: TestBuildDefinitionDataSourceFramework_Schema (0.00s)`<br>`--- PASS: TestBuildFolderFramework_Schema (0.00s)`<br>`--- PASS: TestPipelineAuthorizationFramework_Schema (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_ValidateConfig_Conflict (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_SkipFirstRunDefault (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_StringNotWhitespace (0.00s)`<br>`--- PASS: TestResourceAuthorizationFramework_Schema (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_FlattenPRTrigger (0.00s)`<br>`--- PASS: TestBuildFolderFramework_PathValidator (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_PathValidator (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_FlattenCITrigger_UseYAML (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_FlattenCITrigger_Override (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_FlattenFilters (0.00s)`<br>`--- PASS: TestBuildDefinitionFramework_Schema (0.00s)`<br>`PASS`<br>`ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build	0.006s` |
 
 ---
 
@@ -100,7 +101,7 @@
 | TestBuildDefinitionFramework_FlattenPRTrigger | ✅ pass | +1 pull_request_trigger read-back |
 | TestBuildDefinitionFramework_FlattenFilters | ✅ pass | +1 branch/path filter flatten test |
 | TestBuildDefinitionFramework_ValidateConfig_Conflict | ✅ pass | +1 github_enterprise_url+url conflict validator |
-| TestBuildDefinitionFramework_SkipFirstRunDefault | ✅ pass | +1 skip_first_run=false RunPipeline default |
+| TestBuildDefinitionFramework_SkipFirstRunDefault | ✅ pass | +1 skip_first_run=true default (SDKv2 parity: absent features block = no auto-run on create) |
 | TestBuildFolderFramework_PathValidator | ✅ pass | +1 build_folder path validator unit test |
 | TestBuildFolderFramework_Schema | ✅ pass | +1 schema unit test |
 | TestPipelineAuthorizationFramework_Schema | ✅ pass | +1 schema unit test |
@@ -120,14 +121,14 @@
 | File | Note |
 |------|------|
 | `azuredevops/internal/service/build/resource_build_folder_framework.go` | new TPF resource.Resource for betterado_build_folder |
-| `azuredevops/internal/service/build/resource_build_definition_framework.go` | new TPF resource.Resource for betterado_build_definition (ci_trigger.override, pull_request_trigger.override+forks, variable wiring, trigger read-back, skip_first_run RunPipeline, url conflict validator) |
+| `azuredevops/internal/service/build/resource_build_definition_framework.go` | new TPF resource.Resource for betterado_build_definition (ci_trigger.override, pull_request_trigger.override+forks, variable wiring, trigger read-back, skip_first_run=true default, url conflict validator) |
 | `azuredevops/internal/service/build/resource_pipeline_authorization_framework.go` | new TPF resource.Resource for betterado_pipeline_authorization |
 | `azuredevops/internal/service/build/resource_resource_authorization_framework.go` | new TPF resource.Resource for betterado_resource_authorization |
 | `azuredevops/internal/service/build/datasource_build_definition_framework.go` | new TPF datasource.DataSource for data.betterado_build_definition |
 | `azuredevops/internal/provider/framework_provider.go` | registers 4 resources + 1 data source in framework mux |
 | `azuredevops/internal/service/build/gap_matrix_test.go` | new: TestBuildGapMatrixExists gate test |
-| `docs/build-gap-matrix.md` | new: ADO v7.1 field coverage matrix for all 5 build resources |
-| `CHANGELOG.md` | draft ## [Unreleased] entry with FEATURES for all 5 migrated resources |
+| `docs/build-gap-matrix.md` | new: ADO v7.1 field coverage matrix for all 5 build resources (skip_first_run default corrected to true) |
+| `CHANGELOG.md` | draft ## [Unreleased] entry with FEATURES for all 5 migrated resources; skip_first_run=true default documented |
 | `PROVIDER_VERSION.txt` | patch version bump |
 | `docs/resources/betterado_build_definition.md` | generated registry docs |
 | `docs/resources/betterado_build_folder.md` | generated registry docs |

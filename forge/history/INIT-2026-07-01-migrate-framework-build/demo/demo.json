@@ -3,7 +3,7 @@
   "essence": "Five build-area resources/data-sources (betterado_build_definition, betterado_build_folder, betterado_pipeline_authorization, betterado_resource_authorization, data.betterado_build_definition) are now backed by terraform-plugin-framework, replacing the SDKv2 mux entries. The build_definition resource adds ci_trigger.override, pull_request_trigger.override+forks (Required), variable wiring, and framework validators. Deliberately NOT migrated this iteration: variable_groups, build_completion_trigger, schedules, jobs — documented in docs/build-gap-matrix.md.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-build",
-  "diffStat": "85 files changed, 6553 insertions(+), 845 deletions(-)",
+  "diffStat": "85 files changed, 6571 insertions(+), 845 deletions(-)",
   "summary": {
     "bullets": [
       "Five build-area resources/data-sources migrated from terraform-plugin-SDK v2 to terraform-plugin-framework.",
@@ -21,14 +21,14 @@
       "caption": "CI-equivalent gate (release + taskagent packages) — green on branch HEAD",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
       "beforeNote": "Gate covers release/taskagent packages (the project's offline gate); build package framework files did not exist on main",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.014s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.034s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.018s"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.003s"
     },
     {
       "label": "build-schema-tests",
       "caption": "Framework schema + validator unit tests pass on branch HEAD",
       "command": "go test -tags all -count=1 -run 'TestBuildFolderFramework|TestBuildDefinitionFramework|TestPipelineAuthorizationFramework|TestResourceAuthorizationFramework|TestBuildDefinitionDataSourceFramework|TestBuildGapMatrixExists' ./azuredevops/internal/service/build/...",
       "beforeNote": "No framework schema tests existed on main; TestBuildGapMatrixExists and all _Framework_Schema tests did not exist",
-      "afterOutput": "--- PASS: TestBuildGapMatrixExists (0.00s)\n--- PASS: TestBuildDefinitionDataSourceFramework_Schema (0.00s)\n--- PASS: TestBuildDefinitionFramework_StringNotWhitespace (0.00s)\n--- PASS: TestBuildDefinitionFramework_PathValidator (0.00s)\n--- PASS: TestBuildDefinitionFramework_Schema (0.00s)\n--- PASS: TestBuildDefinitionFramework_FlattenCITrigger_UseYAML (0.00s)\n--- PASS: TestBuildDefinitionFramework_FlattenCITrigger_Override (0.00s)\n--- PASS: TestBuildDefinitionFramework_FlattenPRTrigger (0.00s)\n--- PASS: TestBuildDefinitionFramework_FlattenFilters (0.00s)\n--- PASS: TestBuildDefinitionFramework_ValidateConfig_Conflict (0.00s)\n--- PASS: TestBuildDefinitionFramework_SkipFirstRunDefault (0.00s)\n--- PASS: TestResourceAuthorizationFramework_Schema (0.00s)\n--- PASS: TestBuildFolderFramework_PathValidator (0.00s)\n--- PASS: TestBuildFolderFramework_Schema (0.00s)\n--- PASS: TestPipelineAuthorizationFramework_Schema (0.00s)\nPASS\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build\t0.006s"
+      "afterOutput": "--- PASS: TestBuildGapMatrixExists (0.00s)\n--- PASS: TestBuildDefinitionDataSourceFramework_Schema (0.00s)\n--- PASS: TestBuildFolderFramework_Schema (0.00s)\n--- PASS: TestPipelineAuthorizationFramework_Schema (0.00s)\n--- PASS: TestBuildDefinitionFramework_ValidateConfig_Conflict (0.00s)\n--- PASS: TestBuildDefinitionFramework_SkipFirstRunDefault (0.00s)\n--- PASS: TestBuildDefinitionFramework_StringNotWhitespace (0.00s)\n--- PASS: TestResourceAuthorizationFramework_Schema (0.00s)\n--- PASS: TestBuildDefinitionFramework_FlattenPRTrigger (0.00s)\n--- PASS: TestBuildFolderFramework_PathValidator (0.00s)\n--- PASS: TestBuildDefinitionFramework_PathValidator (0.00s)\n--- PASS: TestBuildDefinitionFramework_FlattenCITrigger_UseYAML (0.00s)\n--- PASS: TestBuildDefinitionFramework_FlattenCITrigger_Override (0.00s)\n--- PASS: TestBuildDefinitionFramework_FlattenFilters (0.00s)\n--- PASS: TestBuildDefinitionFramework_Schema (0.00s)\nPASS\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build\t0.006s"
     },
     {
       "label": "build-definition-resource",
