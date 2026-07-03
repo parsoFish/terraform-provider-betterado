@@ -208,6 +208,10 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
 		serviceendpoint.NewServiceEndpointGenericResource,
+		serviceendpoint.NewServiceEndpointAzureRMResource,
+		serviceendpoint.NewServiceEndpointAwsResource,
+		serviceendpoint.NewServiceEndpointAzureServiceBusResource,
+		serviceendpoint.NewServiceEndpointGcpTerraformResource,
 	}
 }
 
@@ -218,5 +222,6 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseDefinitionRevisionDataSource,
 		release.NewReleaseDefinitionsDataSource,
 		release.NewReleaseFolderDataSource,
+		serviceendpoint.NewServiceEndpointAzureRMDataSource,
 	}
 }

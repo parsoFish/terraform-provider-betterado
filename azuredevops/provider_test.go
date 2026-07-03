@@ -71,11 +71,11 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_serviceendpoint_generic_v2",
 		"betterado_serviceendpoint_argocd",
 		"betterado_serviceendpoint_artifactory",
-		"betterado_serviceendpoint_aws",
-		"betterado_serviceendpoint_azure_service_bus",
+		// betterado_serviceendpoint_aws migrated to framework (registered in framework_provider.go)
+		// betterado_serviceendpoint_azure_service_bus migrated to framework (registered in framework_provider.go)
 		"betterado_serviceendpoint_azurecr",
 		"betterado_serviceendpoint_azuredevops",
-		"betterado_serviceendpoint_azurerm",
+		// betterado_serviceendpoint_azurerm migrated to framework (registered in framework_provider.go)
 		"betterado_serviceendpoint_bitbucket",
 		"betterado_serviceendpoint_black_duck",
 		"betterado_serviceendpoint_checkmarx_one",
@@ -84,7 +84,7 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_serviceendpoint_dockerregistry",
 		"betterado_serviceendpoint_dynamics_lifecycle_services",
 		"betterado_serviceendpoint_externaltfs",
-		"betterado_serviceendpoint_gcp_terraform",
+		// betterado_serviceendpoint_gcp_terraform migrated to framework (registered in framework_provider.go)
 		// betterado_serviceendpoint_generic migrated to framework (registered in framework_provider.go)
 		"betterado_serviceendpoint_generic_git",
 		"betterado_serviceendpoint_github",
@@ -188,7 +188,7 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		"betterado_securityrole_definitions",
 		"betterado_serviceendpoint_generic_v2",
 		"betterado_serviceendpoint_azurecr",
-		"betterado_serviceendpoint_azurerm",
+		// betterado_serviceendpoint_azurerm data source migrated to framework (registered in framework_provider.go)
 		"betterado_serviceendpoint_bitbucket",
 		"betterado_serviceendpoint_dockerregistry",
 		"betterado_serviceendpoint_github",
