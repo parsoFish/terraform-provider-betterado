@@ -3,7 +3,7 @@
   "essence": "17 resources and 4 data sources across the security, securityroles, and permissions packages are now served through terraform-plugin-framework via the mux provider. Each resource was deregistered from the SDKv2 ResourcesMap/DataSourcesMap, re-implemented with a framework provider.Resource/DataSource, and verified by a live TF_ACC acceptance test against Azure DevOps. Gap matrix docs for all three packages are also delivered.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-security-permissions",
-  "diffStat": "88 files changed, 8942 insertions(+), 598 deletions(-)",
+  "diffStat": "160 files changed, 15935 insertions(+), 696 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
@@ -14,7 +14,7 @@
       "beforeImage": null,
       "afterImage": null,
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.009s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.005s\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.004s\n"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.007s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.005s\n"
     },
     {
       "label": "provider-registry",
@@ -25,7 +25,7 @@
       "beforeImage": null,
       "afterImage": null,
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops\t0.006s\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops\t0.006s\n"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops\t0.005s\n"
     },
     {
       "label": "acceptance-resource",
