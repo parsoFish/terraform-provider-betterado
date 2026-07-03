@@ -12,7 +12,80 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/pipelineschecksextras"
 )
+
+// ── Check type registry ───────────────────────────────────────────────────────
+
+type approvalAndCheckTypes struct {
+	ExtendsCheck     *pipelineschecksextras.CheckType
+	Approval         *pipelineschecksextras.CheckType
+	BranchProtection *pipelineschecksextras.CheckType
+	BusinessHours    *pipelineschecksextras.CheckType
+	TaskCheck        *pipelineschecksextras.CheckType
+	ExclusiveLock    *pipelineschecksextras.CheckType
+}
+
+var approvalAndCheckType = approvalAndCheckTypes{
+	ExtendsCheck: &pipelineschecksextras.CheckType{
+		Id: converter.UUID("4020e66e-b0f3-47e1-bc88-48f3cc59b5f3"),
+	},
+	Approval: &pipelineschecksextras.CheckType{
+		Id:   converter.UUID("8c6f20a7-a545-4486-9777-f762fafe0d4d"),
+		Name: converter.ToPtr("Approval"),
+	},
+	TaskCheck: &pipelineschecksextras.CheckType{
+		Id: converter.UUID("fe1de3ee-a436-41b4-bb20-f6eb4cb879a7"),
+	},
+	BranchProtection: &pipelineschecksextras.CheckType{
+		Id: converter.UUID("fe1de3ee-a436-41b4-bb20-f6eb4cb879a7"),
+	},
+	BusinessHours: &pipelineschecksextras.CheckType{
+		Id: converter.UUID("fe1de3ee-a436-41b4-bb20-f6eb4cb879a7"),
+	},
+	ExclusiveLock: &pipelineschecksextras.CheckType{
+		Id: converter.UUID("2ef31ad6-baa0-403a-8b45-2cbc9b4e5563"),
+	},
+}
+
+// ── Branch control / business hours definition refs ───────────────────────────
+
+const (
+	evaluateBranchProtectionDefVersion = "0.0.1"
+	evaluateBranchProtectionDefId      = "86b05a0c-73e6-4f7d-b3cf-e38f3b39a75b"
+	evaluateBusinessHoursDefVersion     = "0.0.1"
+	evaluateBusinessHoursDefId          = "445fde2f-6c39-441c-807f-8a59ff2e075f"
+)
+
+var evaluateBranchProtectionDef = map[string]interface{}{
+	"id":      evaluateBranchProtectionDefId,
+	"name":    "Evaluate branch protection",
+	"version": evaluateBranchProtectionDefVersion,
+}
+
+var evaluateBusinessHoursDef = map[string]interface{}{
+	"id":      evaluateBusinessHoursDefId,
+	"name":    "Task Check",
+	"version": evaluateBusinessHoursDefVersion,
+}
+
+// ── REST API completion event types ──────────────────────────────────────────
+
+// CompleteEvent is the type of the completion_event attribute for check_rest_api.
+type CompleteEvent string
+
+// CompleteEventValuesType groups the two valid completion events.
+type CompleteEventValuesType struct {
+	Callback    CompleteEvent
+	ApiResponse CompleteEvent
+}
+
+// CompleteEventValues is the canonical set of completion event names.
+var CompleteEventValues = CompleteEventValuesType{
+	Callback:    "Callback",
+	ApiResponse: "ApiResponse",
+}
 
 // ── Static default helpers ────────────────────────────────────────────────────
 

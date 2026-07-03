@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -14,6 +15,45 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
+
+// ── Policy type IDs ───────────────────────────────────────────────────────────
+// These UUIDs identify each branch policy type in Azure DevOps.
+// https://docs.microsoft.com/en-us/rest/api/azure/devops/policy/types/list?view=azure-devops-rest-5.1
+var (
+	MinReviewerCount  = uuid.MustParse("fa4e907d-c16b-4a4c-9dfa-4906e5d171dd")
+	BuildValidation   = uuid.MustParse("0609b952-1397-4640-95ec-e00a01b2c241")
+	AutoReviewers     = uuid.MustParse("fd2167ab-b0be-447a-8ec8-39368250530e")
+	WorkItemLinking   = uuid.MustParse("40e92b44-2fe1-4dd6-b3d8-74a9c21d0c6e")
+	CommentResolution = uuid.MustParse("c6a1889d-b943-4856-b76f-9e46bb6b0df2")
+	MergeTypes        = uuid.MustParse("fa4e907d-c16b-4a4c-9dfa-4916e5d171ab")
+	StatusCheck       = uuid.MustParse("cbdc66da-9728-4af8-aada-9a5a32e4a226")
+)
+
+// ── Policy settings structs (JSON wire format) ────────────────────────────────
+
+type autoReviewerPolicySettings struct {
+	SubmitterCanVote     bool     `json:"creatorVoteCounts"`
+	AutoReviewerIds      []string `json:"requiredReviewerIds"`
+	PathFilters          []string `json:"filenamePatterns"`
+	DisplayMessage       string   `json:"message"`
+	MinimumApproverCount int      `json:"minimumApproverCount"`
+}
+
+type buildValidationPolicySettings struct {
+	BuildDefinitionID       int      `json:"buildDefinitionId"`
+	PolicyDisplayName       string   `json:"displayName"`
+	ManualQueueOnly         bool     `json:"manualQueueOnly"`
+	QueueOnSourceUpdateOnly bool     `json:"queueOnSourceUpdateOnly"`
+	ValidDuration           int      `json:"validDuration"`
+	FilenamePatterns        []string `json:"filenamePatterns"`
+}
+
+type mergeTypePolicySettings struct {
+	AllowSquash        bool `json:"allowSquash"`
+	AllowRebase        bool `json:"allowRebase"`
+	AllowNoFastForward bool `json:"allowNoFastForward"`
+	AllowRebaseMerge   bool `json:"allowRebaseMerge"`
+}
 
 // ── Scope helpers shared across all branch policy framework resources ─────────
 
