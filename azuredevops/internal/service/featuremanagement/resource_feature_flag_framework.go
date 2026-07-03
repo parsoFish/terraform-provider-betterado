@@ -244,7 +244,7 @@ func setFeatureFlag(ctx context.Context, fc featuremanagementapi.Client, model *
 			},
 		},
 		FeatureId:  converter.String(featureID),
-		UserScope:  converter.String(scopeName),
+		UserScope:  converter.String("host"),
 		ScopeName:  converter.String(scopeName),
 		ScopeValue: converter.String(scopeValue),
 	})
@@ -269,7 +269,7 @@ func readFeatureFlag(ctx context.Context, fc featuremanagementapi.Client, model 
 
 	state, err := fc.GetFeatureStateForScope(ctx, featuremanagementapi.GetFeatureStateForScopeArgs{
 		FeatureId:  converter.String(featureID),
-		UserScope:  converter.String(scopeName),
+		UserScope:  converter.String("host"),
 		ScopeName:  converter.String(scopeName),
 		ScopeValue: converter.String(scopeValue),
 	})
@@ -328,7 +328,7 @@ func deleteFeatureFlag(ctx context.Context, fc featuremanagementapi.Client, mode
 			},
 		},
 		FeatureId:  converter.String(featureID),
-		UserScope:  converter.String(scopeName),
+		UserScope:  converter.String("host"),
 		ScopeName:  converter.String(scopeName),
 		ScopeValue: converter.String(scopeValue),
 	})

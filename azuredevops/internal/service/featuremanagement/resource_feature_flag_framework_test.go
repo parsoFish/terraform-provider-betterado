@@ -99,7 +99,7 @@ func TestFeatureFlagCRUDCreate(t *testing.T) {
 		DoAndReturn(func(_ context.Context, args featuremanagementapi.SetFeatureStateForScopeArgs) (*featuremanagementapi.ContributedFeatureState, error) {
 			require.NotNil(t, args.Feature, "Feature must not be nil")
 			assert.Equal(t, "ms.vss-work.agile", *args.FeatureId)
-			assert.Equal(t, "project", *args.UserScope)
+			assert.Equal(t, "host", *args.UserScope)
 			assert.Equal(t, "project", *args.ScopeName)
 			assert.Equal(t, "00000000-0000-0000-0000-000000000001", *args.ScopeValue)
 			assert.Equal(t, featuremanagementapi.ContributedFeatureEnabledValueValues.Enabled, *args.Feature.State)
@@ -111,7 +111,7 @@ func TestFeatureFlagCRUDCreate(t *testing.T) {
 		GetFeatureStateForScope(ctx, gomock.Any()).
 		DoAndReturn(func(_ context.Context, args featuremanagementapi.GetFeatureStateForScopeArgs) (*featuremanagementapi.ContributedFeatureState, error) {
 			assert.Equal(t, "ms.vss-work.agile", *args.FeatureId)
-			assert.Equal(t, "project", *args.UserScope)
+			assert.Equal(t, "host", *args.UserScope)
 			assert.Equal(t, "project", *args.ScopeName)
 			assert.Equal(t, "00000000-0000-0000-0000-000000000001", *args.ScopeValue)
 			return &featuremanagementapi.ContributedFeatureState{
@@ -263,7 +263,7 @@ func TestFeatureFlagCRUDDelete(t *testing.T) {
 			require.NotNil(t, args.Feature)
 			assert.Equal(t, featuremanagementapi.ContributedFeatureEnabledValueValues.Undefined, *args.Feature.State)
 			assert.Equal(t, "ms.vss-work.agile", *args.FeatureId)
-			assert.Equal(t, "project", *args.UserScope)
+			assert.Equal(t, "host", *args.UserScope)
 			assert.Equal(t, "project", *args.ScopeName)
 			assert.Equal(t, "00000000-0000-0000-0000-000000000001", *args.ScopeValue)
 			return &featuremanagementapi.ContributedFeatureState{State: &undefinedState}, nil

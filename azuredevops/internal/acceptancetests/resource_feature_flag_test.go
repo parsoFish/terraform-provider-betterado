@@ -97,7 +97,7 @@ func checkFeatureFlagDestroyed(s *terraform.State) error {
 		state, err := clients.FeatureManagementClient.GetFeatureStateForScope(clients.Ctx,
 			featuremanagementapi.GetFeatureStateForScopeArgs{
 				FeatureId:  converter.String(featureID),
-				UserScope:  converter.String(scopeName),
+				UserScope:  converter.String("host"),
 				ScopeName:  converter.String(scopeName),
 				ScopeValue: converter.String(scopeValue),
 			},
@@ -142,7 +142,7 @@ func captureFeatureFlagEvidence(tfNode string) resource.TestCheckFunc {
 		state, err := clients.FeatureManagementClient.GetFeatureStateForScope(clients.Ctx,
 			featuremanagementapi.GetFeatureStateForScopeArgs{
 				FeatureId:  converter.String(featureID),
-				UserScope:  converter.String(scopeName),
+				UserScope:  converter.String("host"),
 				ScopeName:  converter.String(scopeName),
 				ScopeValue: converter.String(scopeValue),
 			},
