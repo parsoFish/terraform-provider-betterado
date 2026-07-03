@@ -9,6 +9,16 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **`betterado_elastic_pool` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux
+  provider; SDKv2 file (`resource_elastic_pool.go`) removed. Schema is
+  unchanged (`name`, `azure_resource_id`, `service_endpoint_id`,
+  `service_endpoint_scope`, `desired_idle`, `max_capacity`,
+  `recycle_after_each_use`, `agent_interactive_ui`, `time_to_live_minutes`,
+  `auto_provision`, `auto_update`, `project_id`). Acceptance tests updated to
+  use `ProtoV6ProviderFactories` (mux) with `ExpectNonEmptyPlan: false`, import
+  verify, and `CaptureLiveEvidence("acceptance-resource-elastic-pool", ...)`.
+
 - **`betterado_deployment_group` resource migrated to terraform-plugin-framework.**
   The resource now uses the framework implementation served through the mux
   provider; SDKv2 file (`resource_deployment_group.go`) removed. Schema is

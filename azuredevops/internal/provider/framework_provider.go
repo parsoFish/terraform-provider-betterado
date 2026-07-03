@@ -208,6 +208,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		taskagent.NewEnvironmentResource,
 		taskagent.NewEnvironmentResourceKubernetesResource,
 		taskagent.NewDeploymentGroupResource,
+		taskagent.NewElasticPoolResource,
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,

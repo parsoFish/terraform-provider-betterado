@@ -14,6 +14,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// (registered in framework_provider.go) and are no longer in the SDKv2 provider resource map.
 		// betterado_deployment_group is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
+		// betterado_elastic_pool is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		// betterado_environment is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
 		"betterado_area_permissions",
@@ -35,7 +37,6 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_check_required_template",
 		"betterado_check_rest_api",
 		"betterado_dashboard",
-		"betterado_elastic_pool",
 		"betterado_extension",
 		"betterado_feed",
 		"betterado_feed_permission",
