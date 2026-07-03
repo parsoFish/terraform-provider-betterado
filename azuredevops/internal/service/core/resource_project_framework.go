@@ -3,13 +3,16 @@ package core
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/operations"
@@ -116,6 +119,13 @@ func (r *ProjectResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			},
 			"name": schema.StringAttribute{
 				Required: true,
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`\S`),
+						"must not be whitespace-only",
+					),
+				},
 			},
 			"description": schema.StringAttribute{
 				Optional: true,
@@ -127,6 +137,9 @@ func (r *ProjectResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"visibility": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("private", "public"),
+				},
 				PlanModifiers: []planmodifier.String{
 					projectStateForUnknown(),
 				},
@@ -134,6 +147,9 @@ func (r *ProjectResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"version_control": schema.StringAttribute{
 				Optional: true,
 				Computed: true,
+				Validators: []validator.String{
+					stringvalidator.OneOf("Git", "Tfvc"),
+				},
 				PlanModifiers: []planmodifier.String{
 					projectForceReplace(),
 					projectStateForUnknown(),

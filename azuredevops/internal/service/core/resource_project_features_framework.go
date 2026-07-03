@@ -3,11 +3,15 @@ package core
 import (
 	"context"
 	"fmt"
+	"regexp"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/featuremanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -59,6 +63,12 @@ func (r *ProjectFeaturesResource) Schema(_ context.Context, _ resource.SchemaReq
 			},
 			"project_id": schema.StringAttribute{
 				Required: true,
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+						"must be a valid UUID",
+					),
+				},
 				PlanModifiers: []planmodifier.String{
 					projectForceReplace(),
 				},
@@ -66,6 +76,14 @@ func (r *ProjectFeaturesResource) Schema(_ context.Context, _ resource.SchemaReq
 			"features": schema.MapAttribute{
 				Required:    true,
 				ElementType: types.StringType,
+				Validators: []validator.Map{
+					mapvalidator.KeysAre(stringvalidator.OneOf(
+						"boards", "repositories", "pipelines", "testplans", "artifacts",
+					)),
+					mapvalidator.ValueStringsAre(stringvalidator.OneOf(
+						"enabled", "disabled",
+					)),
+				},
 			},
 		},
 	}

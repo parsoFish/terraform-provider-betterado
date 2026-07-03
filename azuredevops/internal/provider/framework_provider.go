@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
@@ -210,6 +211,11 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		// core resources migrated from SDKv2
 		core.NewProjectResource,
 		core.NewProjectFeaturesResource,
+		core.NewProjectPipelineSettingsResource,
+		core.NewProjectTagsResource,
+		core.NewTeamResource,
+		core.NewTeamAdministratorsResource,
+		core.NewTeamMembersResource,
 	}
 }
 
@@ -223,5 +229,8 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		// core data sources migrated from SDKv2
 		core.NewProjectDataSource,
 		core.NewProjectsDataSource,
+		core.NewTeamDataSource,
+		core.NewTeamsDataSource,
+		service.NewClientConfigDataSource,
 	}
 }

@@ -20,19 +20,19 @@
 
 ## betterado_project (resource)
 
-Source: `azuredevops/internal/service/core/resource_project.go`
+Source: `azuredevops/internal/service/core/resource_project_framework.go`
 ADO type: `core.TeamProject` (Projects — List / Get / Create / Update / Delete)
 
 | API field | TF attribute | Status | Notes |
 |---|---|---|---|
-| `name` | `name` | implemented | Required; case-insensitive diff suppress |
+| `name` | `name` | implemented | Required; whitespace-only rejected via framework validator |
 | `description` | `description` | implemented | Optional, default `""` |
-| `visibility` | `visibility` | implemented | Optional, `private`/`public`, default `private` |
-| `capabilities.versioncontrol.sourceControlType` | `version_control` | implemented | ForceNew; `Git`/`Tfvc`, default `Git` |
+| `visibility` | `visibility` | implemented | Optional, `private`/`public` validated; default `private` |
+| `capabilities.versioncontrol.sourceControlType` | `version_control` | implemented | ForceNew; `Git`/`Tfvc` validated; default `Git` |
 | `capabilities.processTemplate.templateTypeId` | `work_item_template` | implemented | ForceNew; stored as name, looked up to UUID on create; default `Agile` |
 | `capabilities.processTemplate.templateTypeId` | `process_template_id` | read-only | Computed string; the raw UUID of the process template |
-| _(inline via resource)_ | `features` | implemented | Optional TypeMap delegating to Feature Management API; enables/disables Boards, Repositories, Pipelines, TestPlans, Artifacts per-project |
-| `id` | _(resource ID)_ | read-only | Set via `d.SetId(project.Id.String())` |
+| _(inline via resource)_ | `features` | **breaking-deferral** | **BREAKING CHANGE (framework migration):** The `features` inline TypeMap from the SDKv2 `betterado_project` is **absent from the framework resource** (`resource_project_framework.go`). Feature management is now the exclusive responsibility of the dedicated `betterado_project_features` resource. Users relying on `betterado_project.features` must migrate to `betterado_project_features`. Rationale: separating concerns avoids the state inconsistency bugs observed in the SDKv2 inline implementation; see CHANGELOG for migration guidance. |
+| `id` | _(resource ID)_ | read-only | Set via `resp.State.Set` after create |
 | `state` | — | read-only | `wellFormed` / `deleting` etc.; lifecycle-only, not user-configurable |
 | `url` | — | out-of-scope | Read-only REST URL |
 | `_links` | — | out-of-scope | REST navigation links |
@@ -41,7 +41,7 @@ ADO type: `core.TeamProject` (Projects — List / Get / Create / Update / Delete
 | `defaultTeam` | — | out-of-scope | Read-only reference; managed via `betterado_team` |
 | `abbreviation` | — | gap | Short project abbreviation; writable via Update API. **Deferred:** rarely used in IaC, low priority for this migration. |
 
-**Summary:** 7 implemented / 3 read-only / 5 out-of-scope / 1 gap (deferred)
+**Summary:** 6 implemented / 3 read-only / 5 out-of-scope / 1 breaking-deferral (`features`) / 1 gap (deferred)
 
 ---
 

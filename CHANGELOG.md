@@ -7,27 +7,69 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### BREAKING CHANGES
+
+- **`betterado_project.features` attribute removed in framework migration.** The `features` inline TypeMap that was present in the SDKv2 `betterado_project` schema has been **deliberately removed** from the terraform-plugin-framework implementation (`resource_project_framework.go`). Feature management is now the exclusive responsibility of the separate `betterado_project_features` resource, which provides cleaner state management and avoids the "provider produced inconsistent result" errors observed with the inline implementation.
+
+  **Migration required:** Terraform configurations that set `features = { ... }` on `betterado_project` must be updated to use a separate `betterado_project_features` resource:
+
+  ```hcl
+  # Before (SDKv2, no longer supported)
+  resource "betterado_project" "example" {
+    name    = "my-project"
+    features = {
+      boards    = "enabled"
+      artifacts = "disabled"
+    }
+  }
+
+  # After (framework migration)
+  resource "betterado_project" "example" {
+    name = "my-project"
+  }
+
+  resource "betterado_project_features" "example" {
+    project_id = betterado_project.example.id
+    features = {
+      boards    = "enabled"
+      artifacts = "disabled"
+    }
+  }
+  ```
+
+  See `docs/core-gap-matrix.md` for full documentation of this change.
+
 ### FEATURES
 
-- **Core gap matrix added.** `docs/core-gap-matrix.md` documents every ADO Projects/Teams/Features/PipelineSettings/Tags REST API v7.1 field for all 7 core resources (`betterado_project`, `betterado_project_features`, `betterado_project_pipeline_settings`, `betterado_project_tags`, `betterado_team`, `betterado_team_administrators`, `betterado_team_members`) with implemented/read-only/gap/out-of-scope status; every writable gap carries explicit rationale or deferral.
+- **Core gap matrix added.** `docs/core-gap-matrix.md` documents every ADO Projects/Teams/Features/PipelineSettings/Tags REST API v7.1 field for all 7 core resources (`betterado_project`, `betterado_project_features`, `betterado_project_pipeline_settings`, `betterado_project_tags`, `betterado_team`, `betterado_team_administrators`, `betterado_team_members`) with implemented/read-only/gap/out-of-scope/breaking-deferral status.
 
-- **`betterado_project` resource migrated to terraform-plugin-framework.** Served through the mux provider alongside remaining SDKv2 resources. Import-by-name and import-by-UUID both supported. 404 in Read → `resp.State.RemoveResource`. `process_template_id` is computed. Acceptance test `TestAccProject_importByName` verifies import round-trip against `betterado-standing-demo` (org is at 1000-project cap; no project creation). `ExpectNonEmptyPlan: false`.
+- **`betterado_project` resource migrated to terraform-plugin-framework.** Served through the mux provider alongside remaining SDKv2 resources. Import-by-name and import-by-UUID both supported. 404 in Read → `resp.State.RemoveResource`. `process_template_id` is computed. Acceptance test `TestAccProject_importByName` verifies import round-trip. `name` validated non-whitespace; `visibility` validated as `private`/`public`; `version_control` validated as `Git`/`Tfvc` using `terraform-plugin-framework-validators`.
 
-- **`data.betterado_project` and `data.betterado_projects` data sources migrated to terraform-plugin-framework.** Lookup by name or ID. `TestAccProject_dataSource_withID`, `TestAccProject_dataSource_withName`, and `TestAccProjects_dataSource` updated to use `GetMuxedProviderFactories()`.
+- **`data.betterado_project` and `data.betterado_projects` data sources migrated to terraform-plugin-framework.** Lookup by name or ID. Acceptance tests updated to use `GetMuxedProviderFactories()`.
 
-- **`betterado_project_features` resource migrated to terraform-plugin-framework.** Enable/disable per-project features (boards, pipelines, artifacts, repositories) with idempotent apply and clean destroy (feature state restored). `TestAccProjectFeatures_roundtrip` passes live against license-free features (artifacts, boards); `CaptureLiveEvidence` records real REST GET of feature states from `betterado-standing-demo`. `ExpectNonEmptyPlan: false`.
+- **`betterado_project_features` resource migrated to terraform-plugin-framework.** Enable/disable per-project features (boards, pipelines, artifacts, repositories) with idempotent apply and clean destroy. `project_id` validated as UUID; feature map keys validated as known feature names; feature map values validated as `enabled`/`disabled` using `terraform-plugin-framework-validators`.
+
+- **`betterado_project_pipeline_settings` resource migrated to terraform-plugin-framework** (`resource_project_pipeline_settings_framework.go`). All 6 pipeline general settings fields mapped; `project_id` validated as UUID. Removed from SDKv2 `ResourcesMap`.
+
+- **`betterado_project_tags` resource migrated to terraform-plugin-framework** (`resource_project_tags_framework.go`). Tag add/remove via JSON Patch operations against the Project Properties API. `project_id` validated as UUID. Removed from SDKv2 `ResourcesMap`.
+
+- **`betterado_team` resource migrated to terraform-plugin-framework** (`resource_team_framework.go`). Manages team name, description, administrators (via Identity security namespace ACL), and members (via Identity API). `project_id` validated as UUID. Removed from SDKv2 `ResourcesMap`.
+
+- **`betterado_team_administrators` resource migrated to terraform-plugin-framework** (`resource_team_administrators_framework.go`). `add`/`overwrite` mode; `project_id` and `team_id` validated as UUIDs. Removed from SDKv2 `ResourcesMap`.
+
+- **`betterado_team_members` resource migrated to terraform-plugin-framework** (`resource_team_members_framework.go`). `add`/`overwrite` mode; `project_id` and `team_id` validated as UUIDs. Removed from SDKv2 `ResourcesMap`.
+
+- **`data.betterado_team` data source migrated to terraform-plugin-framework** (`data_team_framework.go`). Reads team by name within a project, including members, administrators, and descriptor. Removed from SDKv2 `DataSourcesMap`.
+
+- **`data.betterado_teams` data source migrated to terraform-plugin-framework** (`data_teams_framework.go`). Lists all teams across projects or within a specific project. Removed from SDKv2 `DataSourcesMap`.
+
+- **`data.betterado_client_config` data source migrated to terraform-plugin-framework** (`data_client_config_framework.go`). Returns organization metadata. Removed from SDKv2 `DataSourcesMap`.
 
 ### BUG FIXES
 
 - **`betterado_project_features` silent feature-state failure surfaced.** `applyFeatureStates` now checks the `ContributedFeatureState` returned by `SetFeatureStateForScope` and returns a clear error when the API returns HTTP 200 but did not apply the requested state (e.g. testplans requires a paid license). Previously, the provider would silently accept the response and trigger an "inconsistent result after apply" panic on the next plan.
 
 - **Fixture safety hardened in acceptance tests.** `SharedReleaseFixture`/`smokeResolveProject` now fail loudly when `betterado-standing-demo` is not found, preventing silent project creation that would exhaust the org's 1000-project soft-delete cap.
-
-### NOTES
-
-- WI-4 (`betterado_project_pipeline_settings`), WI-5 (`betterado_project_tags`), WI-6 (`betterado_team` + data sources), WI-7 (`betterado_team_administrators`, `betterado_team_members`), WI-8 (`data.betterado_client_config`), and WI-9 (full docs regeneration) were not delivered in this initiative (per-WI Ralphs exhausted iteration budgets). Those resources remain in the SDKv2 `ResourcesMap`/`DataSourcesMap` and are deferred to a follow-up initiative.
-
-- **Known regressions pending follow-up:** The framework `betterado_project` schema is missing the `features` TypeMap attribute (present in SDKv2; classified `implemented` in the gap matrix — configs using `features={...}` will break on upgrade). SDKv2 validators for `name` (whitespace check), `visibility`/`version_control` (enum checks), and `project_id` UUID + feature-map key/value validation in `betterado_project_features` were not ported to framework equivalents. These must be resolved before this PR is merged.
 
 ## [1.2.0] - 2026-07-01
 

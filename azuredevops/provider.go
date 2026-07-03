@@ -14,10 +14,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/feed"
@@ -88,8 +86,12 @@ func Provider() *schema.Provider {
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
 			"betterado_project_permissions":       permissions.ResourceProjectPermissions(),
-			"betterado_project_pipeline_settings": core.ResourceProjectPipelineSettings(),
-			"betterado_project_tags":              core.ResourceProjectTag(),
+			// betterado_project_pipeline_settings is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
+			// betterado_project_tags is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
 			// betterado_release_definition_permissions is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
@@ -154,9 +156,15 @@ func Provider() *schema.Provider {
 			"betterado_servicehook_webhook_tfs":                     servicehook.ResourceServicehookWebhookTfs(),
 			"betterado_service_principal_entitlement":               memberentitlementmanagement.ResourceServicePrincipalEntitlement(),
 			"betterado_tagging_permissions":                         permissions.ResourceTaggingPermissions(),
-			"betterado_team":                                        core.ResourceTeam(),
-			"betterado_team_administrators":                         core.ResourceTeamAdministrators(),
-			"betterado_team_members":                                core.ResourceTeamMembers(),
+			// betterado_team is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
+			// betterado_team_administrators is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
+			// betterado_team_members is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
 			"betterado_user_entitlement":                            memberentitlementmanagement.ResourceUserEntitlement(),
 			"betterado_variable_group":                              taskagent.ResourceVariableGroup(),
 			"betterado_variable_group_permissions":                  permissions.ResourceVariableGroupPermissions(),
@@ -193,7 +201,9 @@ func Provider() *schema.Provider {
 			"betterado_agent_queue":         taskagent.DataAgentQueue(),
 			"betterado_area":                workitemtracking.DataArea(),
 			"betterado_build_definition":    build.DataBuildDefinition(),
-			"betterado_client_config":       service.DataClientConfig(),
+			// betterado_client_config is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
 			"betterado_descriptor":          graph.DataDescriptor(),
 			"betterado_environment":         taskagent.DataEnvironment(),
 			"betterado_feed":                feed.DataFeed(),
@@ -225,9 +235,13 @@ func Provider() *schema.Provider {
 			"betterado_serviceendpoint_sonarcloud":            serviceendpoint.DataResourceServiceEndpointSonarCloud(),
 			"betterado_service_principal":                     graph.DataServicePrincipal(),
 			"betterado_storage_key":                           graph.DataStorageKey(),
-			"betterado_team":                                  core.DataTeam(),
+			// betterado_team is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
 			"betterado_task_group":                            taskagent.DataTaskGroup(),
-			"betterado_teams":                                 core.DataTeams(),
+			// betterado_teams is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
 			"betterado_user":                                  graph.DataUser(),
 			"betterado_users":                                 graph.DataUsers(),
 			"betterado_variable_group":                        taskagent.DataVariableGroup(),
