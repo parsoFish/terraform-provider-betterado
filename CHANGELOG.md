@@ -7,6 +7,11 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-01
+
+### Added
+
+- `betterado_feature_flag` resource and data source — manage ADO Feature Management API state at project or host scope.
 ### Changed
 
 - `betterado_dashboard`: migrated to terraform-plugin-framework (parity with existing SDKv2 behaviour; no schema changes)
