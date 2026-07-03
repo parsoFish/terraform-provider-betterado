@@ -5,7 +5,7 @@
   "initiativeId": "INIT-2026-07-01-migrate-framework-graph-identity",
   "baseRef": "main",
   "changedRef": "HEAD",
-  "diffStat": "56 files changed, 5745 insertions(+), 491 deletions(-)",
+  "diffStat": "114 files changed, 7137 insertions(+), 2767 deletions(-)",
   "summary": {
     "bullets": [
       "Migrates 2 resources (betterado_group, betterado_group_membership) and 11 data sources from SDKv2 to terraform-plugin-framework, served via the mux provider.",
@@ -15,7 +15,7 @@
       "Provider version bumped to 1.2.1; CHANGELOG updated; all 13 registry docs and example HCL files added."
     ],
     "branch": "forge/INIT-2026-07-01-migrate-framework-graph-identity",
-    "commitSha": "9804b281"
+    "commitSha": "99abdcac"
   },
   "checkpoints": [
     {

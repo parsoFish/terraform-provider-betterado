@@ -10,7 +10,7 @@
 - Live acceptance test (TF_ACC=1) captured a real Identity API GET: `descriptor` and `subject_descriptor` round-trip confirmed.
 - Provider version bumped to `1.2.1`; CHANGELOG updated; all 13 registry docs and example HCL files added.
 
-**Branch:** `forge/INIT-2026-07-01-migrate-framework-graph-identity` · **Commit:** `9804b281`
+**Branch:** `forge/INIT-2026-07-01-migrate-framework-graph-identity` · **Commit:** `99abdcac`
 
 ## Essence
 
@@ -18,7 +18,7 @@ All `betterado_group`, `betterado_group_membership` resources and 11 data source
 
 ## Diff stat
 
-56 files changed, 5745 insertions(+), 491 deletions(-)
+114 files changed, 7137 insertions(+), 2767 deletions(-)
 
 ---
 
