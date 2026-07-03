@@ -6,6 +6,8 @@
   - [x] (iter 1) Fixed parallel collision: hclWikiPageBasic/Update now use codeWiki (ADO limits to 1 projectWiki per project; parallel tests collided)
   - [x] (iter 2) Fixed wiki page versionDescriptor: added `version` attr to betterado_wiki_page schema; pass GitVersionDescriptor{type:branch, version} in CreateOrUpdatePage for code wikis
   - [x] (iter 2) Fixed projectWiki delete: restored SDKv2 strategy — read wiki to get RepositoryId, call GitReposClient.DeleteRepository. DeleteWiki fails for projectWiki.
+  - [x] (iter 3) Fixed projectWiki "already exists": adopt-on-conflict — GetAllWikis, rename to desired name, use as state. Prevents failure when standing project has stale project wiki from prior run.
+  - [x] (iter 3) Fixed etag inconsistency (TestAccWikiPageResource_update step 2/3): removed wikiUseStateForUnknown() from etag — etag is now purely Computed so plan doesn't predict a specific value; any returned value is valid after apply.
 - [x] AC2: GIVEN the live acceptance test for betterado_wiki runs WHEN the provider read-back step executes before destroy THEN testutils.CaptureLiveEvidence is called with label 'acceptance-resource-wiki' and a real ADO REST GET URL; .forge/live-evidence/acceptance-resource-wiki.json is written
   - captureWikiEvidence() already implemented in resource_wiki_test.go; calls testutils.CaptureLiveEvidence("acceptance-resource-wiki", url, wikiResp)
 - [x] AC3: GIVEN the live acceptance test for betterado_wiki_page runs WHEN the provider read-back step executes before destroy THEN testutils.CaptureLiveEvidence is called with label 'acceptance-resource-wiki-page' and a real ADO REST GET URL; .forge/live-evidence/acceptance-resource-wiki-page.json is written
