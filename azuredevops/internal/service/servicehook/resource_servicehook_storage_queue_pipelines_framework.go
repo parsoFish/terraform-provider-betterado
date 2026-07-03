@@ -3,14 +3,20 @@ package servicehook
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/servicehooks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -20,8 +26,9 @@ import (
 
 // Ensure interface compliance.
 var (
-	_ resource.Resource                = &servicehookStorageQueuePipelinesResource{}
-	_ resource.ResourceWithImportState = &servicehookStorageQueuePipelinesResource{}
+	_ resource.Resource                     = &servicehookStorageQueuePipelinesResource{}
+	_ resource.ResourceWithImportState      = &servicehookStorageQueuePipelinesResource{}
+	_ resource.ResourceWithConfigValidators = &servicehookStorageQueuePipelinesResource{}
 )
 
 // servicehookStorageQueuePipelinesResource is the terraform-plugin-framework
@@ -71,6 +78,9 @@ func (r *servicehookStorageQueuePipelinesResource) Metadata(_ context.Context, r
 	resp.TypeName = req.ProviderTypeName + "_servicehook_storage_queue_pipelines"
 }
 
+// uuidRegexp matches a standard UUID (RFC 4122).
+var uuidRegexp = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
+
 func (r *servicehookStorageQueuePipelinesResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages a service hook subscription that sends pipeline events to an Azure Storage Queue.",
@@ -79,14 +89,17 @@ func (r *servicehookStorageQueuePipelinesResource) Schema(_ context.Context, _ r
 				Computed:    true,
 				Description: "The subscription ID.",
 				PlanModifiers: []planmodifier.String{
-					sqpUseStateForUnknown(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"project_id": schema.StringAttribute{
 				Required:    true,
 				Description: "The ID of the project.",
 				PlanModifiers: []planmodifier.String{
-					sqpRequiresReplace(),
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(uuidRegexp, "project_id must be a valid UUID (e.g. 00000000-0000-0000-0000-000000000000)"),
 				},
 			},
 			"account_name": schema.StringAttribute{
@@ -96,7 +109,10 @@ func (r *servicehookStorageQueuePipelinesResource) Schema(_ context.Context, _ r
 			"account_key": schema.StringAttribute{
 				Required:    true,
 				Sensitive:   true,
-				Description: "A valid account key from the queue's storage account.",
+				Description: "A valid account key from the queue's storage account (64–100 characters).",
+				Validators: []validator.String{
+					stringvalidator.LengthBetween(64, 100),
+				},
 			},
 			"queue_name": schema.StringAttribute{
 				Required:    true,
@@ -106,13 +122,19 @@ func (r *servicehookStorageQueuePipelinesResource) Schema(_ context.Context, _ r
 				Optional:    true,
 				Computed:    true,
 				Description: "Event visibility timeout — how long a message is invisible to other consumers after being dequeued.",
-				Default:     sqpStaticInt64(0),
+				Default:     int64default.StaticInt64(0),
+				Validators: []validator.Int64{
+					int64validator.AtLeast(0),
+				},
 			},
 			"ttl": schema.Int64Attribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "Event time-to-live — the duration a message can remain in the queue before it is automatically removed.",
-				Default:     sqpStaticInt64(604800),
+				Default:     int64default.StaticInt64(604800),
+				Validators: []validator.Int64{
+					int64validator.AtLeast(0),
+				},
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -131,10 +153,16 @@ func (r *servicehookStorageQueuePipelinesResource) Schema(_ context.Context, _ r
 						"stage_state_filter": schema.StringAttribute{
 							Optional:    true,
 							Description: "Which stage state should generate an event (NotStarted, Waiting, Running, Completed).",
+							Validators: []validator.String{
+								stringvalidator.OneOf("NotStarted", "Waiting", "Running", "Completed"),
+							},
 						},
 						"stage_result_filter": schema.StringAttribute{
 							Optional:    true,
 							Description: "Which stage result should generate an event (Canceled, Failed, Rejected, Skipped, Succeeded).",
+							Validators: []validator.String{
+								stringvalidator.OneOf("Canceled", "Failed", "Rejected", "Skipped", "Succeeded"),
+							},
 						},
 					},
 				},
@@ -150,15 +178,34 @@ func (r *servicehookStorageQueuePipelinesResource) Schema(_ context.Context, _ r
 						"run_state_filter": schema.StringAttribute{
 							Optional:    true,
 							Description: "Which run state should generate an event (InProgress, Canceling, Completed).",
+							Validators: []validator.String{
+								stringvalidator.OneOf("InProgress", "Canceling", "Completed"),
+							},
 						},
 						"run_result_filter": schema.StringAttribute{
 							Optional:    true,
 							Description: "Which run result should generate an event (Canceled, Failed, Succeeded).",
+							Validators: []validator.String{
+								stringvalidator.OneOf("Canceled", "Failed", "Succeeded"),
+							},
 						},
 					},
 				},
 			},
 		},
+	}
+}
+
+// ── Config validators ────────────────────────────────────────────────────────
+
+// ConfigValidators enforces that stage_state_changed_event and
+// run_state_changed_event are mutually exclusive (ConflictsWith equivalent).
+func (r *servicehookStorageQueuePipelinesResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		resourcevalidator.Conflicting(
+			path.MatchRoot("stage_state_changed_event"),
+			path.MatchRoot("run_state_changed_event"),
+		),
 	}
 }
 
@@ -410,71 +457,4 @@ func sqpOptionalString(v string) types.String {
 		return types.StringNull()
 	}
 	return types.StringValue(v)
-}
-
-// ── Inline plan modifiers / defaults (servicehook package) ────────────────────
-
-// sqpUseStateForUnknown is a planmodifier.String that keeps the computed "id"
-// stable across plan cycles.
-type sqpUseStateForUnknownStr struct{}
-
-func sqpUseStateForUnknown() planmodifier.String { return sqpUseStateForUnknownStr{} }
-
-func (sqpUseStateForUnknownStr) Description(_ context.Context) string {
-	return "use prior state value for unknown"
-}
-
-func (sqpUseStateForUnknownStr) MarkdownDescription(_ context.Context) string {
-	return "use prior state value for unknown"
-}
-
-func (sqpUseStateForUnknownStr) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	if !req.PlanValue.IsUnknown() {
-		return
-	}
-	if req.StateValue.IsNull() {
-		return
-	}
-	resp.PlanValue = req.StateValue
-}
-
-// sqpRequiresReplace is a planmodifier.String that forces resource replacement
-// when the attribute value changes (e.g. project_id is ForceNew).
-type sqpRequiresReplaceStr struct{}
-
-func sqpRequiresReplace() planmodifier.String { return sqpRequiresReplaceStr{} }
-
-func (sqpRequiresReplaceStr) Description(_ context.Context) string {
-	return "requires replacement if changed"
-}
-
-func (sqpRequiresReplaceStr) MarkdownDescription(_ context.Context) string {
-	return "requires replacement if changed"
-}
-
-func (sqpRequiresReplaceStr) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	if req.StateValue.IsNull() {
-		return
-	}
-	if req.PlanValue.Equal(req.StateValue) {
-		return
-	}
-	resp.RequiresReplace = true
-}
-
-// sqpInt64Default is a defaults.Int64 that returns a fixed int64 value.
-type sqpInt64Default struct{ value int64 }
-
-func sqpStaticInt64(v int64) defaults.Int64 { return sqpInt64Default{value: v} }
-
-func (d sqpInt64Default) Description(_ context.Context) string {
-	return fmt.Sprintf("defaults to %d", d.value)
-}
-
-func (d sqpInt64Default) MarkdownDescription(_ context.Context) string {
-	return fmt.Sprintf("defaults to `%d`", d.value)
-}
-
-func (d sqpInt64Default) DefaultInt64(_ context.Context, _ defaults.Int64Request, resp *defaults.Int64Response) {
-	resp.PlanValue = types.Int64Value(d.value)
 }

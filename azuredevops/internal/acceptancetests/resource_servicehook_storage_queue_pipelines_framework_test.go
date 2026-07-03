@@ -119,7 +119,7 @@ func captureServicehookStorageQueueEvidence(tfNode string) resource.TestCheckFun
 		}
 		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
 		apiURL := fmt.Sprintf("%s/_apis/hooks/subscriptions/%s?api-version=7.1", orgURL, subID)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", apiURL, subscription)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-storage-queue", apiURL, subscription)
 		return nil
 	}
 }

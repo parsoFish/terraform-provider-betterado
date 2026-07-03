@@ -3,16 +3,22 @@ package servicehook
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/servicehooks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -22,8 +28,9 @@ import (
 
 // Ensure interface compliance.
 var (
-	_ resource.Resource                = &servicehookWebhookTfsResource{}
-	_ resource.ResourceWithImportState = &servicehookWebhookTfsResource{}
+	_ resource.Resource                     = &servicehookWebhookTfsResource{}
+	_ resource.ResourceWithImportState      = &servicehookWebhookTfsResource{}
+	_ resource.ResourceWithConfigValidators = &servicehookWebhookTfsResource{}
 )
 
 // servicehookWebhookTfsResource is the terraform-plugin-framework implementation
@@ -203,6 +210,9 @@ func (r *servicehookWebhookTfsResource) Metadata(_ context.Context, req resource
 	resp.TypeName = req.ProviderTypeName + "_servicehook_webhook_tfs"
 }
 
+// httpOrHTTPSRegexp matches URLs that start with http:// or https://.
+var httpOrHTTPSRegexp = regexp.MustCompile(`^https?://`)
+
 func (r *servicehookWebhookTfsResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Description: "Manages a TFS/Azure DevOps service hook subscription that sends events to an HTTP endpoint (webhook).",
@@ -211,38 +221,44 @@ func (r *servicehookWebhookTfsResource) Schema(_ context.Context, _ resource.Sch
 				Computed:    true,
 				Description: "The subscription ID.",
 				PlanModifiers: []planmodifier.String{
-					tfsUseStateForUnknown(),
+					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"project_id": schema.StringAttribute{
 				Required:    true,
 				Description: "The ID of the project.",
 				PlanModifiers: []planmodifier.String{
-					tfsRequiresReplace(),
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(uuidRegexp, "project_id must be a valid UUID (e.g. 00000000-0000-0000-0000-000000000000)"),
 				},
 			},
 			"url": schema.StringAttribute{
 				Required:    true,
 				Description: "The URL to send HTTP POST to.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(httpOrHTTPSRegexp, "url must start with http:// or https://"),
+				},
 			},
 			"accept_untrusted_certs": schema.BoolAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "Accept untrusted SSL certificates.",
-				Default:     tfsStaticBool(false),
+				Default:     booldefault.StaticBool(false),
 			},
 			"basic_auth_username": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "Basic authentication username.",
-				Default:     tfsStaticString(""),
+				Default:     stringdefault.StaticString(""),
 			},
 			"basic_auth_password": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Sensitive:   true,
 				Description: "Basic authentication password.",
-				Default:     tfsStaticString(""),
+				Default:     stringdefault.StaticString(""),
 			},
 			"http_headers": schema.MapAttribute{
 				Optional:    true,
@@ -253,25 +269,34 @@ func (r *servicehookWebhookTfsResource) Schema(_ context.Context, _ resource.Sch
 				Optional:    true,
 				Computed:    true,
 				Description: "Resource details to send - all, minimal, or none.",
-				Default:     tfsStaticString("all"),
+				Default:     stringdefault.StaticString("all"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("all", "minimal", "none"),
+				},
 			},
 			"messages_to_send": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "Resource details to send - all, text, html, markdown or none.",
-				Default:     tfsStaticString("all"),
+				Default:     stringdefault.StaticString("all"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("all", "text", "html", "markdown", "none"),
+				},
 			},
 			"detailed_messages_to_send": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "Detailed messages to send - all, text, html, markdown or none.",
-				Default:     tfsStaticString("all"),
+				Default:     stringdefault.StaticString("all"),
+				Validators: []validator.String{
+					stringvalidator.OneOf("all", "text", "html", "markdown", "none"),
+				},
 			},
 			"resource_version": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
 				Description: "The resource version for the webhook subscription.",
-				Default:     tfsStaticString("latest"),
+				Default:     stringdefault.StaticString("latest"),
 			},
 		},
 		Blocks: map[string]schema.Block{
@@ -601,6 +626,36 @@ func (r *servicehookWebhookTfsResource) Schema(_ context.Context, _ resource.Sch
 				},
 			},
 		},
+	}
+}
+
+// ── Config validators ──────────────────────────────────────────────────────────
+
+// ConfigValidators enforces that exactly one event block is set at a time
+// by declaring all 19 event type blocks mutually conflicting.
+func (r *servicehookWebhookTfsResource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{
+		resourcevalidator.Conflicting(
+			path.MatchRoot("build_completed"),
+			path.MatchRoot("git_pull_request_commented"),
+			path.MatchRoot("git_pull_request_created"),
+			path.MatchRoot("git_pull_request_merge_attempted"),
+			path.MatchRoot("git_pull_request_updated"),
+			path.MatchRoot("git_push"),
+			path.MatchRoot("repository_created"),
+			path.MatchRoot("repository_deleted"),
+			path.MatchRoot("repository_forked"),
+			path.MatchRoot("repository_renamed"),
+			path.MatchRoot("repository_status_changed"),
+			path.MatchRoot("service_connection_created"),
+			path.MatchRoot("service_connection_updated"),
+			path.MatchRoot("tfvc_checkin"),
+			path.MatchRoot("work_item_commented"),
+			path.MatchRoot("work_item_created"),
+			path.MatchRoot("work_item_deleted"),
+			path.MatchRoot("work_item_restored"),
+			path.MatchRoot("work_item_updated"),
+		),
 	}
 }
 
@@ -1271,88 +1326,4 @@ func tfsOptionalString(v string) types.String {
 		return types.StringNull()
 	}
 	return types.StringValue(v)
-}
-
-// ── Inline plan modifiers (tfs namespace) ─────────────────────────────────────
-
-// tfsUseStateForUnknown keeps the computed "id" stable across plan cycles.
-type tfsUseStateForUnknownStr struct{}
-
-func tfsUseStateForUnknown() planmodifier.String { return tfsUseStateForUnknownStr{} }
-
-func (tfsUseStateForUnknownStr) Description(_ context.Context) string {
-	return "use prior state value for unknown"
-}
-
-func (tfsUseStateForUnknownStr) MarkdownDescription(_ context.Context) string {
-	return "use prior state value for unknown"
-}
-
-func (tfsUseStateForUnknownStr) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	if !req.PlanValue.IsUnknown() {
-		return
-	}
-	if req.StateValue.IsNull() {
-		return
-	}
-	resp.PlanValue = req.StateValue
-}
-
-// tfsRequiresReplace forces resource replacement when project_id changes.
-type tfsRequiresReplaceStr struct{}
-
-func tfsRequiresReplace() planmodifier.String { return tfsRequiresReplaceStr{} }
-
-func (tfsRequiresReplaceStr) Description(_ context.Context) string {
-	return "requires replacement if changed"
-}
-
-func (tfsRequiresReplaceStr) MarkdownDescription(_ context.Context) string {
-	return "requires replacement if changed"
-}
-
-func (tfsRequiresReplaceStr) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
-	if req.StateValue.IsNull() {
-		return
-	}
-	if req.PlanValue.Equal(req.StateValue) {
-		return
-	}
-	resp.RequiresReplace = true
-}
-
-// ── Inline defaults (tfs namespace) ───────────────────────────────────────────
-
-// tfsStaticStringDefault is a defaults.String that returns a fixed string value.
-type tfsStaticStringDefault struct{ value string }
-
-func tfsStaticString(v string) defaults.String { return tfsStaticStringDefault{value: v} }
-
-func (d tfsStaticStringDefault) Description(_ context.Context) string {
-	return fmt.Sprintf("defaults to %q", d.value)
-}
-
-func (d tfsStaticStringDefault) MarkdownDescription(_ context.Context) string {
-	return fmt.Sprintf("defaults to `%q`", d.value)
-}
-
-func (d tfsStaticStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
-	resp.PlanValue = types.StringValue(d.value)
-}
-
-// tfsStaticBoolDefault is a defaults.Bool that returns a fixed bool value.
-type tfsStaticBoolDefault struct{ value bool }
-
-func tfsStaticBool(v bool) defaults.Bool { return tfsStaticBoolDefault{value: v} }
-
-func (d tfsStaticBoolDefault) Description(_ context.Context) string {
-	return fmt.Sprintf("defaults to %v", d.value)
-}
-
-func (d tfsStaticBoolDefault) MarkdownDescription(_ context.Context) string {
-	return fmt.Sprintf("defaults to `%v`", d.value)
-}
-
-func (d tfsStaticBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
-	resp.PlanValue = types.BoolValue(d.value)
 }
