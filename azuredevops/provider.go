@@ -157,7 +157,7 @@ func Provider() *schema.Provider {
 			"betterado_variable_group":                              taskagent.ResourceVariableGroup(),
 			"betterado_variable_group_permissions":                  permissions.ResourceVariableGroupPermissions(),
 			"betterado_variable_group_variable":                     taskagent.ResourceVariableGroupVariable(),
-			"betterado_wiki":                                        wiki.ResourceWiki(),
+			// betterado_wiki migrated to terraform-plugin-framework (see framework_provider.go).
 			"betterado_wiki_page":                                   wiki.ResourceWikiPage(),
 			"betterado_workitem":                                    workitemtracking.ResourceWorkItem(),
 			"betterado_workitemtracking_field":                      workitemtracking.ResourceField(),
