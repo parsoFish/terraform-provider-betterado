@@ -8,7 +8,7 @@ Before this initiative, the betterado Terraform provider had no support for ADO 
 
 ## Diff stat
 
-17 files changed, 1769 insertions(+), 183 deletions(-)
+94 files changed, 5811 insertions(+), 256 deletions(-)
 
 ---
 
@@ -24,7 +24,7 @@ go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredev
 | | |
 |---|---|
 | **Before (main)** | Tests passed on main before this initiative |
-| **After (HEAD)** | `ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.007s` \| `ok .../taskagent 0.005s` \| `ok .../taskagent/validate 0.003s` — all three packages green |
+| **After (HEAD)** | `ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release 0.057s` \| `ok .../taskagent 0.015s` \| `ok .../taskagent/validate 0.014s` — all three packages green |
 
 ---
 
@@ -130,9 +130,9 @@ GET `https://dev.azure.com/davidgparsonson/_apis/notification/subscriptions/8865
 
 | # | Criterion (abbreviated) | Verdict | Evidence |
 |---|---|---|---|
-| AC1 | Gap matrix lists every field with status + rationale | ✅ met | `docs/notification-gap-matrix.md` committed (335 lines, commit 9bdde69d); full field table with implement/read-only/out-of-scope and rationale |
+| AC1 | Gap matrix lists every field with status + rationale | ✅ met | `docs/notification-gap-matrix.md` committed (335 lines); full field table with implement/read-only/out-of-scope and rationale |
 | AC2 | `betterado_notification_subscription_template` triaged as out-of-scope | ✅ met | Gap matrix §Deferred Resources: template data source deferred with rationale |
-| AC3 | `AggregatedClient` gains `NotificationClient` field; build compiles | ✅ met | `client.go` diff: +5 lines; gate green (`go build ./...` succeeds) |
+| AC3 | `AggregatedClient` gains `NotificationClient` field; build compiles | ✅ met | `client.go` diff: +5 lines; gate green (`go test ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...` all pass) |
 | AC4 | Unit tests `TestNotificationSubscriptionResource_Create` + `_Read` pass | ✅ met | Both tests PASS, `ok .../service/notification 0.003s` |
 | AC5 | Framework-only registration; CRUD uses `NotificationClient.*`; 404 removes state | ✅ met | `grep notification_subscription azuredevops/provider.go` → no output; framework_provider.go diff shows registration; Read calls `resp.State.RemoveResource(ctx)` on 404 |
 | AC6 | Data source registered in `framework_provider.go`; reads by ID; not in SDKv2 | ✅ met | `data_notification_subscription_framework.go` committed (190 lines); framework_provider.go DataSources() updated; provider.go untouched |
@@ -147,9 +147,9 @@ GET `https://dev.azure.com/davidgparsonson/_apis/notification/subscriptions/8865
 
 | Test | Result |
 |---|---|
-| `go test ./azuredevops/internal/service/release/...` | ✅ pass |
-| `go test ./azuredevops/internal/service/taskagent/...` | ✅ pass |
-| `go test ./azuredevops/internal/service/taskagent/validate/...` | ✅ pass |
+| `go test ./azuredevops/internal/service/release/... -count=1` | ✅ pass (`0.057s`) |
+| `go test ./azuredevops/internal/service/taskagent/... -count=1` | ✅ pass (`0.015s`) |
+| `go test ./azuredevops/internal/service/taskagent/validate/... -count=1` | ✅ pass (`0.014s`) |
 | `TestNotificationSubscriptionResource_Create` | ✅ pass |
 | `TestNotificationSubscriptionResource_Read` | ✅ pass |
 | `TestAccNotificationSubscription_basic` (TF_ACC=1, live) | ✅ pass |
