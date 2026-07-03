@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
@@ -206,6 +207,10 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
+		build.NewBuildFolderResource,
+		build.NewBuildDefinitionResource,
+		build.NewPipelineAuthorizationResource,
+		build.NewResourceAuthorizationResource,
 	}
 }
 
@@ -216,5 +221,6 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseDefinitionRevisionDataSource,
 		release.NewReleaseDefinitionsDataSource,
 		release.NewReleaseFolderDataSource,
+		build.NewBuildDefinitionDataSource,
 	}
 }

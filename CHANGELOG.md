@@ -7,6 +7,65 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-07-03
+
+### FEATURES
+
+- **`betterado_build_definition` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux provider.
+  CRUD operations continue to target the Build API. Implemented attributes: `project_id`,
+  `name`, `path`, `repository` (with `repo_type` validator), `variable` (fully wired in
+  expand and read), `ci_trigger` (with `override` sub-block: batch, branch_filter,
+  path_filter, max_concurrent_builds_per_branch, polling_interval), `pull_request_trigger`
+  (with `override` sub-block and `forks` Required sub-block for SDKv2 parity),
+  `agent_pool_name`, `agent_specification` (schema-present, not wired to API — see
+  `docs/build-gap-matrix.md`), `job_authorization_scope`, `queue_status`, `skip_first_run`.
+  Framework validators added for `name` (StringIsNotWhiteSpace), `path` (path format),
+  `job_authorization_scope` (enum), `queue_status` (enum), `comment_required` (enum),
+  `repo_type` (enum). Cross-attribute conflict validator added: setting both
+  `repository.github_enterprise_url` and `repository.url` raises a plan-time error.
+  **CI/PR trigger read-back wired:** `readIntoModel` now parses `def.Triggers` back into
+  `model.CITrigger`/`model.PullRequestTrigger` via `flattenTriggersIntoModel`, so
+  ADO-side trigger changes are surfaced as drift on `terraform plan`.
+  **`skip_first_run` defaults to `true`** (skip — SDKv2 parity: absent `features` block means no auto-run).
+  Set `skip_first_run = false` to opt-in to an immediate `PipelinesClient.RunPipeline` call on `Create`;
+  a warning is emitted if the run fails (e.g. no YAML file yet) but does not prevent resource creation.
+  **Deliberately NOT migrated this iteration** (documented in `docs/build-gap-matrix.md`):
+  `variable_groups`, `build_completion_trigger`, `schedules`, `jobs` (OtherGit only).
+  Verified by unit tests `TestBuildDefinitionFramework_Schema`,
+  `TestBuildDefinitionFramework_FlattenCITrigger_UseYAML`,
+  `TestBuildDefinitionFramework_FlattenCITrigger_Override`,
+  `TestBuildDefinitionFramework_FlattenPRTrigger`,
+  `TestBuildDefinitionFramework_FlattenFilters`,
+  `TestBuildDefinitionFramework_ValidateConfig_Conflict`,
+  `TestBuildDefinitionFramework_SkipFirstRunDefault`.
+
+- **`betterado_build_folder` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux provider.
+  Schema: `project_id`, `path`, `description`. Framework validator added for `path`
+  (path format: must start with `\`, no invalid characters — SDKv2 parity).
+  Verified by unit test `TestBuildFolderFramework_PathValidator` and live acceptance
+  test `TestAccBuildFolder_Framework_basic`.
+
+- **`betterado_pipeline_authorization` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation. Schema: `project_id`,
+  `pipeline_project_id`, `resource_id`, `type`, `pipeline_id`. Validators: `resource_id`
+  (StringIsNotWhiteSpace), `type` (enum), `pipeline_id` (IntAtLeast(1)).
+  Verified by live acceptance test `TestAccPipelineAuthorization_Framework_allPipeline_queue`.
+
+- **`betterado_resource_authorization` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation. Schema: `project_id`,
+  `resource_id`, `definition_id`, `type`, `authorized`. Verified by unit test.
+
+- **`betterado_build_definition` data source migrated to terraform-plugin-framework.**
+  The data source now uses the framework implementation. Reads a build definition by
+  `project_id`, `name`, and optional `path`; returns `id`, `revision`, `repository`,
+  `ci_trigger`, `pull_request_trigger`, `variable`, `agent_pool_name`,
+  `agent_specification`, `job_authorization_scope`, `queue_status`, `skip_first_run`.
+  **Deliberately NOT migrated this iteration** (documented in `docs/build-gap-matrix.md`):
+  `variable_groups`, `schedules`, `jobs`, `build_completion_trigger`.
+  Verified by live acceptance test `TestAccBuildDefinition_Framework_DataSource`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

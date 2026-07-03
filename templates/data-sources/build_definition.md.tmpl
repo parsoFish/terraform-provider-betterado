@@ -1,0 +1,18 @@
+---
+page_title: "betterado_build_definition Data Source - betterado"
+subcategory: "Build"
+description: |-
+  Reads a build (pipeline) definition from an Azure DevOps project.
+---
+
+# betterado_build_definition (Data Source)
+
+Use this data source to read the configuration of an existing Azure DevOps build
+(pipeline) definition. Useful for referencing pipelines from other Terraform
+resources without managing them directly.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/betterado_build_definition/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
