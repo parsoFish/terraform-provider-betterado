@@ -3,13 +3,13 @@
   "essence": "Six Work Item Tracking resources/data-sources (betterado_workitem, betterado_workitemtracking_field, betterado_workitemquery, betterado_workitemquery_folder, betterado_area, betterado_iteration) have been migrated from terraform-plugin-sdk/v2 to terraform-plugin-framework and served via the mux provider. All SDKv2 implementations are deleted; framework implementations registered in framework_provider.go. Proven by live acceptance tests against real ADO with CaptureLiveEvidence REST GET evidence.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-workitemtracking",
-  "diffStat": "84 files changed, 5281 insertions(+), 2835 deletions(-)",
+  "diffStat": "172 files changed, 12075 insertions(+), 2835 deletions(-)",
   "summary": {
     "bullets": [
       "All 6 workitemtracking types migrated from SDKv2 to terraform-plugin-framework: betterado_workitem, betterado_workitemtracking_field, betterado_workitemquery, betterado_workitemquery_folder, betterado_area, betterado_iteration.",
       "SDKv2 implementations deleted; framework implementations registered in framework_provider.go; provider.go ResourcesMap/DataSourcesMap cleaned up.",
       "Every migration proved by a live TF_ACC acceptance test against real ADO using GetMuxedProviderFactories; 5 of 6 resource types have real REST GET evidence captured via CaptureLiveEvidence.",
-      "Gap matrix (docs/workitemtracking-gap-matrix.md) authored; 6 doc pages regenerated; examples created; CHANGELOG updated; version bumped to 1.2.1.",
+      "Gap matrix (docs/workitemtracking-gap-matrix.md) authored; 6 doc pages regenerated; examples created; CHANGELOG updated; version bumped to 1.9.1.",
       "CI-equivalent gate green: go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... ok 0.008s."
     ],
     "branch": "forge/INIT-2026-07-01-migrate-framework-workitemtracking"
@@ -245,7 +245,7 @@
     {
       "criterion": "GIVEN PROVIDER_VERSION.txt exists WHEN its contents are read THEN the semver has been bumped from the prior value (e.g. patch or minor bump) to reflect the user-visible migration",
       "verdict": "met",
-      "evidence": "PROVIDER_VERSION.txt = '1.2.1' (bumped from 1.2.0 by WI-6 commit eb41bccb)"
+      "evidence": "PROVIDER_VERSION.txt = '1.9.1' (bumped from 1.9.0 by WI-6; main was at 1.9.0 after fan-ins from servicehook, graph-identity, feed, and related migrations)"
     },
     {
       "criterion": "GIVEN examples/resources/ and examples/data-sources/ directories WHEN the resource.tf examples are read for each migrated type THEN examples/resources/betterado_workitem/resource.tf, examples/resources/betterado_workitemtracking_field/resource.tf, examples/resources/betterado_workitemquery/resource.tf, examples/resources/betterado_workitemquery_folder/resource.tf, examples/data-sources/betterado_area/data-source.tf, examples/data-sources/betterado_iteration/data-source.tf all exist and contain valid HCL embedded by the generated docs",

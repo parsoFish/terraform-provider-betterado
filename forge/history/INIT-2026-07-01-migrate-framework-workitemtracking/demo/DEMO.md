@@ -7,7 +7,7 @@
 - All 6 workitemtracking types migrated from SDKv2 to terraform-plugin-framework: betterado_workitem, betterado_workitemtracking_field, betterado_workitemquery, betterado_workitemquery_folder, betterado_area, betterado_iteration.
 - SDKv2 implementations deleted; framework implementations registered in framework_provider.go; provider.go ResourcesMap/DataSourcesMap cleaned up.
 - Every migration proved by a live TF_ACC acceptance test against real ADO using GetMuxedProviderFactories; 5 of 6 resource types have real REST GET evidence captured via CaptureLiveEvidence.
-- Gap matrix (docs/workitemtracking-gap-matrix.md) authored; 6 doc pages regenerated; examples created; CHANGELOG updated; version bumped to 1.2.1.
+- Gap matrix (docs/workitemtracking-gap-matrix.md) authored; 6 doc pages regenerated; examples created; CHANGELOG updated; version bumped to 1.9.1.
 - CI-equivalent gate green: go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... ok 0.008s.
 - Branch: `forge/INIT-2026-07-01-migrate-framework-workitemtracking`
 
@@ -33,7 +33,7 @@
 | 14 | GIVEN a live acceptance test TestAccAreaDataSource or TestAccIterationDataSource runs with TF_ACC=1 using GetMuxedProviderFactories WHEN the muxed provider serves betterado_area and betterado_iteration as framework data sources THEN both tests pass against real ADO and CaptureLiveEvidence is called with labels acceptance-resource-area and acceptance-resource-iteration respectively | ✓ met | TestAccAreaDataSource_Read → pass; .forge/live-evidence/acceptance-resource-area.json (capturedAt 2026-07-03T11:04:58Z, url https://dev.azure.com/davidgparsonson/betterado-standing-demo/_apis/wit/classificationnodes/areas//?api-version=7.1); TestAccIterationDataSource_Read → pass; .forge/live-evidence/acceptance-resource-iteration.json (capturedAt 2026-07-03T11:04:58Z) |
 | 15 | GIVEN all 6 workitemtracking types have been migrated to framework in WI-2 through WI-5 WHEN make docs is run THEN docs/resources/workitem.md, docs/resources/workitemtracking_field.md, docs/resources/workitemquery.md, docs/resources/workitemquery_folder.md, docs/data-sources/area.md, docs/data-sources/iteration.md are regenerated with current schema attributes; docs/guides/ is restored via git checkout -- docs/guides/ | ✓ met | WI-6 commit eb41bccb: git diff --name-only main...HEAD confirms all 6 docs files present; docs/guides/ restored (WI-6 ran git checkout -- docs/guides/) |
 | 16 | GIVEN CHANGELOG.md exists with a ## Unreleased section WHEN the file is read THEN it documents the migration of betterado_workitem, betterado_workitemtracking_field, betterado_workitemquery, betterado_workitemquery_folder, betterado_area, betterado_iteration to terraform-plugin-framework | ✓ met | CHANGELOG.md ## [Unreleased] contains bullets for all 6 types under ### FEATURES (lines 10-28 of CHANGELOG.md) |
-| 17 | GIVEN PROVIDER_VERSION.txt exists WHEN its contents are read THEN the semver has been bumped from the prior value (e.g. patch or minor bump) to reflect the user-visible migration | ✓ met | PROVIDER_VERSION.txt = '1.2.1' (bumped from 1.2.0 by WI-6 commit eb41bccb) |
+| 17 | GIVEN PROVIDER_VERSION.txt exists WHEN its contents are read THEN the semver has been bumped from the prior value (e.g. patch or minor bump) to reflect the user-visible migration | ✓ met | PROVIDER_VERSION.txt = '1.9.1' (bumped from 1.9.0 by WI-6; main was at 1.9.0 after fan-ins from servicehook, graph-identity, feed, and related migrations) |
 | 18 | GIVEN examples/resources/ and examples/data-sources/ directories WHEN the resource.tf examples are read for each migrated type THEN examples/resources/betterado_workitem/resource.tf, examples/resources/betterado_workitemtracking_field/resource.tf, examples/resources/betterado_workitemquery/resource.tf, examples/resources/betterado_workitemquery_folder/resource.tf, examples/data-sources/betterado_area/data-source.tf, examples/data-sources/betterado_iteration/data-source.tf all exist and contain valid HCL embedded by the generated docs | ✓ met | git diff --name-only main...HEAD confirms all 6 example files present in diff |
 
 ## Visual Changes
@@ -411,7 +411,7 @@ framework_provider.go DataSources(): NewAreaDataSource, NewIterationDataSource �
 ## Files Changed
 
 ```
-84 files changed, 5281 insertions(+), 2835 deletions(-)
+172 files changed, 12075 insertions(+), 2835 deletions(-)
 ```
 
 ## Usage
