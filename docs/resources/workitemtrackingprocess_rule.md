@@ -37,14 +37,14 @@ resource "betterado_workitemtrackingprocess_rule" "example" {
 
 ### Required
 
-- `action` (Attributes Set) Set of actions to take when the rule is triggered. (see [below for nested schema](#nestedatt--action))
-- `condition` (Attributes Set) Set of conditions when the rule should be triggered. (see [below for nested schema](#nestedatt--condition))
 - `name` (String) Name of the rule.
 - `process_id` (String) The ID of the process.
 - `work_item_type_id` (String) The ID (reference name) of the work item type.
 
 ### Optional
 
+- `action` (Block Set) Set of actions to take when the rule is triggered. (see [below for nested schema](#nestedblock--action))
+- `condition` (Block Set) Set of conditions when the rule should be triggered. (see [below for nested schema](#nestedblock--condition))
 - `is_enabled` (Boolean) Indicates if the rule is enabled.
 
 ### Read-Only
@@ -52,7 +52,7 @@ resource "betterado_workitemtrackingprocess_rule" "example" {
 - `id` (String) The ID of the rule.
 - `url` (String) URL of the rule resource.
 
-<a id="nestedatt--action"></a>
+<a id="nestedblock--action"></a>
 ### Nested Schema for `action`
 
 Required:
@@ -65,7 +65,7 @@ Optional:
 - `value` (String) Value to set on the target field.
 
 
-<a id="nestedatt--condition"></a>
+<a id="nestedblock--condition"></a>
 ### Nested Schema for `condition`
 
 Required:
