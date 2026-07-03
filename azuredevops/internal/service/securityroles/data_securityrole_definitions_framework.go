@@ -5,9 +5,11 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	sdkroles "github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/securityroles"
@@ -66,6 +68,9 @@ func (d *securityRoleDefinitionsDataSource) Schema(_ context.Context, _ datasour
 			"scope": schema.StringAttribute{
 				Required:    true,
 				Description: "The scope of the security role definitions to look up.",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"definitions": schema.SetNestedAttribute{
 				Computed:    true,

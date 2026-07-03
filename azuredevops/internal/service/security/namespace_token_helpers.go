@@ -1,23 +1,23 @@
 package security
 
+// namespace_token_helpers.go holds the shared token-template registry and helper
+// functions used by both the SDKv2 (removed) and framework implementations of
+// betterado_security_namespace_token.
+
 import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
-	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/security"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtracking"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions/utils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
-// TokenTemplate defines the structure for generating tokens for a namespace
+// TokenTemplate defines the structure for generating tokens for a namespace.
 type TokenTemplate struct {
 	// RequiredIdentifiers are the identifiers that must be provided
 	RequiredIdentifiers []string
@@ -27,8 +27,8 @@ type TokenTemplate struct {
 	BuildFunc func(identifiers map[string]string, clients *client.AggregatedClient) (string, error)
 }
 
-// TokenTemplate defines the structure for generating tokens for a namespace
-// This matches the logic from CreateClassificationNodeSecurityToken in the permissions utils
+// createClassificationNodeToken constructs an ACL token for an Azure DevOps
+// classification node (Area or Iteration).
 func createClassificationNodeToken(clients *client.AggregatedClient, projectID string, path string, structureGroup workitemtracking.TreeStructureGroup) (string, error) {
 	const aclClassificationNodeTokenPrefix = "vstfs:///Classification/Node/"
 
@@ -89,8 +89,7 @@ func createClassificationNodeToken(clients *client.AggregatedClient, projectID s
 	return aclToken, nil
 }
 
-// getQueryIDsFromPath resolves a path string to a list of query/folder IDs
-// This matches the logic from getQueryIDsFromPath in the workitemquery permissions resource
+// getQueryIDsFromPath resolves a path string to a list of query/folder IDs.
 func getQueryIDsFromPath(clients *client.AggregatedClient, projectID string, path string) ([]string, error) {
 	path = strings.TrimSpace(path)
 
@@ -154,7 +153,7 @@ func getQueryIDsFromPath(clients *client.AggregatedClient, projectID string, pat
 	return ret, nil
 }
 
-// getQueryName returns the name of a query, falling back to its ID if name is not available
+// getQueryName returns the name of a query, falling back to its ID if name is not available.
 func getQueryName(qry *workitemtracking.QueryHierarchyItem) string {
 	if qry.Name != nil {
 		return *qry.Name
@@ -162,7 +161,7 @@ func getQueryName(qry *workitemtracking.QueryHierarchyItem) string {
 	return qry.Id.String()
 }
 
-// TokenTemplate defines the structure for generating tokens for a namespace
+// namespaceTokenTemplates is the registry of known security namespace token templates.
 var namespaceTokenTemplates = map[utils.SecurityNamespaceID]TokenTemplate{
 	// Git Repositories namespace
 	// Token formats:
@@ -403,167 +402,4 @@ var namespaceTokenTemplates = map[utils.SecurityNamespaceID]TokenTemplate{
 			return "Global", nil
 		},
 	},
-}
-
-// DataSecurityNamespaceToken schema and implementation for security namespace token data source
-func DataSecurityNamespaceToken() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSecurityNamespaceTokenRead,
-		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
-		},
-		Schema: map[string]*schema.Schema{
-			"namespace_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.IsUUID,
-				ExactlyOneOf: []string{"namespace_id", "namespace_name"},
-				Description:  "The ID of the security namespace",
-			},
-			"namespace_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"namespace_id", "namespace_name"},
-				Description:  "The name of the security namespace (e.g., 'Git Repositories', 'Project')",
-			},
-			"identifiers": {
-				Type:        schema.TypeMap,
-				Optional:    true,
-				Description: "Map of identifiers required for token generation (e.g., project_id, repository_id)",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"return_identifier_info": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "When true, returns the required and optional identifiers for the namespace instead of generating a token",
-			},
-			"token": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The generated security token for the namespace",
-			},
-			"required_identifiers": {
-				Type:        schema.TypeList,
-				Computed:    true,
-				Description: "List of required identifiers for this namespace (only populated when return_identifier_info is true)",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-			"optional_identifiers": {
-				Type:        schema.TypeList,
-				Computed:    true,
-				Description: "List of optional identifiers for this namespace (only populated when return_identifier_info is true)",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-		},
-	}
-}
-
-func dataSecurityNamespaceTokenRead(d *schema.ResourceData, m interface{}) error {
-	clients := m.(*client.AggregatedClient)
-
-	var namespaceID uuid.UUID
-	var err error
-
-	// Get namespace ID either directly or by name
-	if nsID, ok := d.GetOk("namespace_id"); ok {
-		namespaceID, err = uuid.Parse(nsID.(string))
-		if err != nil {
-			return fmt.Errorf("invalid namespace_id: %v", err)
-		}
-	} else if nsName, ok := d.GetOk("namespace_name"); ok {
-		// Query namespaces to find by name
-		namespaces, err := clients.SecurityClient.QuerySecurityNamespaces(clients.Ctx, security.QuerySecurityNamespacesArgs{})
-		if err != nil {
-			return fmt.Errorf("querying security namespaces: %v", err)
-		}
-
-		found := false
-		for _, ns := range *namespaces {
-			if ns.Name != nil && *ns.Name == nsName.(string) {
-				if ns.NamespaceId != nil {
-					namespaceID = *ns.NamespaceId
-					found = true
-					break
-				}
-			}
-		}
-
-		if !found {
-			return fmt.Errorf("namespace with name '%s' not found", nsName.(string))
-		}
-	}
-
-	// Check if we should return identifier info instead of generating a token
-	returnIdentifierInfo := d.Get("return_identifier_info").(bool)
-
-	if returnIdentifierInfo {
-		// Look up the template for this namespace
-		template, exists := namespaceTokenTemplates[utils.SecurityNamespaceID(namespaceID)]
-		if !exists {
-			return fmt.Errorf("no template information available for namespace %s", namespaceID.String())
-		}
-
-		// Set the required and optional identifiers
-		d.Set("required_identifiers", template.RequiredIdentifiers)
-		d.Set("optional_identifiers", template.OptionalIdentifiers)
-		d.SetId(fmt.Sprintf("ns-info-%s", namespaceID.String()))
-
-		return nil
-	}
-
-	// Generate token based on namespace and provided parameters
-	token, err := generateToken(d, namespaceID, clients)
-	if err != nil {
-		return fmt.Errorf("generating token: %v", err)
-	}
-
-	d.Set("token", token)
-	d.SetId(fmt.Sprintf("ns-token-%s-%s", namespaceID.String(), token))
-
-	return nil
-}
-
-func generateToken(d *schema.ResourceData, namespaceID uuid.UUID, clients *client.AggregatedClient) (string, error) {
-	identifiers := make(map[string]string)
-
-	// Get identifiers from the schema
-	if ids, ok := d.GetOk("identifiers"); ok {
-		for k, v := range ids.(map[string]interface{}) {
-			identifiers[k] = v.(string)
-		}
-	}
-
-	// Look up the template for this namespace
-	template, exists := namespaceTokenTemplates[utils.SecurityNamespaceID(namespaceID)]
-	if !exists {
-		// For unknown namespaces, throw a not supported error
-		return "", fmt.Errorf("unable to generate token for namespace %s", namespaceID.String())
-	}
-
-	// Validate required identifiers
-	var missing []string
-	for _, key := range template.RequiredIdentifiers {
-		if _, exists := identifiers[key]; !exists {
-			missing = append(missing, key)
-		}
-	}
-	if len(missing) > 0 {
-		return "", fmt.Errorf("missing required identifiers: %s", strings.Join(missing, ", "))
-	}
-
-	// Use the BuildFunc to generate the token
-	if template.BuildFunc != nil {
-		return template.BuildFunc(identifiers, clients)
-	}
-
-	// This should never happen since all templates now have BuildFunc
-	return "", fmt.Errorf("no token generation function available for namespace %s", namespaceID.String())
 }

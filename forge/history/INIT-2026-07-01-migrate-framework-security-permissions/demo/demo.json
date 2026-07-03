@@ -63,7 +63,7 @@
     {
       "criterion": "GIVEN the betterado_security_permissions resource and betterado_security_namespace*, betterado_security_namespaces data sources migrated to terraform-plugin-framework WHEN an acceptance test is run live (TF_ACC=1) THEN TestAccSecurityPermissionsFramework passes (apply → provider read-back with all declared permissions asserted → idempotency re-plan produces no diff → destroy clean); live evidence captured via CaptureLiveEvidence",
       "verdict": "met",
-      "evidence": "TestAccSecurityPermissionsFramework committed in 8a143226; live evidence in .forge/live-evidence/acceptance-resource.json (url: https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/c0ac3757-e915-453f-ba2b-93a3720d1994&api-version=7.1, capturedAt: 2026-07-02T12:44:24Z)"
+      "evidence": "TestAccSecurityPermissionsFramework committed in 8a143226; live evidence in .forge/live-evidence/acceptance-resource.json (url: https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800&api-version=7.1, capturedAt: 2026-07-03T02:14:27Z)"
     },
     {
       "criterion": "GIVEN betterado_security_permissions is registered in framework_provider.go and REMOVED from provider.go ResourcesMap WHEN provider compiles and TestProvider_HasChildResources runs THEN no duplicate-resource-type error; the resource is absent from the SDKv2 ResourcesMap count and present in the framework Resources() slice",
@@ -88,7 +88,7 @@
     {
       "criterion": "GIVEN betterado_area_permissions through betterado_workitemtrackingprocess_process_permissions all migrated to terraform-plugin-framework WHEN an acceptance test TestAccPermissionsPackageFramework is run live (TF_ACC=1) THEN the test passes for at least one representative resource (betterado_project_permissions)",
       "verdict": "met",
-      "evidence": "TestAccProjectPermissionsFramework in resource_permissions_framework_test.go; live evidence captured at 2026-07-02T12:44:24Z: url=https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/c0ac3757-e915-453f-ba2b-93a3720d1994&api-version=7.1"
+      "evidence": "TestAccProjectPermissionsFramework in resource_permissions_framework_test.go; live evidence captured at 2026-07-03T02:14:27Z: url=https://dev.azure.com/davidgparsonson/_apis/accesscontrollists/52d39943-cb85-4d7f-8fa8-c6baac873819?token=$PROJECT:vstfs:///Classification/TeamProject/6ddb680c-093d-4953-9561-2266eb7af800&api-version=7.1"
     },
     {
       "criterion": "GIVEN all 13 permissions resources deregistered from SDKv2 ResourcesMap and added to framework_provider.go Resources() WHEN provider compiles and TestProvider_HasChildResources runs THEN no duplicate-resource-type errors; the 13 resource names are absent from provider.go ResourcesMap and present in framework Resources() slice; provider_test.go counts updated",

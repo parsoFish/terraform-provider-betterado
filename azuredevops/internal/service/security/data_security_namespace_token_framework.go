@@ -3,11 +3,14 @@ package security
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/security"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -59,10 +62,19 @@ func (d *securityNamespaceTokenDataSource) Schema(_ context.Context, _ datasourc
 			"namespace_id": schema.StringAttribute{
 				Optional:    true,
 				Description: "The ID of the security namespace.",
+				Validators: []validator.String{
+					stringvalidator.RegexMatches(
+						regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`),
+						"must be a valid UUID",
+					),
+				},
 			},
 			"namespace_name": schema.StringAttribute{
 				Optional:    true,
 				Description: "The name of the security namespace (e.g., 'Git Repositories', 'Project').",
+				Validators: []validator.String{
+					stringvalidator.LengthAtLeast(1),
+				},
 			},
 			"identifiers": schema.MapAttribute{
 				Optional:    true,
