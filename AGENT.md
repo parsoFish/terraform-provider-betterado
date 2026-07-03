@@ -10,6 +10,24 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 
 _(updated by each iteration — most recent at the top)_
 
+### Iteration 3
+
+**Root cause of gate failure:**
+`TestAccEnvironmentKubernetes_createUpdate` was creating `resource "betterado_project" "test"` which hits the ADO org 1000-project cap. The error was:
+```
+Error: creating project: Failed to add a project as this organization already has 1000 projects.
+```
+
+**Fix applied:**
+`resource_environment_resource_kubernetes_test.go`: Refactored `hclEnvironmentKubernetes` to:
+- Drop the `projectName` parameter entirely
+- Use `data "betterado_project" "fixture" { name = SharedFixtureProjectName }` data source
+- Reference `data.betterado_project.fixture.id` instead of `betterado_project.test.id`
+
+This is exactly the same pattern as `resource_environment_test.go` and `data_environment_test.go` which both use `SharedFixtureProjectName`.
+
+**Offline gates:** `go build -tags all ./...` clean, `make test` pass, `golangci-lint run --new-from-rev=main` 0 issues, `make terrafmt-check` pass.
+
 ### Iteration 2
 
 **Root cause of gate failure:**
@@ -24,6 +42,7 @@ _(updated by each iteration — most recent at the top)_
 
 ## What worked
 
+- Using `SharedFixtureProjectName` data source in HCL to avoid 1000-project ADO org cap
 - Moving `GetDirectClient` to `testutils/commons.go` (no build tag) so all test files can use it
 - `ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories()` is required for any test whose HCL references ANY framework resource (even as a dependency — not just the resource under test)
 - Pattern: `Providers: testutils.GetProviders()` is incompatible with any HCL that touches framework resources
@@ -38,5 +57,6 @@ _(none so far)_
 
 ## Notes for reflection
 
+- **ANY test that creates `betterado_project` in HCL will fail** in this org because it's at 1000 projects. Always use `SharedFixtureProjectName` + `data "betterado_project" "fixture"` instead.
 - Any test that uses `Providers: GetProviders()` (SDKv2-only) but references a framework resource in HCL will fail with "does not support resource type". The fix is always `ProtoV6ProviderFactories: GetMuxedProviderFactories()`.
 - `GetDirectClient()` should be in a non-tagged shared location (testutils/commons.go) so all test files can use it regardless of build tags.
