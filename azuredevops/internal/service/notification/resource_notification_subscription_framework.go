@@ -236,6 +236,14 @@ func (r *notificationSubscriptionResource) Read(ctx context.Context, req resourc
 		return
 	}
 
+	// ADO soft-deletes notification subscriptions: after a DELETE call the
+	// subscription transitions to "pendingDeletion" status before the record is
+	// physically removed. Treat that as gone so Terraform removes it from state.
+	if sub != nil && sub.Status != nil && *sub.Status == notificationapi.SubscriptionStatusValues.PendingDeletion {
+		resp.State.RemoveResource(ctx)
+		return
+	}
+
 	flattenNotificationSubscription(sub, &model)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }

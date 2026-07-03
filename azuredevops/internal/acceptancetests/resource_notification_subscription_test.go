@@ -167,6 +167,12 @@ resource "betterado_notification_subscription" "test" {
 
 // checkNotificationSubscriptionDestroyed verifies that all notification subscriptions
 // in the Terraform state have been deleted from ADO.
+//
+// ADO's notification subscription DELETE is asynchronous: after the API call
+// succeeds (HTTP 204) the subscription transitions to status "pendingDeletion"
+// before it is fully removed. A subsequent GET still returns the subscription
+// with that status. We therefore treat both a 404 response AND a subscription
+// whose status is "pendingDeletion" as "effectively deleted".
 func checkNotificationSubscriptionDestroyed(s *terraform.State) error {
 	clients, err := getDirectClient()
 	if err != nil {
@@ -190,6 +196,12 @@ func checkNotificationSubscriptionDestroyed(s *terraform.State) error {
 			return fmt.Errorf("error reading notification subscription %s after destroy: %v", subID, err)
 		}
 		if sub != nil && sub.Id != nil {
+			// ADO soft-deletes subscriptions: after DELETE the status transitions
+			// to "pendingDeletion" before the record is removed. Treat that as
+			// destroyed so the test does not report a false failure.
+			if sub.Status != nil && *sub.Status == notificationapi.SubscriptionStatusValues.PendingDeletion {
+				continue
+			}
 			return fmt.Errorf("notification subscription %s still exists after destroy", subID)
 		}
 	}
