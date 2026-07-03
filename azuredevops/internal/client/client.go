@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/accounts"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/dashboard"
@@ -48,6 +49,7 @@ import (
 // Azure DevOps client.
 type AggregatedClient struct {
 	OrganizationURL               string
+	AccountsClient                accounts.Client
 	CoreClient                    core.Client
 	BuildClient                   build.Client
 	DashboardClient               dashboard.Client
@@ -94,6 +96,12 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 	}
 
 	setUserAgent(connection)
+
+	accountsClient, err := accounts.NewClient(ctx, connection)
+	if err != nil {
+		log.Printf("getAzdoClient(): accounts.NewClient failed.")
+		return nil, err
+	}
 
 	coreClient, err := core.NewClient(ctx, connection)
 	if err != nil {
@@ -232,6 +240,7 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 
 	aggregatedClient := &AggregatedClient{
 		OrganizationURL:               organizationURL,
+		AccountsClient:                accountsClient,
 		CoreClient:                    coreClient,
 		BuildClient:                   buildClient,
 		DashboardClient:               dashboardClient,
