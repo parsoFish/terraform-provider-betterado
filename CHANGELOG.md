@@ -7,6 +7,137 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### ENHANCEMENTS
+
+- **Migrated `betterado_serviceendpoint_*` (24 resources + 8 data sources) from terraform-plugin-sdk/v2 to terraform-plugin-framework** via the mux provider.
+  All service endpoint resources and data sources now use the framework implementation; SDKv2 registrations
+  have been removed. The following types are included:
+  - Resources: `betterado_serviceendpoint_generic`, `betterado_serviceendpoint_generic_v2`,
+    `betterado_serviceendpoint_generic_git`, `betterado_serviceendpoint_azurerm`, `betterado_serviceendpoint_aws`,
+    `betterado_serviceendpoint_azure_service_bus`, `betterado_serviceendpoint_gcp_terraform`,
+    `betterado_serviceendpoint_dockerregistry`, `betterado_serviceendpoint_azurecr`,
+    `betterado_serviceendpoint_github`, `betterado_serviceendpoint_github_enterprise`,
+    `betterado_serviceendpoint_gitlab`, `betterado_serviceendpoint_bitbucket`,
+    `betterado_serviceendpoint_jenkins`, `betterado_serviceendpoint_argocd`,
+    `betterado_serviceendpoint_incomingwebhook`, `betterado_serviceendpoint_externaltfs`,
+    `betterado_serviceendpoint_azuredevops`, `betterado_serviceendpoint_black_duck`,
+    `betterado_serviceendpoint_checkmarx_one`, `betterado_serviceendpoint_checkmarx_sca`,
+    `betterado_serviceendpoint_checkmarx_sast`, `betterado_serviceendpoint_artifactory`,
+    `betterado_serviceendpoint_dynamics_lifecycle_services`
+  - Data sources: `betterado_serviceendpoint_generic_v2`, `betterado_serviceendpoint_azurerm`,
+    `betterado_serviceendpoint_dockerregistry`, `betterado_serviceendpoint_azurecr`,
+    `betterado_serviceendpoint_github`, `betterado_serviceendpoint_bitbucket`,
+    `betterado_serviceendpoint_npm`, `betterado_serviceendpoint_sonarcloud`
+
+### FEATURES
+
+- **`betterado_serviceendpoint_generic` resource migrated to terraform-plugin-framework.**
+  Supports `url`, `username`, `password`, and optional `description` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_generic_v2` resource and data source migrated to terraform-plugin-framework.**
+  Supports arbitrary endpoint types, authorization schemes, authorization parameters, and data parameters.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_generic_git` resource migrated to terraform-plugin-framework.**
+  Supports `repository_url`, `username`, `password`, and `enable_pipelines_access` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_azurerm` resource and data source migrated to terraform-plugin-framework.**
+  Supports Service Principal (manual and automatic) and Managed Identity authentication modes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_aws` resource migrated to terraform-plugin-framework.**
+  Supports `access_key_id`, `secret_access_key`, and optional `session_token` and `role_to_assume` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_azure_service_bus` resource migrated to terraform-plugin-framework.**
+  Supports `connection_string` for Service Bus endpoint authentication.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_gcp_terraform` resource migrated to terraform-plugin-framework.**
+  Supports GCP service account JSON credentials for Terraform operations.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_dockerregistry` resource and data source migrated to terraform-plugin-framework.**
+  Supports Docker Hub and custom registry types with username + password authentication.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_azurecr` resource and data source migrated to terraform-plugin-framework.**
+  Supports service principal and managed identity authentication for Azure Container Registry.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_github` resource and data source migrated to terraform-plugin-framework.**
+  Supports PAT (`personal_access_token`) and OAuth (`oauth_configuration_id`) authentication schemes.
+  Deregistered from the SDKv2 provider; served through the mux provider. Verified by live acceptance
+  test `TestAccServiceEndpointGitHub_basic` (apply → read-back → idempotency re-plan → destroy).
+
+- **`betterado_serviceendpoint_github_enterprise` resource migrated to terraform-plugin-framework.**
+  Supports PAT and OAuth authentication; schema unchanged (`project_id`, `service_endpoint_name`,
+  `github_enterprise_url`, `personal_access_token`, `oauth_configuration_id`, `description`).
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_gitlab` resource migrated to terraform-plugin-framework.**
+  Username + password basic authentication. Deregistered from the SDKv2 provider; served through
+  the mux provider.
+
+- **`betterado_serviceendpoint_bitbucket` resource and data source migrated to terraform-plugin-framework.**
+  Username + password basic authentication. Deregistered from the SDKv2 provider; served through
+  the mux provider.
+
+- **`betterado_serviceendpoint_jenkins` resource migrated to terraform-plugin-framework.**
+  Supports username + password authentication with optional `accept_untrusted_certs` flag.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_argocd` resource migrated to terraform-plugin-framework.**
+  Supports both token (`authentication_token`) and basic (`authentication_basic`) authentication modes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_incomingwebhook` resource migrated to terraform-plugin-framework.**
+  Supports `webhook_name`, optional `secret`, and optional `http_header` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_externaltfs` resource migrated to terraform-plugin-framework.**
+  Uses `auth_personal` block with `personal_access_token` for Token authentication.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_azuredevops` resource migrated to terraform-plugin-framework.**
+  Supports `org_url`, `release_api_url`, and `personal_access_token` attributes.
+  Deprecated: use `betterado_serviceendpoint_runpipeline` instead.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_black_duck` resource migrated to terraform-plugin-framework.**
+  Supports `server_url` and `api_token` attributes for Black Duck security scanning.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_checkmarx_one` resource migrated to terraform-plugin-framework.**
+  Supports `server_url`, `authentication_url`, `tenant`, `client_id`, and `client_secret` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_checkmarx_sca` resource migrated to terraform-plugin-framework.**
+  Supports `server_url`, `access_control_url`, `tenant`, `username`, and `password` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_checkmarx_sast` resource migrated to terraform-plugin-framework.**
+  Supports `server_url`, `username`, and `password` attributes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_artifactory` resource migrated to terraform-plugin-framework.**
+  Supports both token (`authentication_token`) and basic (`authentication_basic`) authentication modes.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_dynamics_lifecycle_services` resource migrated to terraform-plugin-framework.**
+  Uses `authorization_endpoint`, `lifecycle_services_api_endpoint`, `client_id`, `username`, and `password`
+  attributes with `UsernamePassword` authentication scheme.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_npm` data source migrated to terraform-plugin-framework.**
+  Reads an npm service endpoint by `project_id` + `service_endpoint_name`; returns connection details.
+  Deregistered from the SDKv2 provider; served through the mux provider.
+
+- **`betterado_serviceendpoint_sonarcloud` data source migrated to terraform-plugin-framework.**
+  Reads a SonarCloud service endpoint by `project_id` + `service_endpoint_name`.
+  Deregistered from the SDKv2 provider; served through the mux provider.
 ### FEATURES
 
 - **`betterado_wiki` migrated to terraform-plugin-framework.** The resource now

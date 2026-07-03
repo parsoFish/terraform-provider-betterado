@@ -105,52 +105,52 @@ func Provider() *schema.Provider {
 			// betterado_resource_authorization is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_security_permissions":                        security.ResourceGenericPermissions(),
-			"betterado_securityrole_assignment":                     securityroles.ResourceSecurityRoleAssignment(),
-			"betterado_serviceendpoint_generic_v2":                  serviceendpoint.ResourceServiceEndpointGenericV2(),
-			"betterado_serviceendpoint_argocd":                      serviceendpoint.ResourceServiceEndpointArgoCD(),
-			"betterado_serviceendpoint_artifactory":                 serviceendpoint.ResourceServiceEndpointArtifactory(),
-			"betterado_serviceendpoint_aws":                         serviceendpoint.ResourceServiceEndpointAws(),
-			"betterado_serviceendpoint_azure_service_bus":           serviceendpoint.ResourceServiceEndpointAzureServiceBus(),
-			"betterado_serviceendpoint_azurecr":                     serviceendpoint.ResourceServiceEndpointAzureCR(),
-			"betterado_serviceendpoint_azuredevops":                 serviceendpoint.ResourceServiceEndpointAzureDevOps(),
-			"betterado_serviceendpoint_azurerm":                     serviceendpoint.ResourceServiceEndpointAzureRM(),
-			"betterado_serviceendpoint_bitbucket":                   serviceendpoint.ResourceServiceEndpointBitBucket(),
-			"betterado_serviceendpoint_black_duck":                  serviceendpoint.ResourceServiceEndpointBlackDuck(),
-			"betterado_serviceendpoint_checkmarx_one":               serviceendpoint.ResourceServiceEndpointCheckMarxOneService(),
-			"betterado_serviceendpoint_checkmarx_sca":               serviceendpoint.ResourceServiceEndpointCheckMarxSCA(),
-			"betterado_serviceendpoint_checkmarx_sast":              serviceendpoint.ResourceServiceEndpointCheckMarxSAST(),
-			"betterado_serviceendpoint_dockerregistry":              serviceendpoint.ResourceServiceEndpointDockerRegistry(),
-			"betterado_serviceendpoint_dynamics_lifecycle_services": serviceendpoint.ResourceServiceEndpointDynamicsLifecycleServices(),
-			"betterado_serviceendpoint_externaltfs":                 serviceendpoint.ResourceServiceEndpointExternalTFS(),
-			"betterado_serviceendpoint_gcp_terraform":               serviceendpoint.ResourceServiceEndpointGcp(),
-			"betterado_serviceendpoint_generic":                     serviceendpoint.ResourceServiceEndpointGeneric(),
-			"betterado_serviceendpoint_generic_git":                 serviceendpoint.ResourceServiceEndpointGenericGit(),
-			"betterado_serviceendpoint_github":                      serviceendpoint.ResourceServiceEndpointGitHub(),
-			"betterado_serviceendpoint_github_enterprise":           serviceendpoint.ResourceServiceEndpointGitHubEnterprise(),
-			"betterado_serviceendpoint_gitlab":                      serviceendpoint.ResourceServiceEndpointGitLab(),
-			"betterado_serviceendpoint_incomingwebhook":             serviceendpoint.ResourceServiceEndpointIncomingWebhook(),
-			"betterado_serviceendpoint_jenkins":                     serviceendpoint.ResourceServiceEndpointJenkins(),
-			"betterado_serviceendpoint_jfrog_artifactory_v2":        serviceendpoint.ResourceServiceEndpointJFrogArtifactoryV2(),
-			"betterado_serviceendpoint_jfrog_distribution_v2":       serviceendpoint.ResourceServiceEndpointJFrogDistributionV2(),
-			"betterado_serviceendpoint_jfrog_platform_v2":           serviceendpoint.ResourceServiceEndpointJFrogPlatformV2(),
-			"betterado_serviceendpoint_jfrog_xray_v2":               serviceendpoint.ResourceServiceEndpointJFrogXRayV2(),
-			"betterado_serviceendpoint_kubernetes":                  serviceendpoint.ResourceServiceEndpointKubernetes(),
-			"betterado_serviceendpoint_maven":                       serviceendpoint.ResourceServiceEndpointMaven(),
-			"betterado_serviceendpoint_nexus":                       serviceendpoint.ResourceServiceEndpointNexus(),
-			"betterado_serviceendpoint_npm":                         serviceendpoint.ResourceServiceEndpointNpm(),
-			"betterado_serviceendpoint_nuget":                       serviceendpoint.ResourceServiceEndpointNuGet(),
-			"betterado_serviceendpoint_octopusdeploy":               serviceendpoint.ResourceServiceEndpointOctopusDeploy(),
-			"betterado_serviceendpoint_openshift":                   serviceendpoint.ResourceServiceEndpointOpenshift(),
-			"betterado_serviceendpoint_permissions":                 permissions.ResourceServiceEndpointPermissions(),
-			"betterado_serviceendpoint_runpipeline":                 serviceendpoint.ResourceServiceEndpointRunPipeline(),
-			"betterado_serviceendpoint_servicefabric":               serviceendpoint.ResourceServiceEndpointServiceFabric(),
-			"betterado_serviceendpoint_snyk":                        serviceendpoint.ResourceServiceEndpointSnyk(),
-			"betterado_serviceendpoint_sonarcloud":                  serviceendpoint.ResourceServiceEndpointSonarCloud(),
-			"betterado_serviceendpoint_sonarqube":                   serviceendpoint.ResourceServiceEndpointSonarQube(),
-			"betterado_serviceendpoint_ssh":                         serviceendpoint.ResourceServiceEndpointSSH(),
-			"betterado_serviceendpoint_visualstudiomarketplace":     serviceendpoint.ResourceServiceEndpointMarketplace(),
-			"betterado_servicehook_permissions":                     permissions.ResourceServiceHookPermissions(),
+			"betterado_security_permissions":    security.ResourceGenericPermissions(),
+			"betterado_securityrole_assignment": securityroles.ResourceSecurityRoleAssignment(),
+			// betterado_serviceendpoint_generic_v2 migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_argocd migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_artifactory migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_aws migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_azure_service_bus migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_azurecr migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_azuredevops migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_azurerm migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_bitbucket migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_black_duck migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_checkmarx_one migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_checkmarx_sca migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_checkmarx_sast migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_dockerregistry migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_dynamics_lifecycle_services migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_externaltfs migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_gcp_terraform migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_generic migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_generic_git migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_github migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_github_enterprise migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_gitlab migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_incomingwebhook migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_jenkins migrated to the framework provider (framework_provider.go).
+			"betterado_serviceendpoint_jfrog_artifactory_v2":  serviceendpoint.ResourceServiceEndpointJFrogArtifactoryV2(),
+			"betterado_serviceendpoint_jfrog_distribution_v2": serviceendpoint.ResourceServiceEndpointJFrogDistributionV2(),
+			"betterado_serviceendpoint_jfrog_platform_v2":     serviceendpoint.ResourceServiceEndpointJFrogPlatformV2(),
+			"betterado_serviceendpoint_jfrog_xray_v2":         serviceendpoint.ResourceServiceEndpointJFrogXRayV2(),
+			"betterado_serviceendpoint_kubernetes":            serviceendpoint.ResourceServiceEndpointKubernetes(),
+			"betterado_serviceendpoint_maven":                 serviceendpoint.ResourceServiceEndpointMaven(),
+			"betterado_serviceendpoint_nexus":                 serviceendpoint.ResourceServiceEndpointNexus(),
+			// betterado_serviceendpoint_npm migrated to the framework provider (framework_provider.go).
+			"betterado_serviceendpoint_nuget":         serviceendpoint.ResourceServiceEndpointNuGet(),
+			"betterado_serviceendpoint_octopusdeploy": serviceendpoint.ResourceServiceEndpointOctopusDeploy(),
+			"betterado_serviceendpoint_openshift":     serviceendpoint.ResourceServiceEndpointOpenshift(),
+			"betterado_serviceendpoint_permissions":   permissions.ResourceServiceEndpointPermissions(),
+			"betterado_serviceendpoint_runpipeline":   serviceendpoint.ResourceServiceEndpointRunPipeline(),
+			"betterado_serviceendpoint_servicefabric": serviceendpoint.ResourceServiceEndpointServiceFabric(),
+			"betterado_serviceendpoint_snyk":          serviceendpoint.ResourceServiceEndpointSnyk(),
+			// betterado_serviceendpoint_sonarcloud migrated to the framework provider (framework_provider.go).
+			"betterado_serviceendpoint_sonarqube":               serviceendpoint.ResourceServiceEndpointSonarQube(),
+			"betterado_serviceendpoint_ssh":                     serviceendpoint.ResourceServiceEndpointSSH(),
+			"betterado_serviceendpoint_visualstudiomarketplace": serviceendpoint.ResourceServiceEndpointMarketplace(),
+			"betterado_servicehook_permissions":                 permissions.ResourceServiceHookPermissions(),
 			// betterado_servicehook_storage_queue_pipelines migrated to the framework provider (framework_provider.go).
 			// betterado_servicehook_webhook_tfs migrated to the framework provider (framework_provider.go).
 			// betterado_service_principal_entitlement migrated to the framework provider.
@@ -202,27 +202,27 @@ func Provider() *schema.Provider {
 			// betterado_git_repositories migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository_file migrated to the framework provider (framework_provider.go).
-			"betterado_group":                                 graph.DataGroup(),
-			"betterado_group_membership":                      graph.DataGroupMembership(),
-			"betterado_groups":                                graph.DataGroups(),
-			"betterado_identity_group":                        identity.DataIdentityGroup(),
-			"betterado_identity_groups":                       identity.DataIdentityGroups(),
-			"betterado_identity_user":                         identity.DataIdentityUser(),
-			"betterado_iteration":                             workitemtracking.DataIteration(),
-			"betterado_project":                               core.DataProject(),
-			"betterado_projects":                              core.DataProjects(),
-			"betterado_security_namespace":                    security.DataSecurityNamespace(),
-			"betterado_security_namespace_token":              security.DataSecurityNamespaceToken(),
-			"betterado_security_namespaces":                   security.DataSecurityNamespaces(),
-			"betterado_securityrole_definitions":              securityroles.DataSecurityRoleDefinitions(),
-			"betterado_serviceendpoint_generic_v2":            serviceendpoint.DataServiceEndpointGenericV2(),
-			"betterado_serviceendpoint_azurecr":               serviceendpoint.DataResourceServiceEndpointAzureCR(),
-			"betterado_serviceendpoint_azurerm":               serviceendpoint.DataServiceEndpointAzureRM(),
-			"betterado_serviceendpoint_bitbucket":             serviceendpoint.DataResourceServiceEndpointBitbucket(),
-			"betterado_serviceendpoint_dockerregistry":        serviceendpoint.DataResourceServiceEndpointDockerRegistry(),
-			"betterado_serviceendpoint_github":                serviceendpoint.DataServiceEndpointGithub(),
-			"betterado_serviceendpoint_npm":                   serviceendpoint.DataResourceServiceEndpointNpm(),
-			"betterado_serviceendpoint_sonarcloud":            serviceendpoint.DataResourceServiceEndpointSonarCloud(),
+			"betterado_group":                    graph.DataGroup(),
+			"betterado_group_membership":         graph.DataGroupMembership(),
+			"betterado_groups":                   graph.DataGroups(),
+			"betterado_identity_group":           identity.DataIdentityGroup(),
+			"betterado_identity_groups":          identity.DataIdentityGroups(),
+			"betterado_identity_user":            identity.DataIdentityUser(),
+			"betterado_iteration":                workitemtracking.DataIteration(),
+			"betterado_project":                  core.DataProject(),
+			"betterado_projects":                 core.DataProjects(),
+			"betterado_security_namespace":       security.DataSecurityNamespace(),
+			"betterado_security_namespace_token": security.DataSecurityNamespaceToken(),
+			"betterado_security_namespaces":      security.DataSecurityNamespaces(),
+			"betterado_securityrole_definitions": securityroles.DataSecurityRoleDefinitions(),
+			// betterado_serviceendpoint_generic_v2 migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_azurecr migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_azurerm migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_bitbucket migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_dockerregistry migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_github migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_npm migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_sonarcloud migrated to the framework provider (framework_provider.go).
 			"betterado_service_principal":                     graph.DataServicePrincipal(),
 			"betterado_storage_key":                           graph.DataStorageKey(),
 			"betterado_team":                                  core.DataTeam(),
