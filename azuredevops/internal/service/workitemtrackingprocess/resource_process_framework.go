@@ -259,7 +259,7 @@ func (r *processResource) Create(ctx context.Context, req resource.CreateRequest
 
 	if needsUpdate {
 		processTypeID := created.TypeId
-		updated, err2 := r.client.WorkItemTrackingProcessClient.EditProcess(ctx, workitemtrackingprocess.EditProcessArgs{
+		_, err2 := r.client.WorkItemTrackingProcessClient.EditProcess(ctx, workitemtrackingprocess.EditProcessArgs{
 			ProcessTypeId: processTypeID,
 			UpdateRequest: &workitemtrackingprocess.UpdateProcessModel{
 				Name:        converter.String(model.Name.ValueString()),
@@ -275,7 +275,17 @@ func (r *processResource) Create(ctx context.Context, req resource.CreateRequest
 			resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 			return
 		}
-		r.flattenProcess(&model, updated)
+		// Re-read from ADO to get ground-truth state; the EditProcess response
+		// may not reflect the updated is_enabled/is_default values immediately.
+		refreshed, err3 := r.client.WorkItemTrackingProcessClient.GetProcessByItsId(ctx, workitemtrackingprocess.GetProcessByItsIdArgs{
+			ProcessTypeId: processTypeID,
+			Expand:        &workitemtrackingprocess.GetProcessExpandLevelValues.None,
+		})
+		if err3 != nil {
+			resp.Diagnostics.AddError("Post-create read error", fmt.Sprintf("reading process after create: %s", err3))
+			return
+		}
+		r.flattenProcess(&model, refreshed)
 	} else {
 		r.flattenProcess(&model, created)
 	}
@@ -341,7 +351,7 @@ func (r *processResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
-	updated, err := r.client.WorkItemTrackingProcessClient.EditProcess(ctx, workitemtrackingprocess.EditProcessArgs{
+	_, err = r.client.WorkItemTrackingProcessClient.EditProcess(ctx, workitemtrackingprocess.EditProcessArgs{
 		ProcessTypeId: &processTypeID,
 		UpdateRequest: &workitemtrackingprocess.UpdateProcessModel{
 			Name:        converter.String(model.Name.ValueString()),
@@ -355,8 +365,19 @@ func (r *processResource) Update(ctx context.Context, req resource.UpdateRequest
 		return
 	}
 
+	// Re-read from ADO to get ground-truth state; the EditProcess response
+	// may not reflect updated is_enabled/is_default values reliably.
+	refreshed, err2 := r.client.WorkItemTrackingProcessClient.GetProcessByItsId(ctx, workitemtrackingprocess.GetProcessByItsIdArgs{
+		ProcessTypeId: &processTypeID,
+		Expand:        &workitemtrackingprocess.GetProcessExpandLevelValues.None,
+	})
+	if err2 != nil {
+		resp.Diagnostics.AddError("Post-update read error", fmt.Sprintf("reading process after update: %s", err2))
+		return
+	}
+
 	model.ID = stateModel.ID
-	r.flattenProcess(&model, updated)
+	r.flattenProcess(&model, refreshed)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
