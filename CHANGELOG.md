@@ -7,6 +7,20 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_agent_pool` resource migrated to terraform-plugin-framework.** The
+  resource now uses the terraform-plugin-framework implementation served through
+  the mux provider; SDKv2 files removed. Schema is unchanged (`name`, `pool_type`,
+  `auto_provision`, `auto_update`). Verified by live acceptance test
+  `TestAccAgentPool_basic` with idempotency re-plan and import.
+
+- **`betterado_agent_pool` and `betterado_agent_pools` data sources migrated to
+  terraform-plugin-framework.** Both data sources now use the framework
+  implementation served through the mux provider; SDKv2 files removed. Verified
+  by live acceptance tests `TestAccAgentPoolDataSource_basic` and
+  `TestAccAgentPoolsDataSource_Basic`.
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

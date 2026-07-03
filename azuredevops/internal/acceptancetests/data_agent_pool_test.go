@@ -1,3 +1,5 @@
+//go:build (all || data_source_agent_pool) && !exclude_data_source_agent_pool
+
 package acceptancetests
 
 import (
@@ -13,8 +15,8 @@ func TestAccAgentPoolDataSource_basic(t *testing.T) {
 	tfNode := "data.betterado_agent_pool.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSourceAgentPoolBasic(agentPoolName),
@@ -25,6 +27,11 @@ func TestAccAgentPoolDataSource_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "auto_update", "false"),
 					resource.TestCheckResourceAttr(tfNode, "pool_type", "automation"),
 				),
+			},
+			// Idempotency — no perpetual diff
+			{
+				Config:             hclDataSourceAgentPoolBasic(agentPoolName),
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})

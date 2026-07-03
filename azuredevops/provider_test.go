@@ -10,7 +10,8 @@ import (
 
 func TestProvider_HasChildResources(t *testing.T) {
 	expectedResources := []string{
-		"betterado_agent_pool",
+		// betterado_agent_pool is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_agent_queue",
 		"betterado_area_permissions",
 		"betterado_branch_policy_auto_reviewers",
@@ -161,8 +162,8 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		// betterado_release_definition_revision, betterado_release_definitions, and
 		// betterado_release_folder have been migrated to the framework provider —
 		// they are no longer registered in the SDKv2 DataSourcesMap.
-		"betterado_agent_pool",
-		"betterado_agent_pools",
+		// betterado_agent_pool and betterado_agent_pools are now framework data sources
+		// (registered in framework_provider.go) and are no longer registered here.
 		"betterado_agent_queue",
 		"betterado_area",
 		"betterado_build_definition",

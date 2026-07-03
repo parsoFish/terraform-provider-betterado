@@ -203,6 +203,7 @@ func (p *BetteradoFrameworkProvider) Configure(ctx context.Context, req provider
 func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		taskagent.NewTaskGroupResource,
+		taskagent.NewAgentPoolResource,
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
@@ -217,5 +218,7 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseDefinitionsDataSource,
 		release.NewReleaseFolderDataSource,
 		taskagent.NewTaskGroupDataSource,
+		taskagent.NewAgentPoolDataSource,
+		taskagent.NewAgentPoolsDataSource,
 	}
 }
