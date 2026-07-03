@@ -3,7 +3,7 @@
   "essence": "Both betterado_dashboard and betterado_extension are now served by terraform-plugin-framework via the mux provider. Schemas are unchanged; ForceNew, Computed, and Optional semantics preserved. Gap matrices document every ADO API field's coverage status. Provider no longer registers either resource in the SDKv2 ResourcesMap.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-dashboard-extension",
-  "diffStat": "27 files changed, 2096 insertions(+), 257 deletions(-)",
+  "diffStat": "26 files changed, 2083 insertions(+), 166 deletions(-)",
   "checkpoints": [
     {
       "label": "Quality gate \u2014 release + taskagent packages green",

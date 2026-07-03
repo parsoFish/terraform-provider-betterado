@@ -196,5 +196,5 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 ## Files Changed
 
 ```
-27 files changed, 2096 insertions(+), 257 deletions(-)
+26 files changed, 2083 insertions(+), 166 deletions(-)
 ```
