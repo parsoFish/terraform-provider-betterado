@@ -26,7 +26,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/wiki"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtracking"
@@ -153,8 +152,8 @@ func Provider() *schema.Provider {
 			"betterado_serviceendpoint_ssh":                         serviceendpoint.ResourceServiceEndpointSSH(),
 			"betterado_serviceendpoint_visualstudiomarketplace":     serviceendpoint.ResourceServiceEndpointMarketplace(),
 			"betterado_servicehook_permissions":                     permissions.ResourceServiceHookPermissions(),
-			"betterado_servicehook_storage_queue_pipelines":         servicehook.ResourceServicehookStorageQueuePipelines(),
-			"betterado_servicehook_webhook_tfs":                     servicehook.ResourceServicehookWebhookTfs(),
+			// betterado_servicehook_storage_queue_pipelines migrated to the framework provider (framework_provider.go).
+			// betterado_servicehook_webhook_tfs migrated to the framework provider (framework_provider.go).
 			// betterado_service_principal_entitlement migrated to the framework provider.
 			"betterado_tagging_permissions": permissions.ResourceTaggingPermissions(),
 			"betterado_team":                core.ResourceTeam(),
