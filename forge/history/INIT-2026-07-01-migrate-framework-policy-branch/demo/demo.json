@@ -13,8 +13,8 @@
       "afterNote": "All packages pass: release (0.007s), taskagent (0.005s), taskagent/validate (0.004s) — mux provider compiles cleanly with 20 new framework resources registered"
     },
     {
-      "label": "acceptance-resource",
-      "caption": "Live check_approval created via framework resource; ADO REST GET confirms the check configuration exists at the pipelines/checks/configurations endpoint",
+      "label": "acceptance-resource-check_approval",
+      "caption": "Live check_approval created via framework resource; ADO REST GET confirms the check configuration exists at the pipelines/checks/configurations endpoint (check family)",
       "liveEvidence": {
         "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/pipelines/checks/configurations/101?api-version=7.1",
         "capturedAt": "2026-07-03T03:29:37Z",
@@ -22,6 +22,18 @@
       },
       "beforeNote": "betterado_check_approval was SDKv2-only; no framework path existed",
       "afterNote": "Approval check id=101 created via mux→framework provider path; GET response confirms resource type 'Approval' (8c6f20a7), approvers list, requesterCannotBeApprover:true, timeout:43200. TestAccCheckApproval idempotency re-plan: ExpectNonEmptyPlan: false → PASS"
+    },
+    {
+      "label": "acceptance-resource-branch_policy_min_reviewers",
+      "caption": "betterado_branch_policy_min_reviewers live acceptance test — branch_policy family representative",
+      "missed": true,
+      "missedReason": "No distinct per-type REST GET was captured for the branch_policy family in this iteration; TestAccBranchPolicyMinReviewers passed but no ADO Policy REST GET response was archived under a per-type label. Marked missed per AC1 requirement."
+    },
+    {
+      "label": "acceptance-resource-repository_policy_max_file_size",
+      "caption": "betterado_repository_policy_max_file_size live acceptance test — repository_policy family representative",
+      "missed": true,
+      "missedReason": "No distinct per-type REST GET was captured for the repository_policy family in this iteration; TestAccRepositoryPolicyFileSize passed but no ADO Policy REST GET response was archived under a per-type label. Marked missed per AC1 requirement."
     }
   ],
   "testEvidence": [
@@ -78,11 +90,11 @@
       "result": "pass"
     },
     {
-      "name": "TestAccRepositoryPolicyMaxFileSize (TF_ACC=1, live)",
+      "name": "TestAccRepositoryPolicyFileSize (TF_ACC=1, live)",
       "result": "pass"
     },
     {
-      "name": "TestAccRepositoryPolicyMaxPathLength (TF_ACC=1, live)",
+      "name": "TestAccRepositoryPolicyPathLength (TF_ACC=1, live)",
       "result": "pass"
     },
     {
@@ -110,7 +122,15 @@
       "result": "pass"
     },
     {
-      "name": "TestAccCheckRestApi (TF_ACC=1, live)",
+      "name": "TestAccCheckRestAPI_basic (TF_ACC=1, live)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccCheckRestAPI_complete (TF_ACC=1, live)",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccCheckRestAPI_update (TF_ACC=1, live)",
       "result": "pass"
     }
   ],
@@ -143,7 +163,7 @@
     {
       "criterion": "GIVEN each of the 7 repository policy resources has a *_framework.go file WHEN terraform apply → provider read-back → idempotency re-plan → destroy runs live THEN TestAccRepositoryPolicy* acceptance tests all pass with GetMuxedProviderFactories()",
       "verdict": "met",
-      "evidence": "7 *_framework.go files in branch diff (author_email_patterns, check_credentials, enforce_consistent_case, file_path_patterns, max_file_size, max_path_length, reserved_names). TestAccRepositoryPolicyAuthorEmailPatterns, CaseEnforcement, FilePathPatterns, MaxFileSize, MaxPathLength, ReservedNames → pass (TF_ACC=1, live). TestAccRepositoryPolicyCheckCredentials → skip (ADO removed this policy type from the API)."
+      "evidence": "7 *_framework.go files in branch diff (author_email_patterns, check_credentials, enforce_consistent_case, file_path_patterns, max_file_size, max_path_length, reserved_names). TestAccRepositoryPolicyAuthorEmailPatterns, CaseEnforcement, FilePathPatterns, TestAccRepositoryPolicyFileSize, TestAccRepositoryPolicyPathLength, ReservedNames → pass (TF_ACC=1, live). TestAccRepositoryPolicyCheckCredentials → skip (ADO removed this policy type from the API)."
     },
     {
       "criterion": "GIVEN the framework migration is applied WHEN provider.go is inspected THEN all 7 repository policy resources are removed from ResourcesMap (SDKv2) and added to framework_provider.go Resources()",
@@ -158,7 +178,7 @@
     {
       "criterion": "GIVEN each of the 6 checks resources has a *_framework.go file WHEN terraform apply → provider read-back → idempotency re-plan → destroy runs live THEN TestAccCheck* acceptance tests all pass with GetMuxedProviderFactories()",
       "verdict": "met",
-      "evidence": "6 *_framework.go files in branch diff (resource_check_approval_framework.go, branch_control_framework.go, business_hours_framework.go, exclusive_lock_framework.go, required_template_framework.go, rest_api_framework.go). TestAccCheckApproval, TestAccCheckBranchControl, TestAccCheckBusinessHours, TestAccCheckExclusiveLock, TestAccCheckRequiredTemplate, TestAccCheckRestApi → all pass (TF_ACC=1, live)."
+      "evidence": "6 *_framework.go files in branch diff (resource_check_approval_framework.go, branch_control_framework.go, business_hours_framework.go, exclusive_lock_framework.go, required_template_framework.go, rest_api_framework.go). TestAccCheckApproval, TestAccCheckBranchControl, TestAccCheckBusinessHours, TestAccCheckExclusiveLock, TestAccCheckRequiredTemplate, TestAccCheckRestAPI_basic, TestAccCheckRestAPI_complete, TestAccCheckRestAPI_update → all pass (TF_ACC=1, live)."
     },
     {
       "criterion": "GIVEN the framework migration is applied WHEN provider.go is inspected THEN all 6 check resources are removed from ResourcesMap (SDKv2) and added to framework_provider.go Resources()",
@@ -188,7 +208,7 @@
     {
       "criterion": "GIVEN the forge demo evidence is inspected WHEN checking forge/history/INIT-2026-07-01-migrate-framework-policy-branch/demo/ THEN demo.json contains a checkpoint with liveEvidence.url pointing to a real ADO Policy or Checks REST GET response",
       "verdict": "met",
-      "evidence": "forge/history/INIT-2026-07-01-migrate-framework-policy-branch/demo/demo.json checkpoint 'acceptance-resource' carries liveEvidence.url = https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/pipelines/checks/configurations/101?api-version=7.1 (real ADO Checks REST GET, capturedAt: 2026-07-03T03:29:37Z). Response includes check id=101, type 'Approval', approvers, timeout:43200."
+      "evidence": "forge/history/INIT-2026-07-01-migrate-framework-policy-branch/demo/demo.json checkpoint 'acceptance-resource-check_approval' carries liveEvidence.url = https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/pipelines/checks/configurations/101?api-version=7.1 (real ADO Checks REST GET, capturedAt: 2026-07-03T03:29:37Z). Response includes check id=101, type 'Approval', approvers, timeout:43200. Branch_policy and repository_policy per-type captures are marked missed (no per-type ADO REST GET was archived for those families in this iteration)."
     }
   ]
 }

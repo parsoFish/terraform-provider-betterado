@@ -110,6 +110,10 @@ func (r *MinReviewersResource) Schema(_ context.Context, _ resource.SchemaReques
 							Optional: true,
 							Computed: true,
 							Default:  staticPolicyBool(false),
+							Validators: []validator.Bool{
+								boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("on_push_reset_approved_votes")),
+								boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("on_push_reset_all_votes")),
+							},
 						},
 						"on_each_iteration_require_vote": schema.BoolAttribute{
 							Optional: true,
@@ -122,6 +126,7 @@ func (r *MinReviewersResource) Schema(_ context.Context, _ resource.SchemaReques
 							Default:  staticPolicyBool(false),
 							Validators: []validator.Bool{
 								boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("on_push_reset_all_votes")),
+								boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("on_last_iteration_require_vote")),
 							},
 						},
 						"on_push_reset_all_votes": schema.BoolAttribute{
@@ -130,6 +135,7 @@ func (r *MinReviewersResource) Schema(_ context.Context, _ resource.SchemaReques
 							Default:  staticPolicyBool(false),
 							Validators: []validator.Bool{
 								boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("on_push_reset_approved_votes")),
+								boolvalidator.ConflictsWith(path.MatchRelative().AtParent().AtName("on_last_iteration_require_vote")),
 							},
 						},
 						"last_pusher_cannot_approve": schema.BoolAttribute{
