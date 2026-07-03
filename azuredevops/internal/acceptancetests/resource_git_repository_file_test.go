@@ -12,11 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccGitRepoFile_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	tfRepoFileNode := "betterado_git_repository_file.test"
 
@@ -25,11 +23,11 @@ func TestAccGitRepoFile_basic(t *testing.T) {
 	contentFirst := "bar"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { preCheckGitRepository(t) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryFileBasic(projectName, gitRepoName, branch, file, contentFirst),
+				Config: hclGitRepositoryFileBasic(gitRepoName, branch, file, contentFirst),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfRepoFileNode, "file", file),
 					resource.TestCheckResourceAttr(tfRepoFileNode, "content", contentFirst),
@@ -39,17 +37,17 @@ func TestAccGitRepoFile_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      tfRepoFileNode,
-				ImportStateIdFunc: repositoryFileIdFunc(tfRepoFileNode),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            tfRepoFileNode,
+				ImportStateIdFunc:       repositoryFileIdFunc(tfRepoFileNode),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"overwrite_on_create"},
 			},
 		},
 	})
 }
 
 func TestAccGitRepoFile_complete(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	tfRepoFileNode := "betterado_git_repository_file.test"
 
@@ -58,11 +56,11 @@ func TestAccGitRepoFile_complete(t *testing.T) {
 	contentFirst := "bar"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { preCheckGitRepository(t) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryFileComplete(projectName, gitRepoName, branch, file, contentFirst),
+				Config: hclGitRepositoryFileComplete(gitRepoName, branch, file, contentFirst),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfRepoFileNode, "file", file),
 					resource.TestCheckResourceAttr(tfRepoFileNode, "content", contentFirst),
@@ -72,17 +70,17 @@ func TestAccGitRepoFile_complete(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      tfRepoFileNode,
-				ImportStateIdFunc: repositoryFileIdFunc(tfRepoFileNode),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            tfRepoFileNode,
+				ImportStateIdFunc:       repositoryFileIdFunc(tfRepoFileNode),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"overwrite_on_create"},
 			},
 		},
 	})
 }
 
 func TestAccGitRepoFile_authorEmailPolicy(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	tfRepoFileNode := "betterado_git_repository_file.test"
 
@@ -91,11 +89,11 @@ func TestAccGitRepoFile_authorEmailPolicy(t *testing.T) {
 	contentFirst := "bar"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { preCheckGitRepository(t) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryFileAuthorEmailPolicy(projectName, gitRepoName, branch, file, contentFirst),
+				Config: hclGitRepositoryFileAuthorEmailPolicy(gitRepoName, branch, file, contentFirst),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfRepoFileNode, "file", file),
 					resource.TestCheckResourceAttr(tfRepoFileNode, "content", contentFirst),
@@ -105,17 +103,17 @@ func TestAccGitRepoFile_authorEmailPolicy(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      tfRepoFileNode,
-				ImportStateIdFunc: repositoryFileIdFunc(tfRepoFileNode),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            tfRepoFileNode,
+				ImportStateIdFunc:       repositoryFileIdFunc(tfRepoFileNode),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"overwrite_on_create"},
 			},
 		},
 	})
 }
 
 func TestAccGitRepoFile_update(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 	tfRepoFileNode := "betterado_git_repository_file.test"
 
@@ -125,11 +123,11 @@ func TestAccGitRepoFile_update(t *testing.T) {
 	contentSecond := "baz"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { preCheckGitRepository(t) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclGitRepositoryFileBasic(projectName, gitRepoName, branch, file, contentFirst),
+				Config: hclGitRepositoryFileBasic(gitRepoName, branch, file, contentFirst),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfRepoFileNode, "file", file),
 					resource.TestCheckResourceAttr(tfRepoFileNode, "content", contentFirst),
@@ -139,13 +137,14 @@ func TestAccGitRepoFile_update(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      tfRepoFileNode,
-				ImportStateIdFunc: repositoryFileIdFunc(tfRepoFileNode),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            tfRepoFileNode,
+				ImportStateIdFunc:       repositoryFileIdFunc(tfRepoFileNode),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"overwrite_on_create"},
 			},
 			{
-				Config: hclGitRepositoryFileBasic(projectName, gitRepoName, branch, file, contentSecond),
+				Config: hclGitRepositoryFileBasic(gitRepoName, branch, file, contentSecond),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfRepoFileNode, "file", file),
 					resource.TestCheckResourceAttr(tfRepoFileNode, "content", contentSecond),
@@ -155,13 +154,14 @@ func TestAccGitRepoFile_update(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      tfRepoFileNode,
-				ImportStateIdFunc: repositoryFileIdFunc(tfRepoFileNode),
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            tfRepoFileNode,
+				ImportStateIdFunc:       repositoryFileIdFunc(tfRepoFileNode),
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"overwrite_on_create"},
 			},
 			{
-				Config: hclGitRepositoryFileWithoutFile(projectName, gitRepoName),
+				Config: hclGitRepositoryFileWithoutFile(gitRepoName),
 				Check: resource.ComposeTestCheckFunc(
 					checkGitRepoFileNotExists(file),
 				),
@@ -171,16 +171,15 @@ func TestAccGitRepoFile_update(t *testing.T) {
 }
 
 func TestAccGitRepoFile_incorrectBranch(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	gitRepoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { preCheckGitRepository(t) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config:      hclGitRepositoryFileBasic(projectName, gitRepoName, "foobar", "foo", "bar"),
-				ExpectError: regexp.MustCompile(`Creating Git file. Branch not found. Name: foobar`),
+				Config:      hclGitRepositoryFileBasic(gitRepoName, "foobar", "foo", "bar"),
+				ExpectError: regexp.MustCompile(`Branch not found`),
 			},
 		},
 	})
@@ -198,7 +197,10 @@ func repositoryFileIdFunc(resourceName string) resource.ImportStateIdFunc {
 
 func checkGitRepoFileNotExists(fileName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		clients, err := getDirectClient()
+		if err != nil {
+			return fmt.Errorf("checkGitRepoFileNotExists: build client: %v", err)
+		}
 
 		repo, ok := s.RootModule().Resources["betterado_git_repository.test"]
 		if !ok {
@@ -206,7 +208,7 @@ func checkGitRepoFileNotExists(fileName string) resource.TestCheckFunc {
 		}
 
 		ctx := context.Background()
-		_, err := clients.GitReposClient.GetItem(ctx, git.GetItemArgs{
+		_, err = clients.GitReposClient.GetItem(ctx, git.GetItemArgs{
 			RepositoryId: &repo.Primary.ID,
 			Path:         &fileName,
 		})
@@ -220,7 +222,10 @@ func checkGitRepoFileNotExists(fileName string) resource.TestCheckFunc {
 
 func checkGitRepoFileContent(expectedContent string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		clients, err := getDirectClient()
+		if err != nil {
+			return fmt.Errorf("checkGitRepoFileContent: build client: %v", err)
+		}
 
 		gitFile, ok := s.RootModule().Resources["betterado_git_repository_file.test"]
 		if !ok {
@@ -254,19 +259,16 @@ func checkGitRepoFileContent(expectedContent string) resource.TestCheckFunc {
 	}
 }
 
-func hclGitRepositoryFileBasic(name, repoName, branch, file, content string) string {
+// hclGitRepositoryFileBasic creates a git repository file in the shared fixture project.
+func hclGitRepositoryFileBasic(repoName, branch, file, content string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "test" {
+  name = %[1]q
 }
 
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[2]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
   initialization {
     init_type = "Clean"
   }
@@ -274,26 +276,22 @@ resource "betterado_git_repository" "test" {
 
 resource "betterado_git_repository_file" "test" {
   repository_id = betterado_git_repository.test.id
-  branch        = "%[3]s"
-  file          = "%[4]s"
-  content       = "%[5]s"
+  branch        = %[3]q
+  file          = %[4]q
+  content       = %[5]q
 }
-`, name, repoName, branch, file, content)
+`, SharedFixtureProjectName, repoName, branch, file, content)
 }
 
-func hclGitRepositoryFileComplete(name, repoName, branch, file, content string) string {
+func hclGitRepositoryFileComplete(repoName, branch, file, content string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "test" {
+  name = %[1]q
 }
 
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[2]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
   initialization {
     init_type = "Clean"
   }
@@ -301,37 +299,33 @@ resource "betterado_git_repository" "test" {
 
 resource "betterado_git_repository_file" "test" {
   repository_id   = betterado_git_repository.test.id
-  branch          = "%[3]s"
-  file            = "%[4]s"
-  content         = "%[5]s"
+  branch          = %[3]q
+  file            = %[4]q
+  content         = %[5]q
   author_name     = "author"
   author_email    = "auhtor@test.com"
   committer_name  = "comitter"
   committer_email = "committer@test.com"
 }
-`, name, repoName, branch, file, content)
+`, SharedFixtureProjectName, repoName, branch, file, content)
 }
 
-func hclGitRepositoryFileAuthorEmailPolicy(name, repoName, branch, file, content string) string {
+func hclGitRepositoryFileAuthorEmailPolicy(repoName, branch, file, content string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "test" {
+  name = %[1]q
 }
 
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[2]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
   initialization {
     init_type = "Clean"
   }
 }
 
 resource "betterado_repository_policy_author_email_pattern" "test" {
-  project_id            = betterado_project.test.id
+  project_id            = data.betterado_project.test.id
   enabled               = true
   blocking              = true
   author_email_patterns = ["auhtor@test.com"]
@@ -340,33 +334,29 @@ resource "betterado_repository_policy_author_email_pattern" "test" {
 
 resource "betterado_git_repository_file" "test" {
   repository_id   = betterado_git_repository.test.id
-  branch          = "%[3]s"
-  file            = "%[4]s"
-  content         = "%[5]s"
+  branch          = %[3]q
+  file            = %[4]q
+  content         = %[5]q
   author_name     = "author"
   author_email    = "auhtor@test.com"
   committer_name  = "comitter"
   committer_email = "committer@test.com"
   depends_on      = [betterado_repository_policy_author_email_pattern.test]
 }
-`, name, repoName, branch, file, content)
+`, SharedFixtureProjectName, repoName, branch, file, content)
 }
 
-func hclGitRepositoryFileWithoutFile(name, repoName string) string {
+func hclGitRepositoryFileWithoutFile(repoName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "test" {
+  name = %[1]q
 }
 
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[2]s"
+  project_id = data.betterado_project.test.id
+  name       = %[2]q
   initialization {
     init_type = "Clean"
   }
-}`, name, repoName)
+}`, SharedFixtureProjectName, repoName)
 }

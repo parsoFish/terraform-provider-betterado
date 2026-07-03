@@ -18,7 +18,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/feed"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/graph"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
@@ -76,10 +75,10 @@ func Provider() *schema.Provider {
 			"betterado_feed_permission":       feed.ResourceFeedPermission(),
 			"betterado_feed_retention_policy": feed.ResourceFeedRetentionPolicy(),
 			"betterado_git_permissions":       permissions.ResourceGitPermissions(),
-			"betterado_git_repository":        git.ResourceGitRepository(),
-			"betterado_git_repository_branch": git.ResourceGitRepositoryBranch(),
-			"betterado_git_repository_file":   git.ResourceGitRepositoryFile(),
-			"betterado_group":                 graph.ResourceGroup(),
+			// betterado_git_repository migrated to the framework provider (framework_provider.go).
+			// betterado_git_repository_branch migrated to the framework provider (framework_provider.go).
+			// betterado_git_repository_file migrated to the framework provider (framework_provider.go).
+			"betterado_group": graph.ResourceGroup(),
 			// betterado_group_entitlement migrated to the framework provider (framework_provider.go).
 			"betterado_group_membership":      graph.ResourceGroupMembership(),
 			"betterado_iteration_permissions": permissions.ResourceIterationPermissions(),
@@ -194,17 +193,17 @@ func Provider() *schema.Provider {
 			// provider (framework_provider.go) and are no longer registered here.
 			// betterado_build_definition (data source) has also been migrated to the
 			// framework provider (framework_provider.go); it must NOT be listed here.
-			"betterado_agent_pool":                            taskagent.DataAgentPool(),
-			"betterado_agent_pools":                           taskagent.DataAgentPools(),
-			"betterado_agent_queue":                           taskagent.DataAgentQueue(),
-			"betterado_area":                                  workitemtracking.DataArea(),
-			"betterado_client_config":                         service.DataClientConfig(),
-			"betterado_descriptor":                            graph.DataDescriptor(),
-			"betterado_environment":                           taskagent.DataEnvironment(),
-			"betterado_feed":                                  feed.DataFeed(),
-			"betterado_git_repositories":                      git.DataGitRepositories(),
-			"betterado_git_repository":                        git.DataGitRepository(),
-			"betterado_git_repository_file":                   git.DataGitRepositoryFile(),
+			"betterado_agent_pool":    taskagent.DataAgentPool(),
+			"betterado_agent_pools":   taskagent.DataAgentPools(),
+			"betterado_agent_queue":   taskagent.DataAgentQueue(),
+			"betterado_area":          workitemtracking.DataArea(),
+			"betterado_client_config": service.DataClientConfig(),
+			"betterado_descriptor":    graph.DataDescriptor(),
+			"betterado_environment":   taskagent.DataEnvironment(),
+			"betterado_feed":          feed.DataFeed(),
+			// betterado_git_repositories migrated to the framework provider (framework_provider.go).
+			// betterado_git_repository migrated to the framework provider (framework_provider.go).
+			// betterado_git_repository_file migrated to the framework provider (framework_provider.go).
 			"betterado_group":                                 graph.DataGroup(),
 			"betterado_group_membership":                      graph.DataGroupMembership(),
 			"betterado_groups":                                graph.DataGroups(),

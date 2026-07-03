@@ -16,6 +16,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/featuremanagement"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/memberentitlementmanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
@@ -221,6 +222,9 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		memberentitlementmanagement.NewGroupEntitlementResource,
 		memberentitlementmanagement.NewServicePrincipalEntitlementResource,
 		featuremanagement.NewFeatureFlagResource,
+		git.NewGitRepositoryResource,
+		git.NewGitRepositoryBranchResource,
+		git.NewGitRepositoryFileResource,
 	}
 }
 
@@ -233,5 +237,8 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		release.NewReleaseFolderDataSource,
 		build.NewBuildDefinitionDataSource,
 		featuremanagement.NewFeatureFlagDataSource,
+		git.NewGitRepositoryDataSource,
+		git.NewGitRepositoriesDataSource,
+		git.NewGitRepositoryFileDataSource,
 	}
 }

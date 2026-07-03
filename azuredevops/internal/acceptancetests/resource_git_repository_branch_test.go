@@ -9,24 +9,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/git"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/tfhelper"
 )
 
-func TestAccGitRepoBranch_fromBranch(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+func TestAccGitRepositoryBranch_fromBranch(t *testing.T) {
 	gitRepoName := testutils.GenerateResourceName()
 	branchName := testutils.GenerateResourceName()
 	resNode := "betterado_git_repository_branch.test"
 
 	resource.Test(
 		t, resource.TestCase{
-			PreCheck:          func() { testutils.PreCheck(t, nil) },
-			ProviderFactories: testutils.GetProviderFactories(),
-			CheckDestroy:      testutils.CheckProjectDestroyed,
+			PreCheck:                 func() { preCheckGitRepository(t) },
+			ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+			CheckDestroy:             checkGitRepoDestroyed,
 			Steps: []resource.TestStep{
 				{
-					Config: hclGitRepoBranchesFromBranch(projectName, gitRepoName, branchName),
+					Config: hclGitRepoBranchesFromBranch(gitRepoName, branchName),
 					Check: resource.ComposeTestCheckFunc(
 						checkRepositoryBranchExist(branchName),
 						resource.TestCheckResourceAttr(resNode, "name", branchName),
@@ -46,20 +44,19 @@ func TestAccGitRepoBranch_fromBranch(t *testing.T) {
 	)
 }
 
-func TestAccGitRepoBranch_fromCommit(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+func TestAccGitRepositoryBranch_fromCommit(t *testing.T) {
 	gitRepoName := testutils.GenerateResourceName()
 	branchName := testutils.GenerateResourceName()
 	resNode := "betterado_git_repository_branch.test"
 
 	resource.Test(
 		t, resource.TestCase{
-			PreCheck:          func() { testutils.PreCheck(t, nil) },
-			ProviderFactories: testutils.GetProviderFactories(),
-			CheckDestroy:      testutils.CheckProjectDestroyed,
+			PreCheck:                 func() { preCheckGitRepository(t) },
+			ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+			CheckDestroy:             checkGitRepoDestroyed,
 			Steps: []resource.TestStep{
 				{
-					Config: hclGitRepoBranchesFromCommit(projectName, gitRepoName, branchName),
+					Config: hclGitRepoBranchesFromCommit(gitRepoName, branchName),
 					Check: resource.ComposeTestCheckFunc(
 						checkRepositoryBranchExist(branchName),
 						resource.TestCheckResourceAttr(resNode, "name", branchName),
@@ -79,19 +76,18 @@ func TestAccGitRepoBranch_fromCommit(t *testing.T) {
 	)
 }
 
-func TestAccGitRepoBranch_invalidRef(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+func TestAccGitRepositoryBranch_invalidRef(t *testing.T) {
 	gitRepoName := testutils.GenerateResourceName()
 	branchName := testutils.GenerateResourceName()
 
 	resource.Test(
 		t, resource.TestCase{
-			PreCheck:          func() { testutils.PreCheck(t, nil) },
-			ProviderFactories: testutils.GetProviderFactories(),
-			CheckDestroy:      testutils.CheckProjectDestroyed,
+			PreCheck:                 func() { preCheckGitRepository(t) },
+			ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+			CheckDestroy:             checkGitRepoDestroyed,
 			Steps: []resource.TestStep{
 				{
-					Config:      hclGitRepoBranchInvalidRef(projectName, gitRepoName, branchName),
+					Config:      hclGitRepoBranchInvalidRef(gitRepoName, branchName),
 					ExpectError: regexp.MustCompile(`No refs found that match ref "refs/tags/0.0.0"`),
 				},
 			},
@@ -99,19 +95,18 @@ func TestAccGitRepoBranch_invalidRef(t *testing.T) {
 	)
 }
 
-func TestAccGitRepoBranch_requireImportError(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+func TestAccGitRepositoryBranch_requireImportError(t *testing.T) {
 	gitRepoName := testutils.GenerateResourceName()
 	branchName := testutils.GenerateResourceName()
 
 	resource.Test(
 		t, resource.TestCase{
-			PreCheck:          func() { testutils.PreCheck(t, nil) },
-			CheckDestroy:      testutils.CheckProjectDestroyed,
-			ProviderFactories: testutils.GetProviderFactories(),
+			PreCheck:                 func() { preCheckGitRepository(t) },
+			CheckDestroy:             checkGitRepoDestroyed,
+			ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 			Steps: []resource.TestStep{
 				{
-					Config:      hclGitRepoBranchesImportError(projectName, gitRepoName, branchName),
+					Config:      hclGitRepoBranchesImportError(gitRepoName, branchName),
 					ExpectError: regexp.MustCompile(`Update refs failed. Update Status: staleOldObjectId`),
 				},
 			},
@@ -133,7 +128,10 @@ func checkRepositoryBranchExist(expectedName string) resource.TestCheckFunc {
 			return fmt.Errorf("Did not find `betterado_git_repository_branch` in the TF state")
 		}
 
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		clients, err := getDirectClient()
+		if err != nil {
+			return fmt.Errorf("building direct client: %+v", err)
+		}
 		repoId, branchName, err := tfhelper.ParseGitRepoBranchID(res.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("Parse resource IDs: %w", err)
@@ -154,18 +152,16 @@ func checkRepositoryBranchExist(expectedName string) resource.TestCheckFunc {
 	}
 }
 
-func hclGitRepoBranchesFromBranch(projectName, gitRepoName, branchName string) string {
+// hclGitRepoBranchesFromBranch returns HCL using the shared fixture project so
+// no new project is created (the org is at its 1000-project limit).
+func hclGitRepoBranchesFromBranch(gitRepoName, branchName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "test" {
+  name = "%[1]s"
 }
 
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"
@@ -176,21 +172,18 @@ resource "betterado_git_repository_branch" "test" {
   repository_id = betterado_git_repository.test.id
   name          = "%[3]s"
   ref_branch    = "master"
-}`, projectName, gitRepoName, branchName)
+}`, SharedFixtureProjectName, gitRepoName, branchName)
 }
 
-func hclGitRepoBranchesFromCommit(projectName, gitRepoName, branchName string) string {
+// hclGitRepoBranchesFromCommit returns HCL using the shared fixture project.
+func hclGitRepoBranchesFromCommit(gitRepoName, branchName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "test" {
+  name = "%[1]s"
 }
 
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"
@@ -207,21 +200,18 @@ resource "betterado_git_repository_branch" "test" {
   repository_id = betterado_git_repository.test.id
   name          = "%[3]s"
   ref_commit_id = betterado_git_repository_branch.from_master.last_commit_id
-}`, projectName, gitRepoName, branchName)
+}`, SharedFixtureProjectName, gitRepoName, branchName)
 }
 
-func hclGitRepoBranchInvalidRef(projectName, gitRepoName, branchName string) string {
+// hclGitRepoBranchInvalidRef returns HCL using the shared fixture project.
+func hclGitRepoBranchInvalidRef(gitRepoName, branchName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "test" {
+  name = "%[1]s"
 }
 
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.test.id
   name       = "%[2]s"
   initialization {
     init_type = "Clean"
@@ -244,10 +234,11 @@ resource "betterado_git_repository_branch" "from_nonexistent_tag" {
   repository_id = betterado_git_repository.test.id
   name          = "testbranch-non-existent-tag"
   ref_tag       = "0.0.0"
-}`, projectName, gitRepoName, branchName)
+}`, SharedFixtureProjectName, gitRepoName, branchName)
 }
 
-func hclGitRepoBranchesImportError(projectName, gitRepoName, branchName string) string {
+// hclGitRepoBranchesImportError returns HCL using the shared fixture project.
+func hclGitRepoBranchesImportError(gitRepoName, branchName string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -255,5 +246,5 @@ resource "betterado_git_repository_branch" "import" {
   repository_id = betterado_git_repository_branch.test.repository_id
   name          = betterado_git_repository_branch.test.name
   ref_branch    = betterado_git_repository_branch.test.ref_branch
-}`, hclGitRepoBranchesFromBranch(projectName, gitRepoName, branchName))
+}`, hclGitRepoBranchesFromBranch(gitRepoName, branchName))
 }
