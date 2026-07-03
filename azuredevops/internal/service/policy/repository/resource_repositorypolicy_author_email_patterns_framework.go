@@ -93,12 +93,12 @@ func (r *AuthorEmailPatternsResource) Schema(_ context.Context, _ resource.Schem
 // ── State model ───────────────────────────────────────────────────────────────
 
 type authorEmailPatternsModel struct {
-	ID                   types.String `tfsdk:"id"`
-	ProjectID            types.String `tfsdk:"project_id"`
-	Enabled              types.Bool   `tfsdk:"enabled"`
-	Blocking             types.Bool   `tfsdk:"blocking"`
-	RepositoryIDs        types.List   `tfsdk:"repository_ids"`
-	AuthorEmailPatterns  types.List   `tfsdk:"author_email_patterns"`
+	ID                  types.String `tfsdk:"id"`
+	ProjectID           types.String `tfsdk:"project_id"`
+	Enabled             types.Bool   `tfsdk:"enabled"`
+	Blocking            types.Bool   `tfsdk:"blocking"`
+	RepositoryIDs       types.List   `tfsdk:"repository_ids"`
+	AuthorEmailPatterns types.List   `tfsdk:"author_email_patterns"`
 }
 
 // ── CRUD ─────────────────────────────────────────────────────────────────────

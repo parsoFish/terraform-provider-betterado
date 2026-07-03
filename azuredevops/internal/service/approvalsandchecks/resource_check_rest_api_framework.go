@@ -261,7 +261,7 @@ func expandRestAPIFW(model *restAPIModel) (*pipelineschecksextras.CheckConfigura
 	var diags diag.Diagnostics
 	checkID := 0
 	if !model.ID.IsNull() && model.ID.ValueString() != "" {
-		checkID, _ = strconv.Atoi(model.ID.ValueString())
+		checkID, _ = strconv.Atoi(model.ID.ValueString()) //nolint:errcheck // ID was written as an integer by the provider; cannot fail
 	}
 	version := int(model.Version.ValueInt64())
 	timeout := int(model.Timeout.ValueInt64())
@@ -402,7 +402,7 @@ func flattenRestAPIFW(model *restAPIModel, check *pipelineschecksextras.CheckCon
 				model.Body = types.StringValue(fmt.Sprintf("%v", v))
 			}
 			if v, ok := inputs["waitForCompletion"]; ok {
-				waitForCompletion, _ := strconv.ParseBool(fmt.Sprintf("%v", v))
+				waitForCompletion, _ := strconv.ParseBool(fmt.Sprintf("%v", v)) //nolint:errcheck // API returns bool-like string; default false on parse failure is acceptable
 				if waitForCompletion {
 					model.CompletionEvent = types.StringValue(string(CompleteEventValues.Callback))
 				} else {

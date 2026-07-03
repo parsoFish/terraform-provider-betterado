@@ -226,7 +226,7 @@ func (r *BranchControlResource) readIntoModel(_ context.Context, model *branchCo
 func expandBranchControlFW(model *branchControlModel) *pipelineschecksextras.CheckConfiguration {
 	checkID := 0
 	if !model.ID.IsNull() && model.ID.ValueString() != "" {
-		checkID, _ = strconv.Atoi(model.ID.ValueString())
+		checkID, _ = strconv.Atoi(model.ID.ValueString()) //nolint:errcheck // ID was written as an integer by the provider; cannot fail
 	}
 	version := int(model.Version.ValueInt64())
 	timeout := int(model.Timeout.ValueInt64())
@@ -289,11 +289,11 @@ func flattenBranchControlFW(model *branchControlModel, check *pipelineschecksext
 			model.AllowedBranches = types.StringValue(fmt.Sprintf("%v", v))
 		}
 		if v, ok := inputs["ensureProtectionOfBranch"]; ok {
-			b, _ := strconv.ParseBool(fmt.Sprintf("%v", v))
+			b, _ := strconv.ParseBool(fmt.Sprintf("%v", v)) //nolint:errcheck // API returns bool-like string; default false on parse failure is acceptable
 			model.VerifyBranchProtection = types.BoolValue(b)
 		}
 		if v, ok := inputs["allowUnknownStatusBranch"]; ok {
-			b, _ := strconv.ParseBool(fmt.Sprintf("%v", v))
+			b, _ := strconv.ParseBool(fmt.Sprintf("%v", v)) //nolint:errcheck // API returns bool-like string; default false on parse failure is acceptable
 			model.IgnoreUnknownProtectionStatus = types.BoolValue(b)
 		} else {
 			model.IgnoreUnknownProtectionStatus = types.BoolValue(false)

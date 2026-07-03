@@ -234,7 +234,12 @@ func expandApprovalFW(ctx context.Context, model *approvalModel) (*pipelineschec
 	var diags diag.Diagnostics
 	checkID := 0
 	if !model.ID.IsNull() && model.ID.ValueString() != "" {
-		checkID, _ = strconv.Atoi(model.ID.ValueString())
+		var atoiErr error
+		checkID, atoiErr = strconv.Atoi(model.ID.ValueString())
+		if atoiErr != nil {
+			diags.AddError("Invalid check ID", atoiErr.Error())
+			return nil, diags
+		}
 	}
 	version := int(model.Version.ValueInt64())
 	timeout := int(model.Timeout.ValueInt64())

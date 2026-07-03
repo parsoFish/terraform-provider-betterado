@@ -8,10 +8,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/utils/sdk/pipelineschecksextras"
-	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 )
 
 // CheckPipelineCheckExistsWithName verifies that a service endpoint of a particular type exists in the state,
@@ -59,10 +59,11 @@ func CheckPipelineCheckDestroyed(resourceType string) resource.TestCheckFunc {
 	}
 }
 
-// getADOClientsFromEnv builds an AggregatedClient directly from environment variables.
+// GetADOClientsFromEnv builds an AggregatedClient directly from environment variables.
 // This is necessary when using GetMuxedProviderFactories() because the SDKv2 provider
 // singleton does not have its Meta() configured in that case.
-func getADOClientsFromEnv() (*client.AggregatedClient, error) {
+// Exported so acceptance test files in the parent package can call it directly for live evidence capture.
+func GetADOClientsFromEnv() (*client.AggregatedClient, error) {
 	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
 	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
 	if orgURL == "" || pat == "" {
@@ -70,6 +71,12 @@ func getADOClientsFromEnv() (*client.AggregatedClient, error) {
 	}
 	authProvider := azuredevops.NewAuthProviderPAT(pat)
 	return client.GetAzdoClient(authProvider, orgURL)
+}
+
+// getADOClientsFromEnv is an unexported alias of GetADOClientsFromEnv for use within
+// this package (testutils internal callers).
+func getADOClientsFromEnv() (*client.AggregatedClient, error) {
+	return GetADOClientsFromEnv()
 }
 
 // given a resource from the state, return a check (and error)

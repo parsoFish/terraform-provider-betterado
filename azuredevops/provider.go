@@ -44,10 +44,10 @@ func Provider() *schema.Provider {
 			"betterado_area_permissions": permissions.ResourceAreaPermissions(),
 			// betterado_branch_policy_* resources are now framework resources (registered in framework_provider.go)
 			// and are no longer in the SDKv2 provider resource map.
-			"betterado_build_definition":                build.ResourceBuildDefinition(),
-			"betterado_build_definition_permissions":    permissions.ResourceBuildDefinitionPermissions(),
-			"betterado_build_folder":                    build.ResourceBuildFolder(),
-			"betterado_build_folder_permissions":        permissions.ResourceBuildFolderPermissions(),
+			"betterado_build_definition":             build.ResourceBuildDefinition(),
+			"betterado_build_definition_permissions": permissions.ResourceBuildDefinitionPermissions(),
+			"betterado_build_folder":                 build.ResourceBuildFolder(),
+			"betterado_build_folder_permissions":     permissions.ResourceBuildFolderPermissions(),
 			// betterado_check_* resources are now framework resources (registered in framework_provider.go)
 			// and are no longer in the SDKv2 provider resource map.
 			"betterado_dashboard":                       dashboard.ResourceDashboard(),

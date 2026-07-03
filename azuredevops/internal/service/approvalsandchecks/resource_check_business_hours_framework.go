@@ -70,16 +70,16 @@ func (r *BusinessHoursResource) Schema(_ context.Context, _ resource.SchemaReque
 				Computed: true,
 				Default:  staticCheckString("Managed by Terraform"),
 			},
-			"time_zone": schema.StringAttribute{Required: true},
+			"time_zone":  schema.StringAttribute{Required: true},
 			"start_time": schema.StringAttribute{Required: true},
 			"end_time":   schema.StringAttribute{Required: true},
-			"monday":    schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
-			"tuesday":   schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
-			"wednesday": schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
-			"thursday":  schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
-			"friday":    schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
-			"saturday":  schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
-			"sunday":    schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
+			"monday":     schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
+			"tuesday":    schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
+			"wednesday":  schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
+			"thursday":   schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
+			"friday":     schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
+			"saturday":   schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
+			"sunday":     schema.BoolAttribute{Optional: true, Computed: true, Default: staticCheckBool(false)},
 			"timeout": schema.Int64Attribute{
 				Optional:      true,
 				Computed:      true,
@@ -228,7 +228,7 @@ func (r *BusinessHoursResource) readIntoModel(_ context.Context, model *business
 func expandBusinessHoursFW(model *businessHoursModel) *pipelineschecksextras.CheckConfiguration {
 	checkID := 0
 	if !model.ID.IsNull() && model.ID.ValueString() != "" {
-		checkID, _ = strconv.Atoi(model.ID.ValueString())
+		checkID, _ = strconv.Atoi(model.ID.ValueString()) //nolint:errcheck // ID was written as an integer by the provider; cannot fail
 	}
 	version := int(model.Version.ValueInt64())
 	timeout := int(model.Timeout.ValueInt64())
@@ -239,8 +239,13 @@ func expandBusinessHoursFW(model *businessHoursModel) *pipelineschecksextras.Che
 		field types.Bool
 		name  string
 	}{
-		{model.Monday, "Monday"}, {model.Tuesday, "Tuesday"}, {model.Wednesday, "Wednesday"},
-		{model.Thursday, "Thursday"}, {model.Friday, "Friday"}, {model.Saturday, "Saturday"}, {model.Sunday, "Sunday"},
+		{model.Monday, "Monday"},
+		{model.Tuesday, "Tuesday"},
+		{model.Wednesday, "Wednesday"},
+		{model.Thursday, "Thursday"},
+		{model.Friday, "Friday"},
+		{model.Saturday, "Saturday"},
+		{model.Sunday, "Sunday"},
 	}
 	var days []string
 	for _, d := range dayMap {
@@ -313,8 +318,13 @@ func flattenBusinessHoursFW(model *businessHoursModel, check *pipelineschecksext
 				field *types.Bool
 				name  string
 			}{
-				{&model.Monday, "Monday"}, {&model.Tuesday, "Tuesday"}, {&model.Wednesday, "Wednesday"},
-				{&model.Thursday, "Thursday"}, {&model.Friday, "Friday"}, {&model.Saturday, "Saturday"}, {&model.Sunday, "Sunday"},
+				{&model.Monday, "Monday"},
+				{&model.Tuesday, "Tuesday"},
+				{&model.Wednesday, "Wednesday"},
+				{&model.Thursday, "Thursday"},
+				{&model.Friday, "Friday"},
+				{&model.Saturday, "Saturday"},
+				{&model.Sunday, "Sunday"},
 			}
 			for _, d := range dayMap {
 				*d.field = types.BoolValue(strings.Contains(businessDays, d.name))

@@ -24,9 +24,11 @@ func staticCheckBool(v bool) defaults.Bool { return staticCheckBoolDefault{value
 func (d staticCheckBoolDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %v", d.value)
 }
+
 func (d staticCheckBoolDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%v`", d.value)
 }
+
 func (d staticCheckBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(d.value)
 }
@@ -39,9 +41,11 @@ func staticCheckInt64(v int64) defaults.Int64 { return staticCheckInt64Default{v
 func (d staticCheckInt64Default) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %d", d.value)
 }
+
 func (d staticCheckInt64Default) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%d`", d.value)
 }
+
 func (d staticCheckInt64Default) DefaultInt64(_ context.Context, _ defaults.Int64Request, resp *defaults.Int64Response) {
 	resp.PlanValue = types.Int64Value(d.value)
 }
@@ -54,9 +58,11 @@ func staticCheckString(v string) defaults.String { return staticCheckStringDefau
 func (d staticCheckStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d staticCheckStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%q`", d.value)
 }
+
 func (d staticCheckStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }
@@ -71,9 +77,11 @@ func checkUseStateForUnknown() planmodifier.String { return checkUseStateForUnkn
 func (m checkUseStateForUnknownString) Description(_ context.Context) string {
 	return "uses prior state for unknown values"
 }
+
 func (m checkUseStateForUnknownString) MarkdownDescription(_ context.Context) string {
 	return "uses prior state for unknown values"
 }
+
 func (m checkUseStateForUnknownString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -94,9 +102,11 @@ func checkUseStateForUnknownInt64Val() planmodifier.Int64 { return checkUseState
 func (m checkUseStateForUnknownInt64) Description(_ context.Context) string {
 	return "uses prior state for unknown values"
 }
+
 func (m checkUseStateForUnknownInt64) MarkdownDescription(_ context.Context) string {
 	return "uses prior state for unknown values"
 }
+
 func (m checkUseStateForUnknownInt64) PlanModifyInt64(_ context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -122,9 +132,11 @@ func checkVersionPlanModifierFn() planmodifier.Int64 { return checkVersionPlanMo
 func (m checkVersionPlanModifier) Description(_ context.Context) string {
 	return "preserves version for no-op re-plans; keeps Unknown when other attributes change"
 }
+
 func (m checkVersionPlanModifier) MarkdownDescription(_ context.Context) string {
 	return "preserves version for no-op re-plans; keeps Unknown when other attributes change"
 }
+
 func (m checkVersionPlanModifier) PlanModifyInt64(ctx context.Context, req planmodifier.Int64Request, resp *planmodifier.Int64Response) {
 	if !req.PlanValue.IsUnknown() {
 		// Already known (user-specified); do not override.
@@ -204,9 +216,11 @@ func checkRequiresReplace() planmodifier.String { return checkRequiresReplaceMod
 func (m checkRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m checkRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m checkRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return

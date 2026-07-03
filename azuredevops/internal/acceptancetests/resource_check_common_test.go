@@ -11,6 +11,7 @@ import (
 func TestAccCheckEndpoint(t *testing.T) {
 	projectID := SharedFixtureProjectID(t)
 	checkName := testutils.GenerateResourceName()
+	serviceEndpointName := testutils.GenerateResourceName()
 	branches := "refs/heads/main"
 
 	resourceType := "betterado_check_branch_control"
@@ -21,7 +22,7 @@ func TestAccCheckEndpoint(t *testing.T) {
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: hclBranchControlCheckResourceBasicEndpoint(projectID, checkName, branches),
+				Config: hclBranchControlCheckResourceBasicEndpoint(projectID, serviceEndpointName, checkName, branches),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, checkName),
 					resource.TestCheckResourceAttrSet(tfCheckNode, "project_id"),
@@ -33,11 +34,11 @@ func TestAccCheckEndpoint(t *testing.T) {
 	})
 }
 
-func hclBranchControlCheckResourceBasicEndpoint(projectID string, checkName string, branches string) string {
+func hclBranchControlCheckResourceBasicEndpoint(projectID string, serviceEndpointName string, checkName string, branches string) string {
 	return fmt.Sprintf(`
 resource "betterado_serviceendpoint_generic" "test" {
   project_id            = %q
-  service_endpoint_name = "serviceendpoint"
+  service_endpoint_name = "%s"
   description           = "test"
   server_url            = "https://test/"
   username              = "test"
@@ -50,7 +51,7 @@ resource "betterado_check_branch_control" "test" {
   target_resource_id   = betterado_serviceendpoint_generic.test.id
   allowed_branches     = "%s"
   target_resource_type = "endpoint"
-}`, projectID, projectID, checkName, branches)
+}`, projectID, serviceEndpointName, projectID, checkName, branches)
 }
 
 func TestAccCheckEnvironment(t *testing.T) {

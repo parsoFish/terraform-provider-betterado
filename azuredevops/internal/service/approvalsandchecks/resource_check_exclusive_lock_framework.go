@@ -205,7 +205,7 @@ func (r *ExclusiveLockResource) readIntoModel(_ context.Context, model *exclusiv
 func expandExclusiveLockFW(model *exclusiveLockModel) *pipelineschecksextras.CheckConfiguration {
 	checkID := 0
 	if !model.ID.IsNull() && model.ID.ValueString() != "" {
-		checkID, _ = strconv.Atoi(model.ID.ValueString())
+		checkID, _ = strconv.Atoi(model.ID.ValueString()) //nolint:errcheck // ID was written as an integer by the provider; cannot fail
 	}
 	version := int(model.Version.ValueInt64())
 	timeout := int(model.Timeout.ValueInt64())
