@@ -52,6 +52,17 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   by live acceptance tests `TestAccAgentPoolDataSource_basic` and
   `TestAccAgentPoolsDataSource_Basic`.
 
+- **`betterado_environment` resource and data source migrated to
+  terraform-plugin-framework.** Both `betterado_environment` (resource) and
+  `data.betterado_environment` (data source) now use the framework implementation
+  served through the mux provider; SDKv2 files (`resource_environment.go`,
+  `data_environment.go`, and their unit-test companions) removed. Schema is
+  unchanged (`project_id`, `name`, `description`); the data source additionally
+  accepts `environment_id` for lookup by numeric ID. Acceptance tests use the
+  standing fixture project with `ProtoV6ProviderFactories` (mux),
+  `ExpectNonEmptyPlan: false`, import verify, and
+  `CaptureLiveEvidence("acceptance-resource-environment", ...)`.
+
 - **`betterado_environment_resource_kubernetes` resource migrated to
   terraform-plugin-framework.** The resource now uses the framework implementation
   served through the mux provider; SDKv2 source files removed. Schema is unchanged
