@@ -42,9 +42,8 @@ import (
 func Provider() *schema.Provider {
 	p := &schema.Provider{
 		ResourcesMap: map[string]*schema.Resource{
-			// betterado_agent_pool is now a framework resource (registered in framework_provider.go)
-			// and is no longer in the SDKv2 provider resource map.
-			"betterado_agent_queue":                      taskagent.ResourceAgentQueue(),
+			// betterado_agent_pool and betterado_agent_queue are now framework resources
+			// (registered in framework_provider.go) and are no longer in the SDKv2 provider resource map.
 			"betterado_area_permissions":                 permissions.ResourceAreaPermissions(),
 			"betterado_branch_policy_auto_reviewers":     branch.ResourceBranchPolicyAutoReviewers(),
 			"betterado_branch_policy_build_validation":   branch.ResourceBranchPolicyBuildValidation(),
@@ -185,9 +184,8 @@ func Provider() *schema.Provider {
 			// betterado_release_definition_revision, betterado_release_definitions, and
 			// betterado_release_folder have been migrated to the terraform-plugin-framework
 			// provider (framework_provider.go) and are no longer registered here.
-			// betterado_agent_pool and betterado_agent_pools are now framework data sources
-			// (registered in framework_provider.go) and are no longer registered here.
-			"betterado_agent_queue":                    taskagent.DataAgentQueue(),
+			// betterado_agent_pool, betterado_agent_pools, and betterado_agent_queue are now
+			// framework data sources (registered in framework_provider.go) and are no longer registered here.
 			"betterado_area":                           workitemtracking.DataArea(),
 			"betterado_build_definition":               build.DataBuildDefinition(),
 			"betterado_client_config":                  service.DataClientConfig(),

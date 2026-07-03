@@ -204,6 +204,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 	return []func() resource.Resource{
 		taskagent.NewTaskGroupResource,
 		taskagent.NewAgentPoolResource,
+		taskagent.NewAgentQueueResource,
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
@@ -220,5 +221,6 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		taskagent.NewTaskGroupDataSource,
 		taskagent.NewAgentPoolDataSource,
 		taskagent.NewAgentPoolsDataSource,
+		taskagent.NewAgentQueueDataSource,
 	}
 }
