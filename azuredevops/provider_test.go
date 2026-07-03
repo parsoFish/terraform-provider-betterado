@@ -128,9 +128,13 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// betterado_workitem is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
 		// betterado_workitemtracking_field is now a framework resource (registered in framework_provider.go)
+		// betterado_workitemquery is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
-		"betterado_workitemquery",
-		"betterado_workitemquery_folder",
+		// betterado_workitemquery_folder is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
+		// and is no longer in the SDKv2 provider resource map.
+
+
 		"betterado_workitemquery_permissions",
 		"betterado_workitemtrackingprocess_control",
 		"betterado_workitemtrackingprocess_field",

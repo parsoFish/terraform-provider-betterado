@@ -9,6 +9,7 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **`betterado_workitemquery` and `betterado_workitemquery_folder` migrated to terraform-plugin-framework.** Both resources are now served through the mux provider using framework implementations (`resource_workitemquery_framework.go`, `resource_workitemquery_folder_framework.go`). The SDKv2 implementations have been removed. All schema attributes are preserved including the `ExactlyOneOf(parent_id, area)` constraint and `ForceNew` fields. Verified by live acceptance tests `TestAccWorkItemQuery_UnderArea` and `TestAccWorkItemQueryFolder_UnderArea`.
 - **`betterado_workitem` migrated to terraform-plugin-framework.** The resource
   is now served through the mux provider using the terraform-plugin-framework
   implementation (`resource_workitem_framework.go`). The SDKv2 implementation

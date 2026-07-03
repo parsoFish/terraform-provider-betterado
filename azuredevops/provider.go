@@ -160,9 +160,13 @@ func Provider() *schema.Provider {
 			"betterado_wiki":                                        wiki.ResourceWiki(),
 			"betterado_wiki_page":                                   wiki.ResourceWikiPage(),
 			// betterado_workitemtracking_field is now a framework resource (registered in framework_provider.go)
+			// betterado_workitemquery is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
+			// betterado_workitemquery_folder is now registered in the framework provider (framework_provider.go)
+			// and must NOT be listed here — duplicating a resource type across mux providers causes
+			// "Invalid Provider Server Combination" at plan time.
 			"betterado_workitemquery_permissions":                   permissions.ResourceWorkItemQueryPermissions(),
-			"betterado_workitemquery":                               workitemtracking.ResourceQuery(),
-			"betterado_workitemquery_folder":                        workitemtracking.ResourceQueryFolder(),
 			"betterado_workitemtrackingprocess_control":             workitemtrackingprocess.ResourceControl(),
 			"betterado_workitemtrackingprocess_group":               workitemtrackingprocess.ResourceGroup(),
 			"betterado_workitemtrackingprocess_inherited_control":   workitemtrackingprocess.ResourceInheritedControl(),
