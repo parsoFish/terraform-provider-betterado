@@ -43,7 +43,8 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_git_repository",
 		"betterado_git_repository_branch",
 		"betterado_git_repository_file",
-		"betterado_group",
+		// betterado_group is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_group_entitlement",
 		"betterado_group_membership",
 		"betterado_iteration_permissions",
