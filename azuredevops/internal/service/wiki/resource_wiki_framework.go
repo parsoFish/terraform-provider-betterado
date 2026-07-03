@@ -462,11 +462,18 @@ func (r *WikiResource) deleteProjectWiki(ctx context.Context, resp *resource.Del
 	}
 
 	// Final attempt: if still present after polling, try DeleteWiki one more time
-	// (in case the previous attempt was asynchronously queued).
-	_, _ = r.client.WikiClient.DeleteWiki(ctx, azwiki.DeleteWikiArgs{
+	// (in case the previous attempt was asynchronously queued). Best-effort:
+	// the wiki is already removed from state; a residual failure here only
+	// leaves an orphan the next apply or the API's own GC cleans up.
+	if _, err := r.client.WikiClient.DeleteWiki(ctx, azwiki.DeleteWikiArgs{
 		WikiIdentifier: converter.String(wikiID),
 		Project:        converter.String(projectID),
-	})
+	}); err != nil {
+		resp.Diagnostics.AddWarning(
+			"final DeleteWiki attempt failed (best-effort)",
+			err.Error(),
+		)
+	}
 }
 
 // ── ImportState ───────────────────────────────────────────────────────────────
