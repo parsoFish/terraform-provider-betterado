@@ -3,14 +3,14 @@
   "essence": "Before this initiative, the betterado Terraform provider had no support for ADO notification subscriptions. This initiative adds betterado_notification_subscription as a framework-native resource and companion data source, backed by the ADO Notification API v7.1. Users can now manage notification subscriptions (event type, delivery channel, expression filter, subscriber identity) entirely in Terraform. All CRUD operations are exercised by a live acceptance test (TestAccNotificationSubscription_basic) that applies, reads back, checks idempotency, and destroys a real subscription against the davidgparsonson ADO org.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-new-api-notification",
-  "diffStat": "94 files changed, 5811 insertions(+), 256 deletions(-)",
+  "diffStat": "94 files changed, 5912 insertions(+), 256 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
-      "caption": "Quality gate passes: release + taskagent service packages still green after notification wiring",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
-      "beforeNote": "Tests passed on main before this initiative",
-      "afterNote": "Tests still pass on HEAD with new notification package added"
+      "caption": "Quality gate (forge-mandated): servicehook package still green after notification wiring",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
+      "beforeNote": "servicehook tests passed on main before this initiative",
+      "afterNote": "ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook 0.015s"
     },
     {
       "label": "unit-tests",
