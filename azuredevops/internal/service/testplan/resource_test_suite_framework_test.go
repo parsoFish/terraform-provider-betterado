@@ -17,6 +17,8 @@ import (
 	"go.uber.org/mock/gomock"
 
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
@@ -271,6 +273,56 @@ func TestUnitTestSuite_Read404(t *testing.T) {
 	})
 	assert.Nil(t, gotSuite)
 	assert.True(t, isNotFound(gotErr))
+}
+
+// TestUnitTestSuite_SuiteType_ValidatorRejectsInvalidEnum verifies that the
+// OneOf validator on suite_type rejects values that are not one of the three
+// allowed constants ("staticTestSuite", "dynamicTestSuite",
+// "requirementTestSuite").  If this test fails it means the validator was
+// removed or weakened.
+func TestUnitTestSuite_SuiteType_ValidatorRejectsInvalidEnum(t *testing.T) {
+	ctx := context.Background()
+	r := NewTestSuiteResource()
+	require.NotNil(t, r)
+
+	schemaResp := &resource.SchemaResponse{}
+	r.Schema(ctx, resource.SchemaRequest{}, schemaResp)
+	require.False(t, schemaResp.Diagnostics.HasError(),
+		"Schema() must not emit diagnostics: %v", schemaResp.Diagnostics)
+
+	suiteTypeAttr, ok := schemaResp.Schema.Attributes["suite_type"]
+	require.True(t, ok, "suite_type attribute must exist in schema")
+
+	strAttr, ok := suiteTypeAttr.(schema.StringAttribute)
+	require.True(t, ok, "suite_type must be a StringAttribute")
+	require.NotEmpty(t, strAttr.Validators, "suite_type must have at least one validator")
+
+	// Verify that the valid values pass.
+	for _, valid := range []string{suiteTypeStatic, suiteTypeDynamic, suiteTypeRequirement} {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue(valid),
+		}
+		resp := &validator.StringResponse{}
+		for _, v := range strAttr.Validators {
+			v.ValidateString(ctx, req, resp)
+		}
+		assert.False(t, resp.Diagnostics.HasError(),
+			"valid suite_type %q must not produce a validation error", valid)
+	}
+
+	// Verify that an invalid value is rejected.
+	invalidValues := []string{"invalidType", "Static", "DYNAMIC", "", "suite_type_static"}
+	for _, invalid := range invalidValues {
+		req := validator.StringRequest{
+			ConfigValue: types.StringValue(invalid),
+		}
+		resp := &validator.StringResponse{}
+		for _, v := range strAttr.Validators {
+			v.ValidateString(ctx, req, resp)
+		}
+		assert.True(t, resp.Diagnostics.HasError(),
+			"invalid suite_type %q must produce a validation error", invalid)
+	}
 }
 
 // TestUnitTestSuite_Create_Error verifies that a client error during Create

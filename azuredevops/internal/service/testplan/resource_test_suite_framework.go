@@ -7,9 +7,11 @@ import (
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/testplan"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -83,6 +85,13 @@ func (r *TestSuiteResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					tpRequiresReplace{},
+				},
+				Validators: []validator.String{
+					stringvalidator.OneOf(
+						suiteTypeStatic,
+						suiteTypeDynamic,
+						suiteTypeRequirement,
+					),
 				},
 			},
 			// query_string is required for dynamicTestSuite; ignored for other types.

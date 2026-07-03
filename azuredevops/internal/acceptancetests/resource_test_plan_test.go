@@ -327,134 +327,163 @@ func checkTestVariableDestroyed(s *terraform.State) error {
 
 // captureTestPlanEvidence performs a live API GET of the created test plan and
 // persists the response as forge demo evidence before destroy.
+// Uses a per-type label ("acceptance-test-plan") so it never overwrites captures
+// from other resource types. Errors from CaptureLiveEvidence are surfaced so
+// the gate can detect a failed capture rather than silently missing evidence.
 func captureTestPlanEvidence(tfNode string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		res, ok := s.RootModule().Resources[tfNode]
 		if !ok {
-			return nil
+			return fmt.Errorf("captureTestPlanEvidence: resource %s not found in state", tfNode)
 		}
 		planIDStr := res.Primary.ID
 		planID, err := strconv.Atoi(planIDStr)
 		if err != nil {
-			return nil
+			return fmt.Errorf("captureTestPlanEvidence: parse plan ID %q: %w", planIDStr, err)
 		}
 		projectID := res.Primary.Attributes["project_id"]
 		clients, err := getDirectClient()
 		if err != nil {
-			return nil
+			return fmt.Errorf("captureTestPlanEvidence: get direct client: %w", err)
 		}
 		plan, err := clients.TestPlanClient.GetTestPlanById(clients.Ctx, testplan.GetTestPlanByIdArgs{
 			Project: &projectID,
 			PlanId:  &planID,
 		})
-		if err != nil || plan == nil {
-			return nil
+		if err != nil {
+			return fmt.Errorf("captureTestPlanEvidence: GetTestPlanById(%d): %w", planID, err)
+		}
+		if plan == nil {
+			return fmt.Errorf("captureTestPlanEvidence: GetTestPlanById(%d) returned nil", planID)
 		}
 		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
 		url := fmt.Sprintf("%s/%s/_apis/testplan/plans/%s?api-version=7.1", orgURL, projectID, planIDStr)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, plan)
+		if err := testutils.CaptureLiveEvidence("acceptance-test-plan", url, plan); err != nil {
+			return fmt.Errorf("captureTestPlanEvidence: CaptureLiveEvidence: %w", err)
+		}
 		return nil
 	}
 }
 
 // captureTestSuiteEvidence performs a live API GET of the created test suite
 // and persists the response as forge demo evidence before destroy.
+// Uses a per-type label ("acceptance-test-suite") so it never overwrites captures
+// from other resource types. Errors from CaptureLiveEvidence are surfaced.
 func captureTestSuiteEvidence(tfNode string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		res, ok := s.RootModule().Resources[tfNode]
 		if !ok {
-			return nil
+			return fmt.Errorf("captureTestSuiteEvidence: resource %s not found in state", tfNode)
 		}
 		suiteIDStr := res.Primary.ID
 		suiteID, err := strconv.Atoi(suiteIDStr)
 		if err != nil {
-			return nil
+			return fmt.Errorf("captureTestSuiteEvidence: parse suite ID %q: %w", suiteIDStr, err)
 		}
 		projectID := res.Primary.Attributes["project_id"]
 		planIDStr := res.Primary.Attributes["plan_id"]
 		planID, err := strconv.Atoi(planIDStr)
 		if err != nil {
-			return nil
+			return fmt.Errorf("captureTestSuiteEvidence: parse plan ID %q: %w", planIDStr, err)
 		}
 		clients, err := getDirectClient()
 		if err != nil {
-			return nil
+			return fmt.Errorf("captureTestSuiteEvidence: get direct client: %w", err)
 		}
 		suite, err := clients.TestPlanClient.GetTestSuiteById(clients.Ctx, testplan.GetTestSuiteByIdArgs{
 			Project: &projectID,
 			PlanId:  &planID,
 			SuiteId: &suiteID,
 		})
-		if err != nil || suite == nil {
-			return nil
+		if err != nil {
+			return fmt.Errorf("captureTestSuiteEvidence: GetTestSuiteById(%d): %w", suiteID, err)
+		}
+		if suite == nil {
+			return fmt.Errorf("captureTestSuiteEvidence: GetTestSuiteById(%d) returned nil", suiteID)
 		}
 		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
 		url := fmt.Sprintf("%s/%s/_apis/testplan/plans/%s/suites/%s?api-version=7.1", orgURL, projectID, planIDStr, suiteIDStr)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, suite)
+		if err := testutils.CaptureLiveEvidence("acceptance-test-suite", url, suite); err != nil {
+			return fmt.Errorf("captureTestSuiteEvidence: CaptureLiveEvidence: %w", err)
+		}
 		return nil
 	}
 }
 
 // captureTestConfigurationEvidence performs a live API GET of the created test
 // configuration and persists the response as forge demo evidence before destroy.
+// Uses a per-type label ("acceptance-test-configuration") so it never overwrites
+// captures from other resource types. Errors from CaptureLiveEvidence are surfaced.
 func captureTestConfigurationEvidence(tfNode string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		res, ok := s.RootModule().Resources[tfNode]
 		if !ok {
-			return nil
+			return fmt.Errorf("captureTestConfigurationEvidence: resource %s not found in state", tfNode)
 		}
 		cfgIDStr := res.Primary.ID
 		cfgID, err := strconv.Atoi(cfgIDStr)
 		if err != nil {
-			return nil
+			return fmt.Errorf("captureTestConfigurationEvidence: parse cfg ID %q: %w", cfgIDStr, err)
 		}
 		projectID := res.Primary.Attributes["project_id"]
 		clients, err := getDirectClient()
 		if err != nil {
-			return nil
+			return fmt.Errorf("captureTestConfigurationEvidence: get direct client: %w", err)
 		}
 		cfg, err := clients.TestPlanClient.GetTestConfigurationById(clients.Ctx, testplan.GetTestConfigurationByIdArgs{
 			Project:             &projectID,
 			TestConfigurationId: &cfgID,
 		})
-		if err != nil || cfg == nil {
-			return nil
+		if err != nil {
+			return fmt.Errorf("captureTestConfigurationEvidence: GetTestConfigurationById(%d): %w", cfgID, err)
+		}
+		if cfg == nil {
+			return fmt.Errorf("captureTestConfigurationEvidence: GetTestConfigurationById(%d) returned nil", cfgID)
 		}
 		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
 		url := fmt.Sprintf("%s/%s/_apis/test/configurations/%s?api-version=7.1", orgURL, projectID, cfgIDStr)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, cfg)
+		if err := testutils.CaptureLiveEvidence("acceptance-test-configuration", url, cfg); err != nil {
+			return fmt.Errorf("captureTestConfigurationEvidence: CaptureLiveEvidence: %w", err)
+		}
 		return nil
 	}
 }
 
 // captureTestVariableEvidence performs a live API GET of the created test
 // variable and persists the response as forge demo evidence before destroy.
+// Uses a per-type label ("acceptance-test-variable") so it never overwrites
+// captures from other resource types. Errors from CaptureLiveEvidence are surfaced.
 func captureTestVariableEvidence(tfNode string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		res, ok := s.RootModule().Resources[tfNode]
 		if !ok {
-			return nil
+			return fmt.Errorf("captureTestVariableEvidence: resource %s not found in state", tfNode)
 		}
 		varIDStr := res.Primary.ID
 		varID, err := strconv.Atoi(varIDStr)
 		if err != nil {
-			return nil
+			return fmt.Errorf("captureTestVariableEvidence: parse var ID %q: %w", varIDStr, err)
 		}
 		projectID := res.Primary.Attributes["project_id"]
 		clients, err := getDirectClient()
 		if err != nil {
-			return nil
+			return fmt.Errorf("captureTestVariableEvidence: get direct client: %w", err)
 		}
 		v, err := clients.TestPlanClient.GetTestVariableById(clients.Ctx, testplan.GetTestVariableByIdArgs{
 			Project:        &projectID,
 			TestVariableId: &varID,
 		})
-		if err != nil || v == nil {
-			return nil
+		if err != nil {
+			return fmt.Errorf("captureTestVariableEvidence: GetTestVariableById(%d): %w", varID, err)
+		}
+		if v == nil {
+			return fmt.Errorf("captureTestVariableEvidence: GetTestVariableById(%d) returned nil", varID)
 		}
 		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
 		url := fmt.Sprintf("%s/%s/_apis/testplan/variables/%s?api-version=7.1", orgURL, projectID, varIDStr)
-		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, v)
+		if err := testutils.CaptureLiveEvidence("acceptance-test-variable", url, v); err != nil {
+			return fmt.Errorf("captureTestVariableEvidence: CaptureLiveEvidence: %w", err)
+		}
 		return nil
 	}
 }
