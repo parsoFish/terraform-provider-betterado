@@ -319,8 +319,10 @@ func groupGetDirectClient() (*client.AggregatedClient, error) {
 
 // TestAccGroupResource_Framework exercises betterado_group via the muxed
 // (terraform-plugin-framework) provider path. This is the quality gate test.
+//
+// Uses the persistent shared project (betterado-standing-demo) via a data
+// source lookup — the ADO org is at the 1000-project cap so project creates fail.
 func TestAccGroupResource_Framework(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	groupName := testutils.GenerateResourceName()
 	tfNode := "betterado_group.test"
 
@@ -331,7 +333,7 @@ func TestAccGroupResource_Framework(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Step 1: create + assert read-back populates all computed attrs.
 			{
-				Config: hclGroupFramework(projectName, groupName),
+				Config: hclGroupFramework(groupName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "display_name", groupName),
 					resource.TestCheckResourceAttr(tfNode, "description", "managed by Terraform"),
@@ -348,7 +350,7 @@ func TestAccGroupResource_Framework(t *testing.T) {
 			},
 			// Step 2: idempotency -- re-plan must show no changes (AC1).
 			{
-				Config:             hclGroupFramework(projectName, groupName),
+				Config:             hclGroupFramework(groupName),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
 			},
@@ -412,19 +414,18 @@ func captureGroupEvidence(tfNode string) resource.TestCheckFunc {
 	}
 }
 
-func hclGroupFramework(projectName, groupName string) string {
+func hclGroupFramework(groupName string) string {
+	// Use the persistent shared project via a data lookup — the ADO org is at
+	// the 1000-project cap so resource "betterado_project" creates fail.
+	// SharedFixtureProjectName ("betterado-standing-demo") is always present.
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "%[1]s-description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "shared" {
+  name = %[2]q
 }
 
 resource "betterado_group" "test" {
-  scope        = betterado_project.test.id
-  display_name = "%[2]s"
+  scope        = data.betterado_project.shared.id
+  display_name = %[1]q
   description  = "managed by Terraform"
-}`, projectName, groupName)
+}`, groupName, SharedFixtureProjectName)
 }
