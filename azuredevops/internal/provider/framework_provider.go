@@ -14,6 +14,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/accounts"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/profile"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 )
@@ -213,6 +214,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		accounts.NewAccountsDataSource,
+		profile.NewProfileDataSource,
 		release.NewReleaseDefinitionDataSource,
 		release.NewReleaseDefinitionHistoryDataSource,
 		release.NewReleaseDefinitionRevisionDataSource,
