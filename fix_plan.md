@@ -12,6 +12,7 @@
   - [x] `ExpectNonEmptyPlan:false` in Step 3
   - [x] No `CheckDestroy` (runs are immutable in ADO)
   - [x] Fixed `pipeline_id = ` / `run_id = ` empty-value bug (iter 2: ConfigFile + temp file pattern)
+  - [x] Fixed TestCase validation error "TestStep missing Config..." (iter 3: pre-create placeholder temp file so ConfigFile returns non-empty at validation time)
   - [ ] **Live gate must pass** (awaiting forge live TF_ACC run)
 - [ ] AC2: GIVEN the live evidence requirement WHEN CaptureLiveEvidence is called THEN .forge/live-evidence/acceptance-resource.json is populated
   - [x] `capturePipelineRunEvidence` calls `testutils.CaptureLiveEvidence("acceptance-resource", url, r)`

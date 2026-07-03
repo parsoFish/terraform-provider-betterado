@@ -54,6 +54,15 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - Iteration 1: `Config` string with pointer dereference — string is baked at initialization time, pointers always empty.
 - Iteration 1: `hclPipelineRunDataSource(name, &pipelineIDStr, &runIDStr)` — looks lazy but isn't; the return value is computed immediately.
 
+### Iteration 3 (WI-5)
+
+- **Gate failure:** `TestStep 2/3 validation error: TestStep missing Config or ConfigDirectory or ConfigFile or ImportState or RefreshState`
+- **Root cause:** `TestCase.validate()` eagerly calls `ConfigFile` funcs for ALL steps before any step runs (in `PrepareConfigurationRequest.Exec()`). Steps 2 and 3 use `hclDataSourceConfigFile` which returns `configFilePath`. At validation time, `configFilePath == ""` (Step 1's Check hasn't run yet), so `Configuration()` returns `nil` → `req.StepConfiguration == nil` → validation fails.
+- **Fix:** Pre-create a placeholder temp file before `resource.ParallelTest` and set `configFilePath = placeholderFile.Name()`. The closure captures the variable by reference; at validation time it returns a non-empty path. Step 1's Check still writes a new temp file and sets `*configFilePath = newFile.Name()` — the closure returns the updated path for Steps 2 and 3.
+- **Key insight:** Go closures capture variables by reference (not their values). Setting `configFilePath` before the closure is defined means the closure reads the current value each time it's called. This is distinct from the issue with `Config string` which is baked at struct init.
+- **Lint:** 0 issues (`golangci-lint run --new-from-rev=main`).
+- **Offline test:** `go test -tags all -run TestAccDataPipelineRun` → `SKIP` (not FAIL) without `TF_ACC`. Previously: `FAIL`.
+
 ## Open questions
 
 - Will the azure-pipelines.yml in `betterado-standing-demo` succeed quickly enough (under 3 min) for the gate to pass?
@@ -64,3 +73,4 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - **NEVER use Config string for IDs that come from a prior step's Check.** Use `ConfigFile` with a closure + a temp file written in the prior step's Check. The `ConfigFile` func is lazy; `Config` string is not.
 - The provider block (`terraform { required_providers {} }`) MUST be included in `ConfigFile` temp files because the framework's `mergedConfig` injection only applies to `Config` string steps.
 - `TF_ACC_PROVIDER_HOST` and `TF_ACC_PROVIDER_NAMESPACE` env vars control the provider source address (defaults: `registry.terraform.io`/`hashicorp`).
+- **`ConfigFile` func is called eagerly during `TestCase.validate()`.** If the func can return `""` at initialization time, validation fails with "TestStep missing Config...". Fix: pre-create a placeholder temp file and initialise `configFilePath` before the `Steps` slice is built. The closure captures the variable, not the value — subsequent writes to `*configFilePath` are visible to the closure.
