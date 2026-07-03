@@ -37,34 +37,49 @@ Created all three framework data source implementations and wired them up:
 - `search_filter` needs both `Optional: true, Computed: true` because it has a default that the server/Read computes (otherwise plan detects "value was set in config" vs "value must be computed").
 - For terrafmt: avoid Go format directives with brackets (like `[%[1]s]`) directly inside HCL string literals. Pre-compute the string in Go and use `%[2]q` to embed the result as a quoted literal.
 - Identity group name format in ADO: `[ProjectName]\GroupName` — e.g. `[betterado-standing-demo]\Build Administrators`.
-- Identity user lookup: `"Project Collection Build Service"` with `search_filter = "DisplayName"` is a stable system identity in every ADO project.
+- **"Project Collection Build Service ({OrgName})"** is the CORRECT stable user identity for identity_user tests. See below.
 
 ## What didn't work
 
 - `fmt.Sprintf` with `%[1]s` inside HCL template strings where `[%[1]s]` looks like HCL interpolation to terrafmt — causes parse error. Fix: pre-compute.
 - Including unused import `identity` in provider.go after removing all three DataSourcesMap entries — causes compile error.
+- **"{ProjectName} Build Service ({OrgName})"** — project-scoped build service account only exists after a pipeline has been run in that project. The `betterado-standing-demo` project has NOT had pipelines run, so this identity doesn't exist. DO NOT use this for tests with the standing demo project.
 
-## Iteration 2 fix
+## Iteration 2 fix (FAILED in live gate)
 
 **Problem:** Live gate failed with `Could not find user with name: Project Collection Build Service, with filter: DisplayName`.
-"Project Collection Build Service" is not a valid display name in this ADO org.
+Tried hard-coding "Project Collection Build Service" — that's not the full name; it needs the org name appended.
 
-**Root cause:** ADO build service accounts follow the naming convention `"{ProjectName} Build Service ({OrgName})"`.
-The org name varies per ADO tenant — it is NOT "Project Collection Build Service" universally.
+## Iteration 3 fix
 
-**Fix:** Updated `hclIdentityUserFrameworkRead()` in `data_identity_group_framework_test.go` to construct
-the user name dynamically:
+**Problem:** Live gate failed with `Could not find user with name: betterado-standing-demo Build Service (davidgparsonson), with filter: DisplayName`.
+
+**Root cause:** The per-project build service `"{ProjectName} Build Service ({OrgName})"` only exists after a pipeline has been run in that project. The `betterado-standing-demo` project has NOT had pipelines run, so this account doesn't exist.
+
+**Fix:** Use `"Project Collection Build Service ({OrgName})"` instead. This is the **collection-level** build service that is a permanent system identity in every ADO org, regardless of pipeline history.
+
+Updated `hclIdentityUserFrameworkRead()` in `data_identity_group_framework_test.go`:
 ```go
-return fmt.Sprintf(`
+return `
 data "betterado_client_config" "current" {}
 
 data "betterado_identity_user" "test" {
-  name          = "%[1]s Build Service (${compact(split("/", data.betterado_client_config.current.organization_url))[2]})"
+  name          = "Project Collection Build Service (${compact(split("/", data.betterado_client_config.current.organization_url))[2]})"
   search_filter = "DisplayName"
 }
-`, SharedFixtureProjectName)
+`
 ```
-This is identical to the pattern in `resource_git_permissions_test.go` (line 203), which is known to work.
+
+The org name (`davidgparsonson`) is extracted dynamically at apply time. The "Project Collection Build Service" prefix (without a project name) is the collection-level identity.
+
+## Key facts about ADO build service identities
+
+| Identity | Format | When exists |
+|----------|--------|-------------|
+| Collection-level | `Project Collection Build Service ({OrgName})` | ALWAYS — permanent system identity |
+| Project-level | `{ProjectName} Build Service ({OrgName})` | Only after a pipeline run in that project |
+
+**For tests with the standing demo project: always use the collection-level identity.**
 
 ## Open questions
 
