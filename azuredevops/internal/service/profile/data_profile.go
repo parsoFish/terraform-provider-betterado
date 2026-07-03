@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -121,11 +122,23 @@ func (d *profileDataSource) Read(ctx context.Context, req datasource.ReadRequest
 
 	// Call the VSSPS profile endpoint directly, bypassing the SDK's
 	// location-service discovery (OPTIONS /_apis) which can return 401 when
-	// the PAT is scoped to a single org and the request hits app.vssps.visualstudio.com.
-	endpointURL := fmt.Sprintf(
-		"https://app.vssps.visualstudio.com/_apis/profile/profiles/%s?api-version=7.1-preview.3&details=true&coreAttributes=Email,Avatar,DisplayName,ContactWithOffers",
-		id,
-	)
+	// the PAT is scoped to a single org.
+	//
+	// Org-scoped PATs only work against the org-specific VSSPS host:
+	//   https://vssps.dev.azure.com/<orgname>/_apis/profile/profiles/{id}
+	orgName := extractOrgName(d.client.OrganizationURL)
+	var endpointURL string
+	if orgName != "" {
+		endpointURL = fmt.Sprintf(
+			"https://vssps.dev.azure.com/%s/_apis/profile/profiles/%s?api-version=7.1-preview.3&details=true&coreAttributes=Email,Avatar,DisplayName,ContactWithOffers",
+			orgName, id,
+		)
+	} else {
+		endpointURL = fmt.Sprintf(
+			"https://app.vssps.visualstudio.com/_apis/profile/profiles/%s?api-version=7.1-preview.3&details=true&coreAttributes=Email,Avatar,DisplayName,ContactWithOffers",
+			id,
+		)
+	}
 	p, err := fetchProfile(ctx, endpointURL, d.client.BasicAuth)
 	if err != nil {
 		if isNotFound(err) {
@@ -156,6 +169,22 @@ func (d *profileDataSource) Read(ctx context.Context, req datasource.ReadRequest
 	model.AvatarURL = types.StringValue(avatarURL)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
+}
+
+// extractOrgName returns the ADO organization name from an org service URL of
+// the form https://dev.azure.com/<orgname>[/...].  Returns "" when the URL
+// does not match that pattern (e.g. on-prem Server URLs).
+func extractOrgName(orgURL string) string {
+	s := strings.ToLower(strings.TrimRight(orgURL, "/"))
+	const prefix = "https://dev.azure.com/"
+	if !strings.HasPrefix(s, prefix) {
+		return ""
+	}
+	rest := s[len(prefix):]
+	if idx := strings.Index(rest, "/"); idx >= 0 {
+		return rest[:idx]
+	}
+	return rest
 }
 
 // fetchProfile makes a direct REST call to the VSSPS profile endpoint and

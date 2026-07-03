@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -145,8 +146,20 @@ func (d *accountsDataSource) Read(ctx context.Context, req datasource.ReadReques
 
 	// Call the VSSPS accounts endpoint directly, bypassing the SDK's
 	// location-service discovery (OPTIONS /_apis) which can return 401 when
-	// the PAT is scoped to a single org and the request hits app.vssps.visualstudio.com.
-	endpointURL := "https://app.vssps.visualstudio.com/_apis/accounts?" + params.Encode()
+	// the PAT is scoped to a single org.
+	//
+	// Org-scoped PATs are not accepted by app.vssps.visualstudio.com — they
+	// only work against the org-specific VSSPS host:
+	//   https://vssps.dev.azure.com/<orgname>/_apis/accounts
+	// Full-org PATs also work there, so we always use the org-specific URL.
+	orgName := extractOrgName(d.client.OrganizationURL)
+	var endpointURL string
+	if orgName != "" {
+		endpointURL = "https://vssps.dev.azure.com/" + orgName + "/_apis/accounts?" + params.Encode()
+	} else {
+		// Fallback to global VSSPS for non-dev.azure.com org URLs.
+		endpointURL = "https://app.vssps.visualstudio.com/_apis/accounts?" + params.Encode()
+	}
 	accts, err := fetchAccounts(ctx, endpointURL, d.client.BasicAuth)
 	if err != nil {
 		resp.Diagnostics.AddError("Read error", fmt.Sprintf("reading accounts: %s", err))
@@ -170,6 +183,24 @@ func (d *accountsDataSource) Read(ctx context.Context, req datasource.ReadReques
 	model.ID = types.StringValue("accounts")
 	model.Accounts = accountItems
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
+}
+
+// extractOrgName returns the ADO organization name from an org service URL of
+// the form https://dev.azure.com/<orgname>[/...].  Returns "" when the URL
+// does not match that pattern (e.g. on-prem Server URLs).
+func extractOrgName(orgURL string) string {
+	// Normalise: strip scheme, lowercase, trim trailing slashes.
+	s := strings.ToLower(strings.TrimRight(orgURL, "/"))
+	const prefix = "https://dev.azure.com/"
+	if !strings.HasPrefix(s, prefix) {
+		return ""
+	}
+	rest := s[len(prefix):]
+	// rest may be "<orgname>" or "<orgname>/..."
+	if idx := strings.Index(rest, "/"); idx >= 0 {
+		return rest[:idx]
+	}
+	return rest
 }
 
 // fetchAccounts makes a direct REST call to the VSSPS accounts endpoint and
