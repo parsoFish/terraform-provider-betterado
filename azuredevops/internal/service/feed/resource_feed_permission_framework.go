@@ -103,6 +103,9 @@ func (r *feedPermissionFrameworkResource) Schema(_ context.Context, _ resource.S
 				Optional:    true,
 				Computed:    true,
 				Description: "The display name for the permission entry.",
+				PlanModifiers: []planmodifier.String{
+					useStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -200,9 +203,19 @@ func (r *feedPermissionFrameworkResource) Create(ctx context.Context, req resour
 	model.IdentityID = types.StringValue(identityResp.Id.String())
 
 	// Re-read to populate computed display_name from ADO.
-	perm, readErr := r.findPermission(feedID, projectID, *identityResp.Descriptor)
-	if readErr == nil && perm != nil && perm.DisplayName != nil {
-		model.DisplayName = types.StringValue(*perm.DisplayName)
+	// MUST set display_name to a known value; if it stays unknown Terraform
+	// raises "provider still indicated an unknown value after apply".
+	// We only overwrite if the config did not explicitly set display_name (i.e.
+	// it was null or unknown in the plan), to avoid idempotency issues when the
+	// user provides an explicit value that differs from what ADO echoes back.
+	if model.DisplayName.IsUnknown() || model.DisplayName.IsNull() {
+		perm, readErr := r.findPermission(feedID, projectID, *identityResp.Descriptor)
+		if readErr == nil && perm != nil && perm.DisplayName != nil {
+			model.DisplayName = types.StringValue(*perm.DisplayName)
+		} else {
+			// Fall back to empty string so the attribute is known after apply.
+			model.DisplayName = types.StringValue("")
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
@@ -324,6 +337,16 @@ func (r *feedPermissionFrameworkResource) Update(ctx context.Context, req resour
 
 	plan.ID = state.ID
 	plan.IdentityID = types.StringValue(identityResp.Id.String())
+
+	// Ensure display_name is always a known value after update.
+	if plan.DisplayName.IsUnknown() {
+		if state.DisplayName.IsNull() || state.DisplayName.IsUnknown() {
+			plan.DisplayName = types.StringValue("")
+		} else {
+			plan.DisplayName = state.DisplayName
+		}
+	}
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
