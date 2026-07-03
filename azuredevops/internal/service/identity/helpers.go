@@ -9,7 +9,6 @@ import (
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/tfhelper"
 )
 
 // ---------------------------------------------------------------------------
@@ -36,42 +35,6 @@ func selectIdentityGroup(groups *[]identity.Identity, groupName string) *identit
 		}
 	}
 	return nil
-}
-
-// flattenIdentityGroups converts identity groups to a list of attribute maps.
-func flattenIdentityGroups(groups *[]identity.Identity) []interface{} {
-	if groups == nil {
-		return []interface{}{}
-	}
-	results := make([]interface{}, len(*groups))
-	for i, group := range *groups {
-		groupMap := make(map[string]interface{})
-
-		if group.Id != nil {
-			groupID := *group.Id
-			groupMap["id"] = groupID.String()
-		}
-
-		if group.ProviderDisplayName != nil {
-			groupMap["name"] = *group.ProviderDisplayName
-		}
-
-		if group.Descriptor != nil {
-			groupMap["descriptor"] = *group.Descriptor
-		}
-
-		if group.SubjectDescriptor != nil {
-			groupMap["subject_descriptor"] = *group.SubjectDescriptor
-		}
-
-		results[i] = groupMap
-	}
-	return results
-}
-
-// getIdentityGroupHash returns a hash for a group map (used in schema.Set).
-func getIdentityGroupHash(v interface{}) int {
-	return tfhelper.HashString(v.(map[string]interface{})["id"].(string))
 }
 
 // ---------------------------------------------------------------------------
