@@ -3,7 +3,7 @@
   "essence": "Both betterado_servicehook_storage_queue_pipelines and betterado_servicehook_webhook_tfs are now served by terraform-plugin-framework through the mux provider. SDKv2 registrations removed. Schema and user-visible behaviour unchanged — pure internal migration. Live acceptance test TestAccServicehookWebhookTfsFramework_basic ran against real ADO org (davidgparsonson) — subscription abcd29b2-15a0-4005-a12b-8b9b75faa3e1 created, confirmed via REST GET (consumerId=webHooks, eventType=git.push, status=enabled), idempotency re-plan → No changes, destroyed cleanly. Storage-queue live acceptance run requires TF_ACC=1 credentials; offline unit gate green. Quality gate: go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/... → green (3 packages, 0 failures).",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-servicehook",
-  "diffStat": "144 files changed, 9180 insertions(+), 1311 deletions(-)",
+  "diffStat": "153 files changed, 9175 insertions(+), 1830 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
@@ -12,25 +12,25 @@
       "beforeNote": "Tests pass on main (SDKv2 servicehook resources in provider, release/taskagent unaffected)",
       "afterNote": "Tests pass on branch HEAD with both framework servicehook resources registered under mux; 3 packages green",
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.003s\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.006s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.005s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.003s\n"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release\t0.012s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent\t0.012s\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate\t0.007s\n"
     },
     {
       "label": "configure-storage-queue",
       "caption": "Framework Configure() for storage_queue_pipelines — panic-free, stores AggregatedClient",
       "command": "go test -tags all -count=1 -run TestServicehookStorageQueuePipelinesFramework_Configure ./azuredevops/internal/service/servicehook/",
       "beforeNote": "Test file did not exist on main (no framework resource); -run filter → [no tests to run]",
-      "afterNote": "TestServicehookStorageQueuePipelinesFramework_Configure: PASS",
+      "afterNote": "TestServicehookStorageQueuePipelinesFramework_Configure: PASS (3 sub-tests: constructor_returns_non_nil, configure_with_nil_provider_data_is_noop, configure_with_aggregated_client_stores_client)",
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s [no tests to run]\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s [no tests to run]\n"
+      "afterOutput": "=== RUN   TestServicehookStorageQueuePipelinesFramework_Configure\n=== RUN   TestServicehookStorageQueuePipelinesFramework_Configure/constructor_returns_non_nil\n=== RUN   TestServicehookStorageQueuePipelinesFramework_Configure/configure_with_nil_provider_data_is_noop\n=== RUN   TestServicehookStorageQueuePipelinesFramework_Configure/configure_with_aggregated_client_stores_client\n--- PASS: TestServicehookStorageQueuePipelinesFramework_Configure (0.00s)\n    --- PASS: TestServicehookStorageQueuePipelinesFramework_Configure/constructor_returns_non_nil (0.00s)\n    --- PASS: TestServicehookStorageQueuePipelinesFramework_Configure/configure_with_nil_provider_data_is_noop (0.00s)\n    --- PASS: TestServicehookStorageQueuePipelinesFramework_Configure/configure_with_aggregated_client_stores_client (0.00s)\nPASS\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s\n"
     },
     {
       "label": "configure-webhook-tfs",
       "caption": "Framework Configure() for webhook_tfs — panic-free, stores AggregatedClient",
       "command": "go test -tags all -count=1 -run TestServicehookWebhookTfsFramework_Configure ./azuredevops/internal/service/servicehook/",
       "beforeNote": "Test file did not exist on main (no framework resource); -run filter → [no tests to run]",
-      "afterNote": "TestServicehookWebhookTfsFramework_Configure: PASS",
+      "afterNote": "TestServicehookWebhookTfsFramework_Configure: PASS (3 sub-tests: constructor_returns_non_nil, configure_with_nil_provider_data_is_noop, configure_with_aggregated_client_stores_client)",
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s [no tests to run]\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s [no tests to run]\n"
+      "afterOutput": "=== RUN   TestServicehookWebhookTfsFramework_Configure\n=== RUN   TestServicehookWebhookTfsFramework_Configure/constructor_returns_non_nil\n=== RUN   TestServicehookWebhookTfsFramework_Configure/configure_with_nil_provider_data_is_noop\n=== RUN   TestServicehookWebhookTfsFramework_Configure/configure_with_aggregated_client_stores_client\n--- PASS: TestServicehookWebhookTfsFramework_Configure (0.00s)\n    --- PASS: TestServicehookWebhookTfsFramework_Configure/constructor_returns_non_nil (0.00s)\n    --- PASS: TestServicehookWebhookTfsFramework_Configure/configure_with_nil_provider_data_is_noop (0.00s)\n    --- PASS: TestServicehookWebhookTfsFramework_Configure/configure_with_aggregated_client_stores_client (0.00s)\nPASS\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s\n"
     },
     {
       "label": "gap-matrix",
@@ -39,7 +39,7 @@
       "beforeNote": "Gap matrix did not exist; both resources in SDKv2 ResourcesMap",
       "afterNote": "Gap matrix committed; both resources removed from SDKv2 ResourcesMap and registered in framework_provider.go Resources(); TestProvider_HasChildResources PASS",
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops\t0.006s\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops\t0.005s\n"
+      "afterOutput": "=== RUN   TestProvider_HasChildResources\n--- PASS: TestProvider_HasChildResources (0.00s)\nPASS\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops\t0.005s\n"
     },
     {
       "label": "acceptance-resource",
@@ -68,7 +68,7 @@
     {
       "criterion": "GIVEN a new file azuredevops/internal/service/servicehook/resource_servicehook_storage_queue_pipelines_framework.go implementing resource.Resource WHEN the framework resource's Configure() is called with a non-nil ProviderData THEN it stores *client.AggregatedClient (not a stub); panic-free under the mux",
       "verdict": "met",
-      "evidence": "test 'TestServicehookStorageQueuePipelinesFramework_Configure' → PASS (go test -tags all -count=1 -run TestServicehookStorageQueuePipelinesFramework_Configure ./azuredevops/internal/service/servicehook/); committed 1e32b70d"
+      "evidence": "test 'TestServicehookStorageQueuePipelinesFramework_Configure' → PASS (3/3 sub-tests pass: constructor_returns_non_nil, configure_with_nil_provider_data_is_noop, configure_with_aggregated_client_stores_client); go test -tags all -count=1 -run TestServicehookStorageQueuePipelinesFramework_Configure ./azuredevops/internal/service/servicehook/ → ok (0.003s); committed 1e32b70d"
     },
     {
       "criterion": "GIVEN the framework implementation of betterado_servicehook_storage_queue_pipelines WHEN Create/Read/Update/Delete are exercised THEN the resource calls clients.ServiceHooksClient CRUD methods with the correct subscription shape; 404 in Read clears the ID and returns nil (no error)",
@@ -78,12 +78,12 @@
     {
       "criterion": "GIVEN the SDKv2 registration of betterado_servicehook_storage_queue_pipelines in provider.go ResourcesMap WHEN the framework resource is registered in framework_provider.go Resources() THEN the SDKv2 entry is REMOVED from provider.go ResourcesMap in the same commit; provider_test.go resource count updated; no 'Duplicate resource type' at apply",
       "verdict": "met",
-      "evidence": "provider.go ResourcesMap no longer contains 'betterado_servicehook_storage_queue_pipelines'; framework_provider.go Resources() returns NewServicehookStorageQueuePipelinesResource; provider_test.go resource count updated in same commit 1e32b70d; TestProvider_HasChildResources → PASS"
+      "evidence": "provider.go ResourcesMap no longer contains 'betterado_servicehook_storage_queue_pipelines'; framework_provider.go Resources() returns NewServicehookStorageQueuePipelinesResource; provider_test.go resource count updated in same commit 1e32b70d; TestProvider_HasChildResources → PASS (go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/ → ok 0.005s)"
     },
     {
       "criterion": "GIVEN a new file azuredevops/internal/service/servicehook/resource_servicehook_webhook_tfs_framework.go implementing resource.Resource WHEN the framework resource's Configure() is called with a non-nil ProviderData THEN it stores *client.AggregatedClient; panic-free under the mux",
       "verdict": "met",
-      "evidence": "test 'TestServicehookWebhookTfsFramework_Configure' → PASS (go test -tags all -count=1 -run TestServicehookWebhookTfsFramework_Configure ./azuredevops/internal/service/servicehook/); committed a79292d3"
+      "evidence": "test 'TestServicehookWebhookTfsFramework_Configure' → PASS (3/3 sub-tests pass: constructor_returns_non_nil, configure_with_nil_provider_data_is_noop, configure_with_aggregated_client_stores_client); go test -tags all -count=1 -run TestServicehookWebhookTfsFramework_Configure ./azuredevops/internal/service/servicehook/ → ok (0.003s); committed a79292d3"
     },
     {
       "criterion": "GIVEN the framework implementation of betterado_servicehook_webhook_tfs WHEN Create/Read/Update/Delete are exercised THEN the resource calls clients.ServiceHooksClient CRUD methods with the correct subscription shape including all 19 TFS event type blocks; 404 in Read clears the resource and returns nil",
@@ -134,6 +134,40 @@
       "criterion": "GIVEN PROVIDER_VERSION.txt WHEN a user-visible change (resource schema parity maintained, internal migration) is delivered THEN PROVIDER_VERSION.txt is bumped to the next patch semver",
       "verdict": "met",
       "evidence": "PROVIDER_VERSION.txt bumped from 1.2.0 to 1.2.1 (committed a83d26e9)"
+    }
+  ],
+  "testEvidence": [
+    {
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "result": "pass"
+    },
+    {
+      "name": "TestServicehookStorageQueuePipelinesFramework_Configure/constructor_returns_non_nil",
+      "result": "pass"
+    },
+    {
+      "name": "TestServicehookStorageQueuePipelinesFramework_Configure/configure_with_nil_provider_data_is_noop",
+      "result": "pass"
+    },
+    {
+      "name": "TestServicehookStorageQueuePipelinesFramework_Configure/configure_with_aggregated_client_stores_client",
+      "result": "pass"
+    },
+    {
+      "name": "TestServicehookWebhookTfsFramework_Configure/constructor_returns_non_nil",
+      "result": "pass"
+    },
+    {
+      "name": "TestServicehookWebhookTfsFramework_Configure/configure_with_nil_provider_data_is_noop",
+      "result": "pass"
+    },
+    {
+      "name": "TestServicehookWebhookTfsFramework_Configure/configure_with_aggregated_client_stores_client",
+      "result": "pass"
+    },
+    {
+      "name": "TestProvider_HasChildResources",
+      "result": "pass"
     }
   ]
 }
