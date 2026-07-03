@@ -44,7 +44,7 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 
 **After output:**
 ```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.006s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.007s
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.005s
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.004s
 
@@ -102,7 +102,7 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/serv
 
 **After output:**
 ```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.006s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release	0.007s
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent	0.005s
 ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent/validate	0.004s
 
