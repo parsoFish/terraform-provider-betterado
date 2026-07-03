@@ -1,11 +1,20 @@
+//go:build all
+// +build all
+
 package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/identity"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 // TestAccIdentityDataSources_Framework is the top-level test that groups the three
@@ -38,6 +47,7 @@ func TestAccIdentityGroupDataSource_Framework_Read(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfNode, "descriptor"),
 					resource.TestCheckResourceAttrSet(tfNode, "subject_descriptor"),
 					resource.TestCheckResourceAttrSet(tfNode, "id"),
+					captureIdentityGroupEvidence(tfNode),
 				),
 			},
 			// Idempotency: re-plan must produce no diff.
@@ -110,6 +120,45 @@ func TestAccIdentityUserDataSource_Framework_Read(t *testing.T) {
 			},
 		},
 	})
+}
+
+// captureIdentityGroupEvidence performs a live ADO API GET of the identity group and
+// persists the response as forge demo live-evidence. Best-effort: failures are ignored
+// so they never cause a test assertion failure.
+func captureIdentityGroupEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		identityID := res.Primary.ID
+		if identityID == "" {
+			return nil
+		}
+		clients, err := identityGetDirectClient()
+		if err != nil {
+			return nil //nolint:nilerr // best-effort evidence capture: client failure never fails the test
+		}
+		identityObj, err := clients.IdentityClient.ReadIdentity(clients.Ctx, identity.ReadIdentityArgs{
+			IdentityId: converter.String(identityID),
+		})
+		if err != nil || identityObj == nil {
+			return nil //nolint:nilerr // best-effort evidence capture: API failure never fails the test
+		}
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		url := fmt.Sprintf("%s/_apis/identities?identityIds=%s&api-version=7.1", orgURL, identityID)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource", url, identityObj)
+		return nil
+	}
+}
+
+// identityGetDirectClient builds an AggregatedClient directly from AZDO env vars.
+// Used by evidence helpers when using ProtoV6ProviderFactories (which does not wire
+// the SDKv2 provider singleton's Meta).
+func identityGetDirectClient() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
 }
 
 // hclIdentityGroupFrameworkRead looks up "Build Administrators" in the shared project.
