@@ -438,20 +438,24 @@ data "betterado_group_membership" "test" {
 }
 
 func hclMigrationDocsUserDataSource() string {
-	// betterado_user requires a descriptor; reuse the users data source here to
-	// validate the schema — a single-attribute lookup by origin is sufficient
-	// to confirm the framework users implementation is live.
+	// betterado_user requires a descriptor; reuse the users data source here
+	// filtered by origin="aad" to validate the framework implementation is live.
+	// Using "aad" (Azure AD users) rather than "vsts" (native ADO accounts) to
+	// avoid returning thousands of system service accounts that each require a
+	// sequential GetStorageKey call, which would cause the test to time out.
 	return `
 data "betterado_users" "test" {
-  origin = "vsts"
+  origin = "aad"
 }
 `
 }
 
 func hclMigrationDocsUsersDataSource() string {
+	// Filter by origin="aad" (Azure AD users) — avoids returning large numbers
+	// of native ADO service accounts that each require a GetStorageKey lookup.
 	return `
 data "betterado_users" "test" {
-  origin = "vsts"
+  origin = "aad"
 }
 `
 }

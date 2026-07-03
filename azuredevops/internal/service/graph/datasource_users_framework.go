@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -204,40 +205,102 @@ func (d *usersDataSource) Read(ctx context.Context, req datasource.ReadRequest, 
 		}
 	}
 
-	// Build user items (get storage key for id).
-	userItems := make([]userItemModel, 0, len(allUsers))
-	var descriptors []string
-	for _, usr := range allUsers {
-		item := userItemModel{
+	// Build user items with parallel GetStorageKey lookups (same concurrency
+	// pattern as the SDKv2 addStorageKeyAsId, defaulting to 10 workers to
+	// avoid sequential N+1 API calls that cause test timeouts in large orgs).
+	const numWorkers = 10
+	userItems := make([]userItemModel, len(allUsers))
+
+	// Initialise all items from the Graph user fields first.
+	for i, usr := range allUsers {
+		userItems[i] = userItemModel{
 			Descriptor:    strPtrToStringValue(usr.Descriptor),
 			PrincipalName: strPtrToStringValue(usr.PrincipalName),
 			Origin:        strPtrToStringValue(usr.Origin),
 			OriginID:      strPtrToStringValue(usr.OriginId),
 			DisplayName:   strPtrToStringValue(usr.DisplayName),
 			MailAddress:   strPtrToStringValue(usr.MailAddress),
+			ID:            types.StringValue(""),
 		}
+	}
 
-		// Look up storage key for id field.
+	// Fan-out GetStorageKey calls over a bounded worker pool.
+	// workResult carries the descriptor (used as a correlation key) back to the
+	// collector so results can be written into the pre-allocated userItems slice.
+	type workResult struct {
+		descriptor string
+		id         string
+		err        error
+	}
+
+	// Buffer the channels at len(allUsers) so no goroutine blocks if the
+	// consumer is slow — each slot maps to exactly one work item.
+	bufSize := len(allUsers)
+	if bufSize == 0 {
+		bufSize = 1
+	}
+	workCh := make(chan string, bufSize)
+	resultCh := make(chan workResult, bufSize)
+
+	var wg sync.WaitGroup
+	for w := 0; w < numWorkers; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for descriptor := range workCh {
+				sk, err := d.client.GraphClient.GetStorageKey(d.client.Ctx, graph.GetStorageKeyArgs{
+					SubjectDescriptor: converter.String(descriptor),
+				})
+				if err != nil {
+					resultCh <- workResult{descriptor: descriptor, err: fmt.Errorf("getting storage key for user %q: %w", descriptor, err)}
+					continue
+				}
+				id := ""
+				if sk != nil && sk.Value != nil {
+					id = sk.Value.String()
+				}
+				resultCh <- workResult{descriptor: descriptor, id: id}
+			}
+		}()
+	}
+
+	// Enqueue work items.
+	descriptorToIdx := make(map[string]int, len(allUsers))
+	for i, usr := range allUsers {
+		if usr.Descriptor != nil && *usr.Descriptor != "" {
+			workCh <- *usr.Descriptor
+			descriptorToIdx[*usr.Descriptor] = i
+		}
+	}
+	close(workCh)
+
+	// Wait for workers to finish, then close result channel.
+	go func() {
+		wg.Wait()
+		close(resultCh)
+	}()
+
+	// Collect results.
+	var storageKeyErr error
+	for res := range resultCh {
+		if res.err != nil {
+			storageKeyErr = res.err
+			continue
+		}
+		if idx, ok := descriptorToIdx[res.descriptor]; ok {
+			userItems[idx].ID = types.StringValue(res.id)
+		}
+	}
+	if storageKeyErr != nil {
+		resp.Diagnostics.AddError("Read error", storageKeyErr.Error())
+		return
+	}
+
+	var descriptors []string
+	for _, usr := range allUsers {
 		if usr.Descriptor != nil {
-			storageKey, err := d.client.GraphClient.GetStorageKey(d.client.Ctx, graph.GetStorageKeyArgs{
-				SubjectDescriptor: converter.String(*usr.Descriptor),
-			})
-			if err != nil {
-				resp.Diagnostics.AddError("Read error",
-					fmt.Sprintf("getting storage key for user %q: %s", *usr.Descriptor, err))
-				return
-			}
-			if storageKey.Value != nil {
-				item.ID = types.StringValue(storageKey.Value.String())
-			} else {
-				item.ID = types.StringValue("")
-			}
 			descriptors = append(descriptors, *usr.Descriptor)
-		} else {
-			item.ID = types.StringValue("")
 		}
-
-		userItems = append(userItems, item)
 	}
 
 	// Build set value.
