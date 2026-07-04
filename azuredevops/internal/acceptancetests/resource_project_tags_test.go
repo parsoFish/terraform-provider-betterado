@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
@@ -13,6 +14,14 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 )
+
+// buildTestClient creates an AggregatedClient from environment variables.
+// Used by framework-based tests that cannot call testutils.GetProvider().Meta().
+func buildTestClient() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+}
 
 // TestAccProjectTags_basic operates on the betterado-standing-demo fixture project
 // so that the captured evidence honestly references the standing-demo project GUID.
@@ -130,7 +139,10 @@ func TestAccProjectTags_requiresImportError(t *testing.T) {
 }
 
 func checkProjectTagsDestroyed(s *terraform.State) error {
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+	clients, err := buildTestClient()
+	if err != nil {
+		return fmt.Errorf("checkProjectTagsDestroyed: build client: %v", err)
+	}
 	for _, res := range s.RootModule().Resources {
 		if res.Type != "betterado_project_tags" {
 			continue
@@ -166,7 +178,10 @@ func CheckProjectTagsExist() resource.TestCheckFunc {
 			return fmt.Errorf("Did not find a `betterado_project_tags` in the TF state")
 		}
 
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		clients, err := buildTestClient()
+		if err != nil {
+			return fmt.Errorf("CheckProjectTagsExist: build client: %v", err)
+		}
 		id := res.Primary.ID
 		projectID, err := uuid.Parse(id)
 		if err != nil {

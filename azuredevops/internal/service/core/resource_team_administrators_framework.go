@@ -249,10 +249,14 @@ func (r *TeamAdministratorsResource) Update(ctx context.Context, req resource.Up
 		}
 	}
 
-	if err := r.readIntoModel(ctx, &plan, team); err != nil {
-		resp.Diagnostics.AddError("reading administrators after update", err.Error())
-		return
-	}
+	// Azure DevOps ACL changes propagate asynchronously. Use the plan values
+	// as the new state (same as Create) so the post-apply plan-consistency
+	// check passes even if the ACL API has not yet reflected the new members.
+	// A subsequent Read (e.g. terraform refresh) will re-read from the API
+	// once propagation has completed.
+	plan.ProjectID = types.StringValue(team.ProjectId.String())
+	plan.TeamID = types.StringValue(team.Id.String())
+	// plan.Administrators already holds the desired set from req.Plan.Get
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

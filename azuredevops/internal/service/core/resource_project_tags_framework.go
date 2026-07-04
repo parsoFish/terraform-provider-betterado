@@ -224,6 +224,12 @@ func (r *ProjectTagsResource) Delete(ctx context.Context, req resource.DeleteReq
 	}
 
 	tags := r.expandTagsForRemove(ctx, model.Tags)
+	// Azure DevOps SetProjectProperties rejects an empty patch document with
+	// "At least one operation is required for Apply". Skip the API call when
+	// there are no tags to remove — the state is already clean.
+	if tags == nil || len(*tags) == 0 {
+		return
+	}
 	if err := r.client.CoreClient.SetProjectProperties(r.client.Ctx, adocore.SetProjectPropertiesArgs{
 		PatchDocument: tags,
 		ProjectId:     &projectID,

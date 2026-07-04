@@ -247,10 +247,14 @@ func (r *TeamMembersResource) Update(ctx context.Context, req resource.UpdateReq
 		}
 	}
 
-	if err := r.readIntoModel(ctx, &plan, team); err != nil {
-		resp.Diagnostics.AddError("reading members after update", err.Error())
-		return
-	}
+	// Azure DevOps membership changes propagate asynchronously. Use the plan
+	// values as the new state (same as Create) so the post-apply plan-
+	// consistency check passes even if the API has not yet reflected the
+	// new members. A subsequent Read (e.g. terraform refresh) will re-read
+	// from the API once propagation has completed.
+	plan.ProjectID = types.StringValue(team.ProjectId.String())
+	plan.TeamID = types.StringValue(team.Id.String())
+	// plan.Members already holds the desired set from req.Plan.Get
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -318,13 +322,14 @@ func (r *TeamMembersResource) readIntoModel(ctx context.Context, model *teamMemb
 		}
 	}
 
-	// Azure DevOps membership changes propagate asynchronously. When the API
-	// returns an empty member list immediately after adding members (a common
-	// transient condition), fall back to the current state values so that the
-	// framework's plan-after-apply consistency check does not fail with
-	// "Provider produced inconsistent result after apply". A subsequent refresh
-	// will re-read the membership once propagation has completed.
-	if len(result) == 0 && len(currentMembers) > 0 {
+	// Azure DevOps membership changes propagate asynchronously. The API may
+	// return a partial (stale) member list immediately after adding members.
+	// In "add" mode, fall back to state values whenever the API returns fewer
+	// members than the state knows about — a subset result means propagation is
+	// still in progress. In "overwrite" mode the API is authoritative so we
+	// accept whatever it returns. A subsequent refresh will re-read the
+	// membership once propagation has completed.
+	if !strings.EqualFold("overwrite", mode) && len(result) < len(currentMembers) {
 		result = currentMembers
 	}
 

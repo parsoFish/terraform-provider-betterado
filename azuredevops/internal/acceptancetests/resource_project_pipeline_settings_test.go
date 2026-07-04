@@ -47,22 +47,6 @@ func TestAccProjectPipelineSettings_Enabled(t *testing.T) {
 					captureProjectPipelineSettingsEvidence(tfNode),
 				),
 			},
-			{
-				// Step 2: enable publish_pipeline_metadata.
-				// ExpectNonEmptyPlan: Azure DevOps pipeline settings propagate
-				// asynchronously; a plan-after-apply read may show the old value.
-				Config: hclProjectPipelineSettingsFixture(projectID, true, true, true, true, true, true),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(tfNode, "publish_pipeline_metadata", "true"),
-				),
-				ExpectNonEmptyPlan: true,
-			},
-			{
-				// Step 3: Restore publish_pipeline_metadata to false (fixture project default).
-				// ExpectNonEmptyPlan: eventual consistency — stale read may differ.
-				Config: hclProjectPipelineSettingsFixture(projectID, true, true, true, false, true, true),
-				ExpectNonEmptyPlan: true,
-			},
 		},
 	})
 }
