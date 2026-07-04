@@ -19,7 +19,8 @@ func createSubscription(d *schema.ResourceData, clients *client.AggregatedClient
 		clients.Ctx,
 		servicehooks.CreateSubscriptionArgs{
 			Subscription: subscription,
-		})
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating service hook subscription in Azure DevOps: %+v", err)
 	}
@@ -40,7 +41,8 @@ func updateSubscription(clients *client.AggregatedClient, subscription *serviceh
 		servicehooks.ReplaceSubscriptionArgs{
 			Subscription:   subscription,
 			SubscriptionId: subscription.Id,
-		})
+		},
+	)
 	if err != nil {
 		return nil, fmt.Errorf("Error updating service hook subscription in Azure DevOps: %+v", err)
 	}
@@ -58,7 +60,8 @@ func deleteSubscription(clients *client.AggregatedClient, subscriptionID *uuid.U
 		clients.Ctx,
 		servicehooks.DeleteSubscriptionArgs{
 			SubscriptionId: subscriptionID,
-		})
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("Error deleting service hook subscription: %+v", err)
 	}
@@ -76,6 +79,7 @@ func getSubscription(clients *client.AggregatedClient, subscriptionID *uuid.UUID
 		clients.Ctx,
 		servicehooks.GetSubscriptionArgs{
 			SubscriptionId: subscriptionID,
-		})
+		},
+	)
 	return subscription, err
 }
