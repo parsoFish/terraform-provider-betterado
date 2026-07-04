@@ -1,10 +1,10 @@
 # Migrate all core resources and data sources to terraform-plugin-framework
 
-> _Derived from `demo.json` (ADR 021). Essence:_ Migrates all 7 core resources (betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members) and 5 data sources (data.betterado_project, data.betterado_projects, data.betterado_team, data.betterado_teams, data.betterado_client_config) to terraform-plugin-framework, served through the mux provider. Produces a gap matrix (docs/core-gap-matrix.md) comparing all core resource schemas against the ADO REST API v7.1. Bug fix: applyFeatureStates surfaces silent ADO feature-state rejections (testplans license restriction). Fixture safety hardened. Missing validators and features attribute in betterado_project schema are documented as deferred regressions. provider_test.go updated to reflect all SDKv2 deregistrations.
+> _Derived from `demo.json` (ADR 021). Essence:_ Migrates all 7 core resources (betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members) and 5 data sources (data.betterado_project, data.betterado_projects, data.betterado_team, data.betterado_teams, data.betterado_client_config) to terraform-plugin-framework, served through the mux provider. Produces a gap matrix (docs/core-gap-matrix.md) comparing all core resource schemas against the ADO REST API v7.1. Bug fixes: applyFeatureStates surfaces silent ADO feature-state rejections (testplans license restriction); betterado_team_administrators and betterado_team_members Create uses plan values directly (not re-read from API) to avoid 'provider produced inconsistent result' from ACL propagation delays; nil-slice bug in readIntoModel fixed to avoid null Set in state. Fixture safety hardened. Missing validators and features attribute in betterado_project schema are documented as deferred regressions. provider_test.go updated to reflect all SDKv2 deregistrations.
 
 ## Intent & Outcome
 
-> _Assessed intent:_ Migrates all 7 core resources (betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members) and 5 data sources (data.betterado_project, data.betterado_projects, data.betterado_team, data.betterado_teams, data.betterado_client_config) to terraform-plugin-framework, served through the mux provider. Produces a gap matrix (docs/core-gap-matrix.md) comparing all core resource schemas against the ADO REST API v7.1. Bug fix: applyFeatureStates surfaces silent ADO feature-state rejections (testplans license restriction). Fixture safety hardened. Missing validators and features attribute in betterado_project schema are documented as deferred regressions. provider_test.go updated to reflect all SDKv2 deregistrations.
+> _Assessed intent:_ Migrates all 7 core resources (betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members) and 5 data sources (data.betterado_project, data.betterado_projects, data.betterado_team, data.betterado_teams, data.betterado_client_config) to terraform-plugin-framework, served through the mux provider. Produces a gap matrix (docs/core-gap-matrix.md) comparing all core resource schemas against the ADO REST API v7.1. Bug fixes: applyFeatureStates surfaces silent ADO feature-state rejections (testplans license restriction); betterado_team_administrators and betterado_team_members Create uses plan values directly (not re-read from API) to avoid 'provider produced inconsistent result' from ACL propagation delays; nil-slice bug in readIntoModel fixed to avoid null Set in state. Fixture safety hardened. Missing validators and features attribute in betterado_project schema are documented as deferred regressions. provider_test.go updated to reflect all SDKv2 deregistrations.
 
 | # | Acceptance criterion | Verdict | Evidence |
 |---|---|---|---|
@@ -26,8 +26,8 @@
 | 16 | GIVEN betterado_team resource implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply creates a team in betterado-standing-demo → read-back → idempotency re-plan → terraform destroy THEN TestAccTeam_basic and TestAccTeam_update pass with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false | ~ partial | resource_team_framework.go (414 lines) committed in 0600751b; registered in framework_provider.go Resources(); removed from SDKv2 ResourcesMap. provider_test.go updated — TestProvider_HasChildResources passes. Live acceptance test not confirmed run in CI. |
 | 17 | GIVEN data.betterado_team and data.betterado_teams data sources implemented in framework WHEN terraform apply reads team(s) from betterado-standing-demo THEN TestAccTeam_dataSource and TestAccTeams_dataSource pass with GetMuxedProviderFactories() | ~ partial | data_team_framework.go (189 lines) and data_teams_framework.go (255 lines) committed in 0600751b; registered in framework_provider.go DataSources(); removed from SDKv2 DataSourcesMap. TestProvider_HasChildDataSources passes. Live acceptance tests not confirmed run in CI. |
 | 18 | GIVEN betterado_team removed from SDKv2 ResourcesMap; data.betterado_team and data.betterado_teams removed from DataSourcesMap WHEN TestProvider_HasChildResources and TestProvider_HasChildDataSources run THEN both pass with updated counts | ✓ met | provider.go removes betterado_team from ResourcesMap and betterado_team + betterado_teams from DataSourcesMap; provider_test.go updated by this unifier iteration. Both TestProvider_HasChildResources and TestProvider_HasChildDataSources pass → ok 0.007s. |
-| 19 | GIVEN betterado_team_administrators implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply sets team administrators on a team in betterado-standing-demo → read-back → idempotency re-plan → terraform destroy THEN TestAccTeamAdministrators passes with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false | ~ partial | resource_team_administrators_framework.go (350 lines) committed in 0600751b; registered in framework_provider.go; removed from SDKv2 ResourcesMap. TestProvider_HasChildResources passes. Live acceptance test not confirmed run in CI. |
-| 20 | GIVEN betterado_team_members implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply sets team members on a team in betterado-standing-demo → read-back → idempotency re-plan → terraform destroy THEN TestAccTeamMembers passes with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false | ~ partial | resource_team_members_framework.go (327 lines) committed in 0600751b; registered in framework_provider.go; removed from SDKv2 ResourcesMap. TestProvider_HasChildResources passes. Live acceptance test not confirmed run in CI. |
+| 19 | GIVEN betterado_team_administrators implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply sets team administrators on a team in betterado-standing-demo → read-back → idempotency re-plan → terraform destroy THEN TestAccTeamAdministrators passes with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false | ~ partial | resource_team_administrators_framework.go (350 lines) committed; UWI-10 fix (04698054) resolved 'provider produced inconsistent result after apply': Create now sets state from plan values (not re-read from API) to avoid Azure DevOps ACL propagation delays; nil-slice bug in readIntoModel fixed to avoid null Set. TestProvider_HasChildResources passes (go test -tags all -run TestProvider_HasChildResources ./azuredevops/ → ok 0.006s). Live acceptance test (TestAccTeamAdministrators) not confirmed run in CI — TF_ACC required. |
+| 20 | GIVEN betterado_team_members implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply sets team members on a team in betterado-standing-demo → read-back → idempotency re-plan → terraform destroy THEN TestAccTeamMembers passes with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false | ~ partial | resource_team_members_framework.go (327 lines) committed; UWI-10 fix (04698054) resolved same nil-slice bug: readIntoModel uses make([]string, 0) instead of var result []string to avoid null Set; Create uses plan values directly. TestProvider_HasChildResources passes (go test -tags all -run TestProvider_HasChildResources ./azuredevops/ → ok 0.006s). Live acceptance test (TestAccTeamMembers) not confirmed run in CI — TF_ACC required. |
 | 21 | GIVEN betterado_team_administrators and betterado_team_members removed from SDKv2 ResourcesMap WHEN TestProvider_HasChildResources runs THEN test passes with updated count (two fewer SDKv2 resources) | ✓ met | provider.go removes betterado_team_administrators and betterado_team_members from ResourcesMap; provider_test.go updated by this unifier iteration. TestProvider_HasChildResources passes → ok 0.007s. |
 | 22 | GIVEN data.betterado_client_config data source implemented as datasource.DataSource in terraform-plugin-framework WHEN terraform apply reads provider config metadata (org URL, tenant ID, owner) THEN TestAccClientConfig_LoadsCorrectProperties passes with GetMuxedProviderFactories(); name, status, tenant_id, owner_id, organization_url all set correctly | ~ partial | data_client_config_framework.go (138 lines) committed in 0600751b; registered in framework_provider.go DataSources(); removed from SDKv2 DataSourcesMap. TestProvider_HasChildDataSources passes. Live acceptance test not confirmed run in CI. |
 | 23 | GIVEN data.betterado_client_config removed from SDKv2 DataSourcesMap in provider.go WHEN TestProvider_HasChildDataSources runs THEN test passes with updated count (one fewer SDKv2 data source) | ✓ met | provider.go removes betterado_client_config from DataSourcesMap; provider_test.go updated by this unifier iteration. TestProvider_HasChildDataSources passes → ok 0.007s. |
@@ -35,52 +35,52 @@
 | 25 | GIVEN CHANGELOG.md updated and PROVIDER_VERSION.txt bumped WHEN git diff HEAD shows the changes THEN CHANGELOG.md has a new entry under ## Unreleased describing the core framework migration; PROVIDER_VERSION.txt has a bumped semver patch or minor version | ~ partial | CHANGELOG.md has a DRAFT ## [Unreleased] entry (BREAKING CHANGES + FEATURES + BUG FIXES) covering all WI-1 through WI-8 deliverables. PROVIDER_VERSION.txt bump is a pre-merge finaliser step per project.json releaseProcess — not committed by unifier. |
 | 26 | GIVEN demo.json carries real REST GET checkpoints from live evidence WHEN forge demo render is invoked by the unifier THEN demo.json ends with a checkpoint carrying liveEvidence.url (a real REST GET URL from CaptureLiveEvidence calls in WI-2 through WI-7) | ✓ met | Live evidence captured by TestAccProjectFeatures_roundtrip → CaptureLiveEvidence('acceptance-resource') → .forge/live-evidence/acceptance-resource.json: url=https://dev.azure.com/davidgparsonson/_apis/FeatureManagement/FeatureStatesForScope/host/project/c0ac3757-e915-453f-ba2b-93a3720d1994?api-version=7.1; capturedAt=2026-07-02T09:17:10Z. |
 
-## Visual Changes
+## Checkpoints
 
-### Offline unit gate: servicehook package green — verbatim gate forge ran
+### 1. quality-gate — Offline unit gate: servicehook package green — verbatim gate forge ran
 
-- **Before:** Gate runs against main branch (pre-migration)
-- **After:** Gate passes on branch HEAD: ok servicehook 0.008s
-- **Command:** `go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...`
+**Command:** `go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...`
 
-**Before output:**
-```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.003s
-```
+| Before (main) | After (HEAD) |
+|---|---|
+| `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.003s` | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.008s` |
 
-**After output:**
-```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.008s
-```
+**Before:** Gate runs against main branch (pre-migration)
 
-### Framework provider registers all migrated resources/data-sources; SDKv2 maps fully updated
+**After:** Gate passes on branch HEAD: ok servicehook 0.008s
 
-- **Before:** betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members in SDKv2 ResourcesMap; betterado_team, betterado_teams, betterado_client_config in DataSourcesMap
-- **After:** All 7 core resources and 5 data sources removed from SDKv2 maps; all registered in framework_provider.go Resources()/DataSources(). TestProvider_HasChildResources + TestProvider_HasChildDataSources pass.
-- **Command:** `go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/`
+---
 
-**Before output:**
-```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops	0.005s
-```
+### 2. provider-registration — Framework provider registers all migrated resources/data-sources; SDKv2 maps fully updated
 
-**After output:**
-```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops	0.007s
-```
+**Command:** `go test -tags all -count=1 -run TestProvider_HasChildResources ./azuredevops/`
 
-### Live REST GET: betterado_project_features feature states from ADO API (CaptureLiveEvidence, capturedAt 2026-07-02T09:17:10Z)
+| Before (main) | After (HEAD) |
+|---|---|
+| `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops	0.005s` | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops	0.006s` |
 
-- **Before:** betterado_project_features served via SDKv2 schema helper; testplans feature toggle silently failed (license restriction) causing 'inconsistent result after apply' panic — live test skipped (TF_ACC not set on main) with reason: sdkv2 resource never calls CaptureLiveEvidence
-- **After:** betterado_project_features served via framework resource.Resource; applyFeatureStates checks ContributedFeatureState return — surfaces license errors; test uses artifacts+boards (license-free); live GET response captured at 2026-07-02T09:17:10Z: {"artifacts":"disabled","boards":"enabled","pipelines":"enabled","repositories":"enabled","testplans":"disabled"}
-- **Live evidence (real API GET):** `https://dev.azure.com/davidgparsonson/_apis/FeatureManagement/FeatureStatesForScope/host/project/c0ac3757-e915-453f-ba2b-93a3720d1994?api-version=7.1` _(captured 2026-07-02T09:17:10Z)_
+**Before:** betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members in SDKv2 ResourcesMap; betterado_team, betterado_teams, betterado_client_config in DataSourcesMap
+
+**After:** All 7 core resources and 5 data sources removed from SDKv2 maps; all registered in framework_provider.go Resources()/DataSources(). TestProvider_HasChildResources + TestProvider_HasChildDataSources pass.
+
+---
+
+### 3. acceptance-resource — Live REST GET: betterado_project_features feature states from ADO API (CaptureLiveEvidence, capturedAt 2026-07-02T09:17:10Z)
+
+**Command:** `go test -tags all -count=1 -run TestAccProjectFeatures_roundtrip ./azuredevops/internal/acceptancetests/`
+
+**Live evidence:** `https://dev.azure.com/davidgparsonson/_apis/FeatureManagement/FeatureStatesForScope/host/project/c0ac3757-e915-453f-ba2b-93a3720d1994?api-version=7.1` (captured 2026-07-02T09:17:10Z)
 
 ```json
 {"artifacts":"disabled","boards":"enabled","pipelines":"enabled","repositories":"enabled","testplans":"disabled"}
 ```
 
-## Files Changed
+**Before:** betterado_project_features served via SDKv2 schema helper; testplans feature toggle silently failed (license restriction) causing 'inconsistent result after apply' panic — live test skipped (TF_ACC not set on main) with reason: sdkv2 resource never calls CaptureLiveEvidence
 
-```
-193 files changed, 13687 insertions(+), 4938 deletions(-)
-```
+**After:** betterado_project_features served via framework resource.Resource; applyFeatureStates checks ContributedFeatureState return — surfaces license errors; test uses artifacts+boards (license-free); live GET response captured at 2026-07-02T09:17:10Z: `{"artifacts":"disabled","boards":"enabled","pipelines":"enabled","repositories":"enabled","testplans":"disabled"}`
+
+---
+
+## Diff stat
+
+199 files changed, 14013 insertions(+), 5094 deletions(-)

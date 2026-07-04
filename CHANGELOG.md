@@ -71,6 +71,8 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 - **Fixture safety hardened in acceptance tests.** `SharedReleaseFixture`/`smokeResolveProject` now fail loudly when `betterado-standing-demo` is not found, preventing silent project creation that would exhaust the org's 1000-project soft-delete cap.
 
+- **`betterado_team_administrators` and `betterado_team_members` framework resources: "provider produced inconsistent result after apply" fixed.** `Create` now sets Terraform state from the plan values directly rather than re-reading from the Azure DevOps Identity API immediately after the write — the ACL propagation is eventual-consistency and the read-back was returning a stale empty list. A nil-slice bug in `readIntoModel` was also fixed: `var result []string` (produces a null Set in state) replaced with `make([]string, 0)` (produces an empty Set, preventing plan diff on subsequent applies).
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES

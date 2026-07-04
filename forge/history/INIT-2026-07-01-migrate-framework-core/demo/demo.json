@@ -1,9 +1,9 @@
 {
   "title": "Migrate all core resources and data sources to terraform-plugin-framework",
-  "essence": "Migrates all 7 core resources (betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members) and 5 data sources (data.betterado_project, data.betterado_projects, data.betterado_team, data.betterado_teams, data.betterado_client_config) to terraform-plugin-framework, served through the mux provider. Produces a gap matrix (docs/core-gap-matrix.md) comparing all core resource schemas against the ADO REST API v7.1. Bug fix: applyFeatureStates surfaces silent ADO feature-state rejections (testplans license restriction). Fixture safety hardened. Missing validators and features attribute in betterado_project schema are documented as deferred regressions. provider_test.go updated to reflect all SDKv2 deregistrations.",
+  "essence": "Migrates all 7 core resources (betterado_project, betterado_project_features, betterado_project_pipeline_settings, betterado_project_tags, betterado_team, betterado_team_administrators, betterado_team_members) and 5 data sources (data.betterado_project, data.betterado_projects, data.betterado_team, data.betterado_teams, data.betterado_client_config) to terraform-plugin-framework, served through the mux provider. Produces a gap matrix (docs/core-gap-matrix.md) comparing all core resource schemas against the ADO REST API v7.1. Bug fixes: applyFeatureStates surfaces silent ADO feature-state rejections (testplans license restriction); betterado_team_administrators and betterado_team_members Create uses plan values directly (not re-read from API) to avoid 'provider produced inconsistent result' from ACL propagation delays; nil-slice bug in readIntoModel fixed to avoid null Set in state. Fixture safety hardened. Missing validators and features attribute in betterado_project schema are documented as deferred regressions. provider_test.go updated to reflect all SDKv2 deregistrations.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-core",
-  "diffStat": "193 files changed, 13687 insertions(+), 4938 deletions(-)",
+  "diffStat": "199 files changed, 14013 insertions(+), 5094 deletions(-)",
   "checkpoints": [
     {
       "label": "quality-gate",
@@ -25,7 +25,7 @@
       "beforeImage": null,
       "afterImage": null,
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops\t0.005s",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops\t0.007s"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops\t0.006s"
     },
     {
       "label": "acceptance-resource",
@@ -139,12 +139,12 @@
     {
       "criterion": "GIVEN betterado_team_administrators implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply sets team administrators on a team in betterado-standing-demo → read-back → idempotency re-plan → terraform destroy THEN TestAccTeamAdministrators passes with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false",
       "verdict": "partial",
-      "evidence": "resource_team_administrators_framework.go (350 lines) committed in 0600751b; registered in framework_provider.go; removed from SDKv2 ResourcesMap. TestProvider_HasChildResources passes. Live acceptance test not confirmed run in CI."
+      "evidence": "resource_team_administrators_framework.go (350 lines) committed; UWI-10 fix (04698054) resolved 'provider produced inconsistent result after apply': Create now sets state from plan values (not re-read from API) to avoid Azure DevOps ACL propagation delays; nil-slice bug in readIntoModel fixed to avoid null Set. TestProvider_HasChildResources passes (go test -tags all -run TestProvider_HasChildResources ./azuredevops/ → ok 0.006s). Live acceptance test (TestAccTeamAdministrators) not confirmed run in CI — TF_ACC required."
     },
     {
       "criterion": "GIVEN betterado_team_members implemented as resource.Resource in terraform-plugin-framework WHEN terraform apply sets team members on a team in betterado-standing-demo → read-back → idempotency re-plan → terraform destroy THEN TestAccTeamMembers passes with GetMuxedProviderFactories(); CaptureLiveEvidence called; ExpectNonEmptyPlan: false",
       "verdict": "partial",
-      "evidence": "resource_team_members_framework.go (327 lines) committed in 0600751b; registered in framework_provider.go; removed from SDKv2 ResourcesMap. TestProvider_HasChildResources passes. Live acceptance test not confirmed run in CI."
+      "evidence": "resource_team_members_framework.go (327 lines) committed; UWI-10 fix (04698054) resolved same nil-slice bug: readIntoModel uses make([]string, 0) instead of var result []string to avoid null Set; Create uses plan values directly. TestProvider_HasChildResources passes (go test -tags all -run TestProvider_HasChildResources ./azuredevops/ → ok 0.006s). Live acceptance test (TestAccTeamMembers) not confirmed run in CI — TF_ACC required."
     },
     {
       "criterion": "GIVEN betterado_team_administrators and betterado_team_members removed from SDKv2 ResourcesMap WHEN TestProvider_HasChildResources runs THEN test passes with updated count (two fewer SDKv2 resources)",
