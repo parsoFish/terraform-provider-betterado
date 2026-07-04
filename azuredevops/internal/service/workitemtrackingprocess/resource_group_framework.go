@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	sdkretry "github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
@@ -454,27 +453,19 @@ func (r *groupResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 
 	if expectedControlCount > 0 {
-		stateConf := &sdkretry.StateChangeConf{
-			Pending:                   []string{"waiting"},
-			Target:                    []string{"ready", "error"},
-			Timeout:                   10 * time.Minute,
-			MinTimeout:                1 * time.Second,
-			ContinuousTargetOccurence: 4,
-			Refresh: func() (interface{}, string, error) {
-				if err := r.readGroupIntoModel(ctx, &model); err != nil {
-					return nil, "error", err
-				}
-				var currentControls []groupControlModel
-				if !model.Controls.IsNull() && !model.Controls.IsUnknown() {
-					_ = model.Controls.ElementsAs(ctx, &currentControls, false)
-				}
-				if len(currentControls) < expectedControlCount {
-					return nil, "waiting", nil
-				}
-				return model, "ready", nil
-			},
-		}
-		_, err := stateConf.WaitForStateContext(ctx)
+		_, err := pollUntilConsistent(ctx, 10*time.Minute, 1*time.Second, 4, func() (interface{}, string, error) {
+			if err := r.readGroupIntoModel(ctx, &model); err != nil {
+				return nil, "", err
+			}
+			var currentControls []groupControlModel
+			if !model.Controls.IsNull() && !model.Controls.IsUnknown() {
+				_ = model.Controls.ElementsAs(ctx, &currentControls, false)
+			}
+			if len(currentControls) < expectedControlCount {
+				return nil, "inconsistent", nil
+			}
+			return model, "consistent", nil
+		})
 		if err != nil {
 			resp.Diagnostics.AddError("Create error (waiting for controls)", err.Error())
 			return

@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	sdkretry "github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
@@ -374,26 +373,18 @@ func (r *listResource) Update(ctx context.Context, req resource.UpdateRequest, r
 		Items:       &desiredItems,
 	}
 
-	stateConf := &sdkretry.StateChangeConf{
-		Pending:                   []string{"inconsistent"},
-		Target:                    []string{"consistent"},
-		ContinuousTargetOccurence: 3,
-		Refresh: func() (interface{}, string, error) {
-			readList, err := r.client.WorkItemTrackingProcessClient.GetList(ctx, workitemtrackingprocess.GetListArgs{
-				ListId: &listID,
-			})
-			if err != nil {
-				return nil, "", err
-			}
-			if !listPickListsEqual(desired, readList) {
-				return nil, "inconsistent", nil
-			}
-			return readList, "consistent", nil
-		},
-		Timeout: 10 * time.Minute,
-	}
-
-	result, err := stateConf.WaitForStateContext(ctx)
+	result, err := pollUntilConsistent(ctx, 10*time.Minute, 1*time.Second, 3, func() (interface{}, string, error) {
+		readList, err := r.client.WorkItemTrackingProcessClient.GetList(ctx, workitemtrackingprocess.GetListArgs{
+			ListId: &listID,
+		})
+		if err != nil {
+			return nil, "", err
+		}
+		if !listPickListsEqual(desired, readList) {
+			return nil, "inconsistent", nil
+		}
+		return readList, "consistent", nil
+	})
 	if err != nil {
 		resp.Diagnostics.AddError("Update error", fmt.Sprintf("waiting for list %s to be consistent: %s", state.ID.ValueString(), err))
 		return

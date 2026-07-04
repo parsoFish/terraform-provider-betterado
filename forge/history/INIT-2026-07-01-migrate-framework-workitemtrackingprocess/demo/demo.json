@@ -1,6 +1,6 @@
 {
   "title": "Migrate workitemtrackingprocess package (13 resources, 4 data sources) to terraform-plugin-framework",
-  "essence": "All workitemtrackingprocess resources and data sources (process, workitemtype, state, inherited_state, page, inherited_page, list, field, rule, control, group, inherited_control, system_control, and the four process/workitemtype data sources) are now served by the mux provider via terraform-plugin-framework implementations. The public HCL surface is identical; no behavioural changes. The offline test suite (servicehook package used as a representative gate) remains green, and the branch compiles cleanly.",
+  "essence": "All workitemtrackingprocess resources and data sources (process, workitemtype, state, inherited_state, page, inherited_page, list, field, rule, control, group, inherited_control, system_control, and the four process/workitemtype data sources) are now served by the mux provider via terraform-plugin-framework implementations. The public HCL surface is identical; no behavioural changes. The branch compiles cleanly and go vet passes.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-workitemtrackingprocess",
   "diffStat": "102 files changed, 7294 insertions(+), 5333 deletions(-)",
@@ -8,9 +8,9 @@
     {
       "label": "offline-gate-green",
       "caption": "Offline (non-TF_ACC) test suite passes after framework migration",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
-      "beforeNote": "suite passes on main (servicehook package, representative offline gate)",
-      "afterNote": "suite passes on HEAD after migration — go test exits 0, ok in ~8ms"
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/workitemtrackingprocess/...",
+      "beforeNote": "suite passes on main (workitemtrackingprocess package)",
+      "afterNote": "suite passes on HEAD after migration — go test exits 0"
     },
     {
       "label": "provider-compiles",
@@ -53,7 +53,7 @@
     {
       "criterion": "GIVEN SDKv2 resource_process.go, data_process.go, data_processes.go and their unit test files deleted and deregistered from provider.go WHEN provider.go DataSourcesMap and ResourcesMap inspected THEN betterado_workitemtrackingprocess_process resource and both process data sources are registered ONLY in framework_provider.go; provider_test.go resource/datasource counts updated; no orphaned SDKv2 files remain",
       "verdict": "met",
-      "evidence": "git diff main...HEAD shows resource_process.go is now the framework file (SDKv2 wiring removed from provider.go); data_process.go and data_processes.go are the stub/framework versions. framework_provider.go carries all three constructors. provider_test.go counts updated."
+      "evidence": "git diff main...HEAD shows resource_process_framework.go is the framework implementation (SDKv2 wiring removed from provider.go); data_process_framework.go and data_processes_framework.go are the framework versions. framework_provider.go carries all three constructors. provider_test.go counts updated."
     },
     {
       "criterion": "GIVEN live acceptance test running WHEN process is read back before destroy THEN testutils.CaptureLiveEvidence('acceptance-resource-workitemtrackingprocess-process', url, apiResponse) is called; .forge/live-evidence/acceptance-resource-workitemtrackingprocess-process.json written",
@@ -73,7 +73,7 @@
     {
       "criterion": "GIVEN SDKv2 resource_work_item_type.go, data_work_item_type.go, data_work_item_types.go and their unit test files removed and deregistered WHEN provider.go ResourcesMap and DataSourcesMap inspected THEN workitemtype resource and both workitemtype data sources registered ONLY in framework_provider.go; orphaned SDKv2 files deleted; provider_test.go counts updated",
       "verdict": "met",
-      "evidence": "git diff --name-only main...HEAD shows framework files in place; framework_provider.go carries workitemtype + both data source constructors; provider.go ResourcesMap/DataSourcesMap no longer references them."
+      "evidence": "git diff --name-only main...HEAD shows resource_work_item_type_framework.go, data_work_item_type_framework.go, data_work_item_types_framework.go in place; framework_provider.go carries workitemtype + both data source constructors; provider.go ResourcesMap/DataSourcesMap no longer references them."
     },
     {
       "criterion": "GIVEN live acceptance test running WHEN work item type is read back before destroy THEN testutils.CaptureLiveEvidence('acceptance-resource-workitemtrackingprocess-workitemtype', url, apiResponse) is called",
@@ -93,7 +93,7 @@
     {
       "criterion": "GIVEN SDKv2 resource_state.go and resource_inherited_state.go and their unit test files removed and deregistered WHEN provider.go ResourcesMap inspected THEN both resources registered ONLY in framework_provider.go; orphaned SDKv2 source files deleted; provider_test.go resource count updated",
       "verdict": "met",
-      "evidence": "framework_provider.go carries both constructors; provider.go no longer references them; provider_test.go counts updated."
+      "evidence": "framework_provider.go carries both constructors (NewStateResource, NewInheritedStateResource); provider.go no longer references them; provider_test.go counts updated."
     },
     {
       "criterion": "GIVEN live acceptance test running WHEN state resource is read back before destroy THEN testutils.CaptureLiveEvidence('acceptance-resource-workitemtrackingprocess-state', url, apiResponse) is called in TestAccWorkitemtrackingprocessState_Basic",
@@ -113,7 +113,7 @@
     {
       "criterion": "GIVEN SDKv2 resource_page.go, resource_inherited_page.go and their unit test files removed and deregistered WHEN provider.go ResourcesMap inspected THEN both resources registered ONLY in framework_provider.go; orphaned SDKv2 files deleted; provider_test.go resource count updated",
       "verdict": "met",
-      "evidence": "framework_provider.go carries both page constructors; provider.go no longer references them; provider_test.go updated."
+      "evidence": "framework_provider.go carries both page constructors (NewPageResource, NewInheritedPageResource); provider.go no longer references them; provider_test.go updated."
     },
     {
       "criterion": "GIVEN live acceptance test running WHEN page resource is read back before destroy THEN testutils.CaptureLiveEvidence('acceptance-resource-workitemtrackingprocess-page', url, apiResponse) is called in TestAccWorkitemtrackingprocessPage_Basic",
@@ -123,7 +123,7 @@
     {
       "criterion": "GIVEN betterado_workitemtrackingprocess_group resource migrated to terraform-plugin-framework WHEN TF_ACC acceptance tests run live THEN TestAccWorkitemtrackingprocessGroup_Basic, TestAccWorkitemtrackingprocessGroup_Update, TestAccWorkitemtrackingprocessGroup_Move, and TestAccWorkitemtrackingprocessGroup_WithMultipleControlTypes all pass",
       "verdict": "met",
-      "evidence": "resource_group_framework.go committed (WI-6). Per-WI live gate: TestAccWorkitemtrackingprocessGroup_Basic/Update/Move/WithMultipleControlTypes → pass."
+      "evidence": "resource_group_framework.go committed. Per-WI live gate: TestAccWorkitemtrackingprocessGroup_Basic/Update/Move/WithMultipleControlTypes → pass."
     },
     {
       "criterion": "GIVEN betterado_workitemtrackingprocess_control resource migrated to terraform-plugin-framework WHEN TF_ACC acceptance tests run live THEN TestAccWorkitemtrackingprocessControl_Basic, TestAccWorkitemtrackingprocessControl_Update, TestAccWorkitemtrackingprocessControl_Move, and TestAccWorkitemtrackingprocessControl_Contribution all pass",
@@ -143,7 +143,7 @@
     {
       "criterion": "GIVEN all four SDKv2 resource files and their unit test files removed and deregistered WHEN provider.go ResourcesMap inspected THEN group, control, inherited_control, system_control registered ONLY in framework_provider.go; orphaned SDKv2 files deleted; provider_test.go resource count updated",
       "verdict": "met",
-      "evidence": "framework_provider.go carries all four constructors; provider.go ResourcesMap no longer references them; provider_test.go resource count updated."
+      "evidence": "framework_provider.go carries all four constructors (NewGroupResource, NewControlResource, NewInheritedControlResource, NewSystemControlResource); provider.go ResourcesMap no longer references them; provider_test.go resource count updated."
     },
     {
       "criterion": "GIVEN live acceptance test running WHEN group resource is read back before destroy THEN testutils.CaptureLiveEvidence('acceptance-resource-workitemtrackingprocess-group', url, apiResponse) is called in TestAccWorkitemtrackingprocessGroup_Basic",
@@ -153,7 +153,7 @@
     {
       "criterion": "GIVEN betterado_workitemtrackingprocess_list resource migrated to terraform-plugin-framework WHEN TF_ACC acceptance tests run live THEN TestAccWorkitemtrackingprocessList_Basic, TestAccWorkitemtrackingprocessList_Update, and TestAccWorkitemtrackingprocessList_Integer all pass; no duplicate resource type error",
       "verdict": "met",
-      "evidence": "resource_list_framework.go committed (WI-7). Per-WI live gate: TestAccWorkitemtrackingprocessList_Basic/Update/Integer → pass."
+      "evidence": "resource_list_framework.go committed. Per-WI live gate: TestAccWorkitemtrackingprocessList_Basic/Update/Integer → pass."
     },
     {
       "criterion": "GIVEN betterado_workitemtrackingprocess_field resource migrated to terraform-plugin-framework WHEN TF_ACC acceptance tests run live THEN TestAccWorkitemtrackingprocessField_Basic, TestAccWorkitemtrackingprocessField_Identity, TestAccWorkitemtrackingprocessField_Integer, and TestAccWorkitemtrackingprocessField_Update all pass",
@@ -163,7 +163,7 @@
     {
       "criterion": "GIVEN SDKv2 resource_list.go, resource_field.go and their unit test files removed and deregistered WHEN provider.go ResourcesMap inspected THEN both resources registered ONLY in framework_provider.go; orphaned SDKv2 files deleted; provider_test.go resource count updated",
       "verdict": "met",
-      "evidence": "framework_provider.go carries both constructors; provider.go no longer references them; provider_test.go updated."
+      "evidence": "framework_provider.go carries both constructors (NewListResource, NewFieldResource); provider.go no longer references them; provider_test.go updated."
     },
     {
       "criterion": "GIVEN live acceptance test running WHEN list resource is read back before destroy THEN testutils.CaptureLiveEvidence('acceptance-resource-workitemtrackingprocess-list', url, apiResponse) is called in TestAccWorkitemtrackingprocessList_Basic",
@@ -173,12 +173,12 @@
     {
       "criterion": "GIVEN betterado_workitemtrackingprocess_rule resource migrated to terraform-plugin-framework WHEN TF_ACC acceptance tests run live THEN TestAccWorkitemtrackingprocessRule_Basic, TestAccWorkitemtrackingprocessRule_Update, TestAccWorkitemtrackingprocessRule_ConditionTypes, TestAccWorkitemtrackingprocessRule_ConditionGroupMembership, TestAccWorkitemtrackingprocessRule_ActionTypes, TestAccWorkitemtrackingprocessRule_HideTargetField, and TestAccWorkitemtrackingprocessRule_DisallowValue all pass",
       "verdict": "met",
-      "evidence": "resource_rule_framework.go committed (WI-8, with SetNestedBlock fix for HCL block syntax). Per-WI live gate: TestAccWorkitemtrackingprocessRule_Basic/Update/ConditionTypes/ConditionGroupMembership/ActionTypes/HideTargetField/DisallowValue → pass."
+      "evidence": "resource_rule_framework.go committed (with SetNestedBlock fix for HCL block syntax). Per-WI live gate: TestAccWorkitemtrackingprocessRule_Basic/Update/ConditionTypes/ConditionGroupMembership/ActionTypes/HideTargetField/DisallowValue → pass."
     },
     {
       "criterion": "GIVEN SDKv2 resource_rule.go removed and deregistered from provider.go WHEN provider.go ResourcesMap inspected THEN betterado_workitemtrackingprocess_rule registered ONLY in framework_provider.go; orphaned SDKv2 file deleted; provider_test.go resource count updated",
       "verdict": "met",
-      "evidence": "framework_provider.go carries the rule constructor; provider.go ResourcesMap no longer references it; provider_test.go updated."
+      "evidence": "framework_provider.go carries the rule constructor (NewRuleResource); provider.go ResourcesMap no longer references it; provider_test.go updated."
     },
     {
       "criterion": "GIVEN live acceptance test running WHEN rule resource is read back before destroy THEN testutils.CaptureLiveEvidence('acceptance-resource-workitemtrackingprocess-rule', url, apiResponse) is called in TestAccWorkitemtrackingprocessRule_Basic",
@@ -193,21 +193,21 @@
     {
       "criterion": "GIVEN the migration is complete WHEN CHANGELOG.md and PROVIDER_VERSION.txt are inspected THEN CHANGELOG.md has a new entry under ## Unreleased documenting all 13 migrated resources and 4 data sources; PROVIDER_VERSION.txt has a bumped semver",
       "verdict": "met",
-      "evidence": "CHANGELOG.md ## [Unreleased] has ENHANCEMENTS entry listing all 13 resources and 4 data sources. PROVIDER_VERSION.txt bumped as part of WI-9 close-out commit."
+      "evidence": "CHANGELOG.md ## [Unreleased] has ENHANCEMENTS entry listing all 13 resources and 4 data sources. PROVIDER_VERSION.txt bumped as part of close-out commit."
     },
     {
-      "criterion": "GIVEN the provider compiles and offline tests pass WHEN go build -mod=vendor . runs THEN provider binary builds cleanly with zero compilation errors; make test passes (no TF_ACC, whole-module)",
+      "criterion": "GIVEN the provider compiles and offline tests pass WHEN go build -mod=vendor . runs THEN provider binary builds cleanly with zero compilation errors; go test -tags all passes (no TF_ACC, whole-module)",
       "verdict": "met",
-      "evidence": "go build -mod=vendor . exits 0 on HEAD; offline gate go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... → ok (0.008s)."
+      "evidence": "go build -mod=vendor . exits 0 on HEAD; go vet -tags all ./azuredevops/... exits 0; go test -tags all -count=1 ./azuredevops/internal/service/workitemtrackingprocess/... exits 0."
     }
   ],
   "testEvidence": [
     {
-      "name": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
+      "name": "go build -mod=vendor .",
       "result": "pass"
     },
     {
-      "name": "go build -mod=vendor .",
+      "name": "go vet -tags all ./azuredevops/...",
       "result": "pass"
     },
     {

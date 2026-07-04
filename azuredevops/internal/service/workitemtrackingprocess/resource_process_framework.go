@@ -3,17 +3,17 @@ package workitemtrackingprocess
 import (
 	"context"
 	"fmt"
-	"strings"
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/defaults"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	sdkretry "github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
@@ -109,49 +109,30 @@ func (processRequiresReplace) PlanModifyString(_ context.Context, req planmodifi
 	resp.RequiresReplace = true
 }
 
-// ── Inline validators ─────────────────────────────────────────────────────────
+// ── Validators ───────────────────────────────────────────────────────────────
 
-// processNonWhiteSpaceValidator rejects values that are empty or whitespace-only.
-// Mirrors the SDKv2 validation.StringIsNotWhiteSpace behaviour.
-type processNonWhiteSpaceValidator struct{}
+// processNonWhiteSpaceValidator is a package-level alias that uses
+// terraform-plugin-framework-validators/stringvalidator.RegexMatches to
+// reject values that are empty or whitespace-only. Mirrors the SDKv2
+// validation.StringIsNotWhiteSpace behaviour.
+var processNonWhiteSpaceValidator = stringvalidator.RegexMatches(
+	regexp.MustCompile(`\S`),
+	"value must contain at least one non-whitespace character",
+)
 
-func (v processNonWhiteSpaceValidator) Description(_ context.Context) string {
-	return "value must not be empty or whitespace-only"
-}
+// processUUIDRegexp matches a UUID in xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx form.
+// Used with stringvalidator.RegexMatches (from terraform-plugin-framework-validators)
+// to restore the SDKv2 validation.IsUUID behaviour.
+var processUUIDRegexp = regexp.MustCompile(
+	`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`,
+)
 
-func (v processNonWhiteSpaceValidator) MarkdownDescription(_ context.Context) string {
-	return "value must not be empty or whitespace-only"
-}
-
-func (v processNonWhiteSpaceValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	if strings.TrimSpace(req.ConfigValue.ValueString()) == "" {
-		resp.Diagnostics.AddAttributeError(req.Path, "Invalid value", "Value must not be empty or whitespace-only.")
-	}
-}
-
-// processUUIDValidator rejects values that are not valid UUIDs.
-// Mirrors the SDKv2 validation.IsUUID behaviour.
-type processUUIDValidator struct{}
-
-func (v processUUIDValidator) Description(_ context.Context) string {
-	return "value must be a valid UUID"
-}
-
-func (v processUUIDValidator) MarkdownDescription(_ context.Context) string {
-	return "value must be a valid UUID"
-}
-
-func (v processUUIDValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
-	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
-		return
-	}
-	if _, err := uuid.Parse(req.ConfigValue.ValueString()); err != nil {
-		resp.Diagnostics.AddAttributeError(req.Path, "Invalid UUID", fmt.Sprintf("Value must be a valid UUID: %s", err))
-	}
-}
+// processUUIDValidator uses terraform-plugin-framework-validators to validate
+// that a string attribute is a well-formed UUID.
+var processUUIDValidator = stringvalidator.RegexMatches(
+	processUUIDRegexp,
+	"value must be a valid UUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)",
+)
 
 // ── Resource struct ───────────────────────────────────────────────────────────
 
@@ -201,7 +182,7 @@ func (r *processResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"name": schema.StringAttribute{
 				Required:    true,
 				Description: "Name of the process.",
-				Validators:  []validator.String{processNonWhiteSpaceValidator{}},
+				Validators:  []validator.String{processNonWhiteSpaceValidator},
 			},
 			"description": schema.StringAttribute{
 				Optional:    true,
@@ -215,7 +196,7 @@ func (r *processResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				PlanModifiers: []planmodifier.String{
 					processRequiresReplaceMod(),
 				},
-				Validators: []validator.String{processUUIDValidator{}},
+				Validators: []validator.String{processUUIDValidator},
 			},
 			"reference_name": schema.StringAttribute{
 				Optional:    true,
@@ -225,7 +206,7 @@ func (r *processResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					processRequiresReplaceMod(),
 					processUseStateForUnknownMod(),
 				},
-				Validators: []validator.String{processNonWhiteSpaceValidator{}},
+				Validators: []validator.String{processNonWhiteSpaceValidator},
 			},
 			"is_default": schema.BoolAttribute{
 				Optional:    true,
@@ -490,39 +471,26 @@ var processMinPollInterval = 2 * time.Second
 // consistency issue where the read API lags behind a PATCH update.
 // Returns the final ProcessInfo on success.
 func (r *processResource) waitForProcessIsEnabled(ctx context.Context, processTypeID *uuid.UUID, wantEnabled bool) (*workitemtrackingprocess.ProcessInfo, error) {
-	var result *workitemtrackingprocess.ProcessInfo
-
-	stateConf := &sdkretry.StateChangeConf{
-		Pending:                   []string{"inconsistent"},
-		Target:                    []string{"consistent"},
-		Timeout:                   2 * time.Minute,
-		MinTimeout:                processMinPollInterval,
-		ContinuousTargetOccurence: 2,
-		Refresh: func() (interface{}, string, error) {
-			p, err := r.client.WorkItemTrackingProcessClient.GetProcessByItsId(ctx, workitemtrackingprocess.GetProcessByItsIdArgs{
-				ProcessTypeId: processTypeID,
-				Expand:        &workitemtrackingprocess.GetProcessExpandLevelValues.None,
-			})
-			if err != nil {
-				return nil, "", err
-			}
-			// isEnabled=nil from ADO means disabled (omitempty on the API response).
-			gotEnabled := p.IsEnabled != nil && *p.IsEnabled
-			if gotEnabled == wantEnabled {
-				result = p
-				return p, "consistent", nil
-			}
-			return p, "inconsistent", nil
-		},
-	}
-
-	_, err := stateConf.WaitForStateContext(ctx)
+	raw, err := pollUntilConsistent(ctx, 2*time.Minute, processMinPollInterval, 2, func() (interface{}, string, error) {
+		p, err := r.client.WorkItemTrackingProcessClient.GetProcessByItsId(ctx, workitemtrackingprocess.GetProcessByItsIdArgs{
+			ProcessTypeId: processTypeID,
+			Expand:        &workitemtrackingprocess.GetProcessExpandLevelValues.None,
+		})
+		if err != nil {
+			return nil, "", err
+		}
+		// isEnabled=nil from ADO means disabled (omitempty on the API response).
+		gotEnabled := p.IsEnabled != nil && *p.IsEnabled
+		if gotEnabled == wantEnabled {
+			return p, "consistent", nil
+		}
+		return p, "inconsistent", nil
+	})
 	if err != nil {
-		// Timeout: return last known state and a soft error so caller can fall
-		// back to the plan value rather than failing hard.
-		return result, fmt.Errorf("timed out waiting for process is_enabled=%v: %w", wantEnabled, err)
+		// Timeout: return a soft error so caller can fall back to the plan value.
+		return nil, fmt.Errorf("timed out waiting for process is_enabled=%v: %w", wantEnabled, err)
 	}
-	return result, nil
+	return raw.(*workitemtrackingprocess.ProcessInfo), nil
 }
 
 func (r *processResource) flattenProcess(model *processResourceModel, process *workitemtrackingprocess.ProcessInfo) {

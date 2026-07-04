@@ -24,6 +24,40 @@ func getInheritedControlDirectClient() (*client.AggregatedClient, error) {
 	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
 }
 
+// captureInheritedControlEvidence performs a real live API GET of the inherited
+// control's work item type layout and persists it as forge demo live-evidence.
+// Best-effort: a capture failure never fails the test.
+func captureInheritedControlEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		processId := res.Primary.Attributes["process_id"]
+		witRefName := res.Primary.Attributes["work_item_type_reference_name"]
+
+		clients, err := getInheritedControlDirectClient()
+		if err != nil {
+			return nil //nolint:nilerr // best-effort
+		}
+
+		expand := workitemtrackingprocess.GetWorkItemTypeExpandValues.Layout
+		workItemType, err := clients.WorkItemTrackingProcessClient.GetProcessWorkItemType(context.Background(),
+			workitemtrackingprocess.GetProcessWorkItemTypeArgs{
+				ProcessId:  converter.UUID(processId),
+				WitRefName: &witRefName,
+				Expand:     &expand,
+			})
+		if err != nil || workItemType == nil {
+			return nil //nolint:nilerr // best-effort
+		}
+
+		url := fmt.Sprintf("https://dev.azure.com/davidgparsonson/_apis/work/processdefinitions/%s/workItemTypes/%s/layout?api-version=7.1", processId, witRefName)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-workitemtrackingprocess-inherited-control", url, workItemType.Layout)
+		return nil
+	}
+}
+
 func TestAccWorkitemtrackingprocessInheritedControl_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
 	processName := testutils.GenerateResourceName()
@@ -38,6 +72,7 @@ func TestAccWorkitemtrackingprocessInheritedControl_Basic(t *testing.T) {
 				Config: basicInheritedControl(workItemTypeName, processName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "id"),
+					captureInheritedControlEvidence(tfNode),
 				),
 			},
 			{

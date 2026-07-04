@@ -1,30 +1,54 @@
 package workitemtrackingprocess
 
 import (
-	"github.com/hashicorp/go-cty/cty/gocty"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"context"
+	"fmt"
+	"time"
+
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 )
 
-// getBoolAttributeFromConfig returns a *bool from the configuration for the given key.
-// Returns nil if the key is not set in the configuration, allowing
-// distinction between an unset value and an explicit false.
-func getBoolAttributeFromConfig(d *schema.ResourceData, key string) (*bool, error) {
-	rawPlan := d.GetRawPlan()
-	if !rawPlan.IsKnown() || rawPlan.IsNull() {
-		return nil, nil
+// pollUntilConsistent polls the refresh function until it returns "consistent"
+// (or an error), with a minimum interval between polls and an overall timeout.
+// It is a pure-Go polling helper with no third-party retry library dependency.
+//
+// refresh must return (result, state, err). "consistent" is the target state;
+// any other non-error state is treated as pending. The function returns the
+// final result on success, or an error on timeout / refresh error.
+//
+// continuousRequired is the number of consecutive "consistent" results needed
+// before the poll is considered done (mirrors ContinuousTargetOccurence).
+func pollUntilConsistent(ctx context.Context, timeout, minInterval time.Duration, continuousRequired int, refresh func() (interface{}, string, error)) (interface{}, error) {
+	if continuousRequired <= 0 {
+		continuousRequired = 1
 	}
-
-	value := rawPlan.GetAttr(key)
-	if !value.IsKnown() || value.IsNull() {
-		return nil, nil
+	deadline := time.Now().Add(timeout)
+	consecutive := 0
+	var lastResult interface{}
+	for {
+		if time.Now().After(deadline) {
+			return nil, fmt.Errorf("timed out waiting for consistent state after %s", timeout)
+		}
+		result, state, err := refresh()
+		if err != nil {
+			return nil, err
+		}
+		if state == "consistent" {
+			consecutive++
+			lastResult = result
+			if consecutive >= continuousRequired {
+				return lastResult, nil
+			}
+		} else {
+			consecutive = 0
+		}
+		// Wait before next poll, but also honour context cancellation.
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(minInterval):
+		}
 	}
-
-	var val bool
-	if err := gocty.FromCtyValue(value, &val); err != nil {
-		return nil, err
-	}
-	return &val, nil
 }
 
 // findGroupById walks a FormLayout and returns the Group with the given ID (or nil).
