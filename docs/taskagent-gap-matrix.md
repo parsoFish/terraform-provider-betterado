@@ -342,3 +342,27 @@ API endpoint: `GET _apis/distributedtask/taskgroups/{taskGroupId}` (TaskGroup)
 | `deployment_group` | _(none surfaced)_ | `tags` | List of string labels; deferred enhancement WI |
 | `elastic_pool` | _(none surfaced)_ | `osType` | OS type enum; deferred enhancement WI |
 | `elastic_pool` | _(none surfaced)_ | `maxSavedNodeCount` | Warm-spare count; deferred enhancement WI |
+
+---
+
+## Summary: Deferred Validator Parity (SDKv2 ValidateFunc → framework Validators:)
+
+12 `ValidateFunc` entries from the merge-base SDKv2 schemas were **not** ported to
+framework `Validators:` in this initiative. They are recorded here as deferred gaps
+for a follow-up WI. All other behaviour is identical; the missing validators only
+reduce eagerness of plan-time input checking.
+
+| Resource | Attribute | SDKv2 ValidateFunc | Status |
+|----------|-----------|-------------------|--------|
+| `elastic_pool` | `name` | `validation.StringIsNotWhiteSpace` | deferred |
+| `elastic_pool` | `service_endpoint_id` | `validation.IsUUID` | deferred |
+| `elastic_pool` | `service_endpoint_scope` | `validation.IsUUID` | deferred |
+| `elastic_pool` | `desired_idle` | `validation.IntAtLeast(0)` | deferred |
+| `elastic_pool` | `max_capacity` | `validation.IntAtLeast(0)` | deferred |
+| `elastic_pool` | `time_to_live_minutes` | `validation.IntAtLeast(0)` | deferred |
+| `environment` | `project_id` | `validation.IsUUID` | deferred |
+| `environment` | `name` | `validate.EnvironmentName` (custom regex) | deferred |
+| `agent_pool` | `name` | `validation.StringIsNotWhiteSpace` | deferred |
+| `agent_pool` | `pool_type` | `validation.StringInSlice(["Automation","Deployment",…])` | deferred |
+| `deployment_group` | `project_id` | `validation.IsUUID` | deferred |
+| `deployment_group` | `name` | `validation.StringIsNotWhiteSpace` | deferred |
