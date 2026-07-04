@@ -35,6 +35,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/testplan"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/wiki"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtracking"
 )
@@ -315,6 +316,10 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		permissions.NewProjectPermissionsResource,
 		security.NewSecurityPermissionsResource,
 		securityroles.NewSecurityRoleAssignmentResource,
+		testplan.NewTestPlanResource,
+		testplan.NewTestSuiteResource,
+		testplan.NewTestConfigurationResource,
+		testplan.NewTestVariableResource,
 	}
 }
 
@@ -361,5 +366,8 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		securityroles.NewSecurityRoleDefinitionsDataSource,
 		accounts.NewAccountsDataSource,
 		profile.NewProfileDataSource,
+		testplan.NewTestPlanDataSource,
+		testplan.NewTestRunDataSource,
+		testplan.NewTestResultDataSource,
 	}
 }

@@ -7,6 +7,15 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **New resource `betterado_test_plan`** — manage ADO test plans (framework-native). Supports `project_id`, `name`, `area_path`, `iteration_path`, `start_date`, `end_date`, and computed `root_suite_id`.
+- **New resource `betterado_test_suite`** — manage ADO test suites (static, requirement-based, query-based). Supports `project_id`, `plan_id`, `parent_suite_id`, `name`, `suite_type`, and `query_string`.
+- **New resource `betterado_test_configuration`** — manage ADO test configurations. Supports `project_id`, `name`, `description`, `is_default`, and `values` (key-value map).
+- **New resource `betterado_test_variable`** — manage ADO test configuration variables. Supports `project_id`, `name`, `description`, and `allowed_values`.
+- **New data source `betterado_test_run`** — read ADO test run details (read-only). Requires `project_id` and `run_id`.
+- **New data source `betterado_test_result`** — read ADO test result details (read-only). Requires `project_id`, `run_id`, and `result_id`.
+
 ### Added
 
 - New data source `betterado_accounts` — list ADO accounts accessible to the authenticated user.
