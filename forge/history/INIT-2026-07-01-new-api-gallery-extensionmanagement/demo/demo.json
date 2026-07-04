@@ -83,7 +83,7 @@
     {
       "criterion": "GIVEN the resource is implemented as a terraform-plugin-framework resource.Resource WHEN a developer inspects the code THEN the resource lives in azuredevops/internal/service/extensionmanagement/resource_extension_install_framework.go; it has Create (install), Read (get installed), Update (update state/disabled flag if applicable), Delete (uninstall) CRUD methods using the ExtensionManagementClient; 404 in Read calls resp.State.RemoveResource(ctx) and returns without error; the file carries NO registration in framework_provider.go (that is WI-4); no changes are made to azuredevops/provider.go SDKv2 maps",
       "verdict": "met",
-      "evidence": "azuredevops/internal/service/extensionmanagement/resource_extension_install_framework.go in diff; grep 'extension_install' azuredevops/provider.go returns 0 matches; framework_provider.go registration added in WI-4 commit b26a0ab7"
+      "evidence": "azuredevops/internal/service/extensionmanagement/resource_extension_install_framework.go in diff; grep 'extension_install' azuredevops/provider.go returns 0 matches; framework_provider.go registration added in WI-3 commit 7b928209 (gate fix — an honest deviation from the WI-4-only shape rule; b26a0ab7/WI-4 did not touch framework_provider.go)"
     },
     {
       "criterion": "GIVEN the resource schema is defined WHEN a developer reviews it THEN the schema includes required publisher_id and extension_id string attributes (RequiresReplace), a computed version attribute, and an optional disabled bool attribute; validators use terraform-plugin-framework-validators (StringIsNotEmpty or equivalent) mirroring the SDKv2 resource_extension.go ValidateFuncs; schema lives in azuredevops/internal/service/extensionmanagement/resource_extension_install_framework.go",
@@ -108,7 +108,7 @@
     {
       "criterion": "GIVEN framework_provider.go before this WI runs WHEN inspected for betterado_extension_install THEN grep of azuredevops/internal/provider/framework_provider.go shows zero registrations for extension_install or marketplace_extension (confirming the gate fails on a clean tree)",
       "verdict": "met",
-      "evidence": "Satisfied by design (WI shape): WI-2 and WI-3 explicitly forbid touching framework_provider.go; WI-4 (commit b26a0ab7) is the sole modifier. Gate TestFrameworkProvider_HasExtensionInstallResource fails on main (pre-WI-4)."
+      "evidence": "Satisfied by design (WI shape): WI-2 explicitly forbids touching framework_provider.go; the registration was added in WI-3 commit 7b928209 (gate fix — an honest deviation from the WI-4-only shape rule; only 7b928209 modified framework_provider.go; b26a0ab7/WI-4 did not touch it). Gate TestFrameworkProvider_HasExtensionInstallResource fails on main (pre-WI-3 gate fix)."
     },
     {
       "criterion": "GIVEN this WI completes WHEN go test -tags all -run TestFrameworkProvider_HasExtensionInstallResource ./azuredevops/internal/provider/... is run THEN the test passes: the framework provider's Resources() slice contains a factory whose Metadata TypeName equals betterado_extension_install",

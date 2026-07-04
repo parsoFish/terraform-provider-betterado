@@ -35,11 +35,9 @@
 
 ### 1.2 What `betterado_extension_install` Adds or Replaces
 
-`betterado_extension_install` is the **new SDKv2-native** resource planned for this initiative (implemented by WI-2). It does **not replace** `betterado_extension`; rather it supersedes it with improved ergonomics:
+`betterado_extension_install` is the **new terraform-plugin-framework (framework-native)** resource implemented by WI-2. It does **not replace** `betterado_extension`; rather it supersedes it with improved ergonomics:
 
-- Uses the same ExtensionManagement API surface but targets the newer SDK patterns (no SDKv2 framework migration needed — this is a clean native SDKv2 resource like the rest of the provider post-migration).
-- Adds explicit support for `assetTypes` query parameter on read (for richer extension file metadata).
-- Adds `include_disabled` and `include_errors` via the list endpoint (`GetInstalledExtensions`), enabling richer data sources.
+- Uses the same ExtensionManagement API surface but implemented as a `resource.Resource` (terraform-plugin-framework), consistent with the provider's ongoing framework migration.
 - Separates the install concern clearly: `betterado_extension_install` represents the lifecycle of an installed extension instance, making the name more precise than the ambiguous `betterado_extension`.
 
 **Coexistence vs Deprecation:** Both resources **coexist** in this cycle. `betterado_extension` is **not deprecated** yet — a separate deprecation WI (outside this initiative) should be filed once `betterado_extension_install` has achieved acceptance-test coverage parity. No changes to `betterado_extension` are in scope unless this gap matrix explicitly identifies a merge.
@@ -66,11 +64,11 @@
 | `extensionId` | `*string` | `extension_id` | mapped | mapped | Required; ForceNew |
 | `version` | `*string` | `version` | mapped | mapped | Optional+Computed |
 | `installState.flags` | `*ExtensionStateFlags` | `disabled` | mapped (bool derived) | mapped (bool derived) | Computed; `Disabled` enum flag |
-| `installState.lastUpdated` | `*Time` | — | missing | planned | Computed timestamp |
+| `installState.lastUpdated` | `*Time` | — | missing | missing | Computed timestamp; not in shipped schema — deferred |
 | `installState.installationIssues` | `*[]InstalledExtensionStateIssue` | — | missing | missing | Read-only diagnostic; deferred |
-| `extensionName` | `*string` | `extension_name` | mapped | mapped | Computed display name |
-| `publisherName` | `*string` | `publisher_name` | mapped | mapped | Computed display name |
-| `scopes` | `*[]string` | `scope` | mapped | mapped | Computed |
+| `extensionName` | `*string` | `extension_name` | mapped | missing | Computed display name; not in shipped schema |
+| `publisherName` | `*string` | `publisher_name` | mapped | missing | Computed display name; not in shipped schema |
+| `scopes` | `*[]string` | `scope` | mapped | missing | Computed; not in shipped schema |
 | `baseUri` | `*string` | — | missing | missing | Internal; no TF use |
 | `contributions` | `*[]Contribution` | — | missing | missing | Internal contribution tree; no TF use |
 | `contributionTypes` | `*[]ContributionType` | — | missing | missing | Internal; no TF use |
@@ -88,7 +86,7 @@
 | `constraints` | `*[]ContributionConstraint` | — | missing | missing | Internal; no TF use |
 | `fallbackBaseUri` | `*string` | — | missing | missing | Internal; no TF use |
 
-**Summary — `InstalledExtension`:** 7 mapped in `betterado_extension` · 8 planned for `betterado_extension_install` · 15 intentionally missing (read-only or internal)
+**Summary — `InstalledExtension`:** 7 mapped in `betterado_extension` · 4 mapped in `betterado_extension_install` (publisher_id, extension_id, version, disabled) · 4 missing/deferred (extension_name, publisher_name, scope, last_updated not in shipped schema) · 15 intentionally missing (read-only or internal)
 
 ---
 
@@ -140,10 +138,9 @@ Only the fields relevant to `betterado_marketplace_extension` (a read-only data 
 
 **Rationale:** The existing `betterado_extension` resource covers the core install/uninstall lifecycle but was written with the older SDKv2 schema patterns used before the provider's framework migration. A new `betterado_extension_install` resource:
 
-- Is consistent with all other resources added in recent initiatives (SDKv2 native, no framework helpers).
+- Is implemented as a **terraform-plugin-framework (framework-native)** resource (`resource.Resource`), consistent with the provider's ongoing framework migration.
 - Provides a cleaner name that reflects its purpose (managing the installed state of a Marketplace extension in an ADO organisation).
 - Allows `betterado_extension` to be soft-deprecated on a future ticket without a breaking change.
-- Adds `last_updated` (install timestamp) which is in the `InstalledExtensionState` response but not surfaced by `betterado_extension`.
 
 **In scope for this initiative cycle. Implemented by WI-2.**
 
