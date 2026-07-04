@@ -49,8 +49,10 @@ type vspsProfile struct {
 }
 
 // vspsProfileAttr holds one entry from the coreAttributes map.
+// Note: the "descriptor" field in the ADO API response is an object (not a string),
+// so we decode it as interface{} to avoid a JSON unmarshal error.
 type vspsProfileAttr struct {
-	Descriptor string      `json:"descriptor"`
+	Descriptor interface{} `json:"descriptor"`
 	Value      interface{} `json:"value"`
 }
 
