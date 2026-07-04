@@ -339,8 +339,8 @@ func fetchConnectionDataAsAccount(ctx context.Context, orgServiceURL, basicAuth,
 	}
 
 	var connData struct {
-		InstanceID     string `json:"instanceId"`
-		DeploymentType string `json:"deploymentType"`
+		InstanceID          string `json:"instanceId"`
+		DeploymentType      string `json:"deploymentType"`
 		LocationServiceData struct {
 			ServiceOwner string `json:"serviceOwner"`
 		} `json:"locationServiceData"`
