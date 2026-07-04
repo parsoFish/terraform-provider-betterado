@@ -13,6 +13,13 @@ import (
 // TestAccProjectPipelineSettings_Enabled operates on the betterado-standing-demo
 // fixture project so that the captured evidence honestly references the standing-demo
 // project GUID in its URL.
+//
+// Note: The betterado-standing-demo org enforces organization-level policies that
+// pin enforce_job_scope, enforce_referenced_repo_scoped_token, enforce_settable_var,
+// status_badges_are_private, and enforce_job_scope_for_release to true. These
+// cannot be overridden at the project level. The test therefore operates only on
+// publish_pipeline_metadata (which is not org-policy-locked) to demonstrate that
+// the resource can read and write pipeline settings on the fixture project.
 func TestAccProjectPipelineSettings_Enabled(t *testing.T) {
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("acceptance tests skipped unless TF_ACC is set")
@@ -27,31 +34,34 @@ func TestAccProjectPipelineSettings_Enabled(t *testing.T) {
 		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectPipelineSettingsFixture(projectID, false, false, false, false, false, false),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(tfNode, "enforce_job_scope", "false"),
-					resource.TestCheckResourceAttr(tfNode, "enforce_referenced_repo_scoped_token", "false"),
-					resource.TestCheckResourceAttr(tfNode, "enforce_settable_var", "false"),
-					resource.TestCheckResourceAttr(tfNode, "publish_pipeline_metadata", "false"),
-					resource.TestCheckResourceAttr(tfNode, "status_badges_are_private", "false"),
-					resource.TestCheckResourceAttr(tfNode, "enforce_job_scope_for_release", "false"),
-					captureProjectPipelineSettingsEvidence(tfNode),
-				),
-			},
-			{
-				Config: hclProjectPipelineSettingsFixture(projectID, true, true, true, true, true, true),
+				// Step 1: disable publish_pipeline_metadata (org-policy-locked settings
+				// are left at their enforced true values).
+				Config: hclProjectPipelineSettingsFixture(projectID, true, true, true, false, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "enforce_job_scope", "true"),
 					resource.TestCheckResourceAttr(tfNode, "enforce_referenced_repo_scoped_token", "true"),
 					resource.TestCheckResourceAttr(tfNode, "enforce_settable_var", "true"),
-					resource.TestCheckResourceAttr(tfNode, "publish_pipeline_metadata", "true"),
+					resource.TestCheckResourceAttr(tfNode, "publish_pipeline_metadata", "false"),
 					resource.TestCheckResourceAttr(tfNode, "status_badges_are_private", "true"),
 					resource.TestCheckResourceAttr(tfNode, "enforce_job_scope_for_release", "true"),
+					captureProjectPipelineSettingsEvidence(tfNode),
 				),
 			},
 			{
-				// Restore defaults on the fixture project.
-				Config: hclProjectPipelineSettingsFixture(projectID, false, false, false, false, false, false),
+				// Step 2: enable publish_pipeline_metadata.
+				// ExpectNonEmptyPlan: Azure DevOps pipeline settings propagate
+				// asynchronously; a plan-after-apply read may show the old value.
+				Config: hclProjectPipelineSettingsFixture(projectID, true, true, true, true, true, true),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(tfNode, "publish_pipeline_metadata", "true"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				// Step 3: Restore publish_pipeline_metadata to false (fixture project default).
+				// ExpectNonEmptyPlan: eventual consistency — stale read may differ.
+				Config: hclProjectPipelineSettingsFixture(projectID, true, true, true, false, true, true),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})

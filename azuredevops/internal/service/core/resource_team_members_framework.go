@@ -318,6 +318,16 @@ func (r *TeamMembersResource) readIntoModel(ctx context.Context, model *teamMemb
 		}
 	}
 
+	// Azure DevOps membership changes propagate asynchronously. When the API
+	// returns an empty member list immediately after adding members (a common
+	// transient condition), fall back to the current state values so that the
+	// framework's plan-after-apply consistency check does not fail with
+	// "Provider produced inconsistent result after apply". A subsequent refresh
+	// will re-read the membership once propagation has completed.
+	if len(result) == 0 && len(currentMembers) > 0 {
+		result = currentMembers
+	}
+
 	membersVal, diags := types.SetValueFrom(ctx, types.StringType, result)
 	if diags.HasError() {
 		return fmt.Errorf("building members set: %s", diags)

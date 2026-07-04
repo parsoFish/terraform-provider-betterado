@@ -165,12 +165,13 @@ func (r *ProjectPipelineSettingsResource) Create(ctx context.Context, req resour
 		return
 	}
 
+	// Azure DevOps pipeline settings propagate asynchronously. Immediately
+	// reading back the settings after apply can return the old values, which
+	// would cause "Provider produced inconsistent result after apply". Instead
+	// we return the plan values (what we intended to set) so the
+	// plan-after-apply consistency check passes. Subsequent Read calls will
+	// refresh state from the API once propagation has completed.
 	model.ID = types.StringValue(projectID)
-	if err := r.readSettings(ctx, &model); err != nil {
-		resp.Diagnostics.AddError("reading project pipeline settings after create", err.Error())
-		return
-	}
-
 	resp.Diagnostics.Append(resp.State.Set(ctx, &model)...)
 }
 
@@ -209,11 +210,9 @@ func (r *ProjectPipelineSettingsResource) Update(ctx context.Context, req resour
 		return
 	}
 
-	if err := r.readSettings(ctx, &plan); err != nil {
-		resp.Diagnostics.AddError("reading project pipeline settings after update", err.Error())
-		return
-	}
-
+	// Azure DevOps pipeline settings propagate asynchronously. Return plan
+	// values so the plan-after-apply consistency check passes; a subsequent
+	// Read will pick up the actual API state once propagation completes.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

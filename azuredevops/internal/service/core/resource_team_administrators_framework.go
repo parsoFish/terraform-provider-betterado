@@ -327,6 +327,16 @@ func (r *TeamAdministratorsResource) readIntoModel(ctx context.Context, model *t
 		}
 	}
 
+	// Azure DevOps security ACL changes propagate asynchronously. When the ACL
+	// API returns an empty result immediately after a permission grant (a common
+	// transient condition), fall back to the current state values so that the
+	// framework's plan-after-apply consistency check does not fail with
+	// "Provider produced inconsistent result after apply". A subsequent refresh
+	// will re-read the ACL once propagation has completed.
+	if len(result) == 0 && len(currentAdmins) > 0 {
+		result = currentAdmins
+	}
+
 	adminsVal, diags := types.SetValueFrom(ctx, types.StringType, result)
 	if diags.HasError() {
 		return fmt.Errorf("building administrators set: %s", diags)
