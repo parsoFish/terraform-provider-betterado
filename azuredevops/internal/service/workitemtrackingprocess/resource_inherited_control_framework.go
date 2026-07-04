@@ -32,9 +32,11 @@ type inheritedControlUseStateForUnknownString struct{}
 func (inheritedControlUseStateForUnknownString) Description(_ context.Context) string {
 	return "use prior state"
 }
+
 func (inheritedControlUseStateForUnknownString) MarkdownDescription(_ context.Context) string {
 	return "use prior state"
 }
+
 func (inheritedControlUseStateForUnknownString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -50,9 +52,11 @@ type inheritedControlRequiresReplaceString struct{}
 func (inheritedControlRequiresReplaceString) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (inheritedControlRequiresReplaceString) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (inheritedControlRequiresReplaceString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return

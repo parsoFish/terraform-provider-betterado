@@ -35,10 +35,14 @@ var (
 
 type controlUseStateForUnknownString struct{}
 
-func (controlUseStateForUnknownString) Description(_ context.Context) string { return "use prior state" }
+func (controlUseStateForUnknownString) Description(_ context.Context) string {
+	return "use prior state"
+}
+
 func (controlUseStateForUnknownString) MarkdownDescription(_ context.Context) string {
 	return "use prior state"
 }
+
 func (controlUseStateForUnknownString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -54,9 +58,11 @@ type controlRequiresReplaceString struct{}
 func (controlRequiresReplaceString) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (controlRequiresReplaceString) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (controlRequiresReplaceString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -74,9 +80,11 @@ type controlNonWhiteSpaceValidator struct{}
 func (v controlNonWhiteSpaceValidator) Description(_ context.Context) string {
 	return "value must not be empty or whitespace-only"
 }
+
 func (v controlNonWhiteSpaceValidator) MarkdownDescription(_ context.Context) string {
 	return "value must not be empty or whitespace-only"
 }
+
 func (v controlNonWhiteSpaceValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -93,9 +101,11 @@ type controlStaticBoolDefault struct{ value bool }
 func (d controlStaticBoolDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %v", d.value)
 }
+
 func (d controlStaticBoolDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%v`", d.value)
 }
+
 func (d controlStaticBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(d.value)
 }

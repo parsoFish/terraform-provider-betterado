@@ -37,9 +37,11 @@ var (
 type groupUseStateForUnknownString struct{}
 
 func (groupUseStateForUnknownString) Description(_ context.Context) string { return "use prior state" }
+
 func (groupUseStateForUnknownString) MarkdownDescription(_ context.Context) string {
 	return "use prior state"
 }
+
 func (groupUseStateForUnknownString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -55,9 +57,11 @@ type groupRequiresReplaceString struct{}
 func (groupRequiresReplaceString) Description(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (groupRequiresReplaceString) MarkdownDescription(_ context.Context) string {
 	return "requires replacement if changed"
 }
+
 func (groupRequiresReplaceString) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -75,9 +79,11 @@ type groupNonWhiteSpaceValidator struct{}
 func (v groupNonWhiteSpaceValidator) Description(_ context.Context) string {
 	return "value must not be empty or whitespace-only"
 }
+
 func (v groupNonWhiteSpaceValidator) MarkdownDescription(_ context.Context) string {
 	return "value must not be empty or whitespace-only"
 }
+
 func (v groupNonWhiteSpaceValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
@@ -94,9 +100,11 @@ type groupStaticBoolDefault struct{ value bool }
 func (d groupStaticBoolDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %v", d.value)
 }
+
 func (d groupStaticBoolDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to `%v`", d.value)
 }
+
 func (d groupStaticBoolDefault) DefaultBool(_ context.Context, _ defaults.BoolRequest, resp *defaults.BoolResponse) {
 	resp.PlanValue = types.BoolValue(d.value)
 }
@@ -116,18 +124,18 @@ func NewGroupResource() resource.Resource {
 
 // groupControlModel represents a control nested inside a group.
 type groupControlModel struct {
-	ID               types.String `tfsdk:"id"`
-	Label            types.String `tfsdk:"label"`
-	ControlType      types.String `tfsdk:"control_type"`
-	Visible          types.Bool   `tfsdk:"visible"`
-	ReadOnly         types.Bool   `tfsdk:"read_only"`
-	Order            types.Int64  `tfsdk:"order"`
-	Metadata         types.String `tfsdk:"metadata"`
-	Watermark        types.String `tfsdk:"watermark"`
-	Inherited        types.Bool   `tfsdk:"inherited"`
-	Overridden       types.Bool   `tfsdk:"overridden"`
-	IsContribution   types.Bool   `tfsdk:"is_contribution"`
-	Contribution     types.List   `tfsdk:"contribution"`
+	ID             types.String `tfsdk:"id"`
+	Label          types.String `tfsdk:"label"`
+	ControlType    types.String `tfsdk:"control_type"`
+	Visible        types.Bool   `tfsdk:"visible"`
+	ReadOnly       types.Bool   `tfsdk:"read_only"`
+	Order          types.Int64  `tfsdk:"order"`
+	Metadata       types.String `tfsdk:"metadata"`
+	Watermark      types.String `tfsdk:"watermark"`
+	Inherited      types.Bool   `tfsdk:"inherited"`
+	Overridden     types.Bool   `tfsdk:"overridden"`
+	IsContribution types.Bool   `tfsdk:"is_contribution"`
+	Contribution   types.List   `tfsdk:"contribution"`
 }
 
 // groupContributionModel is the nested contribution block.
@@ -164,18 +172,18 @@ var groupContributionObjectType = types.ObjectType{AttrTypes: groupContributionA
 // ── control object type ────────────────────────────────────────────────────────
 
 var groupControlAttrTypes = map[string]attr.Type{
-	"id":               types.StringType,
-	"label":            types.StringType,
-	"control_type":     types.StringType,
-	"visible":          types.BoolType,
-	"read_only":        types.BoolType,
-	"order":            types.Int64Type,
-	"metadata":         types.StringType,
-	"watermark":        types.StringType,
-	"inherited":        types.BoolType,
-	"overridden":       types.BoolType,
-	"is_contribution":  types.BoolType,
-	"contribution":     types.ListType{ElemType: groupContributionObjectType},
+	"id":              types.StringType,
+	"label":           types.StringType,
+	"control_type":    types.StringType,
+	"visible":         types.BoolType,
+	"read_only":       types.BoolType,
+	"order":           types.Int64Type,
+	"metadata":        types.StringType,
+	"watermark":       types.StringType,
+	"inherited":       types.BoolType,
+	"overridden":      types.BoolType,
+	"is_contribution": types.BoolType,
+	"contribution":    types.ListType{ElemType: groupContributionObjectType},
 }
 
 var groupControlObjectType = types.ObjectType{AttrTypes: groupControlAttrTypes}
