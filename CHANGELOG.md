@@ -102,6 +102,15 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   `TestAccEnvironmentResourceKubernetes_createUpdate` with idempotency re-plan
   and clean destroy.
 
+### Changed
+
+- Migrated `betterado_agent_pool`, `betterado_agent_queue`, `betterado_deployment_group`,
+  `betterado_elastic_pool`, `betterado_environment`, `betterado_environment_resource_kubernetes`,
+  `betterado_variable_group`, `betterado_variable_group_variable` resources and
+  `betterado_agent_pool`, `betterado_agent_pools`, `betterado_agent_queue`,
+  `betterado_environment`, `betterado_variable_group`, `betterado_task_group` data sources
+  to terraform-plugin-framework (plugin-framework v1.0.5+, muxed with SDKv2).
+
 ## [1.2.0] - 2026-07-01
 
 ### FEATURES
