@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_incomingwebhook Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an Incoming WebHook Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_incomingwebhook (Resource)
 
-
+Manages an Incoming WebHook Service Connection within Azure DevOps.
 
 
 
@@ -17,28 +17,17 @@ description: |-
 
 ### Required
 
-- `project_id` (String)
-- `service_endpoint_name` (String)
+- `project_id` (String) The ID of the project.
+- `service_endpoint_name` (String) The Service Endpoint name.
 - `webhook_name` (String) The name of the WebHook.
 
 ### Optional
 
-- `description` (String)
+- `description` (String) The Service Endpoint description.
 - `http_header` (String) Optional http header name on which checksum will be sent.
 - `secret` (String, Sensitive) Optional secret for the webhook. WebHook service will use this secret to calculate the payload checksum.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.

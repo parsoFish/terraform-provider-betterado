@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_dynamics_lifecycle_services Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a Microsoft Dynamics Lifecycle Services Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_dynamics_lifecycle_services (Resource)
 
-
+Manages a Microsoft Dynamics Lifecycle Services Service Connection within Azure DevOps.
 
 
 
@@ -17,30 +17,19 @@ description: |-
 
 ### Required
 
-- `authorization_endpoint` (String)
-- `client_id` (String)
-- `lifecycle_services_api_endpoint` (String)
-- `password` (String, Sensitive)
-- `project_id` (String)
-- `service_endpoint_name` (String)
-- `username` (String)
+- `authorization_endpoint` (String) The authorization endpoint URL.
+- `client_id` (String) The client ID (UUID) for the service principal.
+- `lifecycle_services_api_endpoint` (String) The Lifecycle Services API endpoint URL.
+- `password` (String, Sensitive) The password for authentication.
+- `project_id` (String) The ID of the project.
+- `service_endpoint_name` (String) The Service Endpoint name.
+- `username` (String) The username for authentication.
 
 ### Optional
 
-- `description` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `description` (String) The Service Endpoint description.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.

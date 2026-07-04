@@ -1,3 +1,5 @@
+//go:build (all || resource_serviceendpoint_incomingwebhook) && !exclude_resource_serviceendpoint_incomingwebhook
+
 package acceptancetests
 
 import (
@@ -15,9 +17,9 @@ func TestAccServiceEndpointIncomingWebhook_Basic(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_incomingwebhook"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointIncomingWebhookResource(projectName, serviceEndpointName),
@@ -43,9 +45,9 @@ func TestAccServiceEndpointIncomingWebhook_Complete(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_incomingwebhook"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointIncomingWebhookResourceComplete(projectName, serviceEndpointName, webhookName, secret, httpHeader, description),
@@ -74,9 +76,9 @@ func TestAccServiceEndpointIncomingWebhook_update(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_incomingwebhook"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointIncomingWebhookResource(projectName, serviceEndpointNameFirst),
@@ -105,9 +107,9 @@ func TestAccServiceEndpointIncomingWebhook_requiresImportErrorStep(t *testing.T)
 	resourceType := "betterado_serviceendpoint_incomingwebhook"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointIncomingWebhookResource(projectName, serviceEndpointName),
