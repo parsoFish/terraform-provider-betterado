@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
