@@ -46,36 +46,128 @@
       "command": "go test -tags all -count=1 -run TestAccTestVariable ./azuredevops/internal/acceptancetests/",
       "beforeNote": "betterado_test_variable resource did not exist on main",
       "afterNote": "Previous capture was fabricated and has been deleted; live acceptance not re-run; test_variable marked missed"
+    },
+    {
+      "label": "acceptance-resource",
+      "kind": "harness",
+      "caption": "Live evidence — acceptance-resource",
+      "afterNote": "Real API GET against the live system: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/testplan/plans/95?api-version=7.1",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/testplan/plans/95?api-version=7.1",
+        "capturedAt": "2026-07-03T18:01:14Z",
+        "response": "{\n  \"areaPath\": \"betterado-standing-demo\",\n  \"endDate\": \"2026-07-10T18:01:12.653Z\",\n  \"iteration\": \"betterado-standing-demo\",\n  \"name\": \"test-acc-3idjzckf6q\",\n  \"owner\": {\n    \"_links\": {\n      \"avatar\": {\n        \"href\": \"https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx\"\n      }\n    },\n    \"descriptor\": \"msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx\",\n    \"displayName\": \"david.g.parsonson\",\n    \"url\": \"https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"id\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"imageUrl\": \"https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx\",\n    \"uniqueName\": \"david.g.parsonson@gmail.com\"\n  },\n  \"startDate\": \"2026-07-03T18:01:12.653Z\",\n  \"state\": \"Active\",\n  \"testOutcomeSettings\": {\n    \"syncOutcomeAcrossSuites\": false\n  },\n  \"revision\": 1,\n  \"_links\": {\n    \"_self\": {\n      \"href\": \"https://dev.azure.com/davidgparsonson/betterado-standing-demo/_apis/testplan/Plans/95\"\n    },\n    \"clientUrl\": {\n      \"href\": \"mtms://dev.azure.com:443/davidgparsonson/p:betterado-standing-demo/Testing/testplan/connect?id=95\"\n    },\n    \"rootSuite\": {\n      \"href\": \"https://dev.azure.com/davidgparsonson/betterado-standing-demo/_apis/testplan/Plans/95/Suites/96\"\n    }\n  },\n  \"id\": 95,\n  \"project\": {\n    \"id\": \"6ddb680c-093d-4953-9561-2266eb7af800\",\n    \"lastUpdateTime\": \"0001-01-01T00:00:00Z\",\n    \"name\": \"betterado-standing-demo\",\n    \"state\": \"unchanged\",\n    \"visibility\": \"unchanged\"\n  },\n  \"rootSuite\": {\n    \"id\": 96,\n    \"name\": \"test-acc-3idjzckf6q\"\n  },\n  \"updatedBy\": {\n    \"_links\": {\n      \"avatar\": {\n        \"href\": \"https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx\"\n      }\n    },\n    \"descriptor\": \"msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx\",\n    \"displayName\": \"david.g.parsonson\",\n    \"url\": \"https://spsprodeau1.vssps.visualstudio.com/Aee02cedd-46a6-4ca2-8dd1-0081378e2b51/_apis/Identities/49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"id\": \"49e26c2f-ec33-6e72-b494-dedb0aee09e1\",\n    \"imageUrl\": \"https://dev.azure.com/davidgparsonson/_apis/GraphProfile/MemberAvatars/msa.NDllMjZjMmYtZWMzMy03ZTcyLWI0OTQtZGVkYjBhZWUwOWUx\",\n    \"uniqueName\": \"david.g.parsonson@gmail.com\"\n  },\n  \"updatedDate\": \"2026-07-03T18:01:12.787Z\"\n}"
+      }
     }
   ],
   "testEvidence": [
-    { "name": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... (quality gate)", "result": "pass" },
-    { "name": "TestUnitTestPlanDataSource_Schema", "result": "pass" },
-    { "name": "TestUnitTestPlan_expandFlatten", "result": "pass" },
-    { "name": "TestUnitTestPlan_Read404", "result": "pass" },
-    { "name": "TestUnitTestPlan_Schema", "result": "pass" },
-    { "name": "TestUnitTestPlan_Create_Error", "result": "pass" },
-    { "name": "TestUnitTestSuite_expandFlatten_static", "result": "pass" },
-    { "name": "TestUnitTestSuite_expandFlatten_dynamic", "result": "pass" },
-    { "name": "TestUnitTestSuite_expandFlatten_requirement", "result": "pass" },
-    { "name": "TestUnitTestSuite_expandFlatten_planID", "result": "pass" },
-    { "name": "TestUnitTestSuite_expandFlatten_queryString", "result": "pass" },
-    { "name": "TestUnitTestSuite_Schema", "result": "pass" },
-    { "name": "TestUnitTestSuite_Read404", "result": "pass" },
-    { "name": "TestUnitTestSuite_SuiteType_ValidatorRejectsInvalidEnum", "result": "pass" },
-    { "name": "TestUnitTestSuite_Create_Error", "result": "pass" },
-    { "name": "TestUnitTestConfiguration_expandFlatten", "result": "pass" },
-    { "name": "TestUnitTestConfiguration_Read404", "result": "pass" },
-    { "name": "TestUnitTestConfiguration_Schema", "result": "pass" },
-    { "name": "TestUnitTestConfiguration_Variable_expandFlatten", "result": "pass" },
-    { "name": "TestUnitTestConfiguration_Variable_Read404", "result": "pass" },
-    { "name": "TestUnitTestConfiguration_Variable_Schema", "result": "pass" },
-    { "name": "TestUnitTestRun_Read", "result": "pass" },
-    { "name": "TestUnitTestRun_ReadNotFound", "result": "pass" },
-    { "name": "TestUnitTestRun_Schema", "result": "pass" },
-    { "name": "TestUnitTestRun_Result_Read", "result": "pass" },
-    { "name": "TestUnitTestRun_Result_ReadNotFound", "result": "pass" },
-    { "name": "TestUnitTestRun_Result_Schema", "result": "pass" },
+    {
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... (quality gate)",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestPlanDataSource_Schema",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestPlan_expandFlatten",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestPlan_Read404",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestPlan_Schema",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestPlan_Create_Error",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestSuite_expandFlatten_static",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestSuite_expandFlatten_dynamic",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestSuite_expandFlatten_requirement",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestSuite_expandFlatten_planID",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestSuite_expandFlatten_queryString",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestSuite_Schema",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestSuite_Read404",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestSuite_SuiteType_ValidatorRejectsInvalidEnum",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestSuite_Create_Error",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestConfiguration_expandFlatten",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestConfiguration_Read404",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestConfiguration_Schema",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestConfiguration_Variable_expandFlatten",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestConfiguration_Variable_Read404",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestConfiguration_Variable_Schema",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestRun_Read",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestRun_ReadNotFound",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestRun_Schema",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestRun_Result_Read",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestRun_Result_ReadNotFound",
+      "result": "pass"
+    },
+    {
+      "name": "TestUnitTestRun_Result_Schema",
+      "result": "pass"
+    },
     {
       "name": "TestAccTestPlan_basic live acceptance (TF_ACC=1)",
       "result": "missed",
@@ -106,7 +198,11 @@
       "result": "missed",
       "rationale": "betterado_test_result is a read-only data source that requires a pre-existing test run with results; WI-6 marked the smoke test optional/best-effort; no live run was available in the standing-demo project at capture time"
     },
-    { "name": "enum validator: betterado_test_suite suite_type (staticTestSuite/requirementTestSuite/dynamicTestSuite)", "result": "pass", "delta": "+1 OneOf validator on suite_type; TestUnitTestSuite_SuiteType_ValidatorRejectsInvalidEnum confirms rejection of invalid value" }
+    {
+      "name": "enum validator: betterado_test_suite suite_type (staticTestSuite/requirementTestSuite/dynamicTestSuite)",
+      "result": "pass",
+      "delta": "+1 OneOf validator on suite_type; TestUnitTestSuite_SuiteType_ValidatorRejectsInvalidEnum confirms rejection of invalid value"
+    }
   ],
   "acEvaluations": [
     {
