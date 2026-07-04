@@ -1,0 +1,30 @@
+---
+page_title: "betterado_notification_subscription Resource - betterado"
+subcategory: "Notifications"
+description: |-
+  Manages an Azure DevOps notification subscription.
+---
+
+# betterado_notification_subscription (Resource)
+
+Manages an Azure DevOps notification subscription — a rule that delivers
+event-driven notifications (e.g. work item changes, build completions, pull
+request updates) to a delivery channel such as email or a service hook.
+
+Each subscription binds an event type (`subscription_type`), a delivery channel
+(`channel_type`, `channel_address`), an optional expression filter, and a
+subscriber identity to a project scope.
+
+## Example Usage
+
+{{ tffile "examples/resources/betterado_notification_subscription/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Notification subscriptions are imported using their subscription ID:
+
+```shell
+terraform import betterado_notification_subscription.example 00000000-0000-0000-0000-000000000001
+```

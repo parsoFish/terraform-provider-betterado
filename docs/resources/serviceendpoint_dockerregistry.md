@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_dockerregistry Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a Docker Registry Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_dockerregistry (Resource)
 
-
+Manages a Docker Registry Service Connection within Azure DevOps.
 
 
 
@@ -17,30 +17,19 @@ description: |-
 
 ### Required
 
-- `project_id` (String)
-- `service_endpoint_name` (String)
+- `project_id` (String) The ID of the project.
+- `service_endpoint_name` (String) The Service Endpoint name.
 
 ### Optional
 
-- `description` (String)
+- `description` (String) The Service Endpoint description.
 - `docker_email` (String) The DockerRegistry email address which should be used.
 - `docker_password` (String, Sensitive) The DockerRegistry password which should be used.
 - `docker_registry` (String) The DockerRegistry registry which should be used.
 - `docker_username` (String) The DockerRegistry username which should be used.
-- `registry_type` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `registry_type` (String) The registry type. Either 'DockerHub' or 'Others'.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.

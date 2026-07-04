@@ -125,6 +125,17 @@ var testBuildDefinition = build.BuildDefinition{
 	VariableGroups: &[]build.VariableGroup{},
 }
 
+// expectedExpandedTestBuildDefinition returns testBuildDefinition as
+// expandBuildDefinition reassembles it: with no triggers configured, the
+// expand appends onto a nil slice, so Triggers points at a nil (not empty)
+// slice — and gomock's DeepEqual-based matcher distinguishes the two.
+func expectedExpandedTestBuildDefinition() build.BuildDefinition {
+	buildDefinition := testBuildDefinition
+	var noTriggers []interface{}
+	buildDefinition.Triggers = &noTriggers
+	return buildDefinition
+}
+
 // This definition matches the overall structure of what a configured Bitbucket git repository would
 // look like.
 var testBuildDefinitionBitbucketWithCITrigger = build.BuildDefinition{
@@ -484,7 +495,8 @@ func TestBuildDefinition_Create_DoesNotSwallowError(t *testing.T) {
 	buildClient := azdosdkmocks.NewMockBuildClient(ctrl)
 	clients := &client.AggregatedClient{BuildClient: buildClient, Ctx: context.Background()}
 
-	expectedArgs := build.CreateDefinitionArgs{Definition: &testBuildDefinition, Project: &testProjectID}
+	expectedBuildDefinition := expectedExpandedTestBuildDefinition()
+	expectedArgs := build.CreateDefinitionArgs{Definition: &expectedBuildDefinition, Project: &testProjectID}
 	buildClient.
 		EXPECT().
 		CreateDefinition(clients.Ctx, expectedArgs).
@@ -553,9 +565,10 @@ func TestBuildDefinition_Update_DoesNotSwallowError(t *testing.T) {
 	buildClient := azdosdkmocks.NewMockBuildClient(ctrl)
 	clients := &client.AggregatedClient{BuildClient: buildClient, Ctx: context.Background()}
 
+	expectedBuildDefinition := expectedExpandedTestBuildDefinition()
 	expectedArgs := build.UpdateDefinitionArgs{
-		Definition:   &testBuildDefinition,
-		DefinitionId: testBuildDefinition.Id,
+		Definition:   &expectedBuildDefinition,
+		DefinitionId: expectedBuildDefinition.Id,
 		Project:      &testProjectID,
 	}
 

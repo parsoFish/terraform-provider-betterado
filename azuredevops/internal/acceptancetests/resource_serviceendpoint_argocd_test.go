@@ -1,3 +1,5 @@
+//go:build (all || resource_serviceendpoint_argocd) && !exclude_resource_serviceendpoint_argocd
+
 package acceptancetests
 
 import (
@@ -129,9 +131,9 @@ func TestAccServiceEndpointArgoCD_update_usernamepassword(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_argocd"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointArgoCDResourceUsernamePassword(projectName, serviceEndpointNameFirst, t.Name()),
@@ -162,9 +164,9 @@ func TestAccServiceEndpointArgoCD_requiresImportErrorStep(t *testing.T) {
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointArgoCDResourceBasic(projectName, serviceEndpointName, t.Name()),
@@ -187,9 +189,9 @@ func TestAccServiceEndpointArgoCD_requiresImportErrorStepUsernamePassword(t *tes
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointArgoCDResourceUsernamePassword(projectName, serviceEndpointName, t.Name()),

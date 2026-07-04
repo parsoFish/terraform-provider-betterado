@@ -9,20 +9,21 @@ import (
 )
 
 func TestAccBranchPolicyWorkItemLinking_basic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	name := testutils.GenerateResourceName()
 	resourceNode := "betterado_branch_policy_work_item_linking.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclWorkItemLinkingBasic(name, true, true),
+				Config: hclWorkItemLinkingBasic(projectID, name, true, true),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceNode, "enabled", "true"),
 				),
 			}, {
-				Config: hclWorkItemLinkingBasic(name, false, false),
+				Config: hclWorkItemLinkingBasic(projectID, name, false, false),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceNode, "enabled", "false"),
 				),
@@ -36,28 +37,26 @@ func TestAccBranchPolicyWorkItemLinking_basic(t *testing.T) {
 	})
 }
 
-func hclWorkItemLinkingBasic(name string, enabled, blocking bool) string {
+func hclWorkItemLinkingBasic(projectID, name string, enabled, blocking bool) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name        = "%[1]s"
-  description = "description"
-}
-
-data "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%[1]s"
+resource "betterado_git_repository" "test" {
+  project_id = %[1]q
+  name       = "%[2]s"
+  initialization {
+    init_type = "Clean"
+  }
 }
 
 resource "betterado_branch_policy_work_item_linking" "test" {
-  project_id = betterado_project.test.id
-  enabled    = %[2]t
-  blocking   = %[3]t
+  project_id = %[1]q
+  enabled    = %[3]t
+  blocking   = %[4]t
   settings {
     scope {
-      repository_id  = data.betterado_git_repository.test.id
+      repository_id  = betterado_git_repository.test.id
       repository_ref = "refs/heads/release"
       match_type     = "Exact"
     }
   }
-}`, name, enabled, blocking)
+}`, projectID, name, enabled, blocking)
 }

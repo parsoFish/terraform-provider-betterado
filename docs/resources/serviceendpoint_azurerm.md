@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_azurerm Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an Azure RM service endpoint within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_azurerm (Resource)
 
-
+Manages an Azure RM service endpoint within Azure DevOps.
 
 
 
@@ -18,8 +18,8 @@ description: |-
 ### Required
 
 - `azurerm_spn_tenantid` (String) The service principal tenant id which should be used.
-- `project_id` (String)
-- `service_endpoint_name` (String)
+- `project_id` (String) The project ID or project name.
+- `service_endpoint_name` (String) The service endpoint name.
 
 ### Optional
 
@@ -27,20 +27,19 @@ description: |-
 - `azurerm_management_group_name` (String) The Azure managementGroup name which should be used.
 - `azurerm_subscription_id` (String) The Azure subscription Id which should be used.
 - `azurerm_subscription_name` (String) The Azure subscription name which should be used.
-- `credentials` (Block List, Max: 1) (see [below for nested schema](#nestedblock--credentials))
-- `description` (String)
+- `credentials` (Block List) Service principal credentials. (see [below for nested schema](#nestedblock--credentials))
+- `description` (String) The service endpoint description.
 - `environment` (String) Environment (Azure Cloud type)
-- `features` (Block List, Max: 1) (see [below for nested schema](#nestedblock--features))
+- `features` (Block List) Feature flags. (see [below for nested schema](#nestedblock--features))
 - `resource_group` (String) Scope Resource Group
-- `server_url` (String)
-- `service_endpoint_authentication_scheme` (String) The AzureRM Service Endpoint Authentication Scheme, this can be 'WorkloadIdentityFederation', 'ManagedServiceIdentity' or 'ServicePrincipal'.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `server_url` (String) A URL to the server for AzureStack environments.
+- `service_endpoint_authentication_scheme` (String) The AzureRM Service Endpoint Authentication Scheme.
 
 ### Read-Only
 
 - `authorization` (Map of String)
 - `id` (String) The ID of this resource.
-- `service_principal_id` (String)
+- `service_principal_id` (String) The service principal ID.
 - `workload_identity_federation_issuer` (String) The issuer of the workload identity federation service principal.
 - `workload_identity_federation_subject` (String) The subject of the workload identity federation service principal.
 
@@ -53,8 +52,8 @@ Required:
 
 Optional:
 
-- `serviceprincipalcertificate` (String, Sensitive)
-- `serviceprincipalkey` (String, Sensitive)
+- `serviceprincipalcertificate` (String, Sensitive) The service principal certificate.
+- `serviceprincipalkey` (String, Sensitive) The service principal key.
 
 
 <a id="nestedblock--features"></a>
@@ -62,15 +61,4 @@ Optional:
 
 Optional:
 
-- `validate` (Boolean) Whether or not to validate connection with azure after create or update operations
-
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `validate` (Boolean) Whether or not to validate connection with Azure after create or update operations.

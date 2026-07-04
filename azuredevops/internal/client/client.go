@@ -20,6 +20,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/identity"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/memberentitlementmanagement"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/notification"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/operations"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelinepermissions"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelines"
@@ -77,6 +78,7 @@ type AggregatedClient struct {
 	ServiceEndpointClient         serviceendpoint.Client
 	TaskAgentClient               taskagent.Client
 	MemberEntitleManagementClient memberentitlementmanagement.Client
+	NotificationClient            notification.Client
 	FeatureManagementClient       featuremanagement.Client
 	FeedClient                    feed.Client
 	SecurityClient                security.Client
@@ -204,6 +206,8 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 		return nil, err
 	}
 
+	notificationClient := notification.NewClient(ctx, connection)
+
 	policyClient, err := policy.NewClient(ctx, connection)
 	if err != nil {
 		log.Printf("getAzdoClient(): policy.NewClient failed.")
@@ -301,6 +305,7 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 		ServiceEndpointClient:         serviceEndpointClient,
 		TaskAgentClient:               taskagentClient,
 		MemberEntitleManagementClient: memberentitlementmanagementClient,
+		NotificationClient:            notificationClient,
 		FeatureManagementClient:       featuremanagementClient,
 		FeedClient:                    feedClient,
 		SecurityClient:                securityClient,
