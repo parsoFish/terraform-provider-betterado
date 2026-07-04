@@ -7,6 +7,11 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### Added
+
+- New data source `betterado_accounts` — list ADO accounts accessible to the authenticated user.
+- New data source `betterado_profile` — look up a user's ADO profile (display name, email, avatar URL).
+
 ### FEATURES
 
 - **`betterado_security_permissions` migrated to terraform-plugin-framework.**

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/accounts"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
@@ -27,6 +28,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/pipelines"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/profile"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
@@ -357,5 +359,7 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		security.NewSecurityNamespaceTokenDataSource,
 		security.NewSecurityNamespacesDataSource,
 		securityroles.NewSecurityRoleDefinitionsDataSource,
+		accounts.NewAccountsDataSource,
+		profile.NewProfileDataSource,
 	}
 }

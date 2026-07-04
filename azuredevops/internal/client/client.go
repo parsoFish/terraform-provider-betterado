@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/accounts"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/build"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/core"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/dashboard"
@@ -25,6 +26,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelines"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelineschecks"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/policy"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/profile"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/release"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/security"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/serviceendpoint"
@@ -48,7 +50,14 @@ import (
 // allow for mocking to support unit testing of the funcs that invoke the
 // Azure DevOps client.
 type AggregatedClient struct {
-	OrganizationURL               string
+	OrganizationURL string
+	// BasicAuth is the pre-computed "Basic <base64>" Authorization header value
+	// for the configured credentials. It is stored here so that data sources
+	// that must call VSSPS endpoints (accounts, profile) can build their own
+	// HTTP requests without going through the SDK's location-service discovery,
+	// which may return 401 when the PAT is scoped to a single org.
+	BasicAuth                     string
+	AccountsClient                accounts.Client
 	CoreClient                    core.Client
 	BuildClient                   build.Client
 	DashboardClient               dashboard.Client
@@ -62,6 +71,7 @@ type AggregatedClient struct {
 	PipelinePermissionsClient     pipelinepermissions.Client
 	PipelinesChecksClientExtras   pipelineschecksextras.Client
 	PolicyClient                  policy.Client
+	ProfileClient                 profile.Client
 	ElasticClient                 elastic.Client
 	ExtensionManagementClient     extensionmanagement.Client
 	ReleaseClient                 release.Client
@@ -96,6 +106,39 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 	}
 
 	setUserAgent(connection)
+
+	// Pre-compute the Basic auth header so that data sources making direct
+	// HTTP calls to VSSPS endpoints (accounts, profile) can authenticate
+	// without going through the SDK's location-service discovery.
+	basicAuth := ""
+	if authProvider != nil {
+		if authHeader, authErr := authProvider.GetAuth(ctx); authErr == nil {
+			basicAuth = authHeader
+		}
+	}
+
+	// The Profile and Accounts APIs are hosted on the global VSSPS endpoint.
+	// Their resource area IDs (8ccfef3d-... and 0d55247a-...) are NOT
+	// registered on org-scoped URLs (https://dev.azure.com/<org>); the
+	// discovery call to GetResourceAreas returns a 404/empty result for them
+	// there. A separate connection to https://app.vssps.visualstudio.com is
+	// required so that GetClientByResourceAreaId can resolve their locations.
+	//
+	// We use GetClientByUrl (not GetClientByResourceAreaId / accounts.NewClient)
+	// to avoid resource-area discovery HTTP calls during provider Configure —
+	// those calls can fail with 401 when the PAT scope is restricted to a
+	// single org and poisons the whole provider Configure step. Location-service
+	// discovery is deferred to the first real API call (GetAccounts / GetProfile)
+	// when proper user-facing errors can be surfaced from the data source Read.
+	vsspsConnection := &azuredevops.Connection{
+		AuthProvider:            authProvider,
+		BaseUrl:                 "https://app.vssps.visualstudio.com",
+		SuppressFedAuthRedirect: true,
+	}
+	setUserAgent(vsspsConnection)
+
+	vssspsSdkClient := vsspsConnection.GetClientByUrl("https://app.vssps.visualstudio.com")
+	accountsClient := &accounts.ClientImpl{Client: *vssspsSdkClient}
 
 	coreClient, err := core.NewClient(ctx, connection)
 	if err != nil {
@@ -171,6 +214,10 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 		return nil, err
 	}
 
+	// profile.NewClient also uses GetClientByResourceAreaId; bypass it for the
+	// same reason as accounts above (deferred location-service discovery).
+	profileClient := &profile.ClientImpl{Client: *vssspsSdkClient}
+
 	releaseClient, err := release.NewClient(ctx, connection)
 	if err != nil {
 		log.Printf("getAzdoClient(): release.NewClient failed.")
@@ -236,6 +283,8 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 
 	aggregatedClient := &AggregatedClient{
 		OrganizationURL:               organizationURL,
+		BasicAuth:                     basicAuth,
+		AccountsClient:                accountsClient,
 		CoreClient:                    coreClient,
 		BuildClient:                   buildClient,
 		DashboardClient:               dashboardClient,
@@ -251,6 +300,7 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 		PipelinePermissionsClient:     pipelinepermissionsClient,
 		PipelinesChecksClientExtras:   pipelinesChecksClientExtras,
 		PolicyClient:                  policyClient,
+		ProfileClient:                 profileClient,
 		ReleaseClient:                 releaseClient,
 		ServiceEndpointClient:         serviceEndpointClient,
 		TaskAgentClient:               taskagentClient,

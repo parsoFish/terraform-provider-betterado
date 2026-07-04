@@ -217,3 +217,49 @@ func TestFrameworkProvider_HasPipelineDataSource(t *testing.T) {
 	require.True(t, foundPipeline, "framework provider must register betterado_pipeline data source")
 	require.True(t, foundPipelineRun, "framework provider must register betterado_pipeline_run data source")
 }
+
+func TestFrameworkProvider_HasAccountsDataSource(t *testing.T) {
+	p := frameworkprovider.NewFrameworkProvider()
+	provWithDataSources, ok := p.(interface {
+		DataSources(context.Context) []func() datasource.DataSource
+	})
+	require.True(t, ok, "framework provider must implement DataSources()")
+
+	factories := provWithDataSources.DataSources(context.Background())
+	require.NotEmpty(t, factories, "framework provider must have at least one data source factory")
+
+	found := false
+	for _, factory := range factories {
+		ds := factory()
+		var metaResp datasource.MetadataResponse
+		ds.Metadata(context.Background(), datasource.MetadataRequest{ProviderTypeName: "betterado"}, &metaResp)
+		if metaResp.TypeName == "betterado_accounts" {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "framework provider must register betterado_accounts data source")
+}
+
+func TestFrameworkProvider_HasProfileDataSource(t *testing.T) {
+	p := frameworkprovider.NewFrameworkProvider()
+	provWithDataSources, ok := p.(interface {
+		DataSources(context.Context) []func() datasource.DataSource
+	})
+	require.True(t, ok, "framework provider must implement DataSources()")
+
+	factories := provWithDataSources.DataSources(context.Background())
+	require.NotEmpty(t, factories, "framework provider must have at least one data source factory")
+
+	found := false
+	for _, factory := range factories {
+		ds := factory()
+		var metaResp datasource.MetadataResponse
+		ds.Metadata(context.Background(), datasource.MetadataRequest{ProviderTypeName: "betterado"}, &metaResp)
+		if metaResp.TypeName == "betterado_profile" {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "framework provider must register betterado_profile data source")
+}
