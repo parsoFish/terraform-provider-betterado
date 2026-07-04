@@ -3,14 +3,18 @@
   "essence": "Adds betterado_extension_install (terraform-plugin-framework resource) to install/uninstall ADO Marketplace extensions at the organisation level via the ExtensionManagement API, registered exclusively on the framework provider (mux-free-ready). Includes a gap matrix clarifying the boundary with the existing betterado_extension SDKv2 resource, a live acceptance test with CaptureLiveEvidence, tfplugindocs-generated docs, and CHANGELOG/version bump.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-new-api-gallery-extensionmanagement",
-  "diffStat": "13 files changed, 1166 insertions(+), 1 deletion(-)",
+  "diffStat": "54 files changed, 1519 insertions(+), 158 deletions(-)",
   "checkpoints": [
     {
       "label": "CI gate green",
       "caption": "Quality gate (servicehook package, mirrors CI) passes on branch HEAD",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "Gate ran against main (no new extension resource)",
-      "afterNote": "Gate passes on branch HEAD with new extension resource registered"
+      "afterNote": "Gate passes on branch HEAD with new extension resource registered",
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s\n",
+      "afterOutput": null
     },
     {
       "label": "Unit tests: expand/flatten round-trip",
