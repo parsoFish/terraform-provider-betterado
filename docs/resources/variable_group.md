@@ -19,7 +19,7 @@ Manages a Variable Group within Azure DevOps.
 
 - `name` (String) The name of the variable group.
 - `project_id` (String) The ID of the project.
-- `variable` (Attributes Set) One or more variable blocks as documented below. (see [below for nested schema](#nestedatt--variable))
+- `variable` (Attributes List) One or more variable blocks as documented below. (see [below for nested schema](#nestedatt--variable))
 
 ### Optional
 

@@ -17,6 +17,16 @@ from the upstream `microsoft/azuredevops` provider is preserved in
   `icon_url`). Acceptance tests use `ProtoV6ProviderFactories` (mux) with
   `ExpectNonEmptyPlan: false` and `CaptureLiveEvidence("acceptance-resource-task-group-datasource", ...)`.
 
+- **`betterado_variable_group_variable` resource migrated to
+  terraform-plugin-framework.** `betterado_variable_group_variable` now uses
+  the framework implementation served through the mux provider; the SDKv2 file
+  (`resource_variable_group_variable.go`) is deleted. Schema is unchanged
+  (`project_id`, `variable_group_id`, `name`, `value`, `secret_value`). Secret
+  variables use `UseStateForUnknown` plan modifier to preserve the sensitive
+  value on read-back. Acceptance tests use `ProtoV6ProviderFactories` (mux)
+  with `ExpectNonEmptyPlan: false`, import verify, and
+  `CaptureLiveEvidence("acceptance-resource-variable-group-variable", ...)`.
+
 - **`betterado_variable_group` resource and data source migrated to
   terraform-plugin-framework.** Both `betterado_variable_group` (resource) and
   `data.betterado_variable_group` (data source) now use the framework

@@ -32,7 +32,6 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/wiki"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtracking"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtrackingprocess"
@@ -163,8 +162,9 @@ func Provider() *schema.Provider {
 			"betterado_user_entitlement":                            memberentitlementmanagement.ResourceUserEntitlement(),
 			// betterado_variable_group is now a framework resource (registered in framework_provider.go)
 			// and is no longer in the SDKv2 provider resource map.
-			"betterado_variable_group_permissions":                  permissions.ResourceVariableGroupPermissions(),
-			"betterado_variable_group_variable":                     taskagent.ResourceVariableGroupVariable(),
+			"betterado_variable_group_permissions": permissions.ResourceVariableGroupPermissions(),
+			// betterado_variable_group_variable is now a framework resource (registered in framework_provider.go)
+			// and is no longer in the SDKv2 provider resource map.
 			"betterado_wiki":                                        wiki.ResourceWiki(),
 			"betterado_wiki_page":                                   wiki.ResourceWikiPage(),
 			"betterado_workitem":                                    workitemtracking.ResourceWorkItem(),

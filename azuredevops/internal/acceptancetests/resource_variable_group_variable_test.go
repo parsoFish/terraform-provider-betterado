@@ -2,6 +2,8 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -24,7 +26,13 @@ func TestAccVariableGroupVariable_basic(t *testing.T) {
 				Config: hclVariableGroupVariableBasic(vgName, "foo"),
 				Check: resource.ComposeTestCheckFunc(
 					checkVariableGroupVariableExists(node),
+					resource.TestCheckResourceAttr(node, "name", "test-key"),
+					resource.TestCheckResourceAttr(node, "value", "foo"),
+					resource.TestCheckResourceAttrSet(node, "project_id"),
+					resource.TestCheckResourceAttrSet(node, "variable_group_id"),
+					captureVariableGroupVariableEvidence(node),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
 				ResourceName:      node,
@@ -35,7 +43,10 @@ func TestAccVariableGroupVariable_basic(t *testing.T) {
 				Config: hclVariableGroupVariableBasic(vgName, "bar"),
 				Check: resource.ComposeTestCheckFunc(
 					checkVariableGroupVariableExists(node),
+					resource.TestCheckResourceAttr(node, "name", "test-key"),
+					resource.TestCheckResourceAttr(node, "value", "bar"),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
 				ResourceName:      node,
@@ -59,7 +70,12 @@ func TestAccVariableGroupVariable_secret(t *testing.T) {
 				Config: hclVariableGroupVariableSecret(vgName, "foo"),
 				Check: resource.ComposeTestCheckFunc(
 					checkVariableGroupVariableExists(node),
+					resource.TestCheckResourceAttr(node, "name", "test-key"),
+					resource.TestCheckResourceAttr(node, "secret_value", "foo"),
+					resource.TestCheckResourceAttrSet(node, "project_id"),
+					resource.TestCheckResourceAttrSet(node, "variable_group_id"),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
 				ResourceName:            node,
@@ -71,7 +87,10 @@ func TestAccVariableGroupVariable_secret(t *testing.T) {
 				Config: hclVariableGroupVariableSecret(vgName, "bar"),
 				Check: resource.ComposeTestCheckFunc(
 					checkVariableGroupVariableExists(node),
+					resource.TestCheckResourceAttr(node, "name", "test-key"),
+					resource.TestCheckResourceAttr(node, "secret_value", "bar"),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
 				ResourceName:            node,
@@ -147,6 +166,42 @@ func checkVariableGroupVariableFromState(res *terraform.ResourceState) (bool, er
 	return ok, nil
 }
 
+// captureVariableGroupVariableEvidence fetches the variable group via the ADO REST API
+// and persists the response as forge demo live-evidence (before the resource is destroyed).
+// Best-effort: a capture failure never fails the test.
+func captureVariableGroupVariableEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		vgIDStr := res.Primary.Attributes["variable_group_id"]
+		vgID, parseErr := strconv.Atoi(vgIDStr)
+		if parseErr != nil {
+			return nil //nolint:nilerr // best-effort evidence capture
+		}
+		projectID := res.Primary.Attributes["project_id"]
+		clients, clientErr := testutils.GetDirectClient()
+		if clientErr != nil {
+			return nil //nolint:nilerr // best-effort evidence capture
+		}
+		vg, getErr := clients.TaskAgentClient.GetVariableGroup(clients.Ctx, taskagent.GetVariableGroupArgs{
+			GroupId: &vgID,
+			Project: &projectID,
+		})
+		if getErr != nil || vg == nil {
+			return nil //nolint:nilerr // best-effort evidence capture
+		}
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		if len(orgURL) > 0 && orgURL[len(orgURL)-1] == '/' {
+			orgURL = orgURL[:len(orgURL)-1]
+		}
+		url := fmt.Sprintf("%s/%s/_apis/distributedtask/variablegroups/%s?api-version=7.1", orgURL, projectID, vgIDStr)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-variable-group-variable", url, vg)
+		return nil
+	}
+}
+
 func TestAccVariableGroupVariable_ForEach_ConcurrentCreate(t *testing.T) {
 	vgName := testutils.GenerateResourceName()
 
@@ -163,8 +218,9 @@ func TestAccVariableGroupVariable_ForEach_ConcurrentCreate(t *testing.T) {
 
 	steps := []resource.TestStep{
 		{
-			Config: hclVariableGroupVariableForEach(vgName),
-			Check:  resource.ComposeTestCheckFunc(checks...),
+			Config:             hclVariableGroupVariableForEach(vgName),
+			Check:              resource.ComposeTestCheckFunc(checks...),
+			ExpectNonEmptyPlan: false,
 		},
 	}
 

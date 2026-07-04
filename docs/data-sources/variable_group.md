@@ -26,7 +26,7 @@ Use this data source to access information about an existing Variable Group with
 - `description` (String) The description of the variable group.
 - `id` (String) The ID of the variable group.
 - `key_vault` (Attributes List) A key_vault block if this variable group is backed by an Azure Key Vault. (see [below for nested schema](#nestedatt--key_vault))
-- `variable` (Attributes Set) One or more variable blocks. (see [below for nested schema](#nestedatt--variable))
+- `variable` (Attributes List) One or more variable blocks. (see [below for nested schema](#nestedatt--variable))
 
 <a id="nestedatt--key_vault"></a>
 ### Nested Schema for `key_vault`

@@ -210,6 +210,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		taskagent.NewDeploymentGroupResource,
 		taskagent.NewElasticPoolResource,
 		taskagent.NewVariableGroupResource,
+		taskagent.NewVariableGroupVariableResource,
 		release.NewReleaseDefinitionResource,
 		release.NewReleaseFolderResource,
 		permissions.NewReleaseDefinitionPermissionsResource,
