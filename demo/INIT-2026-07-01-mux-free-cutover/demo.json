@@ -37,7 +37,7 @@
       "caption": "TestFrameworkProvider_MuxFree passes — framework provider instantiates without mux",
       "command": "go test -tags all -count=1 -run TestFrameworkProvider_MuxFree ./azuredevops/internal/provider/",
       "beforeOutput": "testing: warning: no tests to run\nPASS\nok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t(cached)",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.004s",
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.003s",
       "beforeNote": "TestFrameworkProvider_MuxFree did not exist on main — no tests ran",
       "afterNote": "TestFrameworkProvider_MuxFree passes: NewFrameworkProvider() non-nil; betterado_project registered; no mux layer"
     },
