@@ -2,7 +2,7 @@
 
 > **Initiative:** INIT-2026-07-01-mux-free-cutover
 > **Project:** terraform-provider-betterado
-> **Diff:** 163 files changed, 7503 insertions(+), 549 deletions(-)
+> **Diff:** 165 files changed, 7757 insertions(+), 549 deletions(-)
 
 ## Intent & Outcome
 
@@ -12,20 +12,20 @@ Remove `tf6muxserver` + `tf5to6server` from the provider entry point. All `bette
 
 | # | Criterion (summary) | Verdict | Evidence |
 |---|---|---|---|
-| AC1 (WI-1) | 4 JFrog *_framework.go files + constructors in framework_provider.go | ✅ met | All 4 files on branch; go build → BUILD_OK |
-| AC2 (WI-1) | TestServiceEndpointJFrog* unit tests pass -tags all | ✅ met | go test -tags all -run TestServiceEndpointJFrog → PASS (commit 44e99682) |
+| AC1 (WI-1) | 4 JFrog *_framework.go files + constructors in framework_provider.go | ✅ met | All 4 files on branch; go build → exit 0 |
+| AC2 (WI-1) | TestServiceEndpointJFrog* unit tests pass -tags all | ✅ met | go test -tags all -run TestServiceEndpointJFrog → PASS (WI-1 gate green) |
 | AC3 (WI-2) | 12 general *_framework.go files + constructors in framework_provider.go | ✅ met | All 12 files on branch; go build → BUILD_OK |
-| AC4 (WI-2) | TestServiceEndpoint* unit tests pass -tags all | ✅ met | go test -tags all -run TestServiceEndpoint* → PASS (commit 3809b19f) |
-| AC5 (WI-3) | ResourcesMap and DataSourcesMap empty | ✅ met | grep non-comment betterado_serviceendpoint → empty (commit 1dae5458) |
-| AC6 (WI-3) | go build -mod=vendor . succeeds | ✅ met | BUILD_OK on HEAD |
-| AC7 (WI-3) | Offline unit tests pass | ✅ met | servicehook gate → ok (0.003s) |
-| AC8 (WI-4) | main.go: no tf5to6server/tf6muxserver/helper/schema imports | ✅ met | grep → empty; commit 0b3d9004 |
+| AC4 (WI-2) | TestServiceEndpoint* unit tests pass -tags all | ✅ met | go test -tags all -run TestServiceEndpoint* → PASS (WI-2 gate green) |
+| AC5 (WI-3) | ResourcesMap and DataSourcesMap empty | ✅ met | grep non-comment betterado_serviceendpoint → 'empty' |
+| AC6 (WI-3) | go build -mod=vendor . succeeds | ✅ met | BUILD_OK on HEAD (verified this iteration) |
+| AC7 (WI-3) | Offline unit tests pass | ✅ met | servicehook gate → ok 0.003s (verified this iteration) |
+| AC8 (WI-4) | main.go: no tf5to6server/tf6muxserver/helper/schema imports | ✅ met | grep → 'none' (verified this iteration) |
 | AC9 (WI-4) | go build succeeds after main.go rewrite | ✅ met | BUILD_OK on HEAD |
-| AC10 (WI-4) | framework.go shim: build still succeeds | ✅ met | minimal 3-line re-export kept; BUILD_OK |
-| AC11 (WI-4) | GetMuxedProviderFactories renamed; mux removed; all callers updated | ✅ met | commit 0b3d9004; 124 acc-test files updated |
+| AC10 (WI-4) | framework.go shim deleted; build still succeeds | ✅ met | azuredevops/framework.go deleted; main.go imports internalprovider directly; BUILD_OK |
+| AC11 (WI-4) | GetMuxedProviderFactories renamed; mux removed; all callers updated | ✅ met | GetProviderFactories() uses providerserver.NewProtocol6WithError; all acc-test callers updated |
 | AC12 (WI-5) | TestAccProviderMuxFree passes (TF_ACC=1) | ⚠️ partial | Test added + compiles; skips without live ADO creds |
-| AC13 (WI-5) | CHANGELOG.md has BREAKING CHANGES entry under [Unreleased] | ✅ met | commit 5e7ef0dd |
-| AC14 (WI-5) | PROVIDER_VERSION.txt bumped to 2.0.0 | ✅ met | cat PROVIDER_VERSION.txt → 2.0.0 |
+| AC13 (WI-5) | CHANGELOG.md has BREAKING CHANGES entry under [Unreleased] | ✅ met | CHANGELOG.md [Unreleased] has '### BREAKING CHANGES' section |
+| AC14 (WI-5) | PROVIDER_VERSION.txt bumped to 2.0.0 | ✅ met | cat PROVIDER_VERSION.txt → 2.0.0 (verified this iteration) |
 
 ---
 
@@ -51,7 +51,7 @@ Tests pass on main (mux scaffold still in place) and on HEAD (pure-framework ent
 | **Before (main)** | `"github.com/hashicorp/terraform-plugin-mux/tf5to6server"` <br>`"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"` <br>`"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"` |
 | **After (HEAD)** | `none` |
 
-main.go ran `tf5to6server.UpgradeServer` + `tf6muxserver.NewMuxServer` to bridge SDKv2 and framework. After cutover: no mux imports — only `providerserver` + `tf6server` + `azuredevops` package shim.
+main.go ran `tf5to6server.UpgradeServer` + `tf6muxserver.NewMuxServer` to bridge SDKv2 and framework. After cutover: no mux imports — only `providerserver` + `tf6server`.
 
 ---
 
@@ -75,7 +75,7 @@ All 16 SDKv2 service endpoint resources removed from `provider.go` ResourcesMap.
 | | Output |
 |---|---|
 | **Before (main)** | `testing: warning: no tests to run` / `PASS (cached)` |
-| **After (HEAD)** | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider	0.004s` |
+| **After (HEAD)** | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider	0.003s` |
 
 `TestFrameworkProvider_MuxFree` did not exist on main. After WI-4: test verifies `NewFrameworkProvider()` is non-nil, `betterado_project` is registered, no mux layer present.
 
