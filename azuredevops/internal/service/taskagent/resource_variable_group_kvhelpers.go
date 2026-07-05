@@ -1,9 +1,10 @@
 package taskagent
 
-// resource_variable_group.go — KV-search helpers retained for use by
-// resource_variable_group_framework.go and data_variable_group_framework.go.
+// resource_variable_group_kvhelpers.go — KV-search helpers and shared update helper
+// for use by resource_variable_group_framework.go, data_variable_group_framework.go,
+// and resource_variable_group_variable_framework.go.
 // The superseded SDKv2 resource (ResourceVariableGroup + CRUD + expand/flatten)
-// has been deleted; only the still-referenced helpers below remain.
+// has been fully deleted; resource_variable_group.go is removed from the tree.
 
 import (
 	"encoding/json"
