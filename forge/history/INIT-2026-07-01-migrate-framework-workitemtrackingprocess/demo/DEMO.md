@@ -8,11 +8,27 @@ All workitemtrackingprocess resources and data sources (process, workitemtype, s
 
 ## Diff stat
 
-188 files changed, 13972 insertions(+), 8123 deletions(-)
+188 files changed, 14005 insertions(+), 8123 deletions(-)
 
 ---
 
-## Checkpoint 1 — Offline quality gate
+## Checkpoint 1 — Quality gate
+
+**Caption:** CI quality gate: go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... (verbatim forge gate)
+
+**Command (before/after evidence):**
+```
+go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...
+```
+
+| | |
+|---|---|
+| **Before (main)** | servicehook offline tests pass on main |
+| **After (HEAD)** | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.008s` — gate green on HEAD after workitemtrackingprocess migration |
+
+---
+
+## Checkpoint 2 — Offline quality gate
 
 **Caption:** Offline quality gate: go build ./... and go vet -tags all on workitemtrackingprocess/provider/acceptancetests packages
 
@@ -28,7 +44,7 @@ go build ./... && go vet -tags all ./azuredevops/internal/service/workitemtracki
 
 ---
 
-## Checkpoint 2 — Provider compiles cleanly
+## Checkpoint 3 — Provider compiles cleanly
 
 **Caption:** Provider binary builds cleanly with zero compilation errors
 
@@ -44,7 +60,7 @@ go build -mod=vendor .
 
 ---
 
-## Checkpoint 3 — Gap matrix produced
+## Checkpoint 4 — Gap matrix produced
 
 **Caption:** docs/workitemtrackingprocess-gap-matrix.md produced, covering all 13 resources and 4 data sources
 
@@ -60,9 +76,9 @@ wc -l docs/workitemtrackingprocess-gap-matrix.md
 
 ---
 
-## Checkpoint 4 — Framework resources registered
+## Checkpoint 5 — Framework resources registered
 
-**Caption:** All 13 resources and 4 data sources registered in framework_provider.go (not provider.go)
+**Caption:** All 18 workitemtrackingprocess references in framework_provider.go (registrations)
 
 **Command (before/after evidence):**
 ```
@@ -72,7 +88,7 @@ grep -c 'workitemtrackingprocess' azuredevops/internal/provider/framework_provid
 | | |
 |---|---|
 | **Before (main)** | 0 workitemtrackingprocess entries in framework_provider.go |
-| **After (HEAD)** | 17 workitemtrackingprocess entries present (13 resources + 4 data sources) |
+| **After (HEAD)** | 18 workitemtrackingprocess entries present (13 resources + 4 data sources + package import) |
 
 ---
 
@@ -120,6 +136,7 @@ grep -c 'workitemtrackingprocess' azuredevops/internal/provider/framework_provid
 
 | Test | Result |
 |------|--------|
+| `go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...` (forge quality gate) | pass |
 | `go build ./... && go vet -tags all ./azuredevops/internal/service/workitemtrackingprocess/... ./azuredevops/internal/provider/... ./azuredevops/internal/acceptancetests/...` (offline gate) | pass |
 | `go build -mod=vendor .` | pass |
 | `TestAccWorkitemtrackingprocessProcess_Basic` (TF_ACC=1, live, per-WI) | pass |

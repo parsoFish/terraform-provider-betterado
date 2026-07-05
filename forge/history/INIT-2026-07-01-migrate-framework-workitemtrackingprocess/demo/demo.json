@@ -3,8 +3,15 @@
   "essence": "All workitemtrackingprocess resources and data sources (process, workitemtype, state, inherited_state, page, inherited_page, list, field, rule, control, group, inherited_control, system_control, and the four process/workitemtype data sources) are now served by the mux provider via terraform-plugin-framework implementations. The public HCL surface is identical; no behavioural changes. The provider compiles cleanly (go build ./... exit 0; go vet -tags all exit 0). Live TF_ACC runs were completed for process, workitemtype, state, page, list, and rule resources (provenance-clean captures committed). The group, control, inherited_control, system_control, field, inherited_page, and inherited_state acceptance tests were not run live in this rework cycle (no provenance-clean captures available); those test results are marked missed below.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-workitemtrackingprocess",
-  "diffStat": "188 files changed, 13972 insertions(+), 8123 deletions(-)",
+  "diffStat": "188 files changed, 14005 insertions(+), 8123 deletions(-)",
   "checkpoints": [
+    {
+      "label": "quality-gate",
+      "caption": "CI quality gate: go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... (verbatim forge gate)",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
+      "beforeNote": "servicehook offline tests pass on main",
+      "afterNote": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.008s — gate green on HEAD after workitemtrackingprocess migration"
+    },
     {
       "label": "offline-gate-green",
       "caption": "Offline quality gate: go build ./... and go vet -tags all on workitemtrackingprocess/provider/acceptancetests packages",
@@ -28,10 +35,10 @@
     },
     {
       "label": "framework-resources-registered",
-      "caption": "All 13 resources and 4 data sources registered in framework_provider.go (not provider.go)",
+      "caption": "All 18 workitemtrackingprocess references in framework_provider.go (registrations)",
       "command": "grep -c 'workitemtrackingprocess' azuredevops/internal/provider/framework_provider.go",
       "beforeNote": "0 workitemtrackingprocess entries in framework_provider.go on main",
-      "afterNote": "17 workitemtrackingprocess entries present on HEAD (13 resources + 4 data sources)"
+      "afterNote": "18 workitemtrackingprocess entries present on HEAD (13 resources + 4 data sources + package import)"
     }
   ],
   "acEvaluations": [
@@ -202,6 +209,11 @@
     }
   ],
   "testEvidence": [
+    {
+      "name": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... (forge quality gate)",
+      "result": "pass",
+      "delta": "ok  github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook 0.008s"
+    },
     {
       "name": "go build ./... && go vet -tags all ./azuredevops/internal/service/workitemtrackingprocess/... ./azuredevops/internal/provider/... ./azuredevops/internal/acceptancetests/... (offline gate)",
       "result": "pass",
