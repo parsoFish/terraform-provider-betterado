@@ -75,7 +75,7 @@ All 16 SDKv2 service endpoint resources removed from `provider.go` ResourcesMap.
 | | Output |
 |---|---|
 | **Before (main)** | `testing: warning: no tests to run` / `PASS (cached)` |
-| **After (HEAD)** | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider	0.004s` |
+| **After (HEAD)** | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider	0.003s` |
 
 `TestFrameworkProvider_MuxFree` did not exist on main. After WI-4: test verifies `NewFrameworkProvider()` is non-nil, `betterado_project` is registered, no mux layer present.
 
