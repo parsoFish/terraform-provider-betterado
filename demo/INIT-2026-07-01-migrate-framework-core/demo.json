@@ -5,111 +5,119 @@
   "checkpoints": [
     {
       "id": "cp-01-project-pipeline-settings",
-      "label": "betterado_project_pipeline_settings — roundtrip live pass",
+      "label": "betterado_project_pipeline_settings \u2014 roundtrip live pass",
       "workItem": "UWI-4",
       "testName": "TestAccProjectPipelineSettings_Enabled",
       "status": "passed",
       "liveEvidence": {
         "label": "project-pipeline-settings",
         "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/build/generalsettings?api-version=7.1",
-        "evidenceFile": ".forge/live-evidence/project-pipeline-settings.json"
+        "evidenceFile": ".forge/live-evidence/project-pipeline-settings.json",
+        "capturedAt": "2026-07-05T02:56:50Z"
       },
       "notes": "Framework implementation with all 6 boolean attributes. Validators ported from SDKv2 (project_id UUID check). Evidence: enforce_job_scope=false, all false verified against betterado-standing-demo fixture."
     },
     {
       "id": "cp-02-project-tags",
-      "label": "betterado_project_tags — roundtrip live pass",
+      "label": "betterado_project_tags \u2014 roundtrip live pass",
       "workItem": "UWI-5",
       "testName": "TestAccProjectTags_basic",
       "status": "passed",
       "liveEvidence": {
         "label": "project-tags",
         "url": "https://dev.azure.com/davidgparsonson/_apis/projects/6ddb680c-093d-4953-9561-2266eb7af800/properties?api-version=7.1",
-        "evidenceFile": ".forge/live-evidence/project-tags.json"
+        "evidenceFile": ".forge/live-evidence/project-tags.json",
+        "capturedAt": "2026-07-05T02:57:51Z"
       },
       "notes": "Framework implementation. Tags set [tag1, tag2] applied and verified via read-back. list(string) attribute replaces SDKv2 TypeSet."
     },
     {
       "id": "cp-03-team",
-      "label": "betterado_team — CRUD live pass",
+      "label": "betterado_team \u2014 CRUD live pass",
       "workItem": "UWI-6",
       "testName": "TestAccTeam_basic",
       "status": "passed",
       "liveEvidence": {
         "label": "team",
-        "url": "https://dev.azure.com/davidgparsonson/_apis/projects/6ddb680c-093d-4953-9561-2266eb7af800/teams/e8f3a2b1-9c4d-5e6f-7a8b-9c0d1e2f3a4b?api-version=7.1",
-        "evidenceFile": ".forge/live-evidence/team.json"
+        "url": "https://dev.azure.com/davidgparsonson/_apis/projects/6ddb680c-093d-4953-9561-2266eb7af800/teams/d66212c7-7865-42f6-9ac1-f5c8310e03c3?api-version=7.1",
+        "evidenceFile": ".forge/live-evidence/team.json",
+        "capturedAt": "2026-07-05T02:58:52Z"
       },
       "notes": "Framework implementation with name, description, administrators, members. set(string) attributes for members and administrators."
     },
     {
       "id": "cp-04-team-members",
-      "label": "betterado_team_members — CRUD live pass",
+      "label": "betterado_team_members \u2014 CRUD live pass",
       "workItem": "UWI-6",
       "testName": "TestAccTeamMembers_CreateAndUpdate",
       "status": "passed",
       "liveEvidence": {
         "label": "team-members",
-        "url": "https://dev.azure.com/davidgparsonson/_apis/projects/6ddb680c-093d-4953-9561-2266eb7af800/teams/e8f3a2b1-9c4d-5e6f-7a8b-9c0d1e2f3a4b/members?api-version=7.1",
-        "evidenceFile": ".forge/live-evidence/team-members.json"
+        "url": "https://dev.azure.com/davidgparsonson/_apis/projects/6ddb680c-093d-4953-9561-2266eb7af800/teams/f64d0072-0723-49d4-af92-c0da97caab92/members?api-version=7.1",
+        "evidenceFile": ".forge/live-evidence/team-members.json",
+        "capturedAt": "2026-07-05T03:01:03Z"
       },
       "notes": "Framework implementation for team membership management. add_mode support preserved."
     },
     {
       "id": "cp-05-team-administrators",
-      "label": "betterado_team_administrators — CRUD live pass",
+      "label": "betterado_team_administrators \u2014 CRUD live pass",
       "workItem": "UWI-6",
       "testName": "TestAccTeamAdministrators_CreateAndUpdate",
       "status": "passed",
       "liveEvidence": {
         "label": "team-administrators",
-        "url": "https://dev.azure.com/davidgparsonson/_apis/projects/6ddb680c-093d-4953-9561-2266eb7af800/teams/e8f3a2b1-9c4d-5e6f-7a8b-9c0d1e2f3a4b?api-version=7.1",
-        "evidenceFile": ".forge/live-evidence/team-administrators.json"
+        "url": "https://dev.azure.com/davidgparsonson/_apis/projects/6ddb680c-093d-4953-9561-2266eb7af800/teams/0f130b36-3524-4d42-8bbb-d2f68d7577d2?api-version=7.1",
+        "evidenceFile": ".forge/live-evidence/team-administrators.json",
+        "capturedAt": "2026-07-05T02:59:54Z"
       },
       "notes": "Framework implementation. ACL-based admin management via securityhelper. Permission grant/revoke verified against betterado-standing-demo fixture."
     },
     {
       "id": "cp-06-data-team",
-      "label": "betterado_team data source — read live pass",
+      "label": "betterado_team data source \u2014 read live pass",
       "workItem": "UWI-6",
       "testName": "TestAccTeam_DataSource_Basic",
       "status": "passed",
       "liveEvidence": {
         "label": "data-team",
-        "url": "https://dev.azure.com/davidgparsonson/_apis/projects/6ddb680c-093d-4953-9561-2266eb7af800/teams/e8f3a2b1-9c4d-5e6f-7a8b-9c0d1e2f3a4b?api-version=7.1",
-        "evidenceFile": ".forge/live-evidence/data-team.json"
+        "url": "https://dev.azure.com/davidgparsonson/_apis/projects/6ddb680c-093d-4953-9561-2266eb7af800/teams/38554ab3-9894-475a-b85f-f4b5e3c6167b?api-version=7.1",
+        "evidenceFile": ".forge/live-evidence/data-team.json",
+        "capturedAt": "2026-07-05T03:02:13Z"
       },
       "notes": "Framework data source. Reads team name, description, administrators, members by project_id + name."
     },
     {
       "id": "cp-07-data-teams",
-      "label": "betterado_teams data source — list live pass",
+      "label": "betterado_teams data source \u2014 list live pass",
       "workItem": "UWI-6",
       "testName": "TestAccTeams_DataSource_basic",
       "status": "passed",
       "liveEvidence": {
         "label": "data-teams",
         "url": "https://dev.azure.com/davidgparsonson/_apis/projects/6ddb680c-093d-4953-9561-2266eb7af800/teams?api-version=7.1",
-        "evidenceFile": ".forge/live-evidence/data-teams.json"
+        "evidenceFile": ".forge/live-evidence/data-teams.json",
+        "capturedAt": "2026-07-05T03:03:13Z"
       },
       "notes": "Framework data source. Lists all teams in project, with member/admin expansion."
     },
     {
       "id": "cp-08-data-client-config",
-      "label": "betterado_client_config data source — read live pass",
+      "label": "betterado_client_config data source \u2014 read live pass",
       "workItem": "UWI-6",
       "testName": "TestAccClientConfig_LoadsCorrectProperties",
       "status": "passed",
       "liveEvidence": {
         "label": "data-client-config",
-        "url": "https://dev.azure.com/davidgparsonson/_apis/connectionData?api-version=7.1&projectId=6ddb680c-093d-4953-9561-2266eb7af800",
-        "evidenceFile": ".forge/live-evidence/data-client-config.json"
+        "url": "https://dev.azure.com/davidgparsonson/_apis/connectionData?api-version=7.1",
+        "evidenceFile": ".forge/live-evidence/data-client-config.json",
+        "capturedAt": "2026-07-05T03:04:11Z"
       },
       "notes": "Framework data source. Reads organization_url from ADO connectionData endpoint. projectId=6ddb680c-093d-4953-9561-2266eb7af800 appended to scope the evidence to the betterado-standing-demo fixture."
     },
     {
       "id": "cp-09-project-features",
-      "label": "betterado_project_features — roundtrip",
+      "label": "betterado_project_features \u2014 roundtrip",
       "workItem": "UWI-2",
       "testName": "TestAccProjectFeatures_roundtrip",
       "status": "missed",
