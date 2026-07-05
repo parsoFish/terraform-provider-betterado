@@ -2,30 +2,61 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
 func TestAccTeam_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("acceptance tests skipped unless TF_ACC is set")
+	}
+	testutils.PreCheck(t, nil)
+	projectID := ResolveFixtureProjectID(t)
 	teamName := testutils.GenerateResourceName()
 
 	tfNode := "betterado_team.test"
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclTeamBasic(projectName, teamName),
+				Config: hclTeamBasicFixture(projectID, teamName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "name", teamName),
+					captureTeamEvidence(tfNode),
 				),
 			},
 		},
 	})
+}
+
+// captureTeamEvidence captures live evidence of the betterado_team resource
+// for the forge demo pipeline. Best-effort: never fails the test check.
+func captureTeamEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		if orgURL == "" {
+			return nil
+		}
+		projectID := rs.Primary.Attributes["project_id"]
+		teamID := rs.Primary.Attributes["id"]
+		apiURL := fmt.Sprintf("%s/_apis/projects/%s/teams/%s?api-version=7.1", orgURL, projectID, teamID)
+		attrs := map[string]string{
+			"id":         teamID,
+			"name":       rs.Primary.Attributes["name"],
+			"project_id": projectID,
+		}
+		_ = testutils.CaptureLiveEvidence("team", apiURL, attrs)
+		return nil
+	}
 }
 
 func TestAccTeam_update(t *testing.T) {
@@ -157,17 +188,15 @@ func TestAccTeam_complete(t *testing.T) {
 	})
 }
 
-func hclTeamBasic(projectName, teamName string) string {
+// hclTeamBasicFixture creates a team inside the standing-demo fixture project
+// (no new project is provisioned — the project UUID is injected directly).
+func hclTeamBasicFixture(projectID, teamName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
-}
-
 resource "betterado_team" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = %q
+  name       = %q
 }
-`, projectName, teamName)
+`, projectID, teamName)
 }
 
 func hclTeamUpdate(projectName, teamName, description string) string {

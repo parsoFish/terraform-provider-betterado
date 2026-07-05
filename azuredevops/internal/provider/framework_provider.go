@@ -12,9 +12,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/accounts"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extensionmanagement"
@@ -324,6 +326,13 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		testplan.NewTestVariableResource,
 		pipelinesapproval.NewPipelineApprovalResource,
 		extensionmanagement.NewExtensionInstallResource,
+		core.NewProjectResource,
+		core.NewProjectFeaturesResource,
+		core.NewProjectPipelineSettingsResource,
+		core.NewProjectTagsResource,
+		core.NewTeamResource,
+		core.NewTeamAdministratorsResource,
+		core.NewTeamMembersResource,
 	}
 }
 
@@ -374,5 +383,10 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		testplan.NewTestRunDataSource,
 		testplan.NewTestResultDataSource,
 		pipelinesapproval.NewPipelineApprovalsDataSource,
+		core.NewProjectDataSource,
+		core.NewProjectsDataSource,
+		core.NewTeamDataSource,
+		core.NewTeamsDataSource,
+		service.NewClientConfigDataSource,
 	}
 }

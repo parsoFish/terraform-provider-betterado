@@ -14,8 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/core"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtrackingprocess"
@@ -74,11 +72,11 @@ func Provider() *schema.Provider {
 			// betterado_pipeline_authorization is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_project":          core.ResourceProject(),
-			"betterado_project_features": core.ResourceProjectFeatures(),
+			// betterado_project is now registered in the framework provider (framework_provider.go)
+			// betterado_project_features is now registered in the framework provider (framework_provider.go)
 			// betterado_project_permissions is now registered in the framework provider (framework_provider.go)
-			"betterado_project_pipeline_settings": core.ResourceProjectPipelineSettings(),
-			"betterado_project_tags":              core.ResourceProjectTag(),
+			// betterado_project_pipeline_settings is now registered in the framework provider (framework_provider.go)
+			// betterado_project_tags is now registered in the framework provider (framework_provider.go)
 			// betterado_release_definition_permissions is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
@@ -145,9 +143,9 @@ func Provider() *schema.Provider {
 			// betterado_servicehook_webhook_tfs migrated to the framework provider (framework_provider.go).
 			// betterado_service_principal_entitlement migrated to the framework provider.
 			// betterado_tagging_permissions is now registered in the framework provider (framework_provider.go)
-			"betterado_team":                core.ResourceTeam(),
-			"betterado_team_administrators": core.ResourceTeamAdministrators(),
-			"betterado_team_members":        core.ResourceTeamMembers(),
+			// betterado_team is now registered in the framework provider (framework_provider.go)
+			// betterado_team_administrators is now registered in the framework provider (framework_provider.go)
+			// betterado_team_members is now registered in the framework provider (framework_provider.go)
 			// betterado_user_entitlement migrated to the framework provider.
 			"betterado_variable_group": taskagent.ResourceVariableGroup(),
 			// betterado_variable_group_permissions is now registered in the framework provider (framework_provider.go)
@@ -185,7 +183,7 @@ func Provider() *schema.Provider {
 			"betterado_agent_pools": taskagent.DataAgentPools(),
 			"betterado_agent_queue": taskagent.DataAgentQueue(),
 			// betterado_area is now registered in the framework provider (framework_provider.go)
-			"betterado_client_config": service.DataClientConfig(),
+			// betterado_client_config is now registered in the framework provider (framework_provider.go)
 			// betterado_descriptor is now registered in the framework provider (framework_provider.go)
 			"betterado_environment": taskagent.DataEnvironment(),
 			// betterado_feed migrated to the framework provider (framework_provider.go).
@@ -199,8 +197,8 @@ func Provider() *schema.Provider {
 			// betterado_identity_groups is now registered in the framework provider (framework_provider.go)
 			// betterado_identity_user is now registered in the framework provider (framework_provider.go)
 			// betterado_iteration is now registered in the framework provider (framework_provider.go)
-			"betterado_project":  core.DataProject(),
-			"betterado_projects": core.DataProjects(),
+			// betterado_project is now registered in the framework provider (framework_provider.go)
+			// betterado_projects is now registered in the framework provider (framework_provider.go)
 			// betterado_security_namespace is now registered in the framework provider (framework_provider.go)
 			// betterado_security_namespace_token is now registered in the framework provider (framework_provider.go)
 			// betterado_security_namespaces is now registered in the framework provider (framework_provider.go)
@@ -215,9 +213,9 @@ func Provider() *schema.Provider {
 			// betterado_serviceendpoint_sonarcloud migrated to the framework provider (framework_provider.go).
 			// betterado_service_principal is now registered in the framework provider (framework_provider.go)
 			// betterado_storage_key is now registered in the framework provider (framework_provider.go)
-			"betterado_team":       core.DataTeam(),
+			// betterado_team is now registered in the framework provider (framework_provider.go)
 			"betterado_task_group": taskagent.DataTaskGroup(),
-			"betterado_teams":      core.DataTeams(),
+			// betterado_teams is now registered in the framework provider (framework_provider.go)
 			// betterado_user is now registered in the framework provider (framework_provider.go)
 			// betterado_users is now registered in the framework provider (framework_provider.go)
 			"betterado_variable_group":                        taskagent.DataVariableGroup(),

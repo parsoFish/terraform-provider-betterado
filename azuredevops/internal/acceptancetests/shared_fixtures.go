@@ -806,3 +806,32 @@ func SharedFixtureProjectID(t *testing.T) string {
 	project := resolveOrCreateFixtureProject(t, clients)
 	return project.Id.String()
 }
+
+// Fails loudly if the fixture project is not found — the org must have a
+// betterado-standing-demo project for live evidence to be valid.
+func ResolveFixtureProjectID(t *testing.T) string {
+	t.Helper()
+
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+
+	projectName := SharedFixtureProjectName
+	if override := os.Getenv("AZDO_TEST_EXISTING_PROJECT"); override != "" {
+		projectName = override
+	}
+
+	azdoClient, err := client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+	if err != nil {
+		t.Fatalf("ResolveFixtureProjectID: GetAzdoClient: %v", err)
+	}
+	p, err := azdoClient.CoreClient.GetProject(azdoClient.Ctx, core.GetProjectArgs{
+		ProjectId: &projectName,
+	})
+	if err != nil || p == nil || p.Id == nil {
+		t.Fatalf("ResolveFixtureProjectID: fixture project %q not found: %v. "+
+			"Restore it from the ADO recycle bin before running live acceptance tests.",
+			projectName, err)
+	}
+	t.Logf("ResolveFixtureProjectID: using project %q (%s)", *p.Name, p.Id)
+	return p.Id.String()
+}
