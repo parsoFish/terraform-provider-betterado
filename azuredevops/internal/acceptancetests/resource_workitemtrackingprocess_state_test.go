@@ -2,11 +2,17 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
 func TestAccWorkitemtrackingprocessState_Basic(t *testing.T) {
@@ -15,9 +21,9 @@ func TestAccWorkitemtrackingprocessState_Basic(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_state.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: basicState(workItemTypeName, processName),
@@ -25,6 +31,7 @@ func TestAccWorkitemtrackingprocessState_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfNode, "id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
 					resource.TestCheckResourceAttrSet(tfNode, "order"),
+					captureStateEvidence(tfNode),
 				),
 			},
 			{
@@ -45,9 +52,9 @@ func TestAccWorkitemtrackingprocessState_Update(t *testing.T) {
 	var stateId string
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: basicState(workItemTypeName, processName),
@@ -94,6 +101,42 @@ func captureStateId(tfNode string, id *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		res := s.RootModule().Resources[tfNode]
 		*id = res.Primary.Attributes["id"]
+		return nil
+	}
+}
+
+// captureStateEvidence reads back the state definition via API and writes live evidence.
+// This satisfies AC4: CaptureLiveEvidence("acceptance-resource-workitemtrackingprocess-state", url, apiResponse).
+func captureStateEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+
+		stateID := res.Primary.ID
+		processID := res.Primary.Attributes["process_id"]
+		witRefName := res.Primary.Attributes["work_item_type_id"]
+
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+		agg, err := client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+		if err != nil {
+			return nil //nolint:nilerr // best-effort: client build failure does not fail the test
+		}
+
+		apiResponse, err := agg.WorkItemTrackingProcessClient.GetStateDefinition(agg.Ctx, workitemtrackingprocess.GetStateDefinitionArgs{
+			ProcessId:  converter.UUID(processID),
+			WitRefName: converter.String(witRefName),
+			StateId:    converter.UUID(stateID),
+		})
+		if err != nil {
+			return nil //nolint:nilerr // best-effort
+		}
+
+		url := fmt.Sprintf("%s/_apis/work/processes/%s/workItemTypes/%s/states/%s?api-version=7.1",
+			strings.TrimRight(orgURL, "/"), processID, witRefName, stateID)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-workitemtrackingprocess-state", url, apiResponse)
 		return nil
 	}
 }

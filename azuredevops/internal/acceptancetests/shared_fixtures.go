@@ -782,3 +782,56 @@ func createFixtureReleaseDefinition(t *testing.T, clients *client.AggregatedClie
 	}
 	return created
 }
+
+// SharedFixtureProjectID resolves the shared fixture project and returns its
+// UUID. Fails the test loudly if the fixture is missing — it never creates,
+// auto-discovers, or substitutes a project (see resolveOrCreateFixtureProject).
+//
+// REQUIRES: TF_ACC=1, AZDO_ORG_SERVICE_URL, AZDO_PERSONAL_ACCESS_TOKEN
+func SharedFixtureProjectID(t *testing.T) string {
+	t.Helper()
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set; skipping live fixture")
+	}
+	testutils.PreCheck(t, nil)
+
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	authProvider := azuredevops.NewAuthProviderPAT(pat)
+	clients, err := client.GetAzdoClient(authProvider, orgURL)
+	if err != nil {
+		t.Fatalf("SharedFixtureProjectID: GetAzdoClient: %v", err)
+	}
+
+	project := resolveOrCreateFixtureProject(t, clients)
+	return project.Id.String()
+}
+
+// Fails loudly if the fixture project is not found — the org must have a
+// betterado-standing-demo project for live evidence to be valid.
+func ResolveFixtureProjectID(t *testing.T) string {
+	t.Helper()
+
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+
+	projectName := SharedFixtureProjectName
+	if override := os.Getenv("AZDO_TEST_EXISTING_PROJECT"); override != "" {
+		projectName = override
+	}
+
+	azdoClient, err := client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+	if err != nil {
+		t.Fatalf("ResolveFixtureProjectID: GetAzdoClient: %v", err)
+	}
+	p, err := azdoClient.CoreClient.GetProject(azdoClient.Ctx, core.GetProjectArgs{
+		ProjectId: &projectName,
+	})
+	if err != nil || p == nil || p.Id == nil {
+		t.Fatalf("ResolveFixtureProjectID: fixture project %q not found: %v. "+
+			"Restore it from the ADO recycle bin before running live acceptance tests.",
+			projectName, err)
+	}
+	t.Logf("ResolveFixtureProjectID: using project %q (%s)", *p.Name, p.Id)
+	return p.Id.String()
+}

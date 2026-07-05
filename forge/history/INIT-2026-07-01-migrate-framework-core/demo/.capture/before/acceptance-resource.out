@@ -1,0 +1,4 @@
+FAIL	./azuredevops/internal/acceptancetests [setup failed]
+FAIL
+[stderr] # ./azuredevops/internal/acceptancetests
+stat /home/parso/forge/_worktrees/INIT-2026-07-01-migrate-framework-core/forge/history/INIT-2026-07-01-migrate-framework-core/demo/.capture/_trees/before/azuredevops/internal/acceptancetests: directory not found

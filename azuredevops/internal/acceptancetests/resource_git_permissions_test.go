@@ -17,9 +17,9 @@ func TestAccGitPermissions_projectGroup(t *testing.T) {
 
 	tfNode := "betterado_git_permissions.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclGitPermissionsProjectGroup(projectName),
@@ -39,9 +39,9 @@ func TestAccGitPermissions_organizationGroup(t *testing.T) {
 
 	tfNode := "betterado_git_permissions.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclGitPermissionsOrganizationGroup(projectName),
@@ -62,9 +62,9 @@ func TestAccGitPermissions_user(t *testing.T) {
 
 	tfNode := "betterado_git_permissions.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclGitPermissionsCustomUser(projectName, userName),
@@ -84,9 +84,9 @@ func TestAccGitPermissions_builtinUser(t *testing.T) {
 
 	tfNode := "betterado_git_permissions.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclGitPermissionsBuiltinUser(projectName),

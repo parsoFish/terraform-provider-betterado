@@ -3,12 +3,12 @@
 page_title: "betterado_workitemtrackingprocess_processes Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Reads all work item tracking processes from Azure DevOps.
 ---
 
 # betterado_workitemtrackingprocess_processes (Data Source)
 
-
+Reads all work item tracking processes from Azure DevOps.
 
 
 
@@ -17,43 +17,33 @@ description: |-
 
 ### Optional
 
-- `expand` (String) Specifies the expand option when getting the processes.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `expand` (String) Specifies the expand option when getting the processes. Valid values: 'none', 'projects'.
 
 ### Read-Only
 
-- `id` (String) The ID of this resource.
-- `processes` (List of Object) A list of all processes including system and inherited. (see [below for nested schema](#nestedatt--processes))
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
-
+- `processes` (Attributes List) A list of all processes including system and inherited. (see [below for nested schema](#nestedatt--processes))
 
 <a id="nestedatt--processes"></a>
 ### Nested Schema for `processes`
 
 Read-Only:
 
-- `customization_type` (String)
-- `description` (String)
-- `id` (String)
-- `is_default` (Boolean)
-- `is_enabled` (Boolean)
-- `name` (String)
-- `parent_process_type_id` (String)
-- `projects` (List of Object) (see [below for nested schema](#nestedobjatt--processes--projects))
-- `reference_name` (String)
+- `customization_type` (String) Indicates the type of customization on this process.
+- `description` (String) Description of the process.
+- `id` (String) The ID of the process.
+- `is_default` (Boolean) Is the process default?
+- `is_enabled` (Boolean) Is the process enabled?
+- `name` (String) Name of the process.
+- `parent_process_type_id` (String) ID of the parent process.
+- `projects` (Attributes List) Returns associated projects when using the 'projects' expand option. (see [below for nested schema](#nestedatt--processes--projects))
+- `reference_name` (String) Reference name of the process.
 
-<a id="nestedobjatt--processes--projects"></a>
+<a id="nestedatt--processes--projects"></a>
 ### Nested Schema for `processes.projects`
 
 Read-Only:
 
-- `description` (String)
-- `id` (String)
-- `name` (String)
-- `url` (String)
+- `description` (String) Description of the project.
+- `id` (String) The ID of the project.
+- `name` (String) Name of the project.
+- `url` (String) Url of the project.

@@ -3,12 +3,12 @@
 page_title: "betterado_workitemtrackingprocess_process Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Reads a work item tracking process from Azure DevOps.
 ---
 
 # betterado_workitemtrackingprocess_process (Data Source)
 
-
+Reads a work item tracking process from Azure DevOps.
 
 
 
@@ -21,34 +21,25 @@ description: |-
 
 ### Optional
 
-- `expand` (String) Specifies the expand option when getting the processes.
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `expand` (String) Specifies the expand option when getting the processes. Valid values: 'none', 'projects'.
 
 ### Read-Only
 
-- `customization_type` (String) Indicates the type of customization on this process. System Process is default process. Inherited Process is modified process that was System process before.
+- `customization_type` (String) Indicates the type of customization on this process.
 - `description` (String) Description of the process.
 - `is_default` (Boolean) Is the process default?
 - `is_enabled` (Boolean) Is the process enabled?
 - `name` (String) Name of the process.
 - `parent_process_type_id` (String) ID of the parent process.
-- `projects` (List of Object) Returns associated projects when using the 'projects' expand option. (see [below for nested schema](#nestedatt--projects))
-- `reference_name` (String) Reference name of process being created. If not specified, server will assign a unique reference name.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
-
+- `projects` (Attributes List) Returns associated projects when using the 'projects' expand option. (see [below for nested schema](#nestedatt--projects))
+- `reference_name` (String) Reference name of the process.
 
 <a id="nestedatt--projects"></a>
 ### Nested Schema for `projects`
 
 Read-Only:
 
-- `description` (String)
-- `id` (String)
-- `name` (String)
-- `url` (String)
+- `description` (String) Description of the project.
+- `id` (String) The ID of the project.
+- `name` (String) Name of the project.
+- `url` (String) Url of the project.

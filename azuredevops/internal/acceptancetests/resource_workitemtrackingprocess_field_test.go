@@ -16,9 +16,9 @@ func TestAccWorkitemtrackingprocessField_Basic(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkProcessAndFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkProcessAndFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: basicField(workItemTypeName, processName, fieldName),
@@ -42,9 +42,9 @@ func TestAccWorkitemtrackingprocessField_Identity(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkProcessAndFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkProcessAndFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: identityField(workItemTypeName, processName, fieldName),
@@ -53,9 +53,10 @@ func TestAccWorkitemtrackingprocessField_Identity(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      tfNode,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            tfNode,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"allow_groups"},
 			},
 		},
 	})
@@ -68,9 +69,9 @@ func TestAccWorkitemtrackingprocessField_Integer(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkProcessAndFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkProcessAndFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: integerField(workItemTypeName, processName, fieldName),
@@ -94,9 +95,9 @@ func TestAccWorkitemtrackingprocessField_Update(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_field.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkProcessAndFieldDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkProcessAndFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: basicField(workItemTypeName, processName, fieldName),

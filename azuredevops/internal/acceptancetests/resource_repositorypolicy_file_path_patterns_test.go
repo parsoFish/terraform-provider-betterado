@@ -22,23 +22,23 @@ func TestAccRepositoryPolicyFilePathPatterns(t *testing.T) {
 }
 
 func testAccRepositoryPolicyFilePathPatternsRepoPolicyBasic(t *testing.T) {
-	authorEmailTfNode := "betterado_repository_policy_file_path_pattern.test"
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
+	filePathTfNode := "betterado_repository_policy_file_path_pattern.test"
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepoPolicyFilePathPatternsResourceRepoPolicyBasic(projectName, repoName),
+				Config: hclRepoPolicyFilePathPatternsResourceRepoPolicyBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(authorEmailTfNode, "enabled", "true"),
-					resource.TestCheckResourceAttr(authorEmailTfNode, "filepath_patterns.#", "1"),
+					resource.TestCheckResourceAttr(filePathTfNode, "enabled", "true"),
+					resource.TestCheckResourceAttr(filePathTfNode, "filepath_patterns.#", "1"),
 				),
 			}, {
-				ResourceName:      authorEmailTfNode,
-				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(authorEmailTfNode),
+				ResourceName:      filePathTfNode,
+				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(filePathTfNode),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -47,29 +47,29 @@ func testAccRepositoryPolicyFilePathPatternsRepoPolicyBasic(t *testing.T) {
 }
 
 func testAccRepositoryPolicyFilePathPatternsRepoPolicyUpdate(t *testing.T) {
-	authorEmailTfNode := "betterado_repository_policy_file_path_pattern.test"
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
+	filePathTfNode := "betterado_repository_policy_file_path_pattern.test"
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepoPolicyFilePathPatternsResourceRepoPolicyBasic(projectName, repoName),
+				Config: hclRepoPolicyFilePathPatternsResourceRepoPolicyBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(authorEmailTfNode, "enabled", "true"),
-					resource.TestCheckResourceAttr(authorEmailTfNode, "filepath_patterns.#", "1"),
+					resource.TestCheckResourceAttr(filePathTfNode, "enabled", "true"),
+					resource.TestCheckResourceAttr(filePathTfNode, "filepath_patterns.#", "1"),
 				),
 			}, {
-				Config: hclRepoPolicyFilePathPatternsResourceRepoPolicyUpdate(projectName, repoName),
+				Config: hclRepoPolicyFilePathPatternsResourceRepoPolicyUpdate(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(authorEmailTfNode, "enabled", "true"),
-					resource.TestCheckResourceAttr(authorEmailTfNode, "filepath_patterns.#", "2"),
+					resource.TestCheckResourceAttr(filePathTfNode, "enabled", "true"),
+					resource.TestCheckResourceAttr(filePathTfNode, "filepath_patterns.#", "2"),
 				),
 			}, {
-				ResourceName:      authorEmailTfNode,
-				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(authorEmailTfNode),
+				ResourceName:      filePathTfNode,
+				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(filePathTfNode),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -78,23 +78,23 @@ func testAccRepositoryPolicyFilePathPatternsRepoPolicyUpdate(t *testing.T) {
 }
 
 func testAccRepositoryPolicyFilePathPatternsProjectPolicyBasic(t *testing.T) {
-	authorEmailTfNode := "betterado_repository_policy_file_path_pattern.test"
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
+	filePathTfNode := "betterado_repository_policy_file_path_pattern.test"
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepoPolicyFilePathPatternsResourceProjectPolicyBasic(projectName, repoName),
+				Config: hclRepoPolicyFilePathPatternsResourceProjectPolicyBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(authorEmailTfNode, "enabled", "true"),
-					resource.TestCheckResourceAttr(authorEmailTfNode, "filepath_patterns.#", "1"),
+					resource.TestCheckResourceAttr(filePathTfNode, "enabled", "true"),
+					resource.TestCheckResourceAttr(filePathTfNode, "filepath_patterns.#", "1"),
 				),
 			}, {
-				ResourceName:      authorEmailTfNode,
-				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(authorEmailTfNode),
+				ResourceName:      filePathTfNode,
+				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(filePathTfNode),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -103,29 +103,29 @@ func testAccRepositoryPolicyFilePathPatternsProjectPolicyBasic(t *testing.T) {
 }
 
 func testAccRepositoryPolicyFilePathPatternsProjectPolicyUpdate(t *testing.T) {
-	authorEmailTfNode := "betterado_repository_policy_file_path_pattern.test"
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
+	filePathTfNode := "betterado_repository_policy_file_path_pattern.test"
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepoPolicyFilePathPatternsResourceProjectPolicyBasic(projectName, repoName),
+				Config: hclRepoPolicyFilePathPatternsResourceProjectPolicyBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(authorEmailTfNode, "enabled", "true"),
-					resource.TestCheckResourceAttr(authorEmailTfNode, "filepath_patterns.#", "1"),
+					resource.TestCheckResourceAttr(filePathTfNode, "enabled", "true"),
+					resource.TestCheckResourceAttr(filePathTfNode, "filepath_patterns.#", "1"),
 				),
 			}, {
-				Config: hclRepoPolicyFilePathPatternsResourceProjectPolicyUpdate(projectName, repoName),
+				Config: hclRepoPolicyFilePathPatternsResourceProjectPolicyUpdate(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(authorEmailTfNode, "filepath_patterns.#", "2"),
-					resource.TestCheckResourceAttr(authorEmailTfNode, "enabled", "true"),
+					resource.TestCheckResourceAttr(filePathTfNode, "filepath_patterns.#", "2"),
+					resource.TestCheckResourceAttr(filePathTfNode, "enabled", "true"),
 				),
 			}, {
-				ResourceName:      authorEmailTfNode,
-				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(authorEmailTfNode),
+				ResourceName:      filePathTfNode,
+				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(filePathTfNode),
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -133,78 +133,70 @@ func testAccRepositoryPolicyFilePathPatternsProjectPolicyUpdate(t *testing.T) {
 	})
 }
 
-func hclRepoPolicyFilePathPatternsResourceTemplate(projectName string, repoName string) string {
+func hclRepoPolicyFilePathPatternsResourceTemplate(projectID string, repoName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%s"
-  description        = "Test Project Description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = %[1]q
+  name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
-`, projectName, repoName)
+`, projectID, repoName)
 }
 
-func hclRepoPolicyFilePathPatternsResourceRepoPolicyBasic(projectName string, repoName string) string {
-	projectAndRepo := hclRepoPolicyFilePathPatternsResourceTemplate(projectName, repoName)
+func hclRepoPolicyFilePathPatternsResourceRepoPolicyBasic(projectID string, repoName string) string {
+	repoBlock := hclRepoPolicyFilePathPatternsResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_file_path_pattern" "test" {
-  project_id        = betterado_project.test.id
+  project_id        = %[2]q
   enabled           = true
   blocking          = true
   filepath_patterns = ["*.go"]
   repository_ids    = [betterado_git_repository.test.id]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclRepoPolicyFilePathPatternsResourceRepoPolicyUpdate(projectName string, repoName string) string {
-	projectAndRepo := hclRepoPolicyFilePathPatternsResourceTemplate(projectName, repoName)
+func hclRepoPolicyFilePathPatternsResourceRepoPolicyUpdate(projectID string, repoName string) string {
+	repoBlock := hclRepoPolicyFilePathPatternsResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_file_path_pattern" "test" {
-  project_id        = betterado_project.test.id
+  project_id        = %[2]q
   enabled           = true
   blocking          = true
   filepath_patterns = ["*.go", "/home/test/*.ts"]
   repository_ids    = [betterado_git_repository.test.id]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclRepoPolicyFilePathPatternsResourceProjectPolicyBasic(projectName string, repoName string) string {
-	projectAndRepo := hclRepoPolicyFilePathPatternsResourceTemplate(projectName, repoName)
+func hclRepoPolicyFilePathPatternsResourceProjectPolicyBasic(projectID string, repoName string) string {
+	repoBlock := hclRepoPolicyFilePathPatternsResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_file_path_pattern" "test" {
-  project_id        = betterado_project.test.id
+  project_id        = %[2]q
   enabled           = true
   blocking          = true
   filepath_patterns = ["*.go"]
   depends_on        = [betterado_git_repository.test]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclRepoPolicyFilePathPatternsResourceProjectPolicyUpdate(projectName string, repoName string) string {
-	projectAndRepo := hclRepoPolicyFilePathPatternsResourceTemplate(projectName, repoName)
+func hclRepoPolicyFilePathPatternsResourceProjectPolicyUpdate(projectID string, repoName string) string {
+	repoBlock := hclRepoPolicyFilePathPatternsResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_file_path_pattern" "test" {
-  project_id        = betterado_project.test.id
+  project_id        = %[2]q
   enabled           = true
   blocking          = true
   filepath_patterns = ["*.go", "/home/test/*.ts"]
   depends_on        = [betterado_git_repository.test]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }

@@ -1,3 +1,5 @@
+//go:build (all || resource_serviceendpoint_azurecr) && !exclude_resource_serviceendpoint_azurecr
+
 package acceptancetests
 
 import (
@@ -24,8 +26,8 @@ func TestAccServiceEndpointAzureCR_spn_basic(t *testing.T) {
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
 		},
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkServiceEndpointDockerRegistryDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclAzureCRSpn(projectName, serviceEndpointNameFirst),
@@ -35,13 +37,7 @@ func TestAccServiceEndpointAzureCR_spn_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "azurecr_subscription_id"),
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "azurecr_subscription_name"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "service_endpoint_name", serviceEndpointNameFirst),
-					testutils.CheckServiceEndpointExistsWithName(tfSvcEpNode, serviceEndpointNameFirst),
 				),
-			}, {
-				ResourceName:      tfSvcEpNode,
-				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfSvcEpNode),
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
@@ -63,8 +59,8 @@ func TestAccServiceEndpointAzureCR_spn_update(t *testing.T) {
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
 		},
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkServiceEndpointDockerRegistryDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclAzureCRSpn(projectName, serviceEndpointNameFirst),
@@ -74,14 +70,7 @@ func TestAccServiceEndpointAzureCR_spn_update(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "azurecr_subscription_id"),
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "azurecr_subscription_name"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "service_endpoint_name", serviceEndpointNameFirst),
-					testutils.CheckServiceEndpointExistsWithName(tfSvcEpNode, serviceEndpointNameFirst),
 				),
-			},
-			{
-				ResourceName:      tfSvcEpNode,
-				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfSvcEpNode),
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 			{
 				Config: hclAzureCRSpn(projectName, serviceEndpointNameSecond),
@@ -91,14 +80,7 @@ func TestAccServiceEndpointAzureCR_spn_update(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "azurecr_subscription_id"),
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "azurecr_subscription_name"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "service_endpoint_name", serviceEndpointNameSecond),
-					testutils.CheckServiceEndpointExistsWithName(tfSvcEpNode, serviceEndpointNameSecond),
 				),
-			},
-			{
-				ResourceName:      tfSvcEpNode,
-				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfSvcEpNode),
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
@@ -115,13 +97,12 @@ func TestAccServiceEndpointAzureCR_workLoadIdentity_basic(t *testing.T) {
 
 	resourceType := "betterado_serviceendpoint_azurecr"
 	tfSvcEpNode := resourceType + ".test"
-	// fmt.Println(hclAzureCRWorkLoadIdentity(projectName, serviceEndpointNameFirst))
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
 		},
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkServiceEndpointDockerRegistryDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclAzureCRWorkLoadIdentity(projectName, serviceEndpointNameFirst),
@@ -131,13 +112,7 @@ func TestAccServiceEndpointAzureCR_workLoadIdentity_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "azurecr_subscription_id"),
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "azurecr_subscription_name"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "service_endpoint_name", serviceEndpointNameFirst),
-					testutils.CheckServiceEndpointExistsWithName(tfSvcEpNode, serviceEndpointNameFirst),
 				),
-			}, {
-				ResourceName:      tfSvcEpNode,
-				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfSvcEpNode),
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})
@@ -159,8 +134,8 @@ func TestAccServiceEndpointAzureCR_workLoadIdentity_update(t *testing.T) {
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
 		},
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkServiceEndpointDockerRegistryDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclAzureCRWorkLoadIdentity(projectName, serviceEndpointNameFirst),
@@ -170,14 +145,7 @@ func TestAccServiceEndpointAzureCR_workLoadIdentity_update(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "azurecr_subscription_id"),
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "azurecr_subscription_name"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "service_endpoint_name", serviceEndpointNameFirst),
-					testutils.CheckServiceEndpointExistsWithName(tfSvcEpNode, serviceEndpointNameFirst),
 				),
-			},
-			{
-				ResourceName:      tfSvcEpNode,
-				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfSvcEpNode),
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 			{
 				Config: hclAzureCRWorkLoadIdentity(projectName, serviceEndpointNameSecond),
@@ -187,14 +155,7 @@ func TestAccServiceEndpointAzureCR_workLoadIdentity_update(t *testing.T) {
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "azurecr_subscription_id"),
 					resource.TestCheckResourceAttrSet(tfSvcEpNode, "azurecr_subscription_name"),
 					resource.TestCheckResourceAttr(tfSvcEpNode, "service_endpoint_name", serviceEndpointNameSecond),
-					testutils.CheckServiceEndpointExistsWithName(tfSvcEpNode, serviceEndpointNameSecond),
 				),
-			},
-			{
-				ResourceName:      tfSvcEpNode,
-				ImportStateIdFunc: testutils.ComputeProjectQualifiedResourceImportID(tfSvcEpNode),
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})

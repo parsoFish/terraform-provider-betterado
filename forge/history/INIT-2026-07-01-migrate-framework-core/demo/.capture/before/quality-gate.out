@@ -1,0 +1,4 @@
+FAIL	./azuredevops/internal/service/servicehook/... [setup failed]
+FAIL
+[stderr] # ./azuredevops/internal/service/servicehook/...
+pattern ./azuredevops/internal/service/servicehook/...: lstat ./azuredevops/internal/service/servicehook/: no such file or directory

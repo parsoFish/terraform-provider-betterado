@@ -1,13 +1,93 @@
 package acceptancetests
 
 import (
+	"context"
 	"fmt"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
+
+// getGroupDirectClient builds an AggregatedClient directly from AZDO env vars.
+// Used because ProtoV6ProviderFactories does not configure the SDKv2 provider singleton,
+// so testutils.GetProvider().Meta() would be nil when using GetMuxedProviderFactories().
+func getGroupDirectClient() (*client.AggregatedClient, error) {
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+}
+
+// captureWitProcessGroupEvidence performs a real live API GET of the created group and persists
+// the response as forge demo live-evidence (before the resource is destroyed).
+// Best-effort: a capture failure never fails the test.
+func captureWitProcessGroupEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		processId := res.Primary.Attributes["process_id"]
+		witRefName := res.Primary.Attributes["work_item_type_reference_name"]
+		groupId := res.Primary.ID
+
+		clients, err := getGroupDirectClient()
+		if err != nil {
+			return nil //nolint:nilerr // best-effort: client build failure does not fail the test
+		}
+
+		expand := workitemtrackingprocess.GetWorkItemTypeExpandValues.Layout
+		workItemType, err := clients.WorkItemTrackingProcessClient.GetProcessWorkItemType(context.Background(),
+			workitemtrackingprocess.GetProcessWorkItemTypeArgs{
+				ProcessId:  converter.UUID(processId),
+				WitRefName: &witRefName,
+				Expand:     &expand,
+			})
+		if err != nil || workItemType == nil || workItemType.Layout == nil {
+			return nil //nolint:nilerr // best-effort: API failure does not fail the test
+		}
+
+		// Find the group in the layout
+		var foundGroup *workitemtrackingprocess.Group
+		if workItemType.Layout.Pages != nil {
+			for _, page := range *workItemType.Layout.Pages {
+				if page.Sections == nil {
+					continue
+				}
+				for _, section := range *page.Sections {
+					if section.Groups == nil {
+						continue
+					}
+					for _, g := range *section.Groups {
+						if g.Id != nil && *g.Id == groupId {
+							gCopy := g
+							foundGroup = &gCopy
+							break
+						}
+					}
+					if foundGroup != nil {
+						break
+					}
+				}
+				if foundGroup != nil {
+					break
+				}
+			}
+		}
+
+		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+		url := fmt.Sprintf("%s/_apis/work/processdefinitions/%s/workItemTypes/%s/layout?api-version=7.1", orgURL, processId, witRefName)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-workitemtrackingprocess-group", url, foundGroup)
+		return nil
+	}
+}
 
 func TestAccWorkitemtrackingprocessGroup_Basic(t *testing.T) {
 	workItemTypeName := testutils.GenerateWorkItemTypeName()
@@ -15,9 +95,9 @@ func TestAccWorkitemtrackingprocessGroup_Basic(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: basicGroup(workItemTypeName, processName),
@@ -30,6 +110,7 @@ func TestAccWorkitemtrackingprocessGroup_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "visible", "true"),
 					resource.TestCheckResourceAttrSet(tfNode, "id"),
 					resource.TestCheckResourceAttrSet(tfNode, "order"),
+					captureWitProcessGroupEvidence(tfNode),
 				),
 			},
 			{
@@ -48,9 +129,9 @@ func TestAccWorkitemtrackingprocessGroup_Update(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_group.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: basicGroup(workItemTypeName, processName),
@@ -102,9 +183,9 @@ func TestAccWorkitemtrackingprocessGroup_Move(t *testing.T) {
 	var originalSectionId string
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: basicGroup(workItemTypeName, processName),
@@ -164,10 +245,23 @@ func TestAccWorkitemtrackingprocessGroup_WithMultipleControlTypes(t *testing.T) 
 	processName := testutils.GenerateResourceName()
 	tfNode := "betterado_workitemtrackingprocess_group.test"
 
+	const multivaluePublisher = "ms-devlabs"
+	const multivalueExtension = "vsts-extensions-multivalue-control"
+
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck: func() {
+			testutils.PreCheck(t, nil)
+			// Ensure the multivalue-control extension is installed before the test
+			// runs. Managing it as a Terraform resource causes TF1590010 flakiness
+			// when a previous test run left it installed. We install it directly via
+			// the API and clean up in CheckDestroy instead.
+			testutils.EnsureExtensionInstalled(t, multivaluePublisher, multivalueExtension)
+		},
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy: func(s *terraform.State) error {
+			testutils.EnsureExtensionUninstalled(t, multivaluePublisher, multivalueExtension)
+			return testutils.CheckProcessDestroyed(s)
+		},
 		Steps: []resource.TestStep{
 			{
 				Config:       groupWithMultipleControlTypes(workItemTypeName, processName),
@@ -297,13 +391,11 @@ func groupWithMultipleControlTypes(workItemTypeName string, processName string) 
 	return fmt.Sprintf(`
 %s
 
-resource "betterado_extension" "test" {
-  publisher_id = "ms-devlabs"
-  extension_id = "vsts-extensions-multivalue-control"
-}
+# Note: the ms-devlabs.vsts-extensions-multivalue-control extension is installed
+# by the test PreCheck via EnsureExtensionInstalled (not managed as a Terraform
+# resource) to avoid TF1590010 "already installed" failures in parallel/retry runs.
 
 resource "betterado_workitemtrackingprocess_group" "test" {
-  depends_on                    = [betterado_extension.test]
   process_id                    = betterado_workitemtrackingprocess_process.test.id
   work_item_type_reference_name = betterado_workitemtrackingprocess_workitemtype.test.reference_name
   page_id                       = betterado_workitemtrackingprocess_workitemtype.test.pages[0].id

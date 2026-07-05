@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_jenkins Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a Jenkins Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_jenkins (Resource)
 
-
+Manages a Jenkins Service Connection within Azure DevOps.
 
 
 
@@ -18,28 +18,17 @@ description: |-
 ### Required
 
 - `password` (String, Sensitive) The Jenkins password.
-- `project_id` (String)
-- `service_endpoint_name` (String)
-- `url` (String) Url for the Jenkins Repository
+- `project_id` (String) The ID of the project.
+- `service_endpoint_name` (String) The Service Endpoint name.
+- `url` (String) Url for the Jenkins Repository.
 - `username` (String) The Jenkins user name.
 
 ### Optional
 
 - `accept_untrusted_certs` (Boolean) Allows the Jenkins clients to accept self-signed SSL server certificates without installing them into the TFS service role and/or Build Agent computers.
-- `description` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `description` (String) The Service Endpoint description.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.

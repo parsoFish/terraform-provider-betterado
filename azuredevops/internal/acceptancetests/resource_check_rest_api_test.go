@@ -9,18 +9,18 @@ import (
 )
 
 func TestAccCheckRestAPI_basic(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
 	serviceConnectionName := testutils.GenerateResourceName()
 	displayName := testutils.GenerateResourceName()
 
 	tfCheckNode := "betterado_check_rest_api.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckPipelineCheckDestroyed("betterado_check_rest_api"),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckPipelineCheckDestroyed("betterado_check_rest_api"),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckRestAPIResourceBasic(projectName, serviceConnectionName, displayName),
+				Config: hclCheckRestAPIResourceBasic(projectID, serviceConnectionName, displayName),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, displayName),
 					resource.TestCheckResourceAttr(tfCheckNode, "connected_service_name_selector", "connectedServiceName"),
@@ -33,19 +33,19 @@ func TestAccCheckRestAPI_basic(t *testing.T) {
 }
 
 func TestAccCheckRestAPI_complete(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
 	variableGroupName := testutils.GenerateResourceName()
 	displayName := testutils.GenerateResourceName()
 	serviceConnectionName := testutils.GenerateResourceName()
 
 	tfCheckNode := "betterado_check_rest_api.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckPipelineCheckDestroyed("betterado_check_rest_api"),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckPipelineCheckDestroyed("betterado_check_rest_api"),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckRestAPIResourceComplete(projectName, serviceConnectionName, displayName, variableGroupName),
+				Config: hclCheckRestAPIResourceComplete(projectID, serviceConnectionName, displayName, variableGroupName),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, displayName),
 					resource.TestCheckResourceAttr(tfCheckNode, "connected_service_name_selector", "connectedServiceName"),
@@ -66,19 +66,19 @@ func TestAccCheckRestAPI_complete(t *testing.T) {
 }
 
 func TestAccCheckRestAPI_update(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+	projectID := SharedFixtureProjectID(t)
 	variableGroupName := testutils.GenerateResourceName()
 	displayName := testutils.GenerateResourceName()
 	serviceConnectionName := testutils.GenerateResourceName()
 
 	tfCheckNode := "betterado_check_rest_api.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckPipelineCheckDestroyed("betterado_check_rest_api"),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckPipelineCheckDestroyed("betterado_check_rest_api"),
 		Steps: []resource.TestStep{
 			{
-				Config: hclCheckRestAPIResourceBasic(projectName, serviceConnectionName, displayName),
+				Config: hclCheckRestAPIResourceBasic(projectID, serviceConnectionName, displayName),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, displayName),
 					resource.TestCheckResourceAttr(tfCheckNode, "connected_service_name_selector", "connectedServiceName"),
@@ -87,7 +87,7 @@ func TestAccCheckRestAPI_update(t *testing.T) {
 				),
 			},
 			{
-				Config: hclCheckRestAPIResourceComplete(projectName, serviceConnectionName, displayName, variableGroupName),
+				Config: hclCheckRestAPIResourceComplete(projectID, serviceConnectionName, displayName, variableGroupName),
 				Check: resource.ComposeTestCheckFunc(
 					testutils.CheckPipelineCheckExistsWithName(tfCheckNode, displayName),
 					resource.TestCheckResourceAttr(tfCheckNode, "connected_service_name_selector", "connectedServiceName"),
@@ -107,28 +107,18 @@ func TestAccCheckRestAPI_update(t *testing.T) {
 	})
 }
 
-func hclCheckRestAPIResourceTemplate(projectName string, serviceConnectionName string) string {
+func hclCheckRestAPIResourceBasic(projectID, serviceConnectionName, displayName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
-}
-
 resource "betterado_serviceendpoint_generic" "test" {
-  project_id            = betterado_project.test.id
+  project_id            = %q
   service_endpoint_name = "%s"
   server_url            = "https://dev.azure.com/"
   username              = "username"
   password              = "dummy"
-}`, projectName, serviceConnectionName)
 }
 
-func hclCheckRestAPIResourceBasic(projectName, serviceConnectionName, displayName string) string {
-	template := hclCheckRestAPIResourceTemplate(projectName, serviceConnectionName)
-	return fmt.Sprintf(`
-%s
-
 resource "betterado_serviceendpoint_generic" "test2" {
-  project_id            = betterado_project.test.id
+  project_id            = %q
   service_endpoint_name = "se_%s"
   server_url            = "https://dev.azure.com/"
   username              = "username"
@@ -136,23 +126,28 @@ resource "betterado_serviceendpoint_generic" "test2" {
 }
 
 resource "betterado_check_rest_api" "test" {
-  project_id                      = betterado_project.test.id
+  project_id                      = %q
   target_resource_id              = betterado_serviceendpoint_generic.test.id
   target_resource_type            = "endpoint"
   display_name                    = "%s"
   connected_service_name_selector = "connectedServiceName"
   connected_service_name          = betterado_serviceendpoint_generic.test2.service_endpoint_name
   method                          = "GET"
-}`, template, serviceConnectionName, displayName)
+}`, projectID, serviceConnectionName, projectID, serviceConnectionName, projectID, displayName)
 }
 
-func hclCheckRestAPIResourceComplete(projectName, serviceConnectionName, displayName, variableGroupName string) string {
-	template := hclCheckRestAPIResourceTemplate(projectName, serviceConnectionName)
+func hclCheckRestAPIResourceComplete(projectID, serviceConnectionName, displayName, variableGroupName string) string {
 	return fmt.Sprintf(`
-%s
+resource "betterado_serviceendpoint_generic" "test" {
+  project_id            = %q
+  service_endpoint_name = "%s"
+  server_url            = "https://dev.azure.com/"
+  username              = "username"
+  password              = "dummy"
+}
 
 resource "betterado_serviceendpoint_generic" "test2" {
-  project_id            = betterado_project.test.id
+  project_id            = %q
   service_endpoint_name = "se_%s"
   server_url            = "https://dev.azure.com/"
   username              = "username"
@@ -160,7 +155,7 @@ resource "betterado_serviceendpoint_generic" "test2" {
 }
 
 resource "betterado_variable_group" "test" {
-  project_id   = betterado_project.test.id
+  project_id   = %q
   name         = "%s"
   allow_access = true
   variable = [{
@@ -170,7 +165,7 @@ resource "betterado_variable_group" "test" {
 }
 
 resource "betterado_check_rest_api" "test" {
-  project_id           = betterado_project.test.id
+  project_id           = %q
   target_resource_id   = betterado_serviceendpoint_generic.test.id
   target_resource_type = "endpoint"
 
@@ -186,5 +181,5 @@ resource "betterado_check_rest_api" "test" {
   retry_interval                  = 4000
   variable_group_name             = betterado_variable_group.test.name
   timeout                         = "40000"
-}`, template, serviceConnectionName, variableGroupName, displayName)
+}`, projectID, serviceConnectionName, projectID, serviceConnectionName, projectID, variableGroupName, projectID, displayName)
 }

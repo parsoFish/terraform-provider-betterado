@@ -8,15 +8,37 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
-func TestAccProjects_DataSource_SingleProject(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
+// TestAccProjects_dataSource exercises the framework data.betterado_projects data source
+// by listing projects filtered by the betterado-standing-demo name. No new project is
+// created — the org is at the 1000-project cap.
+func TestAccProjects_dataSource(t *testing.T) {
 	tfNode := "data.betterado_projects.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclDataSourceProjectsSingle(projectName),
+				Config: hclProjectsDataSourceByName(SharedFixtureProjectName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(tfNode, "projects.#", "1"),
+					resource.TestCheckResourceAttr(tfNode, "projects.0.name", SharedFixtureProjectName),
+				),
+			},
+		},
+	})
+}
+
+// TestAccProjects_DataSource_SingleProject verifies that data.betterado_projects returns
+// exactly 1 project when filtered by an existing project name. Uses the standing-demo
+// project so no new project is created.
+func TestAccProjects_DataSource_SingleProject(t *testing.T) {
+	tfNode := "data.betterado_projects.test"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		Steps: []resource.TestStep{
+			{
+				Config: hclProjectsDataSourceByName(SharedFixtureProjectName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "projects.#", "1"),
 				),
@@ -25,11 +47,13 @@ func TestAccProjects_DataSource_SingleProject(t *testing.T) {
 	})
 }
 
+// TestAccProjects_DataSource_EmptyResult verifies that data.betterado_projects returns
+// 0 projects for a name that doesn't exist.
 func TestAccProjects_DataSource_EmptyResult(t *testing.T) {
 	tfNode := "data.betterado_projects.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSourceProjectsEmptyResult(),
@@ -41,18 +65,12 @@ func TestAccProjects_DataSource_EmptyResult(t *testing.T) {
 	})
 }
 
-func hclDataSourceProjectsSingle(name string) string {
+// hclProjectsDataSourceByName lists projects filtered by name using the framework
+// data source.
+func hclProjectsDataSourceByName(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
 data "betterado_projects" "test" {
-  name = betterado_project.test.name
+  name = %q
 }
 `, name)
 }
@@ -60,7 +78,7 @@ data "betterado_projects" "test" {
 func hclDataSourceProjectsEmptyResult() string {
 	return `
 data "betterado_projects" "test" {
-  name  = "invalid_name"
+  name  = "invalid_name_that_does_not_exist_xyz"
   state = "wellFormed"
 }
 `
