@@ -10,7 +10,7 @@
       "caption": "Quality gate: go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... passes on branch tip",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s",
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.002s",
       "beforeNote": "Tests pass on main (mux scaffold still in place)",
       "afterNote": "Tests pass on HEAD (pure-framework entry point; mux removed)"
     },
@@ -85,7 +85,7 @@
     {
       "criterion": "GIVEN provider.go is modified WHEN go test -tags all ./azuredevops/... is run THEN all offline unit tests pass",
       "verdict": "met",
-      "evidence": "Quality gate go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... → ok (0.003s); all service tests green"
+      "evidence": "Quality gate go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... → ok (0.002s); all service tests green"
     },
     {
       "criterion": "GIVEN provider.go ResourcesMap and DataSourcesMap are empty WHEN main.go is rewritten THEN main.go imports only framework/providerserver, tf6server, and azuredevops package; calls tf6server.Serve with providerserver.NewProtocol6WithError; no import of tf5to6server, tf6muxserver, or terraform-plugin-sdk/v2/helper/schema",

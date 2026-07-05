@@ -18,7 +18,7 @@ Remove `tf6muxserver` + `tf5to6server` from the provider entry point. All `bette
 | AC4 (WI-2) | TestServiceEndpoint* unit tests pass -tags all | ✅ met | go test -tags all -run TestServiceEndpoint* → PASS (commit 3809b19f) |
 | AC5 (WI-3) | ResourcesMap and DataSourcesMap empty | ✅ met | grep non-comment betterado_serviceendpoint → empty (commit 1dae5458) |
 | AC6 (WI-3) | go build -mod=vendor . succeeds | ✅ met | BUILD_OK on HEAD |
-| AC7 (WI-3) | Offline unit tests pass | ✅ met | servicehook gate → ok (0.003s) |
+| AC7 (WI-3) | Offline unit tests pass | ✅ met | servicehook gate → ok (0.002s) |
 | AC8 (WI-4) | main.go: no tf5to6server/tf6muxserver/helper/schema imports | ✅ met | grep → empty; commit 0b3d9004 |
 | AC9 (WI-4) | go build succeeds after main.go rewrite | ✅ met | BUILD_OK on HEAD |
 | AC10 (WI-4) | framework.go shim: build still succeeds | ✅ met | minimal 3-line re-export kept; BUILD_OK |
@@ -36,7 +36,7 @@ Remove `tf6muxserver` + `tf5to6server` from the provider entry point. All `bette
 | | Output |
 |---|---|
 | **Before (main)** | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.003s` |
-| **After (HEAD)** | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.003s` |
+| **After (HEAD)** | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.002s` |
 
 Tests pass on main (mux scaffold still in place) and on HEAD (pure-framework entry point; mux removed).
 
