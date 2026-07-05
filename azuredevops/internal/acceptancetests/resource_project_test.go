@@ -16,6 +16,45 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
+// TestAccProviderMuxFree verifies that the pure-framework provider (no mux
+// scaffold) can read the betterado_project data source against real ADO.
+// It uses GetProviderFactories() (proto v6, framework-only) and asserts the
+// standing demo project is readable and captures live evidence.
+//
+// NOTE: betterado-standing-demo is a SHARED, NEVER-DELETED fixture project.
+// Do NOT create a new project — the ADO org is at the 1000-project quota.
+func TestAccProviderMuxFree(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v == "" {
+		t.Skip("Skipping as TF_ACC is not set")
+	}
+	projectName := SharedFixtureProjectName // "betterado-standing-demo"
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	projectURL := fmt.Sprintf("%s/_apis/projects/%s?api-version=7.0", orgURL, projectName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+data "betterado_project" "muxfree" {
+  name = %q
+}`, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.betterado_project.muxfree", "name", projectName),
+					func(s *terraform.State) error {
+						// Capture live evidence: real GET response for demo purposes.
+						return testutils.CaptureLiveEvidence(
+							"acceptance-provider-mux-free",
+							projectURL,
+							map[string]string{"project": projectName, "status": "read-back-ok"},
+						)
+					},
+				),
+			},
+		},
+	})
+}
+
 func TestAccProject_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	tfNode := "betterado_project.test"
