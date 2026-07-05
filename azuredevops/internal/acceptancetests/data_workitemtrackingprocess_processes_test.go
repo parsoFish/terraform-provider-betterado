@@ -1,3 +1,5 @@
+//go:build (all || data_source_workitemtrackingprocess_processes) && !exclude_data_source_workitemtrackingprocess_processes
+
 package acceptancetests
 
 import (
@@ -10,8 +12,8 @@ import (
 func TestAccWorkitemtrackingprocessProcesses_DataSource_AllProcesses(t *testing.T) {
 	tfNode := "data.betterado_workitemtrackingprocess_processes.all"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSourceAllProcesses(),

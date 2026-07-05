@@ -6,9 +6,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.18.1
 	github.com/Azure/entrauth v0.0.0-20250819004238-dc2a3f58cbb7
 	github.com/ahmetb/go-linq v3.0.0+incompatible
-	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/terraform-plugin-framework v1.19.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.19.0
@@ -35,9 +33,11 @@ require (
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
+	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-checkpoint v0.5.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+	github.com/hashicorp/go-cty v1.5.0 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-plugin v1.7.0 // indirect

@@ -2,6 +2,7 @@ package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
@@ -20,15 +22,16 @@ func TestAccWorkitemtrackingprocessList_Basic(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_list.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkListDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkListDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: basicList(listName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "id"),
 					resource.TestCheckResourceAttrSet(tfNode, "url"),
+					captureListEvidence(tfNode),
 				),
 			},
 			{
@@ -45,9 +48,9 @@ func TestAccWorkitemtrackingprocessList_Update(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_list.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkListDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkListDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: basicList(listName),
@@ -91,9 +94,9 @@ func TestAccWorkitemtrackingprocessList_Integer(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_list.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      checkListDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkListDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: integerList(listName),
@@ -139,16 +142,60 @@ resource "betterado_workitemtrackingprocess_list" "test" {
 `, name)
 }
 
+// captureListEvidence reads back the list via the Azure DevOps API and calls
+// testutils.CaptureLiveEvidence to satisfy AC4.
+func captureListEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+
+		listID, err := uuid.Parse(res.Primary.ID)
+		if err != nil {
+			return nil //nolint:nilerr // best-effort
+		}
+
+		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+		pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+		agg, err := client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
+		if err != nil {
+			return nil //nolint:nilerr // best-effort: client build failure does not fail the test
+		}
+
+		apiResponse, err := agg.WorkItemTrackingProcessClient.GetList(agg.Ctx, workitemtrackingprocess.GetListArgs{
+			ListId: &listID,
+		})
+		if err != nil {
+			return nil //nolint:nilerr // best-effort
+		}
+
+		url := fmt.Sprintf("%s/_apis/work/processes/lists/%s?api-version=7.1",
+			orgURL, listID.String())
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-workitemtrackingprocess-list", url, apiResponse)
+		return nil
+	}
+}
+
+// checkListDestroyed verifies that all lists referenced in the state are destroyed.
+// Builds the client directly from environment variables so this works regardless
+// of whether the test uses SDKv2 or ProtoV6ProviderFactories (mux).
 func checkListDestroyed(s *terraform.State) error {
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	authProvider := azuredevops.NewAuthProviderPAT(pat)
+	clients, err := client.GetAzdoClient(authProvider, orgURL)
+	if err != nil {
+		return fmt.Errorf("checkListDestroyed: building client: %w", err)
+	}
 	timeout := 10 * time.Second
 
-	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "betterado_workitemtrackingprocess_list" {
+	for _, res := range s.RootModule().Resources {
+		if res.Type != "betterado_workitemtrackingprocess_list" {
 			continue
 		}
 
-		id, err := uuid.Parse(resource.Primary.ID)
+		id, err := uuid.Parse(res.Primary.ID)
 		if err != nil {
 			return err
 		}

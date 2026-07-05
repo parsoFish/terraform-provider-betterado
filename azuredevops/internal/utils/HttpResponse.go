@@ -18,9 +18,10 @@ func ResponseWasNotFound(err error) bool {
 	// Some APIs return 400 BadRequest with specific error codes when resources don't exist:
 	// - VS800075: DevOps Project doesn't exist (all child resources are considered "doesn't exist")
 	// - VS402806: Work item type does not contain field (field was removed or work item type deleted)
+	// - VS1640142: Work item type not found or you do not have permission in the process
 	statusBadRequest := ResponseWasStatusCode(err, http.StatusBadRequest)
 	if statusBadRequest {
-		return ResponseContainsStatusMessage(err, "VS800075", "VS402806")
+		return ResponseContainsStatusMessage(err, "VS800075", "VS402806", "VS1640142")
 	}
 	return false
 }

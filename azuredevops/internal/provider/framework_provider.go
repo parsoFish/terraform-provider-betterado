@@ -42,6 +42,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/testplan"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/wiki"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtracking"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtrackingprocess"
 )
 
 // BetteradoFrameworkProvider is the terraform-plugin-framework provider stub.
@@ -333,6 +334,19 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		core.NewTeamResource,
 		core.NewTeamAdministratorsResource,
 		core.NewTeamMembersResource,
+		workitemtrackingprocess.NewProcessResource,
+		workitemtrackingprocess.NewWorkItemTypeResource,
+		workitemtrackingprocess.NewStateResource,
+		workitemtrackingprocess.NewInheritedStateResource,
+		workitemtrackingprocess.NewPageResource,
+		workitemtrackingprocess.NewInheritedPageResource,
+		workitemtrackingprocess.NewGroupResource,
+		workitemtrackingprocess.NewControlResource,
+		workitemtrackingprocess.NewInheritedControlResource,
+		workitemtrackingprocess.NewSystemControlResource,
+		workitemtrackingprocess.NewListResource,
+		workitemtrackingprocess.NewFieldResource,
+		workitemtrackingprocess.NewRuleResource,
 	}
 }
 
@@ -388,5 +402,9 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		core.NewTeamDataSource,
 		core.NewTeamsDataSource,
 		service.NewClientConfigDataSource,
+		workitemtrackingprocess.NewProcessDataSource,
+		workitemtrackingprocess.NewProcessesDataSource,
+		workitemtrackingprocess.NewWorkItemTypeDataSource,
+		workitemtrackingprocess.NewWorkItemTypesDataSource,
 	}
 }

@@ -71,6 +71,11 @@ func TestResponseWasNotFound(t *testing.T) {
 			Result: true,
 		},
 		{
+			Name:   "400WorkItemTypeNotFound",
+			Error:  GetError(400, "VS1640142: Work item type not found or you do not have permission in the process"),
+			Result: true,
+		},
+		{
 			Name:   "400Different",
 			Error:  GetError(400, "Some different issue"),
 			Result: false,

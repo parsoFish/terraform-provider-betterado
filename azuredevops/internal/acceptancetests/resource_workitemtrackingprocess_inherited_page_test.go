@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/workitemtrackingprocess"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
 
 func TestAccWorkitemtrackingprocessInheritedPage_Basic(t *testing.T) {
@@ -21,9 +20,9 @@ func TestAccWorkitemtrackingprocessInheritedPage_Basic(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_inherited_page.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: basicInheritedPage(workItemTypeName, processName),
@@ -47,9 +46,9 @@ func TestAccWorkitemtrackingprocessInheritedPage_Update(t *testing.T) {
 	tfNode := "betterado_workitemtrackingprocess_inherited_page.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: basicInheritedPage(workItemTypeName, processName),
@@ -89,9 +88,9 @@ func TestAccWorkitemtrackingprocessInheritedPage_Revert(t *testing.T) {
 	var customLabel string
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: basicInheritedPage(workItemTypeName, processName),
@@ -168,7 +167,13 @@ func removedWorkItemType(workItemTypeName string, processName string) string {
 
 func checkPageLabelReverted(processIdStr *string, witRefName *string, pageId *string, customLabel string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+		// Use testutils.GetDirectClient() rather than testutils.GetProvider().Meta()
+		// — the mux ProtoV6ProviderFactories path does not configure the SDKv2
+		// singleton, so Meta() would be nil.
+		clients, err := testutils.GetDirectClient()
+		if err != nil {
+			return fmt.Errorf("building client: %w", err)
+		}
 
 		processId, err := uuid.Parse(*processIdStr)
 		if err != nil {

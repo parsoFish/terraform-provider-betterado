@@ -7,6 +7,10 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### ENHANCEMENTS
+
+- **`betterado_workitemtrackingprocess_*` resources and data sources migrated to terraform-plugin-framework (13 resources, 4 data sources).** All `workitemtrackingprocess` resources and data sources now use the terraform-plugin-framework implementation served through the mux provider. No behavioural changes; the public HCL surface is identical. Resources migrated: `betterado_workitemtrackingprocess_process`, `betterado_workitemtrackingprocess_workitemtype`, `betterado_workitemtrackingprocess_state`, `betterado_workitemtrackingprocess_inherited_state`, `betterado_workitemtrackingprocess_page`, `betterado_workitemtrackingprocess_inherited_page`, `betterado_workitemtrackingprocess_list`, `betterado_workitemtrackingprocess_field`, `betterado_workitemtrackingprocess_rule`, `betterado_workitemtrackingprocess_control`, `betterado_workitemtrackingprocess_group`, `betterado_workitemtrackingprocess_inherited_control`, `betterado_workitemtrackingprocess_system_control`. Data sources migrated: `betterado_workitemtrackingprocess_process`, `betterado_workitemtrackingprocess_processes`, `betterado_workitemtrackingprocess_workitemtype`, `betterado_workitemtrackingprocess_workitemtypes`.
+
 ### BREAKING CHANGES
 
 - **`betterado_project.features` attribute removed in framework migration.** The `features` inline TypeMap that was present in the SDKv2 `betterado_project` schema has been **deliberately removed** from the terraform-plugin-framework implementation (`resource_project_framework.go`). Feature management is now the exclusive responsibility of the separate `betterado_project_features` resource, which provides cleaner state management and avoids the "provider produced inconsistent result" errors observed with the inline implementation.

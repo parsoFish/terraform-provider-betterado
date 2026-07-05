@@ -104,20 +104,20 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// betterado_workitemquery is now a framework resource (registered in framework_provider.go)
 		// betterado_workitemquery_folder is now a framework resource (registered in framework_provider.go)
 		// betterado_workitemquery_permissions is now in the framework provider (framework_provider.go)
-		"betterado_workitemtrackingprocess_control",
-		"betterado_workitemtrackingprocess_field",
-		"betterado_workitemtrackingprocess_group",
-		"betterado_workitemtrackingprocess_inherited_control",
-		"betterado_workitemtrackingprocess_inherited_page",
-		"betterado_workitemtrackingprocess_inherited_state",
-		"betterado_workitemtrackingprocess_list",
-		"betterado_workitemtrackingprocess_page",
-		"betterado_workitemtrackingprocess_process",
+		// betterado_workitemtrackingprocess_control is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_field is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_group is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_inherited_control is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_inherited_page is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_inherited_state is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_list is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_page is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_process is now in the framework provider (framework_provider.go)
 		// betterado_workitemtrackingprocess_process_permissions is now in the framework provider (framework_provider.go)
-		"betterado_workitemtrackingprocess_rule",
-		"betterado_workitemtrackingprocess_state",
-		"betterado_workitemtrackingprocess_system_control",
-		"betterado_workitemtrackingprocess_workitemtype",
+		// betterado_workitemtrackingprocess_rule is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_state is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_system_control is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_workitemtype is now in the framework provider (framework_provider.go)
 	}
 
 	resources := azuredevops.Provider().ResourcesMap
@@ -168,10 +168,10 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		// betterado_user is now a framework data source (registered in framework_provider.go)
 		// betterado_users is now a framework data source (registered in framework_provider.go)
 		"betterado_variable_group",
-		"betterado_workitemtrackingprocess_process",
-		"betterado_workitemtrackingprocess_processes",
-		"betterado_workitemtrackingprocess_workitemtype",
-		"betterado_workitemtrackingprocess_workitemtypes",
+		// betterado_workitemtrackingprocess_process is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_processes is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_workitemtype is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_workitemtypes is now in the framework provider (framework_provider.go)
 	}
 
 	dataSources := azuredevops.Provider().DataSourcesMap

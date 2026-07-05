@@ -1,3 +1,5 @@
+//go:build (all || data_source_workitemtrackingprocess_workitemtypes) && !exclude_data_source_workitemtrackingprocess_workitemtypes
+
 package acceptancetests
 
 import (
@@ -17,9 +19,9 @@ func TestAccWorkitemtrackingprocessWorkItemTypes_DataSource_List(t *testing.T) {
 	tfResourceNode2 := "betterado_workitemtrackingprocess_workitemtype.test2"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
-		CheckDestroy:      testutils.CheckProcessDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkWorkItemTypeDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSourceWorkItemTypes(workItemTypeName1, workItemTypeName2, processName),
@@ -45,7 +47,7 @@ func TestAccWorkitemtrackingprocessWorkItemTypes_DataSource_List(t *testing.T) {
 }
 
 func hclDataSourceWorkItemTypes(workItemTypeName1 string, workItemTypeName2 string, processName string) string {
-	process := process(processName)
+	proc := process(processName)
 	return fmt.Sprintf(`
 %s
 
@@ -68,5 +70,5 @@ data "betterado_workitemtrackingprocess_workitemtypes" "test" {
     betterado_workitemtrackingprocess_workitemtype.test2
   ]
 }
-`, process, workItemTypeName1, workItemTypeName2)
+`, proc, workItemTypeName1, workItemTypeName2)
 }
