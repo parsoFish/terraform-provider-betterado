@@ -29,9 +29,11 @@ func seSSHRequiresReplace() planmodifier.String { return seSSHRequiresReplaceMod
 func (m seSSHRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seSSHRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seSSHRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -48,9 +50,11 @@ func seSSHUseStateForUnknown() planmodifier.String { return seSSHUseStateForUnkn
 func (m seSSHUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seSSHUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seSSHUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -67,9 +71,11 @@ func seSSHDefaultString(v string) defaults.String { return seSSHStringDefault{v}
 func (d seSSHStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seSSHStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seSSHStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }

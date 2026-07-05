@@ -202,14 +202,14 @@ func (r *ServiceEndpointJFrogArtifactoryV2Resource) Configure(_ context.Context,
 // ── State models ────────────��─────────────────────────────────��───────────────
 
 type serviceEndpointJFrogArtifactoryV2Model struct {
-	ID                  types.String                       `tfsdk:"id"`
-	ProjectID           types.String                       `tfsdk:"project_id"`
-	ServiceEndpointName types.String                       `tfsdk:"service_endpoint_name"`
-	Description         types.String                       `tfsdk:"description"`
-	URL                 types.String                       `tfsdk:"url"`
-	Authorization       types.Map                          `tfsdk:"authorization"`
-	AuthenticationToken []seJFrogArtifactoryV2TokenModel   `tfsdk:"authentication_token"`
-	AuthenticationBasic []seJFrogArtifactoryV2BasicModel   `tfsdk:"authentication_basic"`
+	ID                  types.String                     `tfsdk:"id"`
+	ProjectID           types.String                     `tfsdk:"project_id"`
+	ServiceEndpointName types.String                     `tfsdk:"service_endpoint_name"`
+	Description         types.String                     `tfsdk:"description"`
+	URL                 types.String                     `tfsdk:"url"`
+	Authorization       types.Map                        `tfsdk:"authorization"`
+	AuthenticationToken []seJFrogArtifactoryV2TokenModel `tfsdk:"authentication_token"`
+	AuthenticationBasic []seJFrogArtifactoryV2BasicModel `tfsdk:"authentication_basic"`
 }
 
 type seJFrogArtifactoryV2TokenModel struct {

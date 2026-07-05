@@ -29,9 +29,11 @@ func seOctopusRequiresReplace() planmodifier.String { return seOctopusRequiresRe
 func (m seOctopusRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seOctopusRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seOctopusRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -47,12 +49,15 @@ type seOctopusUseStateForUnknownModifier struct{}
 func seOctopusUseStateForUnknown() planmodifier.String {
 	return seOctopusUseStateForUnknownModifier{}
 }
+
 func (m seOctopusUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seOctopusUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seOctopusUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -69,9 +74,11 @@ func seOctopusDefaultString(v string) defaults.String { return seOctopusStringDe
 func (d seOctopusStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seOctopusStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seOctopusStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }

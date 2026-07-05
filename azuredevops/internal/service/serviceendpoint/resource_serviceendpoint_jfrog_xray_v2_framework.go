@@ -190,14 +190,14 @@ func (r *ServiceEndpointJFrogXRayV2Resource) Configure(_ context.Context, req re
 }
 
 type serviceEndpointJFrogXRayV2Model struct {
-	ID                  types.String                   `tfsdk:"id"`
-	ProjectID           types.String                   `tfsdk:"project_id"`
-	ServiceEndpointName types.String                   `tfsdk:"service_endpoint_name"`
-	Description         types.String                   `tfsdk:"description"`
-	URL                 types.String                   `tfsdk:"url"`
-	Authorization       types.Map                      `tfsdk:"authorization"`
-	AuthenticationToken []seJFrogXRayV2TokenModel      `tfsdk:"authentication_token"`
-	AuthenticationBasic []seJFrogXRayV2BasicModel      `tfsdk:"authentication_basic"`
+	ID                  types.String              `tfsdk:"id"`
+	ProjectID           types.String              `tfsdk:"project_id"`
+	ServiceEndpointName types.String              `tfsdk:"service_endpoint_name"`
+	Description         types.String              `tfsdk:"description"`
+	URL                 types.String              `tfsdk:"url"`
+	Authorization       types.Map                 `tfsdk:"authorization"`
+	AuthenticationToken []seJFrogXRayV2TokenModel `tfsdk:"authentication_token"`
+	AuthenticationBasic []seJFrogXRayV2BasicModel `tfsdk:"authentication_basic"`
 }
 
 type seJFrogXRayV2TokenModel struct {

@@ -26,12 +26,15 @@ var (
 type seSonarQubeRequiresReplaceModifier struct{}
 
 func seSonarQubeRequiresReplace() planmodifier.String { return seSonarQubeRequiresReplaceModifier{} }
+
 func (m seSonarQubeRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seSonarQubeRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seSonarQubeRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -47,12 +50,15 @@ type seSonarQubeUseStateForUnknownModifier struct{}
 func seSonarQubeUseStateForUnknown() planmodifier.String {
 	return seSonarQubeUseStateForUnknownModifier{}
 }
+
 func (m seSonarQubeUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seSonarQubeUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seSonarQubeUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -69,9 +75,11 @@ func seSonarQubeDefaultString(v string) defaults.String { return seSonarQubeStri
 func (d seSonarQubeStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seSonarQubeStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seSonarQubeStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }

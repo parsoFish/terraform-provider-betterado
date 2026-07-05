@@ -27,9 +27,11 @@ func seNuGetRequiresReplace() planmodifier.String { return seNuGetRequiresReplac
 func (m seNuGetRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seNuGetRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seNuGetRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -46,9 +48,11 @@ func seNuGetUseStateForUnknown() planmodifier.String { return seNuGetUseStateFor
 func (m seNuGetUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seNuGetUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seNuGetUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -65,9 +69,11 @@ func seNuGetDefaultString(v string) defaults.String { return seNuGetStringDefaul
 func (d seNuGetStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seNuGetStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seNuGetStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }

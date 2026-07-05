@@ -27,9 +27,11 @@ func seMavenRequiresReplace() planmodifier.String { return seMavenRequiresReplac
 func (m seMavenRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seMavenRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seMavenRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -46,9 +48,11 @@ func seMavenUseStateForUnknown() planmodifier.String { return seMavenUseStateFor
 func (m seMavenUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seMavenUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seMavenUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -65,9 +69,11 @@ func seMavenDefaultString(v string) defaults.String { return seMavenStringDefaul
 func (d seMavenStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seMavenStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seMavenStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }
@@ -180,15 +186,15 @@ func (r *ServiceEndpointMavenResource) Configure(_ context.Context, req resource
 }
 
 type serviceEndpointMavenModel struct {
-	ID                  types.String          `tfsdk:"id"`
-	ProjectID           types.String          `tfsdk:"project_id"`
-	ServiceEndpointName types.String          `tfsdk:"service_endpoint_name"`
-	Description         types.String          `tfsdk:"description"`
-	URL                 types.String          `tfsdk:"url"`
-	RepositoryID        types.String          `tfsdk:"repository_id"`
-	Authorization       types.Map             `tfsdk:"authorization"`
-	AuthenticationToken []seMavenTokenModel   `tfsdk:"authentication_token"`
-	AuthenticationBasic []seMavenBasicModel   `tfsdk:"authentication_basic"`
+	ID                  types.String        `tfsdk:"id"`
+	ProjectID           types.String        `tfsdk:"project_id"`
+	ServiceEndpointName types.String        `tfsdk:"service_endpoint_name"`
+	Description         types.String        `tfsdk:"description"`
+	URL                 types.String        `tfsdk:"url"`
+	RepositoryID        types.String        `tfsdk:"repository_id"`
+	Authorization       types.Map           `tfsdk:"authorization"`
+	AuthenticationToken []seMavenTokenModel `tfsdk:"authentication_token"`
+	AuthenticationBasic []seMavenBasicModel `tfsdk:"authentication_basic"`
 }
 
 type seMavenTokenModel struct {

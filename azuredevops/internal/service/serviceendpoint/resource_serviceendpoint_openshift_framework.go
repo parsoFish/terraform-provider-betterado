@@ -25,12 +25,15 @@ var (
 type seOpenshiftRequiresReplaceModifier struct{}
 
 func seOpenshiftRequiresReplace() planmodifier.String { return seOpenshiftRequiresReplaceModifier{} }
+
 func (m seOpenshiftRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seOpenshiftRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seOpenshiftRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -46,12 +49,15 @@ type seOpenshiftUseStateForUnknownModifier struct{}
 func seOpenshiftUseStateForUnknown() planmodifier.String {
 	return seOpenshiftUseStateForUnknownModifier{}
 }
+
 func (m seOpenshiftUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seOpenshiftUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seOpenshiftUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -68,9 +74,11 @@ func seOpenshiftDefaultString(v string) defaults.String { return seOpenshiftStri
 func (d seOpenshiftStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seOpenshiftStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seOpenshiftStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }
@@ -200,17 +208,17 @@ func (r *ServiceEndpointOpenshiftResource) Configure(_ context.Context, req reso
 }
 
 type serviceEndpointOpenshiftModel struct {
-	ID                       types.String              `tfsdk:"id"`
-	ProjectID                types.String              `tfsdk:"project_id"`
-	ServiceEndpointName      types.String              `tfsdk:"service_endpoint_name"`
-	Description              types.String              `tfsdk:"description"`
-	ServerURL                types.String              `tfsdk:"server_url"`
-	AcceptUntrustedCerts     types.Bool                `tfsdk:"accept_untrusted_certs"`
-	CertificateAuthorityFile types.String              `tfsdk:"certificate_authority_file"`
-	Authorization            types.Map                 `tfsdk:"authorization"`
-	AuthBasic                []seOpenshiftBasicModel   `tfsdk:"auth_basic"`
-	AuthToken                []seOpenshiftTokenModel   `tfsdk:"auth_token"`
-	AuthNone                 []seOpenshiftNoneModel    `tfsdk:"auth_none"`
+	ID                       types.String            `tfsdk:"id"`
+	ProjectID                types.String            `tfsdk:"project_id"`
+	ServiceEndpointName      types.String            `tfsdk:"service_endpoint_name"`
+	Description              types.String            `tfsdk:"description"`
+	ServerURL                types.String            `tfsdk:"server_url"`
+	AcceptUntrustedCerts     types.Bool              `tfsdk:"accept_untrusted_certs"`
+	CertificateAuthorityFile types.String            `tfsdk:"certificate_authority_file"`
+	Authorization            types.Map               `tfsdk:"authorization"`
+	AuthBasic                []seOpenshiftBasicModel `tfsdk:"auth_basic"`
+	AuthToken                []seOpenshiftTokenModel `tfsdk:"auth_token"`
+	AuthNone                 []seOpenshiftNoneModel  `tfsdk:"auth_none"`
 }
 
 type seOpenshiftBasicModel struct {

@@ -190,14 +190,14 @@ func (r *ServiceEndpointJFrogDistributionV2Resource) Configure(_ context.Context
 }
 
 type serviceEndpointJFrogDistributionV2Model struct {
-	ID                  types.String                          `tfsdk:"id"`
-	ProjectID           types.String                          `tfsdk:"project_id"`
-	ServiceEndpointName types.String                          `tfsdk:"service_endpoint_name"`
-	Description         types.String                          `tfsdk:"description"`
-	URL                 types.String                          `tfsdk:"url"`
-	Authorization       types.Map                             `tfsdk:"authorization"`
-	AuthenticationToken []seJFrogDistributionV2TokenModel     `tfsdk:"authentication_token"`
-	AuthenticationBasic []seJFrogDistributionV2BasicModel     `tfsdk:"authentication_basic"`
+	ID                  types.String                      `tfsdk:"id"`
+	ProjectID           types.String                      `tfsdk:"project_id"`
+	ServiceEndpointName types.String                      `tfsdk:"service_endpoint_name"`
+	Description         types.String                      `tfsdk:"description"`
+	URL                 types.String                      `tfsdk:"url"`
+	Authorization       types.Map                         `tfsdk:"authorization"`
+	AuthenticationToken []seJFrogDistributionV2TokenModel `tfsdk:"authentication_token"`
+	AuthenticationBasic []seJFrogDistributionV2BasicModel `tfsdk:"authentication_basic"`
 }
 
 type seJFrogDistributionV2TokenModel struct {

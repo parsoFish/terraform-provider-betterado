@@ -29,12 +29,15 @@ type seKubernetesRequiresReplaceModifier struct{}
 func seKubernetesRequiresReplace() planmodifier.String {
 	return seKubernetesRequiresReplaceModifier{}
 }
+
 func (m seKubernetesRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seKubernetesRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seKubernetesRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -50,12 +53,15 @@ type seKubernetesUseStateForUnknownModifier struct{}
 func seKubernetesUseStateForUnknown() planmodifier.String {
 	return seKubernetesUseStateForUnknownModifier{}
 }
+
 func (m seKubernetesUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seKubernetesUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seKubernetesUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -72,9 +78,11 @@ func seKubernetesDefaultString(v string) defaults.String { return seKubernetesSt
 func (d seKubernetesStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seKubernetesStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seKubernetesStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }

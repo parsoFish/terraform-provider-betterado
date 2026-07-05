@@ -26,12 +26,15 @@ type seRunPipelineRequiresReplaceModifier struct{}
 func seRunPipelineRequiresReplace() planmodifier.String {
 	return seRunPipelineRequiresReplaceModifier{}
 }
+
 func (m seRunPipelineRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seRunPipelineRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seRunPipelineRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -47,12 +50,15 @@ type seRunPipelineUseStateForUnknownModifier struct{}
 func seRunPipelineUseStateForUnknown() planmodifier.String {
 	return seRunPipelineUseStateForUnknownModifier{}
 }
+
 func (m seRunPipelineUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seRunPipelineUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seRunPipelineUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -69,9 +75,11 @@ func seRunPipelineDefaultString(v string) defaults.String { return seRunPipeline
 func (d seRunPipelineStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seRunPipelineStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seRunPipelineStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }
@@ -164,13 +172,13 @@ func (r *ServiceEndpointRunPipelineResource) Configure(_ context.Context, req re
 }
 
 type serviceEndpointRunPipelineModel struct {
-	ID                  types.String              `tfsdk:"id"`
-	ProjectID           types.String              `tfsdk:"project_id"`
-	ServiceEndpointName types.String              `tfsdk:"service_endpoint_name"`
-	Description         types.String              `tfsdk:"description"`
-	OrganizationName    types.String              `tfsdk:"organization_name"`
-	Authorization       types.Map                 `tfsdk:"authorization"`
-	AuthPersonal        []seRunPipelinePATModel   `tfsdk:"auth_personal"`
+	ID                  types.String            `tfsdk:"id"`
+	ProjectID           types.String            `tfsdk:"project_id"`
+	ServiceEndpointName types.String            `tfsdk:"service_endpoint_name"`
+	Description         types.String            `tfsdk:"description"`
+	OrganizationName    types.String            `tfsdk:"organization_name"`
+	Authorization       types.Map               `tfsdk:"authorization"`
+	AuthPersonal        []seRunPipelinePATModel `tfsdk:"auth_personal"`
 }
 
 type seRunPipelinePATModel struct {

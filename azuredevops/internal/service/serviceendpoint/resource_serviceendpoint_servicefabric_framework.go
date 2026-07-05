@@ -28,12 +28,15 @@ type seServiceFabricRequiresReplaceModifier struct{}
 func seServiceFabricRequiresReplace() planmodifier.String {
 	return seServiceFabricRequiresReplaceModifier{}
 }
+
 func (m seServiceFabricRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seServiceFabricRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seServiceFabricRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -49,12 +52,15 @@ type seServiceFabricUseStateForUnknownModifier struct{}
 func seServiceFabricUseStateForUnknown() planmodifier.String {
 	return seServiceFabricUseStateForUnknownModifier{}
 }
+
 func (m seServiceFabricUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seServiceFabricUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seServiceFabricUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -68,12 +74,15 @@ func (m seServiceFabricUseStateForUnknownModifier) PlanModifyString(_ context.Co
 type seServiceFabricStringDefault struct{ value string }
 
 func seServiceFabricDefaultString(v string) defaults.String { return seServiceFabricStringDefault{v} }
+
 func (d seServiceFabricStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seServiceFabricStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seServiceFabricStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }
@@ -228,23 +237,23 @@ func (r *ServiceEndpointServiceFabricResource) Configure(_ context.Context, req 
 }
 
 type serviceEndpointServiceFabricModel struct {
-	ID                  types.String                        `tfsdk:"id"`
-	ProjectID           types.String                        `tfsdk:"project_id"`
-	ServiceEndpointName types.String                        `tfsdk:"service_endpoint_name"`
-	Description         types.String                        `tfsdk:"description"`
-	ClusterEndpoint     types.String                        `tfsdk:"cluster_endpoint"`
-	Authorization       types.Map                           `tfsdk:"authorization"`
-	Certificate         []seServiceFabricCertModel          `tfsdk:"certificate"`
-	AzureActiveDirectory []seServiceFabricAADModel          `tfsdk:"azure_active_directory"`
-	None                []seServiceFabricNoneModel          `tfsdk:"none"`
+	ID                   types.String               `tfsdk:"id"`
+	ProjectID            types.String               `tfsdk:"project_id"`
+	ServiceEndpointName  types.String               `tfsdk:"service_endpoint_name"`
+	Description          types.String               `tfsdk:"description"`
+	ClusterEndpoint      types.String               `tfsdk:"cluster_endpoint"`
+	Authorization        types.Map                  `tfsdk:"authorization"`
+	Certificate          []seServiceFabricCertModel `tfsdk:"certificate"`
+	AzureActiveDirectory []seServiceFabricAADModel  `tfsdk:"azure_active_directory"`
+	None                 []seServiceFabricNoneModel `tfsdk:"none"`
 }
 
 type seServiceFabricCertModel struct {
-	ServerCertificateLookup      types.String `tfsdk:"server_certificate_lookup"`
-	ServerCertificateThumbprint  types.String `tfsdk:"server_certificate_thumbprint"`
-	ServerCertificateCommonName  types.String `tfsdk:"server_certificate_common_name"`
-	ClientCertificate            types.String `tfsdk:"client_certificate"`
-	ClientCertificatePassword    types.String `tfsdk:"client_certificate_password"`
+	ServerCertificateLookup     types.String `tfsdk:"server_certificate_lookup"`
+	ServerCertificateThumbprint types.String `tfsdk:"server_certificate_thumbprint"`
+	ServerCertificateCommonName types.String `tfsdk:"server_certificate_common_name"`
+	ClientCertificate           types.String `tfsdk:"client_certificate"`
+	ClientCertificatePassword   types.String `tfsdk:"client_certificate_password"`
 }
 
 type seServiceFabricAADModel struct {

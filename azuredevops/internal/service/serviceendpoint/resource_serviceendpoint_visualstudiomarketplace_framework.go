@@ -26,12 +26,15 @@ type seMarketplaceRequiresReplaceModifier struct{}
 func seMarketplaceRequiresReplace() planmodifier.String {
 	return seMarketplaceRequiresReplaceModifier{}
 }
+
 func (m seMarketplaceRequiresReplaceModifier) Description(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seMarketplaceRequiresReplaceModifier) MarkdownDescription(_ context.Context) string {
 	return "forces replacement when value changes"
 }
+
 func (m seMarketplaceRequiresReplaceModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if req.StateValue.IsNull() {
 		return
@@ -47,12 +50,15 @@ type seMarketplaceUseStateForUnknownModifier struct{}
 func seMarketplaceUseStateForUnknown() planmodifier.String {
 	return seMarketplaceUseStateForUnknownModifier{}
 }
+
 func (m seMarketplaceUseStateForUnknownModifier) Description(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seMarketplaceUseStateForUnknownModifier) MarkdownDescription(_ context.Context) string {
 	return "uses prior state value when unknown"
 }
+
 func (m seMarketplaceUseStateForUnknownModifier) PlanModifyString(_ context.Context, req planmodifier.StringRequest, resp *planmodifier.StringResponse) {
 	if !req.PlanValue.IsUnknown() {
 		return
@@ -69,9 +75,11 @@ func seMarketplaceDefaultString(v string) defaults.String { return seMarketplace
 func (d seMarketplaceStringDefault) Description(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seMarketplaceStringDefault) MarkdownDescription(_ context.Context) string {
 	return fmt.Sprintf("defaults to %q", d.value)
 }
+
 func (d seMarketplaceStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, resp *defaults.StringResponse) {
 	resp.PlanValue = types.StringValue(d.value)
 }
@@ -180,14 +188,14 @@ func (r *ServiceEndpointVisualStudioMarketplaceResource) Configure(_ context.Con
 }
 
 type serviceEndpointVisualStudioMarketplaceModel struct {
-	ID                  types.String                `tfsdk:"id"`
-	ProjectID           types.String                `tfsdk:"project_id"`
-	ServiceEndpointName types.String                `tfsdk:"service_endpoint_name"`
-	Description         types.String                `tfsdk:"description"`
-	URL                 types.String                `tfsdk:"url"`
-	Authorization       types.Map                   `tfsdk:"authorization"`
-	AuthenticationToken []seMarketplaceTokenModel   `tfsdk:"authentication_token"`
-	AuthenticationBasic []seMarketplaceBasicModel   `tfsdk:"authentication_basic"`
+	ID                  types.String              `tfsdk:"id"`
+	ProjectID           types.String              `tfsdk:"project_id"`
+	ServiceEndpointName types.String              `tfsdk:"service_endpoint_name"`
+	Description         types.String              `tfsdk:"description"`
+	URL                 types.String              `tfsdk:"url"`
+	Authorization       types.Map                 `tfsdk:"authorization"`
+	AuthenticationToken []seMarketplaceTokenModel `tfsdk:"authentication_token"`
+	AuthenticationBasic []seMarketplaceBasicModel `tfsdk:"authentication_basic"`
 }
 
 type seMarketplaceTokenModel struct {
