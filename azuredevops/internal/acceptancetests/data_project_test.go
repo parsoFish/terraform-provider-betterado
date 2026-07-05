@@ -8,19 +8,21 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
+// TestAccProject_dataSource_withID exercises the framework data.betterado_project data
+// source via lookup by project ID. Uses the existing betterado-standing-demo project
+// so no new project is created (the ADO org is at the 1000-project cap).
 func TestAccProject_dataSource_withID(t *testing.T) {
-	name := testutils.GenerateResourceName()
 	tfNode := "data.betterado_project.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                  func() { testutils.PreCheck(t, nil) },
-		ProviderFactories:         testutils.GetProviderFactories(),
-		PreventPostDestroyRefresh: true,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		// No CheckDestroy: standing-demo is never deleted.
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectDataSourceWithID(name),
+				Config: hclProjectDataSourceWithIDStandingDemo(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "process_template_id"),
-					resource.TestCheckResourceAttr(tfNode, "name", name),
+					resource.TestCheckResourceAttr(tfNode, "name", SharedFixtureProjectName),
 					resource.TestCheckResourceAttr(tfNode, "version_control", "Git"),
 					resource.TestCheckResourceAttr(tfNode, "visibility", "private"),
 					resource.TestCheckResourceAttr(tfNode, "work_item_template", "Agile"),
@@ -30,19 +32,21 @@ func TestAccProject_dataSource_withID(t *testing.T) {
 	})
 }
 
+// TestAccProject_dataSource_withName exercises the framework data.betterado_project data
+// source via lookup by project name. Uses the existing betterado-standing-demo project
+// so no new project is created (the ADO org is at the 1000-project cap).
 func TestAccProject_dataSource_withName(t *testing.T) {
-	name := testutils.GenerateResourceName()
 	tfNode := "data.betterado_project.test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                  func() { testutils.PreCheck(t, nil) },
-		ProviderFactories:         testutils.GetProviderFactories(),
-		PreventPostDestroyRefresh: true,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		// No CheckDestroy: standing-demo is never deleted.
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectDataSourceWithName(name),
+				Config: hclProjectDataSourceWithNameStandingDemo(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(tfNode, "process_template_id"),
-					resource.TestCheckResourceAttr(tfNode, "name", name),
+					resource.TestCheckResourceAttr(tfNode, "name", SharedFixtureProjectName),
 					resource.TestCheckResourceAttr(tfNode, "version_control", "Git"),
 					resource.TestCheckResourceAttr(tfNode, "visibility", "private"),
 					resource.TestCheckResourceAttr(tfNode, "work_item_template", "Agile"),
@@ -52,34 +56,27 @@ func TestAccProject_dataSource_withName(t *testing.T) {
 	})
 }
 
-func hclProjectDataSourceWithID(name string) string {
+// hclProjectDataSourceWithIDStandingDemo looks up betterado-standing-demo by project ID
+// (resolved via a data source lookup by name).
+func hclProjectDataSourceWithIDStandingDemo() string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "%[1]s-description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+# Look up the standing-demo project by name so we get its UUID.
+data "betterado_project" "by_name" {
+  name = %q
 }
 
+# Now look it up by the ID we resolved above.
 data "betterado_project" "test" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.by_name.id
 }
-`, name)
+`, SharedFixtureProjectName)
 }
 
-func hclProjectDataSourceWithName(name string) string {
+// hclProjectDataSourceWithNameStandingDemo looks up betterado-standing-demo by name.
+func hclProjectDataSourceWithNameStandingDemo() string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "%[1]s-description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
 data "betterado_project" "test" {
-  name = betterado_project.test.name
+  name = %q
 }
-`, name)
+`, SharedFixtureProjectName)
 }

@@ -1,0 +1,17 @@
+---
+page_title: "betterado_notification_subscription Data Source - betterado"
+subcategory: "Notifications"
+description: |-
+  Use this data source to read an existing Azure DevOps notification subscription by ID.
+---
+
+# betterado_notification_subscription (Data Source)
+
+Use this data source to read an existing Azure DevOps notification subscription
+by its ID. All subscription attributes are exposed as computed outputs.
+
+## Example Usage
+
+{{ tffile "examples/data-sources/betterado_notification_subscription/data-source.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}

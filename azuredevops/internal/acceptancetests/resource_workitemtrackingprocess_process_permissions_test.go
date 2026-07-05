@@ -14,7 +14,7 @@ func TestAccWorkitemtrackingprocessProcessPermissions_SetPermissions_InheritedPr
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -33,8 +33,8 @@ func TestAccWorkitemtrackingprocessProcessPermissions_SetPermissions_SystemProce
 	tfNode := "betterado_workitemtrackingprocess_process_permissions.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSystemProcessPermissions(),

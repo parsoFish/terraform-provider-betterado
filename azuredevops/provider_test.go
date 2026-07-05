@@ -12,86 +12,66 @@ func TestProvider_HasChildResources(t *testing.T) {
 	expectedResources := []string{
 		"betterado_agent_pool",
 		"betterado_agent_queue",
-		"betterado_area_permissions",
-		"betterado_branch_policy_auto_reviewers",
-		"betterado_branch_policy_build_validation",
-		"betterado_branch_policy_comment_resolution",
-		"betterado_branch_policy_merge_types",
-		"betterado_branch_policy_min_reviewers",
-		"betterado_branch_policy_status_check",
-		"betterado_branch_policy_work_item_linking",
-		"betterado_build_definition",
-		"betterado_build_definition_permissions",
-		"betterado_build_folder",
-		"betterado_build_folder_permissions",
-		"betterado_check_approval",
-		"betterado_check_branch_control",
-		"betterado_check_business_hours",
-		"betterado_check_exclusive_lock",
-		"betterado_check_required_template",
-		"betterado_check_rest_api",
-		"betterado_dashboard",
+		// betterado_area_permissions is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_auto_reviewers is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_build_validation is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_comment_resolution is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_merge_types is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_min_reviewers is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_status_check is now in the framework provider (framework_provider.go)
+		// betterado_branch_policy_work_item_linking is now in the framework provider (framework_provider.go)
+		// betterado_build_definition is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
+		// betterado_build_definition_permissions is now in the framework provider (framework_provider.go)
+		// betterado_build_folder is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
+		// betterado_build_folder_permissions is now in the framework provider (framework_provider.go)
+		// betterado_check_approval is now in the framework provider (framework_provider.go)
+		// betterado_check_branch_control is now in the framework provider (framework_provider.go)
+		// betterado_check_business_hours is now in the framework provider (framework_provider.go)
+		// betterado_check_exclusive_lock is now in the framework provider (framework_provider.go)
+		// betterado_check_required_template is now in the framework provider (framework_provider.go)
+		// betterado_check_rest_api is now in the framework provider (framework_provider.go)
+		// betterado_dashboard is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
 		"betterado_deployment_group",
 		"betterado_elastic_pool",
 		"betterado_environment",
 		"betterado_environment_resource_kubernetes",
-		"betterado_extension",
-		"betterado_feed",
-		"betterado_feed_permission",
-		"betterado_feed_retention_policy",
-		"betterado_git_permissions",
-		"betterado_git_repository",
-		"betterado_git_repository_branch",
-		"betterado_git_repository_file",
-		"betterado_group",
-		"betterado_group_entitlement",
-		"betterado_group_membership",
-		"betterado_iteration_permissions",
-		"betterado_library_permissions",
-		"betterado_pipeline_authorization",
-		"betterado_project",
-		"betterado_project_features",
-		"betterado_project_permissions",
-		"betterado_project_pipeline_settings",
-		"betterado_project_tags",
+		// betterado_extension is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
+		// betterado_git_permissions is now in the framework provider (framework_provider.go)
+		// "betterado_git_repository" migrated to terraform-plugin-framework provider
+		// "betterado_git_repository_branch" migrated to terraform-plugin-framework provider
+		// "betterado_git_repository_file" migrated to terraform-plugin-framework provider
+		// betterado_group is now a framework resource (registered in framework_provider.go)
+		// betterado_group_entitlement is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
+		// betterado_group_membership is now a framework resource (registered in framework_provider.go)
+		// betterado_iteration_permissions is now in the framework provider (framework_provider.go)
+		// betterado_library_permissions is now in the framework provider (framework_provider.go)
+		// betterado_pipeline_authorization is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
+		// betterado_project is now in the framework provider (framework_provider.go)
+		// betterado_project_features is now in the framework provider (framework_provider.go)
+		// betterado_project_permissions is now in the framework provider (framework_provider.go)
+		// betterado_project_pipeline_settings is now in the framework provider (framework_provider.go)
+		// betterado_project_tags is now in the framework provider (framework_provider.go)
 		// betterado_release_definition_permissions is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
 		// betterado_release_folder is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
-		"betterado_repository_policy_author_email_pattern",
-		"betterado_repository_policy_case_enforcement",
-		"betterado_repository_policy_check_credentials",
-		"betterado_repository_policy_file_path_pattern",
-		"betterado_repository_policy_max_file_size",
-		"betterado_repository_policy_max_path_length",
-		"betterado_repository_policy_reserved_names",
-		"betterado_resource_authorization",
-		"betterado_security_permissions",
-		"betterado_securityrole_assignment",
-		"betterado_serviceendpoint_generic_v2",
-		"betterado_serviceendpoint_argocd",
-		"betterado_serviceendpoint_artifactory",
-		"betterado_serviceendpoint_aws",
-		"betterado_serviceendpoint_azure_service_bus",
-		"betterado_serviceendpoint_azurecr",
-		"betterado_serviceendpoint_azuredevops",
-		"betterado_serviceendpoint_azurerm",
-		"betterado_serviceendpoint_bitbucket",
-		"betterado_serviceendpoint_black_duck",
-		"betterado_serviceendpoint_checkmarx_one",
-		"betterado_serviceendpoint_checkmarx_sca",
-		"betterado_serviceendpoint_checkmarx_sast",
-		"betterado_serviceendpoint_dockerregistry",
-		"betterado_serviceendpoint_dynamics_lifecycle_services",
-		"betterado_serviceendpoint_externaltfs",
-		"betterado_serviceendpoint_gcp_terraform",
-		"betterado_serviceendpoint_generic",
-		"betterado_serviceendpoint_generic_git",
-		"betterado_serviceendpoint_github",
-		"betterado_serviceendpoint_github_enterprise",
-		"betterado_serviceendpoint_gitlab",
-		"betterado_serviceendpoint_incomingwebhook",
-		"betterado_serviceendpoint_jenkins",
+		// betterado_repository_policy_author_email_pattern is now in the framework provider (framework_provider.go)
+		// betterado_repository_policy_case_enforcement is now in the framework provider (framework_provider.go)
+		// betterado_repository_policy_check_credentials is now in the framework provider (framework_provider.go)
+		// betterado_repository_policy_file_path_pattern is now in the framework provider (framework_provider.go)
+		// betterado_repository_policy_max_file_size is now in the framework provider (framework_provider.go)
+		// betterado_repository_policy_max_path_length is now in the framework provider (framework_provider.go)
+		// betterado_repository_policy_reserved_names is now in the framework provider (framework_provider.go)
+		// betterado_resource_authorization is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
+		// betterado_security_permissions is now in the framework provider (framework_provider.go)
+		// betterado_securityrole_assignment is now in the framework provider (framework_provider.go)
 		"betterado_serviceendpoint_jfrog_artifactory_v2",
 		"betterado_serviceendpoint_jfrog_distribution_v2",
 		"betterado_serviceendpoint_jfrog_platform_v2",
@@ -99,51 +79,45 @@ func TestProvider_HasChildResources(t *testing.T) {
 		"betterado_serviceendpoint_kubernetes",
 		"betterado_serviceendpoint_maven",
 		"betterado_serviceendpoint_nexus",
-		"betterado_serviceendpoint_npm",
 		"betterado_serviceendpoint_nuget",
 		"betterado_serviceendpoint_octopusdeploy",
 		"betterado_serviceendpoint_openshift",
-		"betterado_serviceendpoint_permissions",
+		// betterado_serviceendpoint_permissions is now in the framework provider (framework_provider.go)
 		"betterado_serviceendpoint_runpipeline",
 		"betterado_serviceendpoint_servicefabric",
 		"betterado_serviceendpoint_snyk",
-		"betterado_serviceendpoint_sonarcloud",
 		"betterado_serviceendpoint_sonarqube",
 		"betterado_serviceendpoint_ssh",
 		"betterado_serviceendpoint_visualstudiomarketplace",
-		"betterado_servicehook_permissions",
-		"betterado_servicehook_storage_queue_pipelines",
-		"betterado_servicehook_webhook_tfs",
-		"betterado_service_principal_entitlement",
-		"betterado_tagging_permissions",
-		"betterado_team",
-		"betterado_team_administrators",
-		"betterado_team_members",
-		"betterado_user_entitlement",
+		// betterado_servicehook_permissions is now in the framework provider (framework_provider.go)
+		// betterado_service_principal_entitlement is now a framework resource (registered in framework_provider.go)
+		// and is no longer in the SDKv2 provider resource map.
+		// betterado_tagging_permissions is now in the framework provider (framework_provider.go)
+		// betterado_team is now in the framework provider (framework_provider.go)
+		// betterado_team_administrators is now in the framework provider (framework_provider.go)
+		// betterado_team_members is now in the framework provider (framework_provider.go)
 		"betterado_variable_group",
-		"betterado_variable_group_permissions",
+		// betterado_variable_group_permissions is now in the framework provider (framework_provider.go)
 		"betterado_variable_group_variable",
-		"betterado_wiki",
-		"betterado_wiki_page",
-		"betterado_workitem",
-		"betterado_workitemtracking_field",
-		"betterado_workitemquery",
-		"betterado_workitemquery_folder",
-		"betterado_workitemquery_permissions",
-		// NOTE: betterado_workitemtrackingprocess_control has been migrated to the framework provider.
-		// NOTE: betterado_workitemtrackingprocess_field has been migrated to the framework provider.
-		// NOTE: betterado_workitemtrackingprocess_group has been migrated to the framework provider.
-		// NOTE: betterado_workitemtrackingprocess_inherited_control has been migrated to the framework provider.
-		// NOTE: betterado_workitemtrackingprocess_inherited_page has been migrated to the framework provider.
-		// NOTE: betterado_workitemtrackingprocess_inherited_state has been migrated to the framework provider.
-		// NOTE: betterado_workitemtrackingprocess_list has been migrated to the framework provider.
-		// NOTE: betterado_workitemtrackingprocess_page has been migrated to the framework provider.
-		// NOTE: betterado_workitemtrackingprocess_process has been migrated to the framework provider.
-		"betterado_workitemtrackingprocess_process_permissions",
-		// NOTE: betterado_workitemtrackingprocess_rule has been migrated to the framework provider.
-		// NOTE: betterado_workitemtrackingprocess_system_control has been migrated to the framework provider.
-		// NOTE: betterado_workitemtrackingprocess_state has been migrated to the framework provider.
-		// NOTE: betterado_workitemtrackingprocess_workitemtype has been migrated to the framework provider.
+		// betterado_workitem is now a framework resource (registered in framework_provider.go)
+		// betterado_workitemtracking_field is now a framework resource (registered in framework_provider.go)
+		// betterado_workitemquery is now a framework resource (registered in framework_provider.go)
+		// betterado_workitemquery_folder is now a framework resource (registered in framework_provider.go)
+		// betterado_workitemquery_permissions is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_control is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_field is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_group is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_inherited_control is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_inherited_page is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_inherited_state is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_list is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_page is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_process is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_process_permissions is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_rule is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_state is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_system_control is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_workitemtype is now in the framework provider (framework_provider.go)
 	}
 
 	resources := azuredevops.Provider().ResourcesMap
@@ -161,50 +135,43 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		// betterado_release_definition_revision, betterado_release_definitions, and
 		// betterado_release_folder have been migrated to the framework provider —
 		// they are no longer registered in the SDKv2 DataSourcesMap.
+		// betterado_build_definition (data source) has also been migrated to the
+		// framework provider and is no longer listed here.
 		"betterado_agent_pool",
 		"betterado_agent_pools",
 		"betterado_agent_queue",
-		"betterado_area",
-		"betterado_build_definition",
-		"betterado_client_config",
-		"betterado_descriptor",
+		// betterado_area is now a framework data source (registered in framework_provider.go)
+		// betterado_client_config is now in the framework provider (framework_provider.go)
+		// betterado_descriptor is now a framework data source (registered in framework_provider.go)
 		"betterado_environment",
-		"betterado_feed",
-		"betterado_git_repositories",
-		"betterado_git_repository",
-		"betterado_git_repository_file",
-		"betterado_group",
-		"betterado_group_membership",
-		"betterado_groups",
-		"betterado_identity_group",
-		"betterado_identity_groups",
-		"betterado_identity_user",
-		"betterado_iteration",
-		"betterado_project",
-		"betterado_projects",
-		"betterado_security_namespace",
-		"betterado_security_namespace_token",
-		"betterado_security_namespaces",
-		"betterado_securityrole_definitions",
-		"betterado_serviceendpoint_generic_v2",
-		"betterado_serviceendpoint_azurecr",
-		"betterado_serviceendpoint_azurerm",
-		"betterado_serviceendpoint_bitbucket",
-		"betterado_serviceendpoint_dockerregistry",
-		"betterado_serviceendpoint_github",
-		"betterado_serviceendpoint_npm",
-		"betterado_serviceendpoint_sonarcloud",
-		"betterado_storage_key",
-		"betterado_service_principal",
-		"betterado_team",
+		// "betterado_git_repositories" data source migrated to terraform-plugin-framework provider
+		// "betterado_git_repository" data source migrated to terraform-plugin-framework provider
+		// "betterado_git_repository_file" data source migrated to terraform-plugin-framework provider
+		// betterado_group is now a framework data source (registered in framework_provider.go)
+		// betterado_group_membership is now a framework data source (registered in framework_provider.go)
+		// betterado_groups is now a framework data source (registered in framework_provider.go)
+		// betterado_identity_group is now a framework data source (registered in framework_provider.go)
+		// betterado_identity_groups is now a framework data source (registered in framework_provider.go)
+		// betterado_identity_user is now a framework data source (registered in framework_provider.go)
+		// betterado_iteration is now a framework data source (registered in framework_provider.go)
+		// betterado_project is now in the framework provider (framework_provider.go)
+		// betterado_projects is now in the framework provider (framework_provider.go)
+		// betterado_security_namespace is now in the framework provider (framework_provider.go)
+		// betterado_security_namespace_token is now in the framework provider (framework_provider.go)
+		// betterado_security_namespaces is now in the framework provider (framework_provider.go)
+		// betterado_securityrole_definitions is now in the framework provider (framework_provider.go)
+		// betterado_storage_key is now a framework data source (registered in framework_provider.go)
+		// betterado_service_principal is now a framework data source (registered in framework_provider.go)
+		// betterado_team is now in the framework provider (framework_provider.go)
 		"betterado_task_group",
-		"betterado_teams",
-		"betterado_user",
-		"betterado_users",
+		// betterado_teams is now in the framework provider (framework_provider.go)
+		// betterado_user is now a framework data source (registered in framework_provider.go)
+		// betterado_users is now a framework data source (registered in framework_provider.go)
 		"betterado_variable_group",
-		// NOTE: betterado_workitemtrackingprocess_process, betterado_workitemtrackingprocess_processes,
-		// betterado_workitemtrackingprocess_workitemtype, and betterado_workitemtrackingprocess_workitemtypes
-		// have been migrated to the framework provider — no longer in the SDKv2 DataSourcesMap.
+		// betterado_workitemtrackingprocess_process is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_processes is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_workitemtype is now in the framework provider (framework_provider.go)
+		// betterado_workitemtrackingprocess_workitemtypes is now in the framework provider (framework_provider.go)
 	}
 
 	dataSources := azuredevops.Provider().DataSourcesMap

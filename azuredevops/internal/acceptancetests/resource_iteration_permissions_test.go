@@ -27,9 +27,9 @@ func TestAccIterationPermissions_SetPermissions(t *testing.T) {
 	tfNodeIteration := "betterado_iteration_permissions.iteration-permissions"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -85,9 +85,9 @@ func TestAccIterationPermissions_UpdatePermissions(t *testing.T) {
 	tfNodeIteration := "betterado_iteration_permissions.iteration-permissions"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckProjectDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxProviderFactories(),
+		CheckDestroy:             testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: config1,

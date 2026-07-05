@@ -25,10 +25,10 @@ func getGroupDirectClient() (*client.AggregatedClient, error) {
 	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
 }
 
-// captureGroupEvidence performs a real live API GET of the created group and persists
+// captureWitProcessGroupEvidence performs a real live API GET of the created group and persists
 // the response as forge demo live-evidence (before the resource is destroyed).
 // Best-effort: a capture failure never fails the test.
-func captureGroupEvidence(tfNode string) resource.TestCheckFunc {
+func captureWitProcessGroupEvidence(tfNode string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		res, ok := s.RootModule().Resources[tfNode]
 		if !ok {
@@ -110,7 +110,7 @@ func TestAccWorkitemtrackingprocessGroup_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "visible", "true"),
 					resource.TestCheckResourceAttrSet(tfNode, "id"),
 					resource.TestCheckResourceAttrSet(tfNode, "order"),
-					captureGroupEvidence(tfNode),
+					captureWitProcessGroupEvidence(tfNode),
 				),
 			},
 			{

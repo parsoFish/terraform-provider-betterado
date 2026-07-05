@@ -1,3 +1,5 @@
+//go:build (all || resource_serviceendpoint_azuredevops) && !exclude_resource_serviceendpoint_azuredevops
+
 package acceptancetests
 
 import (
@@ -15,9 +17,9 @@ func TestAccServiceEndpointAzureDevOps_basic(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_azuredevops"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointAzureDevOpsResourceBasic(projectName, serviceEndpointName),
@@ -39,9 +41,9 @@ func TestAccServiceEndpointAzureDevOps_complete(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_azuredevops"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointAzureDevOpsResourceComplete(projectName, serviceEndpointName, description),
@@ -70,9 +72,9 @@ func TestAccServiceEndpointAzureDevOps_update(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_azuredevops"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointAzureDevOpsResourceBasic(projectName, serviceEndpointNameFirst),
@@ -103,9 +105,9 @@ func TestAccServiceEndpointAzureDevOps_RequiresImportErrorStep(t *testing.T) {
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointAzureDevOpsResourceBasic(projectName, serviceEndpointName),

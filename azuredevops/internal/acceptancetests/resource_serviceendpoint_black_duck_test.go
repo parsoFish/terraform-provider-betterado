@@ -15,9 +15,9 @@ func TestAccServiceEndpointBlackDuck(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_black_duck"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclServiceConnectionBlackDuck(projectName, serviceEndpointName, "https://ado.test"),
@@ -48,9 +48,9 @@ func TestAccServiceEndpointBlackDuck_update(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_black_duck"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclServiceConnectionBlackDuck(projectName, serviceEndpointName, "https://ado.test"),
@@ -99,9 +99,9 @@ func TestAccServiceEndpointBlackDuck_requireImportError(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_black_duck"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclServiceConnectionBlackDuck(projectName, serviceEndpointName, "https://ado.test"),
