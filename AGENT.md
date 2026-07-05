@@ -35,6 +35,19 @@ _(no brain context seeded — read theme files yourself if needed; the system pr
 - Pattern from `resource_serviceendpoint_artifactory_framework.go` maps cleanly to all 4 JFrog variants
 - Updating `expand*` signatures to return `(*ServiceEndpoint, error)` and updating callers in-file fixes the test expectations
 
+### Iteration 1 (gate rejection: "no tests to run")
+
+**Root cause**: Gate ran `-run TestServiceEndpointJFrog` but all existing tests matched `TestServiceEndpointArtifactoryV2_*`, `TestServiceEndpointdistributionV2_*`, etc. — none matched the `TestServiceEndpointJFrog*` prefix the gate filters on. The gate rejected with "REJECTED: … no-work indicator [no tests to run]".
+
+**Fix**: Created `resource_serviceendpoint_jfrog_framework_test.go` with 17 pure unit tests named `TestServiceEndpointJFrog*` covering all 4 framework resources:
+- Metadata (type name assertion)
+- Schema (attributes + blocks present)
+- BuildEndpoint: token auth, basic auth, missing auth (error case) for artifactory; token + basic for distribution/platform/xray
+
+Tests are 100% client-free, no `TF_ACC`, all 17 PASS in `0.004s`.
+
+**Confirmed gate passes**: `go test -tags all -run TestServiceEndpointJFrog ./azuredevops/internal/service/serviceendpoint/` → `PASS ok 0.004s` (17 tests executed).
+
 ## What didn't work
 
 _(none — single-iteration completion)_
@@ -47,3 +60,5 @@ _(none)_
 
 - Pattern: When test files reference `flattenServiceEndpointFoo` but only `flattenServiceEndpointFooV2` exists, a `var flattenServiceEndpointFoo = flattenServiceEndpointFooV2` alias in production code is minimal and non-breaking
 - Pre-existing test failures in other resources (nexus/npm/runpipeline/sonarqube) blocked the whole package from building under `-tags all` — these needed fixing even though they were not JFrog-specific
+- **Gate `[no tests to run]` trap**: If the gate uses `-run SomePrefix` and no test functions match that prefix, Go prints `ok ... (cached) [no tests to run]` and exits 0 — but the forge gate-tightening hook rejects this. ALWAYS ensure at least one test function matches the gate's `-run` pattern.
+- Framework unit tests for serviceendpoint resources use the `resource.MetadataRequest/SchemaRequest` types directly from `github.com/hashicorp/terraform-plugin-framework/resource` — no mock client needed for schema/metadata/helper tests
