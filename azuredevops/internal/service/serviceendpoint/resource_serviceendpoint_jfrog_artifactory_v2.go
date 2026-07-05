@@ -147,6 +147,10 @@ func resourceServiceEndpointJFrogArtifactoryV2Delete(d *schema.ResourceData, m i
 	return deleteServiceEndpoint(clients, serviceEndpoint, d.Timeout(schema.TimeoutDelete))
 }
 
+// flattenServiceEndpointArtifactory is an alias for flattenServiceEndpointArtifactoryV2,
+// used by unit tests across all four JFrog v2 resource test files.
+var flattenServiceEndpointArtifactory = flattenServiceEndpointArtifactoryV2
+
 // Convert AzDO data structure to internal Terraform data structure
 // Note that 'username', 'password', and 'apitoken' service connection fields
 // are all marked as confidential and therefore cannot be read from Azure DevOps

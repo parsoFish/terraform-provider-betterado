@@ -62,7 +62,10 @@ func ResourceServiceEndpointRunPipeline() *schema.Resource {
 
 func resourceServiceEndpointRunPipelineCreate(d *schema.ResourceData, m interface{}) error {
 	clients := m.(*client.AggregatedClient)
-	serviceEndpoint := expandServiceEndpointRunPipeline(d)
+	serviceEndpoint, err := expandServiceEndpointRunPipeline(d)
+	if err != nil {
+		return fmt.Errorf(errMsgTfConfigRead, err)
+	}
 	serviceEndPoint, err := createServiceEndpoint(d, clients, serviceEndpoint)
 	if err != nil {
 		return err
@@ -96,7 +99,10 @@ func resourceServiceEndpointRunPipelineRead(d *schema.ResourceData, m interface{
 
 func resourceServiceEndpointRunPipelineUpdate(d *schema.ResourceData, m interface{}) error {
 	clients := m.(*client.AggregatedClient)
-	serviceEndpoint := expandServiceEndpointRunPipeline(d)
+	serviceEndpoint, err := expandServiceEndpointRunPipeline(d)
+	if err != nil {
+		return fmt.Errorf(errMsgTfConfigRead, err)
+	}
 	if _, err := updateServiceEndpoint(clients, serviceEndpoint); err != nil {
 		return fmt.Errorf("Updating service endpoint in Azure DevOps: %+v", err)
 	}
@@ -106,12 +112,15 @@ func resourceServiceEndpointRunPipelineUpdate(d *schema.ResourceData, m interfac
 
 func resourceServiceEndpointRunPipelineDelete(d *schema.ResourceData, m interface{}) error {
 	clients := m.(*client.AggregatedClient)
-	serviceEndpoint := expandServiceEndpointRunPipeline(d)
+	serviceEndpoint, err := expandServiceEndpointRunPipeline(d)
+	if err != nil {
+		return fmt.Errorf(errMsgTfConfigRead, err)
+	}
 	return deleteServiceEndpoint(clients, serviceEndpoint, d.Timeout(schema.TimeoutDelete))
 }
 
 // Convert internal Terraform data structure to an AzDO data structure:
-func expandServiceEndpointRunPipeline(d *schema.ResourceData) *serviceendpoint.ServiceEndpoint {
+func expandServiceEndpointRunPipeline(d *schema.ResourceData) (*serviceendpoint.ServiceEndpoint, error) {
 	serviceEndpoint := doBaseExpansion(d)
 	serviceEndpoint.Type = converter.String("azdoapi")
 
@@ -131,7 +140,7 @@ func expandServiceEndpointRunPipeline(d *schema.ResourceData) *serviceendpoint.S
 	releaseUrl := fmt.Sprint("https://vsrm.dev.azure.com/", org)
 	data["releaseUrl"] = releaseUrl
 	serviceEndpoint.Data = &data
-	return serviceEndpoint
+	return serviceEndpoint, nil
 }
 
 func rpExpandAuthPersonalSet(d *schema.Set) map[string]string {
