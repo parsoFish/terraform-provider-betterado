@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/accounts"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/approvalsandchecks"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
@@ -28,10 +29,14 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/pipelinesapproval"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/profile"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/release"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/security"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/securityroles"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/testplan"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/wiki"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtracking"
 )
@@ -277,7 +282,6 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		workitemtracking.NewWorkItemQueryFolderResource,
 		notification.NewNotificationSubscriptionResource,
 		pipelines.NewPipelineResource,
-		pipelinesapproval.NewPipelineApprovalResource,
 		branch.NewAutoReviewersResource,
 		branch.NewBuildValidationResource,
 		branch.NewCommentResolutionResource,
@@ -298,6 +302,26 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		approvalsandchecks.NewExclusiveLockResource,
 		approvalsandchecks.NewRequiredTemplateResource,
 		approvalsandchecks.NewRestAPIResource,
+		permissions.NewAreaPermissionsResource,
+		permissions.NewBuildDefinitionPermissionsResource,
+		permissions.NewBuildFolderPermissionsResource,
+		permissions.NewGitPermissionsResource,
+		permissions.NewIterationPermissionsResource,
+		permissions.NewLibraryPermissionsResource,
+		permissions.NewServiceEndpointPermissionsResource,
+		permissions.NewServiceHookPermissionsResource,
+		permissions.NewTaggingPermissionsResource,
+		permissions.NewVariableGroupPermissionsResource,
+		permissions.NewWorkItemQueryPermissionsResource,
+		permissions.NewWorkItemTrackingProcessPermissionsResource,
+		permissions.NewProjectPermissionsResource,
+		security.NewSecurityPermissionsResource,
+		securityroles.NewSecurityRoleAssignmentResource,
+		testplan.NewTestPlanResource,
+		testplan.NewTestSuiteResource,
+		testplan.NewTestConfigurationResource,
+		testplan.NewTestVariableResource,
+		pipelinesapproval.NewPipelineApprovalResource,
 	}
 }
 
@@ -338,6 +362,15 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		notification.NewNotificationSubscriptionDataSource,
 		pipelines.NewPipelineDataSource,
 		pipelines.NewPipelineRunDataSource,
+		security.NewSecurityNamespaceDataSource,
+		security.NewSecurityNamespaceTokenDataSource,
+		security.NewSecurityNamespacesDataSource,
+		securityroles.NewSecurityRoleDefinitionsDataSource,
+		accounts.NewAccountsDataSource,
+		profile.NewProfileDataSource,
+		testplan.NewTestPlanDataSource,
+		testplan.NewTestRunDataSource,
+		testplan.NewTestResultDataSource,
 		pipelinesapproval.NewPipelineApprovalsDataSource,
 	}
 }
