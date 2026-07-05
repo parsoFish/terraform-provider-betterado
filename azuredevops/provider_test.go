@@ -72,23 +72,23 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// and is no longer in the SDKv2 provider resource map.
 		// betterado_security_permissions is now in the framework provider (framework_provider.go)
 		// betterado_securityrole_assignment is now in the framework provider (framework_provider.go)
-		"betterado_serviceendpoint_jfrog_artifactory_v2",
-		"betterado_serviceendpoint_jfrog_distribution_v2",
-		"betterado_serviceendpoint_jfrog_platform_v2",
-		"betterado_serviceendpoint_jfrog_xray_v2",
-		"betterado_serviceendpoint_kubernetes",
-		"betterado_serviceendpoint_maven",
-		"betterado_serviceendpoint_nexus",
-		"betterado_serviceendpoint_nuget",
-		"betterado_serviceendpoint_octopusdeploy",
-		"betterado_serviceendpoint_openshift",
+		// betterado_serviceendpoint_jfrog_artifactory_v2 migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_jfrog_distribution_v2 migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_jfrog_platform_v2 migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_jfrog_xray_v2 migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_kubernetes migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_maven migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_nexus migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_nuget migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_octopusdeploy migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_openshift migrated to the framework provider (framework_provider.go)
 		// betterado_serviceendpoint_permissions is now in the framework provider (framework_provider.go)
-		"betterado_serviceendpoint_runpipeline",
-		"betterado_serviceendpoint_servicefabric",
-		"betterado_serviceendpoint_snyk",
-		"betterado_serviceendpoint_sonarqube",
-		"betterado_serviceendpoint_ssh",
-		"betterado_serviceendpoint_visualstudiomarketplace",
+		// betterado_serviceendpoint_runpipeline migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_servicefabric migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_snyk migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_sonarqube migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_ssh migrated to the framework provider (framework_provider.go)
+		// betterado_serviceendpoint_visualstudiomarketplace migrated to the framework provider (framework_provider.go)
 		// betterado_servicehook_permissions is now in the framework provider (framework_provider.go)
 		// betterado_service_principal_entitlement is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
