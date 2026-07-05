@@ -15,7 +15,7 @@ func TestAccProjects_dataSource(t *testing.T) {
 	tfNode := "data.betterado_projects.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectsDataSourceByName(SharedFixtureProjectName),
@@ -35,7 +35,7 @@ func TestAccProjects_DataSource_SingleProject(t *testing.T) {
 	tfNode := "data.betterado_projects.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectsDataSourceByName(SharedFixtureProjectName),
@@ -53,7 +53,7 @@ func TestAccProjects_DataSource_EmptyResult(t *testing.T) {
 	tfNode := "data.betterado_projects.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSourceProjectsEmptyResult(),

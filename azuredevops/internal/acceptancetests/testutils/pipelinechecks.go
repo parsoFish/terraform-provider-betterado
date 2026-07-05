@@ -60,7 +60,7 @@ func CheckPipelineCheckDestroyed(resourceType string) resource.TestCheckFunc {
 }
 
 // GetADOClientsFromEnv builds an AggregatedClient directly from environment variables.
-// This is necessary when using GetMuxedProviderFactories() because the SDKv2 provider
+// This is necessary when using GetProviderFactories() because the SDKv2 provider
 // singleton does not have its Meta() configured in that case.
 // Exported so acceptance test files in the parent package can call it directly for live evidence capture.
 func GetADOClientsFromEnv() (*client.AggregatedClient, error) {
@@ -89,7 +89,7 @@ func getCheckFromState(resource *terraform.ResourceState) (*pipelineschecksextra
 	projectID := resource.Primary.Attributes["project_id"]
 
 	// Build the client directly from environment variables rather than using
-	// GetProvider().Meta(), which is nil when tests use GetMuxedProviderFactories().
+	// GetProvider().Meta(), which is nil when tests use GetProviderFactories().
 	clients, err := getADOClientsFromEnv()
 	if err != nil {
 		return nil, err

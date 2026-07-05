@@ -392,3 +392,34 @@ func TestFrameworkProvider_HasExtensionInstallResource(t *testing.T) {
 	}
 	require.True(t, found, "framework provider must register betterado_extension_install")
 }
+
+// TestFrameworkProvider_MuxFree verifies that the pure-framework provider can be
+// instantiated and serves resources without requiring SDKv2 mux. This is the
+// post-mux-cutover sanity check for WI-4.
+func TestFrameworkProvider_MuxFree(t *testing.T) {
+	// Verify the framework provider can be instantiated and serves resources
+	// without requiring SDKv2 mux. This is the post-mux-cutover sanity check.
+	p := frameworkprovider.NewFrameworkProvider()
+	require.NotNil(t, p, "NewFrameworkProvider must return a non-nil provider")
+
+	provWithResources, ok := p.(interface {
+		Resources(context.Context) []func() resource.Resource
+	})
+	require.True(t, ok, "framework provider must implement Resources()")
+
+	factories := provWithResources.Resources(context.Background())
+	require.NotEmpty(t, factories, "framework provider must expose resources")
+
+	// Spot-check: betterado_project must be registered (representative resource).
+	found := false
+	for _, factory := range factories {
+		r := factory()
+		var metaResp resource.MetadataResponse
+		r.Metadata(context.Background(), resource.MetadataRequest{ProviderTypeName: "betterado"}, &metaResp)
+		if metaResp.TypeName == "betterado_project" {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "framework provider must register betterado_project")
+}

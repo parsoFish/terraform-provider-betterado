@@ -20,7 +20,7 @@ func TestAccWorkitemtrackingprocessWorkItemTypes_DataSource_List(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkWorkItemTypeDestroyed,
 		Steps: []resource.TestStep{
 			{

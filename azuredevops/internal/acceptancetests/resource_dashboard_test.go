@@ -107,7 +107,7 @@ func TestAccDashboard_project_basic(t *testing.T) {
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckDashboard(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -143,7 +143,7 @@ func TestAccDashboard_project_update(t *testing.T) {
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckDashboard(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -192,7 +192,7 @@ func TestAccDashboard_project_complete(t *testing.T) {
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckDashboard(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -220,7 +220,7 @@ func TestAccDashboard_team_basic(t *testing.T) {
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckDashboard(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -254,7 +254,7 @@ func TestAccDashboard_team_update(t *testing.T) {
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckDashboard(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -307,7 +307,7 @@ func TestAccDashboard_team_complete(t *testing.T) {
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckDashboard(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -338,7 +338,7 @@ func TestAccDashboard_team_requireImportError(t *testing.T) {
 	tfNode := "betterado_dashboard.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckDashboard(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkDashboardDestroyed,
 		Steps: []resource.TestStep{
 			{

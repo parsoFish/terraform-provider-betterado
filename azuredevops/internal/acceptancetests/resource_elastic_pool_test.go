@@ -40,7 +40,7 @@ func TestAccElasticPool_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { elasticPoolPreCheck(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkElasticPoolDestroyedMux,
 		Steps: []resource.TestStep{
 			{
@@ -77,7 +77,7 @@ func TestAccElasticPool_update(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { elasticPoolPreCheck(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkElasticPoolDestroyedMux,
 		Steps: []resource.TestStep{
 			{
@@ -130,7 +130,7 @@ func TestAccElasticPool_requiresImportErrorStep(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { elasticPoolPreCheck(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkElasticPoolDestroyedMux,
 		Steps: []resource.TestStep{
 			{

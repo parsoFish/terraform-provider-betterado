@@ -35,7 +35,7 @@ func TestAccProjectTags_basic(t *testing.T) {
 	tfNode := "betterado_project_tags.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectTagsFixture(projectID, []string{"tag1", "tag2"}),
@@ -84,7 +84,7 @@ func TestAccProjectTags_update(t *testing.T) {
 	tfNode := "betterado_project_tags.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkProjectTagsDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -115,7 +115,7 @@ func TestAccProjectTags_requiresImportError(t *testing.T) {
 	tfNode := "betterado_project_tags.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkProjectTagsDestroyed,
 		Steps: []resource.TestStep{
 			{

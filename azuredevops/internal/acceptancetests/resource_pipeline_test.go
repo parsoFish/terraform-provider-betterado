@@ -22,7 +22,7 @@ func TestAccPipeline_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkPipelineDestroyed,
 		Steps: []resource.TestStep{
 			// Step 1: create + assert live read-back (AC1 + AC2)

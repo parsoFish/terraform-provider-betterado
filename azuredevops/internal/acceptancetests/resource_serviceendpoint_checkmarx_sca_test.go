@@ -15,7 +15,7 @@ func TestAccServiceEndpointCheckMarxSCA_basic(t *testing.T) {
 	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_sca.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_sca"),
 		Steps: []resource.TestStep{
 			{
@@ -38,7 +38,7 @@ func TestAccServiceEndpointCheckMarxSCA_complete(t *testing.T) {
 	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_sca.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_sca"),
 		Steps: []resource.TestStep{
 			{
@@ -65,7 +65,7 @@ func TestAccServiceEndpointCheckMarxSCA_update(t *testing.T) {
 	tfSvcEpNode := "betterado_serviceendpoint_checkmarx_sca.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_sca"),
 		Steps: []resource.TestStep{
 			{
@@ -100,7 +100,7 @@ func TestAccServiceEndpointCheckMarxSCA_requiresImportErrorStep(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckServiceEndpointDestroyed("betterado_serviceendpoint_checkmarx_sca"),
 		Steps: []resource.TestStep{
 			{

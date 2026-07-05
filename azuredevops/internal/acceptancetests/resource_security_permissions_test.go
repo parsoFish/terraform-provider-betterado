@@ -15,7 +15,7 @@ func TestAccSecurityPermissions_ProjectNamespace(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		CheckDestroy:      testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -43,7 +43,7 @@ func TestAccSecurityPermissions_ProjectNamespaceUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		CheckDestroy:      testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -79,7 +79,7 @@ func TestAccSecurityPermissions_GitRepositoryNamespace(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		CheckDestroy:      testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -107,7 +107,7 @@ func TestAccSecurityPermissions_WithReplace(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		CheckDestroy:      testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -137,7 +137,7 @@ func TestAccSecurityPermissions_BuildNamespace(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		CheckDestroy:      testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -165,7 +165,7 @@ func TestAccSecurityPermissions_MultiplePermissionSets(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		CheckDestroy:      testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{

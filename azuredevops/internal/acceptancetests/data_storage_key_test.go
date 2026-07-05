@@ -13,7 +13,7 @@ func TestAccStorageKeyDatasource(t *testing.T) {
 	tfNode := "data.betterado_storage_key.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testutils.PreCheck(t, nil) },
-		ProviderFactories:         testutils.GetProviderFactories(),
+		ProviderFactories:         testutils.GetSDKv2ProviderFactories(),
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{

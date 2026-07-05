@@ -59,7 +59,7 @@ func TestAccWorkItemTrackingField_Basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -98,7 +98,7 @@ func TestAccWorkItemTrackingField_Complete(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -122,7 +122,7 @@ func TestAccWorkItemTrackingField_Boolean(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -146,7 +146,7 @@ func TestAccWorkItemTrackingField_Html(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -170,7 +170,7 @@ func TestAccWorkItemTrackingField_Integer(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -194,7 +194,7 @@ func TestAccWorkItemTrackingField_DateTime(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -218,7 +218,7 @@ func TestAccWorkItemTrackingField_PlainText(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -242,7 +242,7 @@ func TestAccWorkItemTrackingField_Double(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -266,7 +266,7 @@ func TestAccWorkItemTrackingField_Identity(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -290,7 +290,7 @@ func TestAccWorkItemTrackingField_TreePath(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -314,7 +314,7 @@ func TestAccWorkItemTrackingField_History(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -338,7 +338,7 @@ func TestAccWorkItemTrackingField_Guid(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -362,7 +362,7 @@ func TestAccWorkItemTrackingField_Lock(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -397,7 +397,7 @@ func TestAccWorkItemTrackingField_Restore(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -437,7 +437,7 @@ func TestAccWorkItemTrackingField_Picklist(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldAndListDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -463,7 +463,7 @@ func TestAccWorkItemTrackingField_PicklistSuggested(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldAndListDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -489,7 +489,7 @@ func TestAccWorkItemTrackingField_PicklistInteger(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFieldAndListDestroyed,
 		Steps: []resource.TestStep{
 			{

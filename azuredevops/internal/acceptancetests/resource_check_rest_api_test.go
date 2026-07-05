@@ -16,7 +16,7 @@ func TestAccCheckRestAPI_basic(t *testing.T) {
 	tfCheckNode := "betterado_check_rest_api.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed("betterado_check_rest_api"),
 		Steps: []resource.TestStep{
 			{
@@ -41,7 +41,7 @@ func TestAccCheckRestAPI_complete(t *testing.T) {
 	tfCheckNode := "betterado_check_rest_api.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed("betterado_check_rest_api"),
 		Steps: []resource.TestStep{
 			{
@@ -74,7 +74,7 @@ func TestAccCheckRestAPI_update(t *testing.T) {
 	tfCheckNode := "betterado_check_rest_api.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed("betterado_check_rest_api"),
 		Steps: []resource.TestStep{
 			{

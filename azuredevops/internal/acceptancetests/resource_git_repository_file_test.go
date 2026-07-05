@@ -24,7 +24,7 @@ func TestAccGitRepoFile_basic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclGitRepositoryFileBasic(gitRepoName, branch, file, contentFirst),
@@ -57,7 +57,7 @@ func TestAccGitRepoFile_complete(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclGitRepositoryFileComplete(gitRepoName, branch, file, contentFirst),
@@ -90,7 +90,7 @@ func TestAccGitRepoFile_authorEmailPolicy(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclGitRepositoryFileAuthorEmailPolicy(gitRepoName, branch, file, contentFirst),
@@ -124,7 +124,7 @@ func TestAccGitRepoFile_update(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclGitRepositoryFileBasic(gitRepoName, branch, file, contentFirst),
@@ -175,7 +175,7 @@ func TestAccGitRepoFile_incorrectBranch(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config:      hclGitRepositoryFileBasic(gitRepoName, "foobar", "foo", "bar"),

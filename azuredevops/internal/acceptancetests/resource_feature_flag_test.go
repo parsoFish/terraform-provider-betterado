@@ -30,7 +30,7 @@ const (
 func TestAccFeatureFlag_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkFeatureFlagDestroyed,
 		Steps: []resource.TestStep{
 			// Step 1: create — enable the feature, assert read-back

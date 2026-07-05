@@ -12,7 +12,7 @@ import (
 
 // getProjectClient returns an AggregatedClient suitable for project lookups.
 // When the SDKv2 provider singleton has not been configured (e.g. tests using
-// ProtoV6ProviderFactories / GetMuxedProviderFactories), Meta() is nil; in
+// ProtoV6ProviderFactories / GetProviderFactories), Meta() is nil; in
 // that case we build a fresh client directly from the environment.
 func getProjectClient() (*client.AggregatedClient, error) {
 	if meta := GetProvider().Meta(); meta != nil {

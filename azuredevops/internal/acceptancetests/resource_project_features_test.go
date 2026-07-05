@@ -21,7 +21,7 @@ import (
 //
 //	apply (disable features) → read-back → idempotency re-plan → update (re-enable) → destroy
 //
-// It uses GetMuxedProviderFactories so both betterado_project (framework) and
+// It uses GetProviderFactories so both betterado_project (framework) and
 // betterado_project_features (framework) are available in the same test.
 //
 // The test resolves the standing-demo fixture project (betterado-standing-demo) so
@@ -43,7 +43,7 @@ func TestAccProjectFeatures_roundtrip(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			// Step 1: disable artifacts and boards (license-free features).
 			{

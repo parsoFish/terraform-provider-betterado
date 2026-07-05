@@ -14,7 +14,7 @@ func TestAccServiceEndpointSonarCloud_dataSource(t *testing.T) {
 	tfNode := "data.betterado_serviceendpoint_sonarcloud.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclServiceEndpointSonarCloudDataSource(name),

@@ -47,7 +47,7 @@ func TestAccPipelineApproval(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, &[]string{"BETTERADO_TEST_APPROVAL_ID"}) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkPipelineApprovalDestroyed,
 		Steps: []resource.TestStep{
 			{

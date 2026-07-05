@@ -60,7 +60,7 @@ func TestAccDataPipelineRun(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		// Runs are immutable in ADO — no destroy needed, and no CheckDestroy.
 		Steps: []resource.TestStep{
 			// Step 1: create the pipeline + trigger + wait, then record run IDs.

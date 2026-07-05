@@ -28,7 +28,7 @@ func testAccRepositoryPolicyFilePathPatternsRepoPolicyBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclRepoPolicyFilePathPatternsResourceRepoPolicyBasic(projectID, repoName),
@@ -53,7 +53,7 @@ func testAccRepositoryPolicyFilePathPatternsRepoPolicyUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclRepoPolicyFilePathPatternsResourceRepoPolicyBasic(projectID, repoName),
@@ -84,7 +84,7 @@ func testAccRepositoryPolicyFilePathPatternsProjectPolicyBasic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclRepoPolicyFilePathPatternsResourceProjectPolicyBasic(projectID, repoName),
@@ -109,7 +109,7 @@ func testAccRepositoryPolicyFilePathPatternsProjectPolicyUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclRepoPolicyFilePathPatternsResourceProjectPolicyBasic(projectID, repoName),

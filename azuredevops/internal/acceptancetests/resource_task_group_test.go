@@ -25,7 +25,7 @@ func TestAccTaskGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkTaskGroupDestroyed,
 		Steps: []resource.TestStep{
 			// Step 1: create + assert read-back
@@ -96,7 +96,7 @@ func TestAccTaskGroup_withGapFields(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkTaskGroupDestroyed,
 		Steps: []resource.TestStep{
 			// Step 1: create with gap fields and assert exact non-default read-back

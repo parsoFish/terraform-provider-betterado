@@ -19,7 +19,7 @@ func TestAccVariableGroupVariable_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkVariableGroupVariableDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -63,7 +63,7 @@ func TestAccVariableGroupVariable_secret(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkVariableGroupVariableDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -226,7 +226,7 @@ func TestAccVariableGroupVariable_ForEach_ConcurrentCreate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps:                    steps,
 	})
 }

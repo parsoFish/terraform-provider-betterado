@@ -25,7 +25,7 @@ func TestAccWorkitemtrackingprocessRule_Basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -54,7 +54,7 @@ func TestAccWorkitemtrackingprocessRule_Update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -106,7 +106,7 @@ func TestAccWorkitemtrackingprocessRule_ConditionTypes(t *testing.T) {
 
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:                 func() { testutils.PreCheck(t, nil) },
-				ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+				ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 				CheckDestroy:             testutils.CheckProcessDestroyed,
 				Steps: []resource.TestStep{
 					{
@@ -142,7 +142,7 @@ func TestAccWorkitemtrackingprocessRule_ConditionGroupMembership(t *testing.T) {
 
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:                 func() { testutils.PreCheck(t, nil) },
-				ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+				ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 				CheckDestroy:             testutils.CheckProcessDestroyed,
 				Steps: []resource.TestStep{
 					{
@@ -191,7 +191,7 @@ func TestAccWorkitemtrackingprocessRule_ActionTypes(t *testing.T) {
 
 			resource.ParallelTest(t, resource.TestCase{
 				PreCheck:                 func() { testutils.PreCheck(t, nil) },
-				ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+				ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 				CheckDestroy:             testutils.CheckProcessDestroyed,
 				Steps: []resource.TestStep{
 					{
@@ -221,7 +221,7 @@ func TestAccWorkitemtrackingprocessRule_HideTargetField(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -247,7 +247,7 @@ func TestAccWorkitemtrackingprocessRule_DisallowValue(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -504,7 +504,7 @@ func captureRuleEvidence(tfNode string) resource.TestCheckFunc {
 		witRefName := res.Primary.Attributes["work_item_type_id"]
 		ruleURL := res.Primary.Attributes["url"]
 
-		// Build a direct client from env vars (GetMuxedProviderFactories does not
+		// Build a direct client from env vars (GetProviderFactories does not
 		// expose the underlying AggregatedClient via Meta).
 		orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
 		pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")

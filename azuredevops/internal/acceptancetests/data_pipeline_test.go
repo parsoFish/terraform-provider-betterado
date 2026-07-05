@@ -22,7 +22,7 @@ func TestAccDataPipeline_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkPipelineDestroyed,
 		Steps: []resource.TestStep{
 			// Step 1: create resource + read back via data source; verify matching attrs.

@@ -79,7 +79,7 @@ func TestAccIterationDataSource_Read(t *testing.T) {
 	tfNode := "data.betterado_iteration.root-iteration"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclIterationDataSource(true),
@@ -100,7 +100,7 @@ func TestAccIterationDataSource_ReadNoChildren(t *testing.T) {
 	tfNode := "data.betterado_iteration.root-iteration"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclIterationDataSource(false),

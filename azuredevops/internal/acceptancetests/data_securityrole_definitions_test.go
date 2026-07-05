@@ -13,7 +13,7 @@ func TestAccAzureDevOpsSecurityroles_DataSource_Securityrole_Definitions(t *test
 	tfNode := "data.betterado_securityrole_definitions.definitions-list"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: securityroleDefinitionsData,

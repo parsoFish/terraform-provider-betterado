@@ -98,7 +98,7 @@ func captureWikiPageEvidence(tfNode string) resource.TestCheckFunc {
 }
 
 // TestAccWikiPageResource_basic verifies creating and reading a wiki page using
-// the framework provider (betterado_wiki_page registered via GetMuxedProviderFactories).
+// the framework provider (betterado_wiki_page registered via GetProviderFactories).
 // Uses the standing fixture project (SharedFixtureProjectName) to avoid the
 // org's 1000-project cap.
 func TestAccWikiPageResource_basic(t *testing.T) {
@@ -107,7 +107,7 @@ func TestAccWikiPageResource_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkWikiPageDestroyedByAttrs,
 		Steps: []resource.TestStep{
 			{
@@ -141,7 +141,7 @@ func TestAccWikiPageResource_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkWikiPageDestroyedByAttrs,
 		Steps: []resource.TestStep{
 			{

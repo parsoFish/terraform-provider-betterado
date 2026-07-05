@@ -20,7 +20,7 @@ func TestAccGitRepositoryBranch_fromBranch(t *testing.T) {
 	resource.Test(
 		t, resource.TestCase{
 			PreCheck:                 func() { preCheckGitRepository(t) },
-			ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+			ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 			CheckDestroy:             checkGitRepoDestroyed,
 			Steps: []resource.TestStep{
 				{
@@ -52,7 +52,7 @@ func TestAccGitRepositoryBranch_fromCommit(t *testing.T) {
 	resource.Test(
 		t, resource.TestCase{
 			PreCheck:                 func() { preCheckGitRepository(t) },
-			ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+			ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 			CheckDestroy:             checkGitRepoDestroyed,
 			Steps: []resource.TestStep{
 				{
@@ -83,7 +83,7 @@ func TestAccGitRepositoryBranch_invalidRef(t *testing.T) {
 	resource.Test(
 		t, resource.TestCase{
 			PreCheck:                 func() { preCheckGitRepository(t) },
-			ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+			ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 			CheckDestroy:             checkGitRepoDestroyed,
 			Steps: []resource.TestStep{
 				{
@@ -103,7 +103,7 @@ func TestAccGitRepositoryBranch_requireImportError(t *testing.T) {
 		t, resource.TestCase{
 			PreCheck:                 func() { preCheckGitRepository(t) },
 			CheckDestroy:             checkGitRepoDestroyed,
-			ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+			ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 			Steps: []resource.TestStep{
 				{
 					Config:      hclGitRepoBranchesImportError(gitRepoName, branchName),
