@@ -22,16 +22,16 @@ func TestAccRepositoryPolicyCaseEnforcement(t *testing.T) {
 }
 
 func testAccRepoPolicyEnforceConsistentCaseBasic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	caseEnforceTfNode := "betterado_repository_policy_case_enforcement.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepoPolicyEnforceConsistentCaseBasic(projectName, repoName),
+				Config: hclRepoPolicyEnforceConsistentCaseBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(caseEnforceTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(caseEnforceTfNode, "enforce_consistent_case", "true"),
@@ -47,21 +47,21 @@ func testAccRepoPolicyEnforceConsistentCaseBasic(t *testing.T) {
 }
 
 func testAccRepoPolicyEnforceConsistentCaseUpdate(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	caseEnforceTfNode := "betterado_repository_policy_case_enforcement.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepoPolicyEnforceConsistentCaseBasic(projectName, repoName),
+				Config: hclRepoPolicyEnforceConsistentCaseBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(caseEnforceTfNode, "enabled", "true"),
 				),
 			}, {
-				Config: hclRepoPolicyEnforceConsistentCaseUpdate(projectName, repoName),
+				Config: hclRepoPolicyEnforceConsistentCaseUpdate(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(caseEnforceTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(caseEnforceTfNode, "enforce_consistent_case", "false"),
@@ -77,16 +77,16 @@ func testAccRepoPolicyEnforceConsistentCaseUpdate(t *testing.T) {
 }
 
 func testAccProjectPolicyEnforceConsistentCaseBasic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	caseEnforceTfNode := "betterado_repository_policy_case_enforcement.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectPolicyEnforceConsistentCaseBasic(projectName, repoName),
+				Config: hclProjectPolicyEnforceConsistentCaseBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(caseEnforceTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(caseEnforceTfNode, "enforce_consistent_case", "true"),
@@ -102,21 +102,21 @@ func testAccProjectPolicyEnforceConsistentCaseBasic(t *testing.T) {
 }
 
 func testAccProjectPolicyEnforceConsistentCaseUpdate(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	caseEnforceTfNode := "betterado_repository_policy_case_enforcement.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectPolicyEnforceConsistentCaseBasic(projectName, repoName),
+				Config: hclProjectPolicyEnforceConsistentCaseBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(caseEnforceTfNode, "enabled", "true"),
 				),
 			}, {
-				Config: hclProjectPolicyEnforceConsistentCaseUpdate(projectName, repoName),
+				Config: hclProjectPolicyEnforceConsistentCaseUpdate(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(caseEnforceTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(caseEnforceTfNode, "enforce_consistent_case", "false"),
@@ -131,81 +131,73 @@ func testAccProjectPolicyEnforceConsistentCaseUpdate(t *testing.T) {
 	})
 }
 
-func hclPolicyEnforceConsistentCaseResourceTemplate(projectName string, repoName string) string {
+func hclPolicyEnforceConsistentCaseResourceTemplate(projectID string, repoName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%s"
-  description        = "Test Project Description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = %[1]q
+  name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
-`, projectName, repoName)
+`, projectID, repoName)
 }
 
-func hclRepoPolicyEnforceConsistentCaseBasic(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyEnforceConsistentCaseResourceTemplate(projectName, repoName)
+func hclRepoPolicyEnforceConsistentCaseBasic(projectID string, repoName string) string {
+	repoBlock := hclPolicyEnforceConsistentCaseResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_case_enforcement" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
 
   enabled                 = true
   blocking                = true
   enforce_consistent_case = true
   repository_ids          = [betterado_git_repository.test.id]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclRepoPolicyEnforceConsistentCaseUpdate(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyEnforceConsistentCaseResourceTemplate(projectName, repoName)
+func hclRepoPolicyEnforceConsistentCaseUpdate(projectID string, repoName string) string {
+	repoBlock := hclPolicyEnforceConsistentCaseResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_case_enforcement" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
 
   enabled                 = true
   blocking                = true
   enforce_consistent_case = false
   repository_ids          = [betterado_git_repository.test.id]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclProjectPolicyEnforceConsistentCaseBasic(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyEnforceConsistentCaseResourceTemplate(projectName, repoName)
+func hclProjectPolicyEnforceConsistentCaseBasic(projectID string, repoName string) string {
+	repoBlock := hclPolicyEnforceConsistentCaseResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_case_enforcement" "test" {
-  project_id              = betterado_project.test.id
+  project_id              = %[2]q
   enabled                 = true
   blocking                = true
   enforce_consistent_case = true
   depends_on              = [betterado_git_repository.test]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclProjectPolicyEnforceConsistentCaseUpdate(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyEnforceConsistentCaseResourceTemplate(projectName, repoName)
+func hclProjectPolicyEnforceConsistentCaseUpdate(projectID string, repoName string) string {
+	repoBlock := hclPolicyEnforceConsistentCaseResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_case_enforcement" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
 
   enabled                 = true
   blocking                = true
   enforce_consistent_case = false
   depends_on              = [betterado_git_repository.test]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }

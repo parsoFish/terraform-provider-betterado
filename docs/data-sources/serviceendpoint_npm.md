@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_npm Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Use this data source to access information about an existing npm Service Connection.
 ---
 
 # betterado_serviceendpoint_npm (Data Source)
 
-
+Use this data source to access information about an existing npm Service Connection.
 
 
 
@@ -17,24 +17,13 @@ description: |-
 
 ### Required
 
-- `project_id` (String)
+- `project_id` (String) The project ID or project name.
 
 ### Optional
 
-- `service_endpoint_id` (String) The ID of the serviceendpoint
-- `service_endpoint_name` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `service_endpoint_id` (String) The service endpoint ID.
+- `service_endpoint_name` (String) The service endpoint name.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `description` (String)
-- `id` (String) The ID of this resource.
-- `url` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `url` (String) The npm registry URL.

@@ -11,22 +11,13 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
-	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils"
 )
 
-// getDirectClient builds an AggregatedClient directly from AZDO env vars.
-// Used by CheckDestroy and evidence helpers because ProtoV6ProviderFactories
-// does not wire the SDKv2 provider singleton's Meta, so testutils.GetProvider().Meta()
-// would be nil when the test uses the mux provider factory.
-func getDirectClient() (*client.AggregatedClient, error) {
-	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
-	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
-	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
-}
+// getDirectClient is defined in direct_client_test.go (no build tag) so it is
+// available to all test files in this package, including those without build tags.
 
 func TestAccTaskGroup_basic(t *testing.T) {
 	name := testutils.GenerateResourceName()

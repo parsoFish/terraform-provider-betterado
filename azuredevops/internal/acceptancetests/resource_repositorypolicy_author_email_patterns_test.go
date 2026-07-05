@@ -22,16 +22,16 @@ func TestAccRepositoryPolicyAuthorEmailPatterns(t *testing.T) {
 }
 
 func testAccRepositoryPolicyAuthorEmailPatternsRepoPolicyBasic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	authorEmailTfNode := "betterado_repository_policy_author_email_pattern.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyBasic(projectName, repoName),
+				Config: hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(authorEmailTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(authorEmailTfNode, "author_email_patterns.0", "test1@test.com"),
@@ -47,21 +47,21 @@ func testAccRepositoryPolicyAuthorEmailPatternsRepoPolicyBasic(t *testing.T) {
 }
 
 func testAccRepositoryPolicyAuthorEmailPatternsRepoPolicyUpdate(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	authorEmailTfNode := "betterado_repository_policy_author_email_pattern.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyBasic(projectName, repoName),
+				Config: hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(authorEmailTfNode, "enabled", "true"),
 				),
 			}, {
-				Config: hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyUpdate(projectName, repoName),
+				Config: hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyUpdate(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(authorEmailTfNode, "author_email_patterns.0", "test2@test.com"),
 					resource.TestCheckResourceAttr(authorEmailTfNode, "enabled", "true"),
@@ -77,16 +77,16 @@ func testAccRepositoryPolicyAuthorEmailPatternsRepoPolicyUpdate(t *testing.T) {
 }
 
 func testAccRepositoryPolicyAuthorEmailPatternsProjectPolicyBasic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	authorEmailTfNode := "betterado_repository_policy_author_email_pattern.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyBasic(projectName, repoName),
+				Config: hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(authorEmailTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(authorEmailTfNode, "author_email_patterns.#", "1"),
@@ -102,21 +102,21 @@ func testAccRepositoryPolicyAuthorEmailPatternsProjectPolicyBasic(t *testing.T) 
 }
 
 func testAccRepositoryPolicyAuthorEmailPatternsProjectPolicyUpdate(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	authorEmailTfNode := "betterado_repository_policy_author_email_pattern.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyBasic(projectName, repoName),
+				Config: hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(authorEmailTfNode, "enabled", "true"),
 				),
 			}, {
-				Config: hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyUpdate(projectName, repoName),
+				Config: hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyUpdate(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(authorEmailTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(authorEmailTfNode, "author_email_patterns.#", "2"),
@@ -131,85 +131,77 @@ func testAccRepositoryPolicyAuthorEmailPatternsProjectPolicyUpdate(t *testing.T)
 	})
 }
 
-func hclRepositoryPolicyAuthorEmailPatternsResourceTemplate(projectName string, repoName string) string {
+func hclRepositoryPolicyAuthorEmailPatternsResourceTemplate(projectID string, repoName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%s"
-  description        = "Test Project Description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = %[1]q
+  name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
-`, projectName, repoName)
+`, projectID, repoName)
 }
 
-func hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyBasic(projectName string, repoName string) string {
-	projectAndRepo := hclRepositoryPolicyAuthorEmailPatternsResourceTemplate(projectName, repoName)
+func hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyBasic(projectID string, repoName string) string {
+	repoBlock := hclRepositoryPolicyAuthorEmailPatternsResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_author_email_pattern" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
 
   enabled  = true
   blocking = true
 
   author_email_patterns = ["test1@test.com"]
   repository_ids        = [betterado_git_repository.test.id]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyUpdate(projectName string, repoName string) string {
-	projectAndRepo := hclRepositoryPolicyAuthorEmailPatternsResourceTemplate(projectName, repoName)
+func hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyUpdate(projectID string, repoName string) string {
+	repoBlock := hclRepositoryPolicyAuthorEmailPatternsResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_author_email_pattern" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
 
   enabled  = true
   blocking = true
 
   author_email_patterns = ["test2@test.com"]
   repository_ids        = [betterado_git_repository.test.id]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyBasic(projectName string, repoName string) string {
-	projectAndRepo := hclRepositoryPolicyAuthorEmailPatternsResourceTemplate(projectName, repoName)
+func hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyBasic(projectID string, repoName string) string {
+	repoBlock := hclRepositoryPolicyAuthorEmailPatternsResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_author_email_pattern" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
 
   enabled               = true
   blocking              = true
   author_email_patterns = ["test1@test.com"]
   depends_on            = [betterado_git_repository.test]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyUpdate(projectName string, repoName string) string {
-	projectAndRepo := hclRepositoryPolicyAuthorEmailPatternsResourceTemplate(projectName, repoName)
+func hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyUpdate(projectID string, repoName string) string {
+	repoBlock := hclRepositoryPolicyAuthorEmailPatternsResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_author_email_pattern" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
 
   enabled  = true
   blocking = true
 
   author_email_patterns = ["test1@test.com", "test2@test.com"]
   depends_on            = [betterado_git_repository.test]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }

@@ -1,0 +1,129 @@
+{
+  "title": "Migrate betterado_wiki and betterado_wiki_page to terraform-plugin-framework",
+  "essence": "Both wiki resources (betterado_wiki, betterado_wiki_page) are migrated from Terraform Plugin SDK v2 to terraform-plugin-framework, served via the mux provider. SDKv2 implementations are deleted; live acceptance tests pass with idempotency verified (ExpectNonEmptyPlan: false); docs regenerated; changelog updated.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-07-01-migrate-framework-wiki",
+  "diffStat": "18 files changed, 1446 insertions(+), 684 deletions(-)",
+  "checkpoints": [
+    {
+      "label": "quality-gate",
+      "caption": "Offline unit/integration gate — release and taskagent packages green",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/..."
+    },
+    {
+      "label": "wiki-gap-matrix",
+      "caption": "docs/wiki-gap-matrix.md exists and lists every ADO Wiki API v7.1 field",
+      "command": "go test -tags all -count=1 -run TestWikiGapMatrix_FileExists ./azuredevops/internal/service/wiki/",
+      "beforeNote": "No wiki-gap-matrix.md existed; TestWikiGapMatrix_FileExists did not exist.",
+      "afterNote": "docs/wiki-gap-matrix.md present with full field audit; TestWikiGapMatrix_FileExists passes."
+    },
+    {
+      "label": "live-evidence-wiki",
+      "caption": "Live ADO REST GET response for betterado_wiki (codeWiki) created by acceptance test",
+      "beforeNote": "No live evidence captured; resource ran under SDKv2.",
+      "afterNote": "CaptureLiveEvidence called during TestAccWikiResource_codeWiki; acceptance-resource-wiki.json written with real ADO GET response.",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/wiki/wikis/d06c666f-9d11-4076-8c1e-6e99e92dca48?api-version=7.1",
+        "capturedAt": "2026-07-03T09:09:31Z",
+        "response": "{\"mappedPath\":\"/\",\"name\":\"test-acc-6f33gi6m4z\",\"projectId\":\"6ddb680c-093d-4953-9561-2266eb7af800\",\"repositoryId\":\"b32d4e7b-ca08-4afc-b1f0-a4c39638ed12\",\"type\":\"codeWiki\",\"id\":\"d06c666f-9d11-4076-8c1e-6e99e92dca48\",\"remoteUrl\":\"https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_wiki/wikis/d06c666f-9d11-4076-8c1e-6e99e92dca48\",\"url\":\"https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/wiki/wikis/d06c666f-9d11-4076-8c1e-6e99e92dca48\",\"versions\":[{\"version\":\"master\"}]}"
+      }
+    },
+    {
+      "label": "live-evidence-wiki-page",
+      "caption": "Live ADO REST GET response for betterado_wiki_page created by acceptance test",
+      "beforeNote": "No live evidence captured; resource ran under SDKv2.",
+      "afterNote": "CaptureLiveEvidence called during TestAccWikiPageResource_basic; acceptance-resource-wiki-page.json written with real ADO GET response.",
+      "liveEvidence": {
+        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/wiki/wikis/b5573ed1-659c-4be6-bd88-9c380427333c/pages/30?includeContent=true&api-version=7.1",
+        "capturedAt": "2026-07-03T09:09:34Z",
+        "response": "{\"eTag\":[\"\\\"314d32ee03a8bd75dbe1b398b0f6309caff88f0b\\\"\"],\"page\":{\"content\":\"contentupdate\",\"gitItemPath\":\"/page%2Dpath.md\",\"id\":30,\"order\":0,\"path\":\"/page-path\",\"remoteUrl\":\"https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_wiki/wikis/b5573ed1-659c-4be6-bd88-9c380427333c?pagePath=%2Fpage-path\",\"subPages\":[],\"url\":\"https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/wiki/wikis/b5573ed1-659c-4be6-bd88-9c380427333c/pages/%2Fpage-path\"}}"
+      }
+    }
+  ],
+  "acEvaluations": [
+    {
+      "criterion": "GIVEN the ADO Wiki REST API v7.1 schema for both wiki and wiki_page resources WHEN compared field-by-field against the existing SDKv2 schema in resource_wiki.go and resource_wiki_page.go THEN docs/wiki-gap-matrix.md exists and lists every API field with its provider status (implemented / computed-only / writable gap / not-applicable) and a resolution or deferral note for each writable gap",
+      "verdict": "met",
+      "evidence": "test 'TestWikiGapMatrix_FileExists' → pass; docs/wiki-gap-matrix.md present (64 lines) with full field audit covering WikiV2 and WikiPage API objects, each row labelled implemented/computed-only/writable-gap/not-applicable with resolution notes."
+    },
+    {
+      "criterion": "GIVEN the betterado_wiki resource registered in the framework provider WHEN terraform apply runs a code-wiki or project-wiki configuration THEN apply succeeds, provider read-back reflects all attributes, idempotency re-plan produces no diff (ExpectNonEmptyPlan: false), and destroy completes cleanly — verified by TestAccWikiResource_projectWiki and TestAccWikiResource_codeWiki updated to use GetMuxedProviderFactories()",
+      "verdict": "met",
+      "evidence": "TestAccWikiResource_projectWiki and TestAccWikiResource_codeWiki → pass (live TF_ACC=1 run, 2026-07-03); both use ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(); each includes an ExpectNonEmptyPlan: false idempotency step; destroy completes cleanly."
+    },
+    {
+      "criterion": "GIVEN the SDKv2 resource_wiki.go and resource_wiki_test.go deleted and betterado_wiki removed from provider.go ResourcesMap WHEN go build -mod=vendor . is run THEN the provider binary compiles without errors and provider_test.go resource count is decremented by 1 for betterado_wiki",
+      "verdict": "met",
+      "evidence": "resource_wiki.go deleted (199 lines removed), resource_wiki_test.go deleted (107 lines removed), 'betterado_wiki' removed from provider.go ResourcesMap; 'go build -mod=vendor .' succeeds; provider_test.go expectedResources list does not include betterado_wiki."
+    },
+    {
+      "criterion": "GIVEN the betterado_wiki_page resource registered in the framework provider WHEN terraform apply creates a wiki page, update changes content, and destroy removes it THEN all steps succeed, read-back reflects all attributes, idempotency re-plan produces no diff (ExpectNonEmptyPlan: false) — verified by TestAccWikiPageResource_basic and TestAccWikiPageResource_update updated to use GetMuxedProviderFactories()",
+      "verdict": "met",
+      "evidence": "TestAccWikiPageResource_basic and TestAccWikiPageResource_update → pass (live TF_ACC=1 run, 2026-07-03); both use ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(); content update step verified; each includes ExpectNonEmptyPlan: false; destroy completes cleanly."
+    },
+    {
+      "criterion": "GIVEN the SDKv2 resource_wiki_page.go deleted and betterado_wiki_page removed from provider.go ResourcesMap WHEN go build -mod=vendor . is run THEN the provider binary compiles without errors and provider_test.go resource count is decremented by 1 for betterado_wiki_page",
+      "verdict": "met",
+      "evidence": "resource_wiki_page.go deleted (158 lines removed), 'betterado_wiki_page' removed from provider.go ResourcesMap; 'go build -mod=vendor .' succeeds; provider_test.go expectedResources list does not include betterado_wiki_page."
+    },
+    {
+      "criterion": "GIVEN betterado_wiki and betterado_wiki_page framework resources are live WHEN the full live acceptance suite runs (TF_ACC=1) for wiki resources THEN TestAccWikiResource_projectWiki, TestAccWikiResource_codeWiki, TestAccWikiPageResource_basic, and TestAccWikiPageResource_update all pass with ExpectNonEmptyPlan: false on each idempotency check step",
+      "verdict": "met",
+      "evidence": "All four acceptance tests pass (live TF_ACC=1, 2026-07-03); each test case includes ExpectNonEmptyPlan: false on the idempotency re-plan step; offline gate 'go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...' → ok (0.010s, 0.009s, 0.007s)."
+    },
+    {
+      "criterion": "GIVEN the live acceptance test for betterado_wiki runs WHEN the provider read-back step executes before destroy THEN testutils.CaptureLiveEvidence is called with label 'acceptance-resource-wiki' and a real ADO REST GET URL; .forge/live-evidence/acceptance-resource-wiki.json is written",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-wiki.json written at 2026-07-03T09:09:31Z; url=https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/wiki/wikis/d06c666f-9d11-4076-8c1e-6e99e92dca48?api-version=7.1; response includes id, type=codeWiki, name, projectId, repositoryId."
+    },
+    {
+      "criterion": "GIVEN the live acceptance test for betterado_wiki_page runs WHEN the provider read-back step executes before destroy THEN testutils.CaptureLiveEvidence is called with label 'acceptance-resource-wiki-page' and a real ADO REST GET URL; .forge/live-evidence/acceptance-resource-wiki-page.json is written",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-wiki-page.json written at 2026-07-03T09:09:34Z; url=https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/wiki/wikis/b5573ed1-659c-4be6-bd88-9c380427333c/pages/30?includeContent=true&api-version=7.1; response includes page.content, page.path, page.id=30, eTag."
+    },
+    {
+      "criterion": "GIVEN all framework migrations are complete WHEN make docs is run then git checkout -- docs/guides/ THEN docs/resources/wiki.md and docs/resources/wiki_page.md reflect the current framework schema; no guides/ files are deleted",
+      "verdict": "met",
+      "evidence": "docs/resources/wiki.md and docs/resources/wiki_page.md updated in branch diff (42 and 33 lines changed); examples/resources/betterado_wiki/resource.tf and examples/resources/betterado_wiki_page/resource.tf created; docs/guides/ not modified per git diff --name-only."
+    },
+    {
+      "criterion": "GIVEN a user-visible change was shipped WHEN CHANGELOG.md and PROVIDER_VERSION.txt are inspected THEN CHANGELOG.md has a new entry under ## Unreleased describing the wiki framework migration; PROVIDER_VERSION.txt has a bumped semver",
+      "verdict": "met",
+      "evidence": "CHANGELOG.md ## [Unreleased] section contains entries for betterado_wiki and betterado_wiki_page framework migration under FEATURES; PROVIDER_VERSION.txt bumped (2 lines changed in diff)."
+    }
+  ],
+  "testEvidence": [
+    {
+      "name": "go test ./azuredevops/internal/service/release/...",
+      "result": "pass"
+    },
+    {
+      "name": "go test ./azuredevops/internal/service/taskagent/...",
+      "result": "pass"
+    },
+    {
+      "name": "go test ./azuredevops/internal/service/taskagent/validate/...",
+      "result": "pass"
+    },
+    {
+      "name": "TestWikiGapMatrix_FileExists",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccWikiResource_projectWiki",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccWikiResource_codeWiki",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccWikiPageResource_basic",
+      "result": "pass"
+    },
+    {
+      "name": "TestAccWikiPageResource_update",
+      "result": "pass"
+    }
+  ]
+}

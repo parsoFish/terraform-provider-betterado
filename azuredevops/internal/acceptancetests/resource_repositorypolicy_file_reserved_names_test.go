@@ -22,16 +22,16 @@ func TestAccRepositoryPolicyReservedNames(t *testing.T) {
 }
 
 func testAccRepoPolicyReservedNamesBasic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	reservedNameTfNode := "betterado_repository_policy_reserved_names.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepoPolicyReservedNamesBasic(projectName, repoName),
+				Config: hclRepoPolicyReservedNamesBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(reservedNameTfNode, "enabled", "true"),
 				),
@@ -46,21 +46,21 @@ func testAccRepoPolicyReservedNamesBasic(t *testing.T) {
 }
 
 func testAccRepoPolicyReservedNamesUpdate(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	reservedNameTfNode := "betterado_repository_policy_reserved_names.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepoPolicyReservedNamesBasic(projectName, repoName),
+				Config: hclRepoPolicyReservedNamesBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(reservedNameTfNode, "enabled", "true"),
 				),
 			}, {
-				Config: hclRepoPolicyReservedNamesUpdate(projectName, repoName),
+				Config: hclRepoPolicyReservedNamesUpdate(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(reservedNameTfNode, "enabled", "false"),
 				),
@@ -75,16 +75,16 @@ func testAccRepoPolicyReservedNamesUpdate(t *testing.T) {
 }
 
 func testAccProjectPolicyReservedNamesBasic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	reservedNameTfNode := "betterado_repository_policy_reserved_names.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectPolicyReservedNamesBasic(projectName, repoName),
+				Config: hclProjectPolicyReservedNamesBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(reservedNameTfNode, "enabled", "true"),
 				),
@@ -99,21 +99,21 @@ func testAccProjectPolicyReservedNamesBasic(t *testing.T) {
 }
 
 func testAccProjectPolicyReservedNamesUpdate(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	reservedNameTfNode := "betterado_repository_policy_reserved_names.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectPolicyReservedNamesBasic(projectName, repoName),
+				Config: hclProjectPolicyReservedNamesBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(reservedNameTfNode, "enabled", "true"),
 				),
 			}, {
-				Config: hclProjectPolicyReservedNamesUpdate(projectName, repoName),
+				Config: hclProjectPolicyReservedNamesUpdate(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(reservedNameTfNode, "enabled", "false"),
 				),
@@ -127,74 +127,66 @@ func testAccProjectPolicyReservedNamesUpdate(t *testing.T) {
 	})
 }
 
-func hclPolicyReservedNamesResourceTemplate(projectName string, repoName string) string {
+func hclPolicyReservedNamesResourceTemplate(projectID string, repoName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%s"
-  description        = "Test Project Description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = %[1]q
+  name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
-`, projectName, repoName)
+`, projectID, repoName)
 }
 
-func hclRepoPolicyReservedNamesBasic(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyReservedNamesResourceTemplate(projectName, repoName)
+func hclRepoPolicyReservedNamesBasic(projectID string, repoName string) string {
+	repoBlock := hclPolicyReservedNamesResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_reserved_names" "test" {
-  project_id     = betterado_project.test.id
+  project_id     = %[2]q
   enabled        = true
   blocking       = true
   repository_ids = [betterado_git_repository.test.id]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclRepoPolicyReservedNamesUpdate(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyReservedNamesResourceTemplate(projectName, repoName)
+func hclRepoPolicyReservedNamesUpdate(projectID string, repoName string) string {
+	repoBlock := hclPolicyReservedNamesResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_reserved_names" "test" {
-  project_id     = betterado_project.test.id
+  project_id     = %[2]q
   enabled        = false
   blocking       = true
   repository_ids = [betterado_git_repository.test.id]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclProjectPolicyReservedNamesBasic(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyReservedNamesResourceTemplate(projectName, repoName)
+func hclProjectPolicyReservedNamesBasic(projectID string, repoName string) string {
+	repoBlock := hclPolicyReservedNamesResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_reserved_names" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
   enabled    = true
   blocking   = true
   depends_on = [betterado_git_repository.test]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclProjectPolicyReservedNamesUpdate(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyReservedNamesResourceTemplate(projectName, repoName)
+func hclProjectPolicyReservedNamesUpdate(projectID string, repoName string) string {
+	repoBlock := hclPolicyReservedNamesResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_reserved_names" "test" {
-  project_id = betterado_project.test.id
+  project_id = %[2]q
   enabled    = false
   blocking   = true
   depends_on = [betterado_git_repository.test]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
