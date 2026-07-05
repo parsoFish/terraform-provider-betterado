@@ -26,6 +26,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/notification"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/permissions"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/pipelines"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/pipelinesapproval"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/branch"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/policy/repository"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/profile"
@@ -320,6 +321,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		testplan.NewTestSuiteResource,
 		testplan.NewTestConfigurationResource,
 		testplan.NewTestVariableResource,
+		pipelinesapproval.NewPipelineApprovalResource,
 	}
 }
 
@@ -369,5 +371,6 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		testplan.NewTestPlanDataSource,
 		testplan.NewTestRunDataSource,
 		testplan.NewTestResultDataSource,
+		pipelinesapproval.NewPipelineApprovalsDataSource,
 	}
 }

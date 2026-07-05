@@ -1,0 +1,9 @@
+FAIL	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider [build failed]
+FAIL
+[stderr] # github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider_test [github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider.test]
+azuredevops/internal/provider/framework_provider_test.go:153:41: undefined: datasource
+azuredevops/internal/provider/framework_provider_test.go:161:16: undefined: datasource
+azuredevops/internal/provider/framework_provider_test.go:162:37: undefined: datasource
+azuredevops/internal/provider/framework_provider_test.go:197:41: undefined: datasource
+azuredevops/internal/provider/framework_provider_test.go:208:16: undefined: datasource
+azuredevops/internal/provider/framework_provider_test.go:209:37: undefined: datasource

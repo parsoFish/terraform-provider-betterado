@@ -327,3 +327,45 @@ func TestFrameworkProvider(t *testing.T) {
 	require.True(t, dataSourceTypes["betterado_test_result"],
 		"NewTestResultDataSource: betterado_test_result must be registered in DataSources()")
 }
+
+func TestFrameworkProvider_HasPipelineApprovalResources(t *testing.T) {
+	p := frameworkprovider.NewFrameworkProvider()
+
+	// Check resource
+	provWithResources, ok := p.(interface {
+		Resources(context.Context) []func() resource.Resource
+	})
+	require.True(t, ok, "framework provider must implement Resources()")
+
+	factories := provWithResources.Resources(context.Background())
+	foundResource := false
+	for _, factory := range factories {
+		r := factory()
+		var metaResp resource.MetadataResponse
+		r.Metadata(context.Background(), resource.MetadataRequest{ProviderTypeName: "betterado"}, &metaResp)
+		if metaResp.TypeName == "betterado_pipeline_approval" {
+			foundResource = true
+			break
+		}
+	}
+	require.True(t, foundResource, "framework provider must register betterado_pipeline_approval resource")
+
+	// Check data source
+	provWithDataSources, ok := p.(interface {
+		DataSources(context.Context) []func() datasource.DataSource
+	})
+	require.True(t, ok, "framework provider must implement DataSources()")
+
+	dsFactories := provWithDataSources.DataSources(context.Background())
+	foundDataSource := false
+	for _, factory := range dsFactories {
+		ds := factory()
+		var metaResp datasource.MetadataResponse
+		ds.Metadata(context.Background(), datasource.MetadataRequest{ProviderTypeName: "betterado"}, &metaResp)
+		if metaResp.TypeName == "betterado_pipeline_approvals" {
+			foundDataSource = true
+			break
+		}
+	}
+	require.True(t, foundDataSource, "framework provider must register betterado_pipeline_approvals data source")
+}

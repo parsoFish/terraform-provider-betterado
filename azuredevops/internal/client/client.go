@@ -24,6 +24,7 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/operations"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelinepermissions"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelines"
+	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelinesapproval"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/pipelineschecks"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/policy"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/profile"
@@ -72,6 +73,7 @@ type AggregatedClient struct {
 	PipelinesChecksClient         pipelineschecks.Client
 	PipelinePermissionsClient     pipelinepermissions.Client
 	PipelinesChecksClientExtras   pipelineschecksextras.Client
+	PipelinesApprovalClient       pipelinesapproval.Client
 	PolicyClient                  policy.Client
 	ProfileClient                 profile.Client
 	ElasticClient                 elastic.Client
@@ -289,6 +291,12 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 		return nil, err
 	}
 
+	pipelinesApprovalClient, err := pipelinesapproval.NewClient(ctx, connection)
+	if err != nil {
+		log.Printf("getAzdoClient(): pipelinesapproval.NewClient failed.")
+		return nil, err
+	}
+
 	serviceHooksClient := servicehooks.NewClient(ctx, connection)
 
 	securityRolesClient := securityroles.NewClient(ctx, connection)
@@ -311,6 +319,7 @@ func GetAzdoClient(authProvider azuredevops.AuthProvider, organizationURL string
 		PipelinesChecksClient:         pipelinesChecksClient,
 		PipelinePermissionsClient:     pipelinepermissionsClient,
 		PipelinesChecksClientExtras:   pipelinesChecksClientExtras,
+		PipelinesApprovalClient:       pipelinesApprovalClient,
 		PolicyClient:                  policyClient,
 		ProfileClient:                 profileClient,
 		ReleaseClient:                 releaseClient,
