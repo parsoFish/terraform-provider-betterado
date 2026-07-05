@@ -72,17 +72,6 @@ func readProcess(clients *client.AggregatedClient, identifier uuid.UUID) (*core.
 	})
 }
 
-// GetDirectClient builds an AggregatedClient directly from AZDO environment
-// variables. It is exported so that acceptance-test files without a build tag
-// can use it without relying on the tagged resource_task_group_test.go
-// definition of getDirectClient().
-func GetDirectClient() (*client.AggregatedClient, error) {
-	loadSecretsEnv()
-	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
-	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
-	return client.GetAzdoClient(azuredevops.NewAuthProviderPAT(pat), orgURL)
-}
-
 func GenerateWorkItemTypeName() string {
 	return strings.ReplaceAll(GenerateResourceName(), "-", "")
 }

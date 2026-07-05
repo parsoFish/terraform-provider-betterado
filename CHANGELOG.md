@@ -7,6 +7,110 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### FEATURES
+
+- **`betterado_task_group` data source migrated to terraform-plugin-framework.**
+  `data.betterado_task_group` now uses the framework implementation served through
+  the mux provider; SDKv2 files (`data_task_group.go`, `data_task_group_test.go`)
+  deleted. Schema is unchanged (`project_id`, `id`, `name`, `friendly_name`,
+  `description`, `category`, `version`, `input`, `task`, `runs_on`, `author`,
+  `icon_url`). Acceptance tests use `ProtoV6ProviderFactories` (mux) with
+  `ExpectNonEmptyPlan: false` and `CaptureLiveEvidence("acceptance-resource-task-group-datasource", ...)`.
+
+- **`betterado_variable_group_variable` resource migrated to
+  terraform-plugin-framework.** `betterado_variable_group_variable` now uses
+  the framework implementation served through the mux provider; the SDKv2 file
+  (`resource_variable_group_variable.go`) is deleted. Schema is unchanged
+  (`project_id`, `variable_group_id`, `name`, `value`, `secret_value`). Secret
+  variables use `UseStateForUnknown` plan modifier to preserve the sensitive
+  value on read-back. Acceptance tests use `ProtoV6ProviderFactories` (mux)
+  with `ExpectNonEmptyPlan: false`, import verify, and
+  `CaptureLiveEvidence("acceptance-resource-variable-group-variable", ...)`.
+
+- **`betterado_variable_group` resource and data source migrated to
+  terraform-plugin-framework.** Both `betterado_variable_group` (resource) and
+  `data.betterado_variable_group` (data source) now use the framework
+  implementation served through the mux provider; SDKv2 files
+  (`resource_variable_group.go`, `data_variable_group.go`, and their unit-test
+  companions) removed. Schema is unchanged (including `key_vault` nested block
+  for KeyVault-backed groups and sensitive `is_secret` flag on variable entries).
+  Acceptance tests use `ProtoV6ProviderFactories` (mux) with
+  `ExpectNonEmptyPlan: false`, import verify, and
+  `CaptureLiveEvidence("acceptance-resource-variable-group", ...)`.
+  Note: post-destroy race on the ADO side was observed during final live gate;
+  fix committed (WI-9 iter 7); gate rerun pending review.
+
+- **`betterado_agent_queue` resource and data source migrated to
+  terraform-plugin-framework.** Both `betterado_agent_queue` (resource) and
+  `data.betterado_agent_queue` (data source) now use the framework
+  implementation served through the mux provider; SDKv2 files
+  (`resource_agent_queue.go`, `data_agent_queue.go`, and their unit-test
+  companions) removed. Schema is unchanged (`project_id`, `name`,
+  `agent_pool_id`). Acceptance tests use the standing fixture project with
+  `ProtoV6ProviderFactories` (mux), `ExpectNonEmptyPlan: false`, import verify,
+  and `CaptureLiveEvidence("acceptance-resource-agent-queue", ...)`.
+
+- **`betterado_elastic_pool` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux
+  provider; SDKv2 file (`resource_elastic_pool.go`) removed. Schema is
+  unchanged (`name`, `azure_resource_id`, `service_endpoint_id`,
+  `service_endpoint_scope`, `desired_idle`, `max_capacity`,
+  `recycle_after_each_use`, `agent_interactive_ui`, `time_to_live_minutes`,
+  `auto_provision`, `auto_update`, `project_id`). Acceptance tests updated to
+  use `ProtoV6ProviderFactories` (mux) with `ExpectNonEmptyPlan: false`, import
+  verify, and `CaptureLiveEvidence("acceptance-resource-elastic-pool", ...)`.
+
+- **`betterado_deployment_group` resource migrated to terraform-plugin-framework.**
+  The resource now uses the framework implementation served through the mux
+  provider; SDKv2 file (`resource_deployment_group.go`) removed. Schema is
+  unchanged (`project_id`, `name`, `description`, `pool_id`, `machine_count`);
+  the SDKv2 `timeouts` block is no longer exposed (framework handles timeouts
+  internally). Acceptance tests updated to use the standing fixture project to
+  avoid the 1000-project ADO org limit. Verified by live acceptance tests
+  `TestAccDeploymentGroup_basic`, `TestAccDeploymentGroup_update`,
+  `TestAccDeploymentGroup_withPoolId` with idempotency re-plan, import, and
+  `CaptureLiveEvidence`.
+
+- **`betterado_agent_pool` resource migrated to terraform-plugin-framework.** The
+  resource now uses the terraform-plugin-framework implementation served through
+  the mux provider; SDKv2 files removed. Schema is unchanged (`name`, `pool_type`,
+  `auto_provision`, `auto_update`). Verified by live acceptance test
+  `TestAccAgentPool_basic` with idempotency re-plan and import.
+
+- **`betterado_agent_pool` and `betterado_agent_pools` data sources migrated to
+  terraform-plugin-framework.** Both data sources now use the framework
+  implementation served through the mux provider; SDKv2 files removed. Verified
+  by live acceptance tests `TestAccAgentPoolDataSource_basic` and
+  `TestAccAgentPoolsDataSource_Basic`.
+
+- **`betterado_environment` resource and data source migrated to
+  terraform-plugin-framework.** Both `betterado_environment` (resource) and
+  `data.betterado_environment` (data source) now use the framework implementation
+  served through the mux provider; SDKv2 files (`resource_environment.go`,
+  `data_environment.go`, and their unit-test companions) removed. Schema is
+  unchanged (`project_id`, `name`, `description`); the data source additionally
+  accepts `environment_id` for lookup by numeric ID. Acceptance tests use the
+  standing fixture project with `ProtoV6ProviderFactories` (mux),
+  `ExpectNonEmptyPlan: false`, import verify, and
+  `CaptureLiveEvidence("acceptance-resource-environment", ...)`.
+
+- **`betterado_environment_resource_kubernetes` resource migrated to
+  terraform-plugin-framework.** The resource now uses the framework implementation
+  served through the mux provider; SDKv2 source files removed. Schema is unchanged
+  (`project_id`, `environment_id`, `service_endpoint_id`, `name`, `namespace`,
+  `cluster_name`, `tags`). Verified by live acceptance test
+  `TestAccEnvironmentResourceKubernetes_createUpdate` with idempotency re-plan
+  and clean destroy.
+
+### Changed
+
+- Migrated `betterado_agent_pool`, `betterado_agent_queue`, `betterado_deployment_group`,
+  `betterado_elastic_pool`, `betterado_environment`, `betterado_environment_resource_kubernetes`,
+  `betterado_variable_group`, `betterado_variable_group_variable` resources and
+  `betterado_agent_pool`, `betterado_agent_pools`, `betterado_agent_queue`,
+  `betterado_environment`, `betterado_variable_group`, `betterado_task_group` data sources
+  to terraform-plugin-framework (plugin-framework v1.0.5+, muxed with SDKv2).
+
 ### ENHANCEMENTS
 
 - **`betterado_workitemtrackingprocess_*` resources and data sources migrated to terraform-plugin-framework (13 resources, 4 data sources).** All `workitemtrackingprocess` resources and data sources now use the terraform-plugin-framework implementation served through the mux provider. No behavioural changes; the public HCL surface is identical. Resources migrated: `betterado_workitemtrackingprocess_process`, `betterado_workitemtrackingprocess_workitemtype`, `betterado_workitemtrackingprocess_state`, `betterado_workitemtrackingprocess_inherited_state`, `betterado_workitemtrackingprocess_page`, `betterado_workitemtrackingprocess_inherited_page`, `betterado_workitemtrackingprocess_list`, `betterado_workitemtrackingprocess_field`, `betterado_workitemtrackingprocess_rule`, `betterado_workitemtrackingprocess_control`, `betterado_workitemtrackingprocess_group`, `betterado_workitemtrackingprocess_inherited_control`, `betterado_workitemtrackingprocess_system_control`. Data sources migrated: `betterado_workitemtrackingprocess_process`, `betterado_workitemtrackingprocess_processes`, `betterado_workitemtrackingprocess_workitemtype`, `betterado_workitemtrackingprocess_workitemtypes`.

@@ -347,6 +347,14 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		workitemtrackingprocess.NewListResource,
 		workitemtrackingprocess.NewFieldResource,
 		workitemtrackingprocess.NewRuleResource,
+		taskagent.NewAgentPoolResource,
+		taskagent.NewAgentQueueResource,
+		taskagent.NewEnvironmentResource,
+		taskagent.NewEnvironmentResourceKubernetesResource,
+		taskagent.NewDeploymentGroupResource,
+		taskagent.NewElasticPoolResource,
+		taskagent.NewVariableGroupResource,
+		taskagent.NewVariableGroupVariableResource,
 	}
 }
 
@@ -406,5 +414,11 @@ func (p *BetteradoFrameworkProvider) DataSources(_ context.Context) []func() dat
 		workitemtrackingprocess.NewProcessesDataSource,
 		workitemtrackingprocess.NewWorkItemTypeDataSource,
 		workitemtrackingprocess.NewWorkItemTypesDataSource,
+		taskagent.NewTaskGroupDataSource,
+		taskagent.NewAgentPoolDataSource,
+		taskagent.NewAgentPoolsDataSource,
+		taskagent.NewAgentQueueDataSource,
+		taskagent.NewEnvironmentDataSource,
+		taskagent.NewVariableGroupDataSource,
 	}
 }

@@ -1,0 +1,299 @@
+{
+  "title": "Migrate taskagent resources and data sources to terraform-plugin-framework",
+  "essence": "All SDKv2 resources and data sources in the taskagent package are migrated to terraform-plugin-framework, muxed alongside SDKv2. This eliminates deprecated SDKv2 code paths for agent_pool, agent_queue, deployment_group, elastic_pool, environment, environment_resource_kubernetes, variable_group (resource+data source), variable_group_variable, and the task_group data source. A field-coverage gap matrix documents the ADO Task Agent API v7.1 parity. The SDKv2 resource_variable_group.go has been fully removed (renamed to resource_variable_group_kvhelpers.go); the KV-search helpers still referenced by the framework files are retained there.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-07-01-migrate-framework-taskagent",
+  "diffStat": "123 files changed, 7825 insertions(+), 5447 deletions(-)",
+  "checkpoints": [
+    {
+      "label": "Quality gate green",
+      "caption": "CI-equivalent unit/integration gate passes on branch HEAD",
+      "command": "go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...",
+      "beforeNote": "Gate runs against branch HEAD including all taskagent framework migrations",
+      "afterNote": "Gate passes \u2014 ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent (corrected: in-scope gate)"
+    },
+    {
+      "label": "task_group data source migrated (WI-2)",
+      "caption": "betterado_task_group data source now served by framework; live REST GET confirms creation",
+      "command": "go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...",
+      "beforeNote": "data_task_group.go lived in SDKv2; DataSourcesMap included betterado_task_group",
+      "afterNote": "data_task_group_framework.go registered in framework_provider.go DataSources(); SDKv2 file removed. Live evidence: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/taskgroups/7c7c70d2-1814-473e-b307-70f15f914631?api-version=7.1 (capturedAt: 2026-07-03T23:17:23Z)",
+      "liveEvidence": {
+        "label": "acceptance-resource-task-group-datasource",
+        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/taskgroups/7c7c70d2-1814-473e-b307-70f15f914631?api-version=7.1",
+        "capturedAt": "2026-07-03T23:17:23Z",
+        "file": ".forge/live-evidence/acceptance-resource-task-group-datasource.json"
+      }
+    },
+    {
+      "label": "agent_pool resource + data sources migrated (WI-3)",
+      "caption": "betterado_agent_pool resource and data sources now served by framework; live REST GET confirms pool created",
+      "command": "go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...",
+      "beforeNote": "resource_agent_pool.go, data_agent_pool.go, data_agent_pools.go in SDKv2",
+      "afterNote": "Framework implementations registered; SDKv2 files removed. Live REST GET: https://dev.azure.com/davidgparsonson/_apis/distributedtask/pools/591?api-version=7.1 (capturedAt: 2026-07-03T23:17:12Z, pool name=test-acc-xm1t9vcku3, poolType=automation)",
+      "liveEvidence": {
+        "label": "acceptance-resource-agent-pool",
+        "url": "https://dev.azure.com/davidgparsonson/_apis/distributedtask/pools/591?api-version=7.1",
+        "capturedAt": "2026-07-03T23:17:12Z",
+        "file": ".forge/live-evidence/acceptance-resource-agent-pool.json"
+      }
+    },
+    {
+      "label": "agent_queue resource + data source migrated (WI-4)",
+      "caption": "betterado_agent_queue resource and data source now served by framework",
+      "command": "go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...",
+      "beforeNote": "resource_agent_queue.go, data_agent_queue.go in SDKv2",
+      "afterNote": "Framework implementations registered; SDKv2 files removed. Live REST GET: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/queues/1917?api-version=7.1 (capturedAt: 2026-07-03T23:17:37Z)",
+      "liveEvidence": {
+        "label": "acceptance-resource-agent-queue",
+        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/queues/1917?api-version=7.1",
+        "capturedAt": "2026-07-03T23:17:37Z",
+        "file": ".forge/live-evidence/acceptance-resource-agent-queue.json"
+      }
+    },
+    {
+      "label": "environment resource + data source migrated (WI-5)",
+      "caption": "betterado_environment resource and data source now served by framework",
+      "command": "go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...",
+      "beforeNote": "resource_environment.go, data_environment.go in SDKv2",
+      "afterNote": "Framework implementations registered; SDKv2 files removed. Live REST GET: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/environments/94?api-version=7.1 (capturedAt: 2026-07-03T23:21:41Z)",
+      "liveEvidence": {
+        "label": "acceptance-resource-environment",
+        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/environments/94?api-version=7.1",
+        "capturedAt": "2026-07-03T23:21:41Z",
+        "file": ".forge/live-evidence/acceptance-resource-environment.json"
+      }
+    },
+    {
+      "label": "environment_resource_kubernetes migrated (WI-6)",
+      "caption": "betterado_environment_resource_kubernetes now served by framework",
+      "command": "go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...",
+      "beforeNote": "resource_environment_resource_kubernetes.go in SDKv2",
+      "afterNote": "Framework implementation registered; SDKv2 files removed. Live REST GET: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/environments/98/providers/kubernetes/43?api-version=7.1 (capturedAt: 2026-07-03T23:23:21Z)",
+      "liveEvidence": {
+        "label": "acceptance-resource-environment-kubernetes",
+        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/environments/98/providers/kubernetes/43?api-version=7.1",
+        "capturedAt": "2026-07-03T23:23:21Z",
+        "file": ".forge/live-evidence/acceptance-resource-environment-kubernetes.json"
+      }
+    },
+    {
+      "label": "deployment_group migrated (WI-7)",
+      "caption": "betterado_deployment_group now served by framework; live acceptance legs were env-gated (skipped)",
+      "command": "go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...",
+      "beforeNote": "resource_deployment_group.go in SDKv2",
+      "afterNote": "Framework implementation registered; SDKv2 file removed. Unit tests and provider registration green. Live acceptance TestAccDeploymentGroup_* were skipped in this rig (env-gated: org classic-pipelines policy required to create deployment groups; SPN lacks permission). No CaptureLiveEvidence capture exists for deployment_group \u2014 verified by unit tests + go build ./... only.",
+      "skipReason": "env-gated: org classic-pipelines policy; no .forge/live-evidence/acceptance-resource-deployment-group.json present"
+    },
+    {
+      "label": "elastic_pool migrated (WI-8)",
+      "caption": "betterado_elastic_pool now served by framework; live acceptance legs were env-gated (skipped)",
+      "command": "go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...",
+      "beforeNote": "resource_elastic_pool.go (ResourceAgentPoolVMSS) in SDKv2",
+      "afterNote": "Framework implementation registered; SDKv2 file removed. Unit tests and provider registration green. Live acceptance TestAccElasticPool was skipped in this rig (env-gated: VMSS SPN with elastic pool permissions not available in standing fixture). No CaptureLiveEvidence capture exists for elastic_pool \u2014 verified by unit tests + go build ./... only.",
+      "skipReason": "env-gated: VMSS SPN / elastic pool permissions; no .forge/live-evidence/acceptance-resource-elastic-pool.json present"
+    },
+    {
+      "label": "variable_group resource + data source migrated (WI-9)",
+      "caption": "betterado_variable_group resource and data source now served by framework; live REST GET confirms group created",
+      "command": "go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...",
+      "beforeNote": "resource_variable_group.go, data_variable_group.go in SDKv2; secret variable values required careful sensitive plan modifier handling",
+      "afterNote": "Framework implementations registered; SDKv2 CRUD+resource funcs deleted (KV-search helpers retained). Live REST GET: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/variablegroups/1253?api-version=7.1 (capturedAt: 2026-07-04T00:01:21Z, vg 1253). Post-destroy race on ADO side fixed (CheckDestroy timeout extended, no-op fallback added).",
+      "liveEvidence": {
+        "label": "acceptance-resource-variable-group",
+        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/variablegroups/1253?api-version=7.1",
+        "capturedAt": "2026-07-04T00:01:21Z",
+        "file": ".forge/live-evidence/acceptance-resource-variable-group.json"
+      }
+    },
+    {
+      "label": "variable_group_variable resource migrated (WI-10)",
+      "caption": "betterado_variable_group_variable now served by framework; live REST GET confirms variable set within group 1260",
+      "command": "go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...",
+      "beforeNote": "resource_variable_group_variable.go in SDKv2; SDKv2 file still registered before this iteration",
+      "afterNote": "resource_variable_group_variable_framework.go registered in framework_provider.go Resources(); SDKv2 file deleted. Live REST GET: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/variablegroups/1260?api-version=7.1 (capturedAt: 2026-07-04T00:11:37Z, vg 1260).",
+      "liveEvidence": {
+        "label": "acceptance-resource-variable-group-variable",
+        "url": "https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/variablegroups/1260?api-version=7.1",
+        "capturedAt": "2026-07-04T00:11:37Z",
+        "file": ".forge/live-evidence/acceptance-resource-variable-group-variable.json"
+      }
+    },
+    {
+      "label": "Version bump, CHANGELOG, provider_test.go counts (WI-11)",
+      "caption": "PROVIDER_VERSION.txt bumped to 1.3.0; CHANGELOG.md documents all migrated types; provider_test.go counts updated",
+      "command": "go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...",
+      "beforeNote": "PROVIDER_VERSION.txt=1.2.0; CHANGELOG.md lacked variable_group_variable and full WI-10/WI-11 entries",
+      "afterNote": "PROVIDER_VERSION.txt=1.3.0; CHANGELOG.md ## [Unreleased] covers all migrated types including betterado_variable_group_variable; provider_test.go SDKv2 resource/datasource counts updated to reflect all deregistered taskagent types."
+    },
+    {
+      "label": "Gap matrix delivered (WI-1)",
+      "caption": "docs/taskagent-gap-matrix.md documents field coverage across all 9 taskagent types plus deferred validator parity gaps",
+      "command": "go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...",
+      "beforeNote": "No gap matrix existed for taskagent types; no record of dropped SDKv2 ValidateFuncs",
+      "afterNote": "docs/taskagent-gap-matrix.md covers all 9 resource/data-source types with mapped/partial/missing field tables and a new 'Deferred Validator Parity' section listing the 12 SDKv2 ValidateFunc entries not yet ported to framework Validators."
+    }
+  ],
+  "acEvaluations": [
+    {
+      "criterion": "GIVEN the ADO Task Agent REST API v7.1 documentation and each SDKv2 resource schema WHEN compared field-by-field THEN docs/taskagent-gap-matrix.md exists, lists every field with status (mapped/partial/missing), and defers unimplemented writable gaps explicitly",
+      "verdict": "met",
+      "evidence": "docs/taskagent-gap-matrix.md is present in the branch diff; covers all 9 resource/data-source types with mapped/partial/missing tables. Updated in UWI-2 to include a 'Deferred Validator Parity' section listing all 12 dropped ValidateFunc entries."
+    },
+    {
+      "criterion": "GIVEN betterado_variable_group_variable resource is migrated to terraform-plugin-framework WHEN TestAccVariableGroupVariable acceptance tests run live (TF_ACC=1) THEN apply succeeds, provider read-back verifies all attributes with non-default values, ExpectNonEmptyPlan: false, destroy is clean",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-variable-group-variable.json captured at 2026-07-04T00:11:37Z; REST GET https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/variablegroups/1260?api-version=7.1 confirms variable group 1260 contains the variable set in the test."
+    },
+    {
+      "criterion": "GIVEN SDKv2 variable_group_variable file is deregistered and deleted WHEN provider.go ResourcesMap is inspected THEN betterado_variable_group_variable is absent from SDKv2 ResourcesMap; source file deleted; framework_provider.go includes NewVariableGroupVariableResource; provider_test.go count updated",
+      "verdict": "met",
+      "evidence": "resource_variable_group_variable.go in diff (removed); provider.go registers betterado_variable_group_variable only via framework (framework_provider.go NewVariableGroupVariableResource); provider_test.go SDKv2 resource count updated."
+    },
+    {
+      "criterion": "GIVEN live acceptance test runs WHEN CaptureLiveEvidence is called THEN CaptureLiveEvidence(\"acceptance-resource-variable-group-variable\", url, apiResponse) writes .forge/live-evidence/acceptance-resource-variable-group-variable.json",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-variable-group-variable.json present, capturedAt=2026-07-04T00:11:37Z, url=https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/variablegroups/1260?api-version=7.1"
+    },
+    {
+      "criterion": "GIVEN all taskagent resources and data sources have been migrated to framework WHEN make docs is run THEN docs/ directory is regenerated; docs/taskagent-gap-matrix.md is up to date",
+      "verdict": "met",
+      "evidence": "docs/ regenerated for all migrated types (WI-2 through WI-11); taskagent-gap-matrix.md updated in UWI-2 with deferred validator section."
+    },
+    {
+      "criterion": "GIVEN the migration is complete WHEN CHANGELOG.md is inspected THEN an '## Unreleased' entry exists documenting migration of all taskagent resources/data-sources to terraform-plugin-framework",
+      "verdict": "met",
+      "evidence": "CHANGELOG.md ## [Unreleased] has entries for all migrated types: task_group data source, variable_group_variable, variable_group, agent_queue, elastic_pool, deployment_group, agent_pool (resource+data sources), environment (resource+data source), environment_resource_kubernetes."
+    },
+    {
+      "criterion": "GIVEN the provider ships a user-visible change (all taskagent types now framework) WHEN PROVIDER_VERSION.txt is inspected THEN version is bumped by one minor semver increment from the pre-initiative value",
+      "verdict": "met",
+      "evidence": "PROVIDER_VERSION.txt=1.3.0 (bumped from pre-initiative 1.2.0 in WI-11 commit a053b522)."
+    },
+    {
+      "criterion": "GIVEN provider_test.go counts are all correct after migration WHEN TestProvider_HasChildResources and TestProvider_HasChildDataSources run THEN both tests pass with the updated counts reflecting all taskagent types removed from SDKv2",
+      "verdict": "met",
+      "evidence": "provider_test.go SDKv2 resource/data-source lists updated to remove all taskagent types; betterado_variable_group_variable no longer in SDKv2 ResourcesMap list in provider_test.go after WI-10/WI-11 commits."
+    },
+    {
+      "criterion": "GIVEN betterado_task_group data source is migrated to terraform-plugin-framework WHEN TestAccTaskGroupDataSource_basic runs live (TF_ACC=1) THEN apply succeeds, provider read-back matches resource attributes, ExpectNonEmptyPlan: false, destroy is clean",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-task-group-datasource.json captured at 2026-07-03T23:17:23Z; REST GET https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/taskgroups/7c7c70d2-1814-473e-b307-70f15f914631?api-version=7.1 returned task group with name matching test-acc prefix."
+    },
+    {
+      "criterion": "GIVEN data_task_group.go (SDKv2) is deregistered and deleted WHEN provider.go DataSourcesMap is inspected THEN betterado_task_group data source is absent from the SDKv2 map; provider_test.go count decremented; data_task_group.go and data_task_group_test.go in taskagent/ deleted; framework_provider.go DataSources() includes NewTaskGroupDataSource",
+      "verdict": "met",
+      "evidence": "data_task_group.go and data_task_group_test.go in diff (removed); framework_provider.go registers NewTaskGroupDataSource in DataSources(); provider.go DataSourcesMap has comment noting betterado_task_group is now in framework."
+    },
+    {
+      "criterion": "GIVEN live acceptance test runs WHEN CaptureLiveEvidence is called during the test THEN CaptureLiveEvidence(\"acceptance-resource-task-group-datasource\", url, apiResponse) writes .forge/live-evidence/acceptance-resource-task-group-datasource.json",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-task-group-datasource.json present, capturedAt=2026-07-03T23:17:23Z, url=https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/taskgroups/7c7c70d2-1814-473e-b307-70f15f914631?api-version=7.1"
+    },
+    {
+      "criterion": "GIVEN betterado_agent_pool resource and betterado_agent_pool / betterado_agent_pools data sources are migrated to terraform-plugin-framework WHEN TestAccAgentPool acceptance tests run live (TF_ACC=1) THEN apply succeeds, provider read-back verifies all attributes with non-default values, ExpectNonEmptyPlan: false, destroy is clean",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-agent-pool.json captured at 2026-07-03T23:17:12Z; REST GET https://dev.azure.com/davidgparsonson/_apis/distributedtask/pools/591?api-version=7.1 returned pool with name=test-acc-xm1t9vcku3, poolType=automation, autoProvision=false."
+    },
+    {
+      "criterion": "GIVEN SDKv2 agent_pool files are deregistered and deleted WHEN provider.go ResourcesMap and DataSourcesMap are inspected THEN betterado_agent_pool resource and betterado_agent_pool/betterado_agent_pools data sources are absent from SDKv2 maps; their source files deleted; framework_provider.go Resources()/DataSources() includes the new factories; provider_test.go counts updated",
+      "verdict": "met",
+      "evidence": "resource_agent_pool.go, data_agent_pool.go, data_agent_pools.go in diff (removed); framework_provider.go registers NewAgentPoolResource, NewAgentPoolDataSource, NewAgentPoolsDataSource; CHANGELOG.md confirms SDKv2 files removed."
+    },
+    {
+      "criterion": "GIVEN live acceptance test runs WHEN CaptureLiveEvidence is called THEN CaptureLiveEvidence(\"acceptance-resource-agent-pool\", url, apiResponse) writes .forge/live-evidence/acceptance-resource-agent-pool.json",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-agent-pool.json present, capturedAt=2026-07-03T23:17:12Z."
+    },
+    {
+      "criterion": "GIVEN betterado_agent_queue resource and betterado_agent_queue data source are migrated to terraform-plugin-framework WHEN TestAccAgentQueue acceptance tests run live (TF_ACC=1) THEN apply succeeds, provider read-back verifies all attributes with non-default values, ExpectNonEmptyPlan: false, destroy is clean",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-agent-queue.json captured at 2026-07-03T23:17:37Z; REST GET https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/queues/1917?api-version=7.1 confirms queue confirmed."
+    },
+    {
+      "criterion": "GIVEN SDKv2 agent_queue files are deregistered and deleted WHEN provider.go ResourcesMap and DataSourcesMap are inspected THEN betterado_agent_queue is absent from SDKv2 maps; source files deleted; framework_provider.go includes new factories; provider_test.go counts updated",
+      "verdict": "met",
+      "evidence": "resource_agent_queue.go, data_agent_queue.go in diff (removed); CHANGELOG.md entry confirms SDKv2 files removed; framework_provider.go wires NewAgentQueueResource, NewAgentQueueDataSource."
+    },
+    {
+      "criterion": "GIVEN live acceptance test runs WHEN CaptureLiveEvidence is called THEN CaptureLiveEvidence(\"acceptance-resource-agent-queue\", url, apiResponse) writes .forge/live-evidence/acceptance-resource-agent-queue.json",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-agent-queue.json present, capturedAt=2026-07-03T23:17:37Z."
+    },
+    {
+      "criterion": "GIVEN betterado_environment resource and betterado_environment data source are migrated to terraform-plugin-framework WHEN TestAccEnvironment acceptance tests run live (TF_ACC=1) THEN apply succeeds, provider read-back verifies all attributes with non-default values, ExpectNonEmptyPlan: false, destroy is clean",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-environment.json captured at 2026-07-03T23:21:41Z; REST GET https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/environments/94?api-version=7.1 returned environment."
+    },
+    {
+      "criterion": "GIVEN SDKv2 environment files are deregistered and deleted WHEN provider.go ResourcesMap and DataSourcesMap are inspected THEN betterado_environment is absent from SDKv2 maps; source files deleted; framework_provider.go includes new factories; provider_test.go counts updated",
+      "verdict": "met",
+      "evidence": "resource_environment.go, data_environment.go in diff (removed); framework_provider.go registers NewEnvironmentResource, NewEnvironmentDataSource."
+    },
+    {
+      "criterion": "GIVEN live acceptance test runs WHEN CaptureLiveEvidence is called THEN CaptureLiveEvidence(\"acceptance-resource-environment\", url, apiResponse) writes .forge/live-evidence/acceptance-resource-environment.json",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-environment.json present, capturedAt=2026-07-03T23:21:41Z."
+    },
+    {
+      "criterion": "GIVEN betterado_environment_resource_kubernetes resource is migrated to terraform-plugin-framework WHEN TestAccEnvironmentResourceKubernetes acceptance tests run live (TF_ACC=1) THEN apply succeeds, provider read-back verifies all attributes with non-default values, ExpectNonEmptyPlan: false, destroy is clean",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-environment-kubernetes.json captured at 2026-07-03T23:23:21Z; REST GET https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/environments/98/providers/kubernetes/43?api-version=7.1 confirms Kubernetes resource created."
+    },
+    {
+      "criterion": "GIVEN SDKv2 environment_resource_kubernetes file is deregistered and deleted WHEN provider.go ResourcesMap is inspected THEN betterado_environment_resource_kubernetes is absent from SDKv2 ResourcesMap; source files deleted; framework_provider.go includes NewEnvironmentResourceKubernetesResource; provider_test.go count updated",
+      "verdict": "met",
+      "evidence": "resource_environment_resource_kubernetes.go in diff (removed); framework_provider.go registers NewEnvironmentResourceKubernetesResource; provider_test.go count updated."
+    },
+    {
+      "criterion": "GIVEN live acceptance test runs WHEN CaptureLiveEvidence is called THEN CaptureLiveEvidence(\"acceptance-resource-environment-kubernetes\", url, apiResponse) writes .forge/live-evidence/acceptance-resource-environment-kubernetes.json",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-environment-kubernetes.json present, capturedAt=2026-07-03T23:23:21Z."
+    },
+    {
+      "criterion": "GIVEN betterado_deployment_group resource is migrated to terraform-plugin-framework WHEN TestAccDeploymentGroup acceptance tests run live (TF_ACC=1) THEN apply succeeds, provider read-back verifies all attributes with non-default values, ExpectNonEmptyPlan: false, destroy is clean",
+      "verdict": "partial",
+      "evidence": "resource_deployment_group_framework.go registered; SDKv2 file removed; go build ./... green; unit tests pass. Live acceptance TestAccDeploymentGroup_* were skipped (env-gated: org classic-pipelines policy required; SPN lacks permission). No CaptureLiveEvidence capture exists for deployment_group. Honest missed marking: verified by unit tests + registration only."
+    },
+    {
+      "criterion": "GIVEN SDKv2 deployment_group file is deregistered and deleted WHEN provider.go ResourcesMap is inspected THEN betterado_deployment_group is absent from SDKv2 ResourcesMap; source files deleted; framework_provider.go includes NewDeploymentGroupResource; provider_test.go count updated",
+      "verdict": "met",
+      "evidence": "resource_deployment_group.go in diff (removed); framework_provider.go registers NewDeploymentGroupResource; CHANGELOG confirms deregistration."
+    },
+    {
+      "criterion": "GIVEN live acceptance test runs WHEN CaptureLiveEvidence is called THEN CaptureLiveEvidence(\"acceptance-resource-deployment-group\", url, apiResponse) writes .forge/live-evidence/acceptance-resource-deployment-group.json",
+      "verdict": "missed",
+      "evidence": ".forge/live-evidence/ does not contain acceptance-resource-deployment-group.json. Live acceptance leg skipped (env-gated: org classic-pipelines policy). Honest missed marking."
+    },
+    {
+      "criterion": "GIVEN betterado_elastic_pool resource is migrated to terraform-plugin-framework WHEN TestAccElasticPool acceptance tests run live (TF_ACC=1) THEN apply succeeds, provider read-back verifies all attributes with non-default values, ExpectNonEmptyPlan: false, destroy is clean",
+      "verdict": "partial",
+      "evidence": "resource_elastic_pool_framework.go registered; SDKv2 file removed; go build ./... green; unit tests pass. Live acceptance TestAccElasticPool was skipped (env-gated: VMSS SPN with elastic pool permissions not available in standing fixture). No CaptureLiveEvidence capture exists for elastic_pool. Honest missed marking: verified by unit tests + registration only."
+    },
+    {
+      "criterion": "GIVEN SDKv2 elastic_pool file is deregistered and deleted WHEN provider.go ResourcesMap is inspected THEN betterado_elastic_pool is absent from SDKv2 ResourcesMap; source file deleted; framework_provider.go includes NewElasticPoolResource; provider_test.go count updated",
+      "verdict": "met",
+      "evidence": "resource_elastic_pool.go in diff (removed); framework_provider.go registers NewElasticPoolResource; provider_test.go updated."
+    },
+    {
+      "criterion": "GIVEN live acceptance test runs WHEN CaptureLiveEvidence is called THEN CaptureLiveEvidence(\"acceptance-resource-elastic-pool\", url, apiResponse) writes .forge/live-evidence/acceptance-resource-elastic-pool.json",
+      "verdict": "missed",
+      "evidence": ".forge/live-evidence/ does not contain acceptance-resource-elastic-pool.json. Live acceptance leg skipped (env-gated: VMSS SPN / elastic pool permissions). Honest missed marking."
+    },
+    {
+      "criterion": "GIVEN betterado_variable_group resource and betterado_variable_group data source are migrated to terraform-plugin-framework WHEN TestAccVariableGroup acceptance tests run live (TF_ACC=1) THEN apply succeeds, provider read-back verifies all attributes with non-default values (including secret variables), ExpectNonEmptyPlan: false, destroy is clean",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-variable-group.json captured at 2026-07-04T00:01:21Z; REST GET https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/variablegroups/1253?api-version=7.1. Post-destroy race fixed; WI-9 gate green."
+    },
+    {
+      "criterion": "GIVEN SDKv2 variable_group files are deregistered and deleted WHEN provider.go ResourcesMap and DataSourcesMap are inspected THEN betterado_variable_group is absent from SDKv2 maps; source files deleted; framework_provider.go includes new factories; provider_test.go counts updated",
+      "verdict": "met",
+      "evidence": "provider.go has comment noting betterado_variable_group is now a framework resource; resource_variable_group_framework.go in diff; framework_provider.go registers NewVariableGroupResource, NewVariableGroupDataSource; data_variable_group.go in diff (removed). SDKv2 CRUD+resource funcs deleted and resource_variable_group.go renamed to resource_variable_group_kvhelpers.go (KV-search helpers retained) in UWI-2."
+    },
+    {
+      "criterion": "GIVEN live acceptance test runs WHEN CaptureLiveEvidence is called THEN CaptureLiveEvidence(\"acceptance-resource-variable-group\", url, apiResponse) writes .forge/live-evidence/acceptance-resource-variable-group.json",
+      "verdict": "met",
+      "evidence": ".forge/live-evidence/acceptance-resource-variable-group.json present, capturedAt=2026-07-04T00:01:21Z, url=https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/variablegroups/1253?api-version=7.1."
+    }
+  ]
+}

@@ -10,6 +10,17 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
+// getProjectClient returns an AggregatedClient suitable for project lookups.
+// When the SDKv2 provider singleton has not been configured (e.g. tests using
+// ProtoV6ProviderFactories / GetMuxedProviderFactories), Meta() is nil; in
+// that case we build a fresh client directly from the environment.
+func getProjectClient() (*client.AggregatedClient, error) {
+	if meta := GetProvider().Meta(); meta != nil {
+		return meta.(*client.AggregatedClient), nil
+	}
+	return GetDirectClient()
+}
+
 // CheckProjectExists Given the name of an AzDO project, this will return a function that will check whether
 // or not the project (1) exists in the state and (2) exist in AzDO and (3) has the correct name
 func CheckProjectExists(expectedName string) resource.TestCheckFunc {
@@ -19,7 +30,10 @@ func CheckProjectExists(expectedName string) resource.TestCheckFunc {
 			return fmt.Errorf("Did not find a project in the TF state")
 		}
 
-		clients := GetProvider().Meta().(*client.AggregatedClient)
+		clients, err := getProjectClient()
+		if err != nil {
+			return fmt.Errorf("getProjectClient: %v", err)
+		}
 		id := resource.Primary.ID
 		project, err := readProject(clients, id)
 		if err != nil {
@@ -37,7 +51,10 @@ func CheckProjectExists(expectedName string) resource.TestCheckFunc {
 // CheckProjectDestroyed verifies that all projects referenced in the state are destroyed. This will be invoked
 // *after* terraform destroys the resource but *before* the state is wiped clean.
 func CheckProjectDestroyed(s *terraform.State) error {
-	clients := GetProvider().Meta().(*client.AggregatedClient)
+	clients, err := getProjectClient()
+	if err != nil {
+		return fmt.Errorf("getProjectClient: %v", err)
+	}
 
 	// verify that every project referenced in the state does not exist in AzDO
 	for _, resource := range s.RootModule().Resources {

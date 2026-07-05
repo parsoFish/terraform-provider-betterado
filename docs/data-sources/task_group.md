@@ -3,12 +3,12 @@
 page_title: "betterado_task_group Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Reads a task group from an Azure DevOps project.
 ---
 
 # betterado_task_group (Data Source)
 
-
+Reads a task group from an Azure DevOps project.
 
 
 
@@ -17,36 +17,24 @@ description: |-
 
 ### Required
 
-- `project_id` (String)
-
-### Optional
-
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `id` (String) The ID (UUID) of the task group.
+- `project_id` (String) The ID of the project the task group belongs to.
 
 ### Read-Only
 
-- `author` (String)
-- `category` (String)
-- `definition_type` (String)
-- `description` (String)
-- `friendly_name` (String)
-- `icon_url` (String)
-- `id` (String) The ID of this resource.
-- `input` (List of Object) (see [below for nested schema](#nestedatt--input))
-- `instance_name_format` (String)
-- `name` (String)
-- `revision` (Number)
-- `runs_on` (List of String)
-- `task` (List of Object) (see [below for nested schema](#nestedatt--task))
-- `version` (List of Object) (see [below for nested schema](#nestedatt--version))
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
-
+- `author` (String) The author of the task group.
+- `category` (String) The category of the task group.
+- `definition_type` (String) The definition type of the task group.
+- `description` (String) The description of the task group.
+- `friendly_name` (String) The friendly name of the task group.
+- `icon_url` (String) The icon URL of the task group.
+- `input` (Attributes List) The list of inputs for the task group. (see [below for nested schema](#nestedatt--input))
+- `instance_name_format` (String) The instance name format of the task group.
+- `name` (String) The name of the task group.
+- `revision` (Number) The revision number of the task group.
+- `runs_on` (List of String) The list of agent specifications on which the task group runs.
+- `task` (Attributes List) The list of tasks in the task group. (see [below for nested schema](#nestedatt--task))
+- `version` (Attributes List) The version of the task group. (see [below for nested schema](#nestedatt--version))
 
 <a id="nestedatt--input"></a>
 ### Nested Schema for `input`

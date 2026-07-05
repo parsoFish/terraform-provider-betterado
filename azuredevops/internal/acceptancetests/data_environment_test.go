@@ -1,3 +1,5 @@
+//go:build (all || data_environment || resource_environment) && !(exclude_data_environment && exclude_resource_environment)
+
 package acceptancetests
 
 import (
@@ -14,15 +16,20 @@ func TestAccEnvironment_dataSource(t *testing.T) {
 	tfNode := "betterado_environment.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkEnvironmentDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkEnvironmentDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSourceEnvironmentBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "name", name),
 				),
+			},
+			{
+				Config:             hclDataSourceEnvironmentBasic(name),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})
@@ -34,9 +41,9 @@ func TestAccEnvironment_dataSource_by_name(t *testing.T) {
 	tfNode := "betterado_environment.test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkEnvironmentDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkEnvironmentDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSourceEnvironmentBasicByName(name),
@@ -44,50 +51,51 @@ func TestAccEnvironment_dataSource_by_name(t *testing.T) {
 					resource.TestCheckResourceAttr(tfNode, "name", name),
 				),
 			},
+			{
+				Config:             hclDataSourceEnvironmentBasicByName(name),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
+			},
 		},
 	})
 }
 
+// hclDataSourceEnvironmentBasic looks up environment by ID using the standing fixture project.
 func hclDataSourceEnvironmentBasic(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "fixture" {
+  name = %[2]q
 }
 
 resource "betterado_environment" "test" {
-  project_id  = betterado_project.test.id
-  name        = "%[1]s"
+  project_id  = data.betterado_project.fixture.id
+  name        = %[1]q
   description = "Managed by Terraform"
 }
 
 data "betterado_environment" "test" {
-  project_id     = betterado_project.test.id
+  project_id     = data.betterado_project.fixture.id
   environment_id = betterado_environment.test.id
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }
 
+// hclDataSourceEnvironmentBasicByName looks up environment by name using the standing fixture project.
 func hclDataSourceEnvironmentBasicByName(name string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
+data "betterado_project" "fixture" {
+  name = %[2]q
 }
 
 resource "betterado_environment" "test" {
-  project_id  = betterado_project.test.id
-  name        = "%[1]s"
+  project_id  = data.betterado_project.fixture.id
+  name        = %[1]q
   description = "Managed by Terraform"
 }
 
 data "betterado_environment" "test" {
-  project_id = betterado_project.test.id
+  project_id = data.betterado_project.fixture.id
   name       = betterado_environment.test.name
 }
-`, name)
+`, name, SharedFixtureProjectName)
 }

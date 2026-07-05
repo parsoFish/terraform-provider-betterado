@@ -10,8 +10,8 @@ import (
 
 func TestProvider_HasChildResources(t *testing.T) {
 	expectedResources := []string{
-		"betterado_agent_pool",
-		"betterado_agent_queue",
+		// betterado_agent_pool is now in the framework provider (framework_provider.go)
+		// betterado_agent_queue is now in the framework provider (framework_provider.go)
 		// betterado_area_permissions is now in the framework provider (framework_provider.go)
 		// betterado_branch_policy_auto_reviewers is now in the framework provider (framework_provider.go)
 		// betterado_branch_policy_build_validation is now in the framework provider (framework_provider.go)
@@ -34,10 +34,10 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// betterado_check_rest_api is now in the framework provider (framework_provider.go)
 		// betterado_dashboard is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
-		"betterado_deployment_group",
-		"betterado_elastic_pool",
-		"betterado_environment",
-		"betterado_environment_resource_kubernetes",
+		// betterado_deployment_group is now in the framework provider (framework_provider.go)
+		// betterado_elastic_pool is now in the framework provider (framework_provider.go)
+		// betterado_environment is now in the framework provider (framework_provider.go)
+		// betterado_environment_resource_kubernetes is now in the framework provider (framework_provider.go)
 		// betterado_extension is now a framework resource (registered in framework_provider.go)
 		// and is no longer in the SDKv2 provider resource map.
 		// betterado_git_permissions is now in the framework provider (framework_provider.go)
@@ -96,9 +96,9 @@ func TestProvider_HasChildResources(t *testing.T) {
 		// betterado_team is now in the framework provider (framework_provider.go)
 		// betterado_team_administrators is now in the framework provider (framework_provider.go)
 		// betterado_team_members is now in the framework provider (framework_provider.go)
-		"betterado_variable_group",
+		// betterado_variable_group is now in the framework provider (framework_provider.go)
 		// betterado_variable_group_permissions is now in the framework provider (framework_provider.go)
-		"betterado_variable_group_variable",
+		// betterado_variable_group_variable is now in the framework provider (framework_provider.go)
 		// betterado_workitem is now a framework resource (registered in framework_provider.go)
 		// betterado_workitemtracking_field is now a framework resource (registered in framework_provider.go)
 		// betterado_workitemquery is now a framework resource (registered in framework_provider.go)
@@ -137,13 +137,13 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		// they are no longer registered in the SDKv2 DataSourcesMap.
 		// betterado_build_definition (data source) has also been migrated to the
 		// framework provider and is no longer listed here.
-		"betterado_agent_pool",
-		"betterado_agent_pools",
-		"betterado_agent_queue",
+		// betterado_agent_pool is now in the framework provider (framework_provider.go)
+		// betterado_agent_pools is now in the framework provider (framework_provider.go)
+		// betterado_agent_queue is now in the framework provider (framework_provider.go)
 		// betterado_area is now a framework data source (registered in framework_provider.go)
 		// betterado_client_config is now in the framework provider (framework_provider.go)
 		// betterado_descriptor is now a framework data source (registered in framework_provider.go)
-		"betterado_environment",
+		// betterado_environment is now in the framework provider (framework_provider.go)
 		// "betterado_git_repositories" data source migrated to terraform-plugin-framework provider
 		// "betterado_git_repository" data source migrated to terraform-plugin-framework provider
 		// "betterado_git_repository_file" data source migrated to terraform-plugin-framework provider
@@ -163,11 +163,11 @@ func TestProvider_HasChildDataSources(t *testing.T) {
 		// betterado_storage_key is now a framework data source (registered in framework_provider.go)
 		// betterado_service_principal is now a framework data source (registered in framework_provider.go)
 		// betterado_team is now in the framework provider (framework_provider.go)
-		"betterado_task_group",
+		// betterado_task_group is now in the framework provider (framework_provider.go)
 		// betterado_teams is now in the framework provider (framework_provider.go)
 		// betterado_user is now a framework data source (registered in framework_provider.go)
 		// betterado_users is now a framework data source (registered in framework_provider.go)
-		"betterado_variable_group",
+		// betterado_variable_group is now in the framework provider (framework_provider.go)
 		// betterado_workitemtrackingprocess_process is now in the framework provider (framework_provider.go)
 		// betterado_workitemtrackingprocess_processes is now in the framework provider (framework_provider.go)
 		// betterado_workitemtrackingprocess_workitemtype is now in the framework provider (framework_provider.go)

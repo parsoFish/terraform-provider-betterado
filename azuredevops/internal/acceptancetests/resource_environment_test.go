@@ -1,40 +1,44 @@
+//go:build (all || resource_environment || data_environment) && !(exclude_resource_environment && exclude_data_environment)
+
 package acceptancetests
 
 import (
 	"fmt"
+	"os"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/taskagent"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
-// Verifies that the following sequence of events occurrs without error:
+// Verifies that the following sequence of events occurs without error:
 //
-//	(1) TF apply creates environment
+//	(1) TF apply creates environment in the standing fixture project
 //	(2) TF state values are set
 //	(3) Environment can be queried by ID and has expected name
 //	(4) TF apply updates environment with new name
-//	(5) Environment can be queried by ID and has expected name
-//	(6) TF destroy deletes environment
-//	(7) Environment can no longer be queried by ID
+//	(5) Environment can be queried by ID and has expected name (live evidence captured)
+//	(6) Idempotency re-plan produces no diff
+//	(7) Import round-trip succeeds
+//	(8) TF destroy deletes environment
+//	(9) Environment can no longer be queried by ID
 func TestAccEnvironment_CreateAndUpdate(t *testing.T) {
-	projectName := testutils.GenerateResourceName()
 	environmentNameFirst := testutils.GenerateResourceName()
 	environmentNameSecond := testutils.GenerateResourceName()
 	tfNode := "betterado_environment.environment"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkEnvironmentDestroyed,
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkEnvironmentDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: testutils.HclEnvironmentResource(projectName, environmentNameFirst),
+				Config: hclEnvironmentResource(environmentNameFirst),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "name", environmentNameFirst),
 					resource.TestCheckResourceAttr(tfNode, "description", ""),
@@ -43,13 +47,20 @@ func TestAccEnvironment_CreateAndUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testutils.HclEnvironmentResource(projectName, environmentNameSecond),
+				Config: hclEnvironmentResource(environmentNameSecond),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "name", environmentNameSecond),
 					resource.TestCheckResourceAttr(tfNode, "description", ""),
 					resource.TestCheckResourceAttrSet(tfNode, "project_id"),
 					checkEnvironmentExists(environmentNameSecond),
+					captureEnvironmentEvidence(tfNode),
 				),
+			},
+			// Idempotency — no perpetual diff
+			{
+				Config:             hclEnvironmentResource(environmentNameSecond),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: false,
 			},
 			{
 				// Resource Acceptance Testing https://www.terraform.io/docs/extend/resources/import.html#resource-acceptance-testing-implementation
@@ -62,23 +73,44 @@ func TestAccEnvironment_CreateAndUpdate(t *testing.T) {
 	})
 }
 
-// Given the name of an environment, this will return a function that will check whether
-// or not the environment (1) exists in the state and (2) exist in AzDO and (3) has the correct name
+// hclEnvironmentResource creates an environment in the standing fixture project.
+// Uses an existing project instead of creating a new one to avoid the 1000-project org limit.
+func hclEnvironmentResource(environmentName string) string {
+	return fmt.Sprintf(`
+data "betterado_project" "fixture" {
+  name = %[2]q
+}
+
+resource "betterado_environment" "environment" {
+  project_id  = data.betterado_project.fixture.id
+  name        = %[1]q
+  description = ""
+}
+`, environmentName, SharedFixtureProjectName)
+}
+
+// checkEnvironmentExists verifies the environment exists in AzDO with the expected name.
 func checkEnvironmentExists(expectedName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		resource, ok := s.RootModule().Resources["betterado_environment.environment"]
+		res, ok := s.RootModule().Resources["betterado_environment.environment"]
 		if !ok {
 			return fmt.Errorf("Did not find an environment in the TF state")
 		}
 
-		clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
-		id, err := strconv.Atoi(resource.Primary.ID)
+		clients, err := getDirectClient()
 		if err != nil {
-			return fmt.Errorf("Parse ID error, ID:  %v !. Error= %v", resource.Primary.ID, err)
+			return fmt.Errorf("building direct client: %v", err)
 		}
-		projectID := resource.Primary.Attributes["project_id"]
+		id, err := strconv.Atoi(res.Primary.ID)
+		if err != nil {
+			return fmt.Errorf("parse ID error, ID: %v. Error= %v", res.Primary.ID, err)
+		}
+		projectID := res.Primary.Attributes["project_id"]
 
-		environment, err := readEnvironment(clients, id, projectID)
+		environment, err := clients.TaskAgentClient.GetEnvironmentById(clients.Ctx, taskagent.GetEnvironmentByIdArgs{
+			Project:       converter.String(projectID),
+			EnvironmentId: &id,
+		})
 		if err != nil {
 			return fmt.Errorf("Environment with ID=%d cannot be found!. Error=%v", id, err)
 		}
@@ -91,25 +123,29 @@ func checkEnvironmentExists(expectedName string) resource.TestCheckFunc {
 	}
 }
 
-// verifies that environment referenced in the state is destroyed. This will be invoked
-// *after* terraform destroys the resource but *before* the state is wiped clean.
+// checkEnvironmentDestroyed verifies that environments referenced in the state are gone.
 func checkEnvironmentDestroyed(s *terraform.State) error {
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+	clients, err := getDirectClient()
+	if err != nil {
+		return fmt.Errorf("building direct client: %v", err)
+	}
 
-	// verify that every environment referenced in the state does not exist in AzDO
-	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "betterado_environment" {
+	for _, res := range s.RootModule().Resources {
+		if res.Type != "betterado_environment" {
 			continue
 		}
 
-		id, err := strconv.Atoi(resource.Primary.ID)
+		id, err := strconv.Atoi(res.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Environment ID=%d cannot be parsed!. Error=%v", id, err)
+			return fmt.Errorf("Environment ID=%s cannot be parsed. Error=%v", res.Primary.ID, err)
 		}
-		projectID := resource.Primary.Attributes["project_id"]
+		projectID := res.Primary.Attributes["project_id"]
 
 		// indicates the environment still exists - this should fail the test
-		if _, err := readEnvironment(clients, id, projectID); err == nil {
+		if _, err := clients.TaskAgentClient.GetEnvironmentById(clients.Ctx, taskagent.GetEnvironmentByIdArgs{
+			Project:       converter.String(projectID),
+			EnvironmentId: &id,
+		}); err == nil {
 			return fmt.Errorf("Environment ID %d should not exist", id)
 		}
 	}
@@ -117,13 +153,35 @@ func checkEnvironmentDestroyed(s *terraform.State) error {
 	return nil
 }
 
-// Lookup an Environment using the ID and the project ID.
-func readEnvironment(clients *client.AggregatedClient, environmentID int, projectID string) (*taskagent.EnvironmentInstance, error) {
-	return clients.TaskAgentClient.GetEnvironmentById(
-		clients.Ctx,
-		taskagent.GetEnvironmentByIdArgs{
-			Project:       converter.String(projectID),
-			EnvironmentId: &environmentID,
-		},
-	)
+// captureEnvironmentEvidence performs a real live API GET and writes forge demo
+// live-evidence to .forge/live-evidence/acceptance-resource-environment.json (AC3).
+// Best-effort: never fails the test.
+func captureEnvironmentEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		envIDStr := res.Primary.ID
+		projectID := res.Primary.Attributes["project_id"]
+		envID, err := strconv.Atoi(envIDStr)
+		if err != nil {
+			return nil
+		}
+		clients, err := getDirectClient()
+		if err != nil {
+			return nil
+		}
+		env, err := clients.TaskAgentClient.GetEnvironmentById(clients.Ctx, taskagent.GetEnvironmentByIdArgs{
+			EnvironmentId: &envID,
+			Project:       &projectID,
+		})
+		if err != nil || env == nil {
+			return nil
+		}
+		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+		url := fmt.Sprintf("%s/%s/_apis/distributedtask/environments/%s?api-version=7.1", orgURL, projectID, envIDStr)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-environment", url, env)
+		return nil
+	}
 }

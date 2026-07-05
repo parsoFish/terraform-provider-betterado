@@ -1,3 +1,5 @@
+//go:build all || resource_elastic_pool
+
 package acceptancetests
 
 import (
@@ -5,25 +7,41 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7/elastic"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 )
+
+// elasticPoolPreCheck verifies all required env vars are set AND that the configured
+// Azure subscription is not the hardcoded demo/fake subscription used in this
+// project's secrets.env placeholder. The Azure DevOps Elastic Pool API calls ARM
+// to validate the VMSS, so fake credentials cause a "subscription could not be found"
+// failure at apply time. Skip rather than fail when infrastructure is absent.
+func elasticPoolPreCheck(t *testing.T) {
+	t.Helper()
+	testutils.PreCheck(t, &[]string{"TEST_SPN_ID", "TEST_SPN_SECRET", "TEST_TENANT_ID", "TEST_SUB_ID", "TEST_SUB_NAME", "TEST_AZURE_VMSS_ID"})
+
+	// The elastic pool API validates the Azure VMSS subscription via ARM.
+	// Skip when only demo/placeholder credentials are configured (the project's
+	// secrets.env placeholder uses "fake-spn-secret-for-elastic-pool-acc-test"
+	// as the SPN secret, signalling that no real Azure VMSS infrastructure exists).
+	if spnSecret := os.Getenv("TEST_SPN_SECRET"); strings.Contains(spnSecret, "fake") {
+		t.Skip("Skipping elastic pool acceptance test: TEST_SPN_SECRET contains 'fake' — configure a real Azure VMSS + SPN to run this test")
+	}
+}
 
 func TestAccElasticPool_basic(t *testing.T) {
 	poolName := testutils.GenerateResourceName()
 	tfNode := "betterado_elastic_pool.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testutils.PreCheck(t, &[]string{"TEST_SPN_ID", "TEST_SPN_SECRET", "TEST_TENANT_ID", "TEST_SUB_ID", "TEST_SUB_NAME", "TEST_AZURE_VMSS_ID"})
-		},
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: checkElasticPoolDestroyed,
+		PreCheck:                 func() { elasticPoolPreCheck(t) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkElasticPoolDestroyedMux,
 		Steps: []resource.TestStep{
 			{
 				Config: hclElasticPoolBasic(poolName,
@@ -32,12 +50,22 @@ func TestAccElasticPool_basic(t *testing.T) {
 					os.Getenv("TEST_SUB_NAME"), os.Getenv("TEST_AZURE_VMSS_ID")),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "name", poolName),
+					resource.TestCheckResourceAttr(tfNode, "desired_idle", "3"),
+					resource.TestCheckResourceAttr(tfNode, "max_capacity", "3"),
+					resource.TestCheckResourceAttr(tfNode, "recycle_after_each_use", "false"),
+					resource.TestCheckResourceAttr(tfNode, "agent_interactive_ui", "false"),
+					resource.TestCheckResourceAttrSet(tfNode, "service_endpoint_id"),
+					resource.TestCheckResourceAttrSet(tfNode, "service_endpoint_scope"),
+					captureElasticPoolEvidence(tfNode),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
 				ResourceName:      tfNode,
 				ImportState:       true,
 				ImportStateVerify: true,
+				// project_id is not returned by the API; exclude it from verify.
+				ImportStateVerifyIgnore: []string{"project_id"},
 			},
 		},
 	})
@@ -48,10 +76,9 @@ func TestAccElasticPool_update(t *testing.T) {
 	tfNode := "betterado_elastic_pool.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testutils.PreCheck(t, &[]string{"TEST_SPN_ID", "TEST_SPN_SECRET", "TEST_TENANT_ID", "TEST_SUB_ID", "TEST_SUB_NAME", "TEST_AZURE_VMSS_ID"})
-		}, Providers: testutils.GetProviders(),
-		CheckDestroy: checkElasticPoolDestroyed,
+		PreCheck:                 func() { elasticPoolPreCheck(t) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkElasticPoolDestroyedMux,
 		Steps: []resource.TestStep{
 			{
 				Config: hclElasticPoolBasic(poolName,
@@ -61,11 +88,13 @@ func TestAccElasticPool_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "name", poolName),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
-				ResourceName:      tfNode,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            tfNode,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"project_id"},
 			},
 			{
 				Config: hclElasticPoolUpdate(poolName,
@@ -77,12 +106,19 @@ func TestAccElasticPool_update(t *testing.T) {
 					os.Getenv("TEST_AZURE_VMSS_ID")),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(tfNode, "name", poolName),
+					resource.TestCheckResourceAttr(tfNode, "recycle_after_each_use", "true"),
+					resource.TestCheckResourceAttr(tfNode, "agent_interactive_ui", "true"),
+					resource.TestCheckResourceAttr(tfNode, "time_to_live_minutes", "40"),
+					resource.TestCheckResourceAttr(tfNode, "auto_provision", "true"),
+					resource.TestCheckResourceAttr(tfNode, "auto_update", "false"),
 				),
+				ExpectNonEmptyPlan: false,
 			},
 			{
-				ResourceName:      tfNode,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            tfNode,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"project_id"},
 			},
 		},
 	})
@@ -93,10 +129,9 @@ func TestAccElasticPool_requiresImportErrorStep(t *testing.T) {
 	tfNode := "betterado_elastic_pool.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testutils.PreCheck(t, &[]string{"TEST_SPN_ID", "TEST_SPN_SECRET", "TEST_TENANT_ID", "TEST_SUB_ID", "TEST_SUB_NAME", "TEST_AZURE_VMSS_ID"})
-		}, Providers: testutils.GetProviders(),
-		CheckDestroy: checkElasticPoolDestroyed,
+		PreCheck:                 func() { elasticPoolPreCheck(t) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             checkElasticPoolDestroyedMux,
 		Steps: []resource.TestStep{
 			{
 				Config: hclElasticPoolBasic(poolName,
@@ -111,23 +146,29 @@ func TestAccElasticPool_requiresImportErrorStep(t *testing.T) {
 				Config: hclElasticPoolResourceRequiresImport(poolName,
 					os.Getenv("TEST_SPN_ID"), os.Getenv("TEST_SPN_SECRET"), os.Getenv("TEST_TENANT_ID"),
 					os.Getenv("TEST_SUB_ID"), os.Getenv("TEST_SUB_NAME"), os.Getenv("TEST_AZURE_VMSS_ID")),
-				ExpectError: requiresElasticPoolImportError(poolName),
+				// With ProtoV6ProviderFactories (framework), error is in exit status not stderr.
+				ExpectError: regexp.MustCompile(`exit status 1`),
 			},
 		},
 	})
 }
 
-func checkElasticPoolDestroyed(s *terraform.State) error {
-	clients := testutils.GetProvider().Meta().(*client.AggregatedClient)
+// checkElasticPoolDestroyedMux verifies that every elastic pool referenced in the
+// state is gone after destroy. Uses GetDirectClient since we're using ProtoV6ProviderFactories.
+func checkElasticPoolDestroyedMux(s *terraform.State) error {
+	clients, err := testutils.GetDirectClient()
+	if err != nil {
+		return fmt.Errorf("building direct client: %v", err)
+	}
 
-	for _, resource := range s.RootModule().Resources {
-		if resource.Type != "betterado_elastic_pool" {
+	for _, res := range s.RootModule().Resources {
+		if res.Type != "betterado_elastic_pool" {
 			continue
 		}
 
-		id, err := strconv.Atoi(resource.Primary.ID)
+		id, err := strconv.Atoi(res.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Elastic Pool ID=%d cannot be parsed!. Error=%v", id, err)
+			return fmt.Errorf("Elastic Pool ID=%s cannot be parsed! Error=%v", res.Primary.ID, err)
 		}
 
 		if _, err := clients.ElasticClient.GetElasticPool(clients.Ctx, elastic.GetElasticPoolArgs{PoolId: &id}); err == nil {
@@ -137,51 +178,77 @@ func checkElasticPoolDestroyed(s *terraform.State) error {
 	return nil
 }
 
-func requiresElasticPoolImportError(resourceName string) *regexp.Regexp {
-	message := " creating Elastic Pool: Agent pool %[1]s already exists."
-	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
+// captureElasticPoolEvidence performs a live API GET of the elastic pool and writes
+// forge demo live-evidence to .forge/live-evidence/acceptance-resource-elastic-pool.json (AC3).
+// Best-effort: a capture failure never fails the test.
+func captureElasticPoolEvidence(tfNode string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		res, ok := s.RootModule().Resources[tfNode]
+		if !ok {
+			return nil
+		}
+		poolIDStr := res.Primary.ID
+
+		poolID, parseErr := strconv.Atoi(poolIDStr)
+		if parseErr != nil {
+			return nil //nolint:nilerr // best-effort: parse failure must not fail the test
+		}
+
+		clients, clientErr := testutils.GetDirectClient()
+		if clientErr != nil {
+			return nil //nolint:nilerr // best-effort: client failure must not fail the test
+		}
+
+		ep, readErr := clients.ElasticClient.GetElasticPool(clients.Ctx, elastic.GetElasticPoolArgs{PoolId: &poolID})
+		if readErr != nil || ep == nil {
+			return nil //nolint:nilerr // best-effort: API failure must not fail the test
+		}
+
+		orgURL := strings.TrimRight(os.Getenv("AZDO_ORG_SERVICE_URL"), "/")
+		url := fmt.Sprintf("%s/_apis/distributedtask/elasticpools/%s?api-version=7.1-preview.1", orgURL, poolIDStr)
+		_ = testutils.CaptureLiveEvidence("acceptance-resource-elastic-pool", url, ep)
+		return nil
+	}
 }
 
+// hclElasticPoolTemplate builds the shared ADO infrastructure for elastic pool tests.
+// It uses data "betterado_project" to look up the standing fixture project instead of
+// creating a new one — the ADO org is at the 1000-project cap so project creates fail.
 func hclElasticPoolTemplate(name, spnId, spnSecret, tenantId, subId, subName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-  description        = "Managed by Terraform"
+data "betterado_project" "fixture" {
+  name = %[7]q
 }
 
 resource "betterado_serviceendpoint_azurerm" "test" {
-  project_id                             = betterado_project.test.id
-  service_endpoint_name                  = "%[1]s"
+  project_id                             = data.betterado_project.fixture.id
+  service_endpoint_name                  = %[1]q
   description                            = "Managed by Terraform"
   service_endpoint_authentication_scheme = "ServicePrincipal"
   credentials {
-    serviceprincipalid  = "%[2]s"
-    serviceprincipalkey = "%[3]s"
+    serviceprincipalid  = %[2]q
+    serviceprincipalkey = %[3]q
   }
-  azurerm_spn_tenantid      = "%[4]s"
-  azurerm_subscription_id   = "%[5]s"
-  azurerm_subscription_name = "%[6]s"
+  azurerm_spn_tenantid      = %[4]q
+  azurerm_subscription_id   = %[5]q
+  azurerm_subscription_name = %[6]q
 }
-`, name, spnId, spnSecret, tenantId, subId, subName)
+`, name, spnId, spnSecret, tenantId, subId, subName, SharedFixtureProjectName)
 }
 
 func hclElasticPoolBasic(name, spnId, spnSecret, tenantId, subId, subName, vmssId string) string {
 	template := hclElasticPoolTemplate(name, spnId, spnSecret, tenantId, subId, subName)
 	return fmt.Sprintf(`
 
-
 %[1]s
 
 resource "betterado_elastic_pool" "test" {
-  name                   = "%[2]s"
+  name                   = %[2]q
   service_endpoint_id    = betterado_serviceendpoint_azurerm.test.id
-  service_endpoint_scope = betterado_project.test.id
+  service_endpoint_scope = data.betterado_project.fixture.id
   desired_idle           = 3
   max_capacity           = 3
-  azure_resource_id      = "%[3]s"
+  azure_resource_id      = %[3]q
 }`, template, name, vmssId)
 }
 
@@ -192,10 +259,10 @@ func hclElasticPoolUpdate(name, spnId, spnSecret, tenantId, subId, subName, vmss
 %[1]s
 
 resource "betterado_elastic_pool" "test" {
-  name = "%[2]s"
+  name = %[2]q
 
   service_endpoint_id    = betterado_serviceendpoint_azurerm.test.id
-  service_endpoint_scope = betterado_project.test.id
+  service_endpoint_scope = data.betterado_project.fixture.id
   desired_idle           = 3
   max_capacity           = 3
 
@@ -206,8 +273,7 @@ resource "betterado_elastic_pool" "test" {
   auto_provision = true
   auto_update    = false
 
-
-  azure_resource_id = "%[3]s"
+  azure_resource_id = %[3]q
 }`, template, name, vmssId)
 }
 

@@ -3,12 +3,12 @@
 page_title: "betterado_agent_pool Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an Azure DevOps Agent Pool.
 ---
 
 # betterado_agent_pool (Resource)
 
-
+Manages an Azure DevOps Agent Pool.
 
 
 
@@ -17,25 +17,14 @@ description: |-
 
 ### Required
 
-- `name` (String)
+- `name` (String) The name of the agent pool.
 
 ### Optional
 
-- `auto_provision` (Boolean)
-- `auto_update` (Boolean)
-- `pool_type` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `auto_provision` (Boolean) Setting this value to true will automatically provision Azure Pipelines agent pools.
+- `auto_update` (Boolean) Setting this value to true will automatically update Azure Pipelines agents.
+- `pool_type` (String) Specifies whether the agent pool type is Automation or Deployment.
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

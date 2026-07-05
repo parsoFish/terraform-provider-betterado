@@ -1,3 +1,5 @@
+//go:build (all || data_source_agent_pools) && !exclude_data_source_agent_pools
+
 package acceptancetests
 
 import (
@@ -8,10 +10,10 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests/testutils"
 )
 
-// Verifies that the following sequence of events occurrs without error:
-//	(1) TF can create a project
-//	(2) A data source is added to the configuration, and that data source can find the created project
-
+// Verifies that the following sequence of events occurs without error:
+//
+//	(1) TF can create agent pools (framework resource)
+//	(2) A data source is added to the configuration, and that data source can find the created pools
 func TestAccAgentPoolsDataSource_Basic(t *testing.T) {
 	agentPoolName := testutils.GenerateResourceName()
 	agentPool1Name := agentPoolName + "_1"
@@ -25,8 +27,8 @@ func TestAccAgentPoolsDataSource_Basic(t *testing.T) {
 	tfNode := "data.betterado_agent_pools.pools"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: createAgentPools,
@@ -37,6 +39,11 @@ func TestAccAgentPoolsDataSource_Basic(t *testing.T) {
 					testutils.CheckNestedKeyExistsWithValue(tfNode, "name", agentPool1Name),
 					testutils.CheckNestedKeyExistsWithValue(tfNode, "name", agentPool2Name),
 				),
+			},
+			// Idempotency — no perpetual diff
+			{
+				Config:             agentPoolsData,
+				ExpectNonEmptyPlan: false,
 			},
 		},
 	})

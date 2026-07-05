@@ -15,15 +15,14 @@ import (
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent"
 )
 
 // Provider - The top level Azure DevOps Provider definition.
 func Provider() *schema.Provider {
 	p := &schema.Provider{
 		ResourcesMap: map[string]*schema.Resource{
-			"betterado_agent_pool":  taskagent.ResourceAgentPool(),
-			"betterado_agent_queue": taskagent.ResourceAgentQueue(),
+			// betterado_agent_pool is now registered in the framework provider (framework_provider.go)
+			// betterado_agent_queue is now registered in the framework provider (framework_provider.go)
 			// betterado_area_permissions is now registered in the framework provider (framework_provider.go)
 			// betterado_branch_policy_auto_reviewers is now registered in the framework provider (framework_provider.go)
 			// betterado_branch_policy_build_validation is now registered in the framework provider (framework_provider.go)
@@ -49,10 +48,10 @@ func Provider() *schema.Provider {
 			// betterado_dashboard is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
-			"betterado_deployment_group":                taskagent.ResourceDeploymentGroup(),
-			"betterado_elastic_pool":                    taskagent.ResourceAgentPoolVMSS(),
-			"betterado_environment":                     taskagent.ResourceEnvironment(),
-			"betterado_environment_resource_kubernetes": taskagent.ResourceEnvironmentKubernetes(),
+			// betterado_deployment_group is now registered in the framework provider (framework_provider.go)
+			// betterado_elastic_pool is now registered in the framework provider (framework_provider.go)
+			// betterado_environment is now registered in the framework provider (framework_provider.go)
+			// betterado_environment_resource_kubernetes is now registered in the framework provider (framework_provider.go)
 			// betterado_extension is now registered in the framework provider (framework_provider.go)
 			// and must NOT be listed here — duplicating a resource type across mux providers causes
 			// "Invalid Provider Server Combination" at plan time.
@@ -146,9 +145,9 @@ func Provider() *schema.Provider {
 			// betterado_team_administrators is now registered in the framework provider (framework_provider.go)
 			// betterado_team_members is now registered in the framework provider (framework_provider.go)
 			// betterado_user_entitlement migrated to the framework provider.
-			"betterado_variable_group": taskagent.ResourceVariableGroup(),
+			// betterado_variable_group is now registered in the framework provider (framework_provider.go)
 			// betterado_variable_group_permissions is now registered in the framework provider (framework_provider.go)
-			"betterado_variable_group_variable": taskagent.ResourceVariableGroupVariable(),
+			// betterado_variable_group_variable is now registered in the framework provider (framework_provider.go)
 			// betterado_wiki migrated to the framework provider (framework_provider.go).
 			// betterado_wiki_page migrated to the framework provider (framework_provider.go).
 			// betterado_workitem is now registered in the framework provider (framework_provider.go)
@@ -178,13 +177,13 @@ func Provider() *schema.Provider {
 			// provider (framework_provider.go) and are no longer registered here.
 			// betterado_build_definition (data source) has also been migrated to the
 			// framework provider (framework_provider.go); it must NOT be listed here.
-			"betterado_agent_pool":  taskagent.DataAgentPool(),
-			"betterado_agent_pools": taskagent.DataAgentPools(),
-			"betterado_agent_queue": taskagent.DataAgentQueue(),
+			// betterado_agent_pool is now registered in the framework provider (framework_provider.go)
+			// betterado_agent_pools is now registered in the framework provider (framework_provider.go)
+			// betterado_agent_queue is now registered in the framework provider (framework_provider.go)
 			// betterado_area is now registered in the framework provider (framework_provider.go)
 			// betterado_client_config is now registered in the framework provider (framework_provider.go)
 			// betterado_descriptor is now registered in the framework provider (framework_provider.go)
-			"betterado_environment": taskagent.DataEnvironment(),
+			// betterado_environment is now registered in the framework provider (framework_provider.go)
 			// betterado_feed migrated to the framework provider (framework_provider.go).
 			// betterado_git_repositories migrated to the framework provider (framework_provider.go).
 			// betterado_git_repository migrated to the framework provider (framework_provider.go).
@@ -213,11 +212,11 @@ func Provider() *schema.Provider {
 			// betterado_service_principal is now registered in the framework provider (framework_provider.go)
 			// betterado_storage_key is now registered in the framework provider (framework_provider.go)
 			// betterado_team is now registered in the framework provider (framework_provider.go)
-			"betterado_task_group": taskagent.DataTaskGroup(),
+			// betterado_task_group is now registered in the framework provider (framework_provider.go)
 			// betterado_teams is now registered in the framework provider (framework_provider.go)
 			// betterado_user is now registered in the framework provider (framework_provider.go)
 			// betterado_users is now registered in the framework provider (framework_provider.go)
-			"betterado_variable_group": taskagent.DataVariableGroup(),
+			// betterado_variable_group is now registered in the framework provider (framework_provider.go)
 			// betterado_workitemtrackingprocess_process is now registered in the framework provider (framework_provider.go)
 			// betterado_workitemtrackingprocess_processes is now registered in the framework provider (framework_provider.go)
 			// betterado_workitemtrackingprocess_workitemtype is now registered in the framework provider (framework_provider.go)

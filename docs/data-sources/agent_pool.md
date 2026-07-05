@@ -3,12 +3,12 @@
 page_title: "betterado_agent_pool Data Source - betterado"
 subcategory: ""
 description: |-
-  
+  Use this data source to access information about an existing Azure DevOps Agent Pool.
 ---
 
 # betterado_agent_pool (Data Source)
 
-
+Use this data source to access information about an existing Azure DevOps Agent Pool.
 
 
 
@@ -17,22 +17,11 @@ description: |-
 
 ### Required
 
-- `name` (String)
-
-### Optional
-
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `name` (String) The name of the agent pool.
 
 ### Read-Only
 
-- `auto_provision` (Boolean)
-- `auto_update` (Boolean)
-- `id` (String) The ID of this resource.
-- `pool_type` (String)
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `read` (String)
+- `auto_provision` (Boolean) Whether the agent pool is automatically provisioned.
+- `auto_update` (Boolean) Whether agents in the pool are automatically updated.
+- `id` (String) The ID of the agent pool.
+- `pool_type` (String) The type of the agent pool (Automation or Deployment).
