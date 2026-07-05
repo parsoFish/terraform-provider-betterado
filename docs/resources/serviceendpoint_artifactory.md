@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_artifactory Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages an Artifactory Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_artifactory (Resource)
 
-
+Manages an Artifactory Service Connection within Azure DevOps.
 
 
 
@@ -17,21 +17,20 @@ description: |-
 
 ### Required
 
-- `project_id` (String)
-- `service_endpoint_name` (String)
-- `url` (String) Url for the Artifactory Server
+- `project_id` (String) The ID of the project.
+- `service_endpoint_name` (String) The Service Endpoint name.
+- `url` (String) Url for the Artifactory Server.
 
 ### Optional
 
-- `authentication_basic` (Block List, Max: 1) (see [below for nested schema](#nestedblock--authentication_basic))
-- `authentication_token` (Block List, Max: 1) (see [below for nested schema](#nestedblock--authentication_token))
-- `description` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `authentication_basic` (Block List) Username/password authentication block. (see [below for nested schema](#nestedblock--authentication_basic))
+- `authentication_token` (Block List) Token authentication block. (see [below for nested schema](#nestedblock--authentication_token))
+- `description` (String) The Service Endpoint description.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.
 
 <a id="nestedblock--authentication_basic"></a>
 ### Nested Schema for `authentication_basic`
@@ -48,14 +47,3 @@ Required:
 Required:
 
 - `token` (String, Sensitive) The Artifactory access token.
-
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)

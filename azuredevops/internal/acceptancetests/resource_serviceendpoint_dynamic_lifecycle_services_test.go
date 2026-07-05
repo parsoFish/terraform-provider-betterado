@@ -15,9 +15,9 @@ func TestAccServiceEndpointDynamicLifecycleServices_basic(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_dynamics_lifecycle_services"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointDynamicLifecycleServicesResourceBasic(projectName, serviceEndpointName),
@@ -40,9 +40,9 @@ func TestAccServiceEndpointDynamicLifecycleServices_complete(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_dynamics_lifecycle_services"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointDynamicLifecycleServicesResourceComplete(projectName, serviceEndpointName, description),
@@ -68,9 +68,9 @@ func TestAccServiceEndpointDynamicLifecycleServices_update(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_dynamics_lifecycle_services"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointDynamicLifecycleServicesResourceBasic(projectName, serviceEndpointNameFirst),
@@ -102,9 +102,9 @@ func TestAccServiceEndpointDynamicLifecycleServices_requiresImportErrorStep(t *t
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointDynamicLifecycleServicesResourceBasic(projectName, serviceEndpointName),

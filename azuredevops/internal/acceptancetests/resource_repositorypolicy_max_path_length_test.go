@@ -22,16 +22,16 @@ func TestAccRepositoryPolicyPathLength(t *testing.T) {
 }
 
 func testAccRepoPolicyPathLengthBasic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	pathLengthTfNode := "betterado_repository_policy_max_path_length.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepoPolicyPathLengthBasic(projectName, repoName),
+				Config: hclRepoPolicyPathLengthBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(pathLengthTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(pathLengthTfNode, "max_path_length", "500"),
@@ -47,21 +47,21 @@ func testAccRepoPolicyPathLengthBasic(t *testing.T) {
 }
 
 func testAccRepoPolicyPathLengthUpdate(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	pathLengthTfNode := "betterado_repository_policy_max_path_length.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclRepoPolicyPathLengthBasic(projectName, repoName),
+				Config: hclRepoPolicyPathLengthBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(pathLengthTfNode, "enabled", "true"),
 				),
 			}, {
-				Config: hclRepoPolicyPathLengthUpdate(projectName, repoName),
+				Config: hclRepoPolicyPathLengthUpdate(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(pathLengthTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(pathLengthTfNode, "max_path_length", "1000"),
@@ -77,16 +77,16 @@ func testAccRepoPolicyPathLengthUpdate(t *testing.T) {
 }
 
 func testAccProjectPolicyPathLengthBasic(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	pathLengthTfNode := "betterado_repository_policy_max_path_length.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectPolicyPathLengthBasic(projectName, repoName),
+				Config: hclProjectPolicyPathLengthBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(pathLengthTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(pathLengthTfNode, "max_path_length", "500"),
@@ -102,21 +102,21 @@ func testAccProjectPolicyPathLengthBasic(t *testing.T) {
 }
 
 func testAccProjectPolicyPathLengthUpdate(t *testing.T) {
+	projectID := SharedFixtureProjectID(t)
 	pathLengthTfNode := "betterado_repository_policy_max_path_length.test"
-	projectName := testutils.GenerateResourceName()
 	repoName := testutils.GenerateResourceName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testutils.PreCheck(t, nil) },
-		Providers: testutils.GetProviders(),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
 		Steps: []resource.TestStep{
 			{
-				Config: hclProjectPolicyPathLengthBasic(projectName, repoName),
+				Config: hclProjectPolicyPathLengthBasic(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(pathLengthTfNode, "enabled", "true"),
 				),
 			}, {
-				Config: hclProjectPolicyPathLengthUpdate(projectName, repoName),
+				Config: hclProjectPolicyPathLengthUpdate(projectID, repoName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(pathLengthTfNode, "enabled", "true"),
 					resource.TestCheckResourceAttr(pathLengthTfNode, "max_path_length", "1000"),
@@ -131,78 +131,70 @@ func testAccProjectPolicyPathLengthUpdate(t *testing.T) {
 	})
 }
 
-func hclPolicyPathLengthResourceTemplate(projectName string, repoName string) string {
+func hclPolicyPathLengthResourceTemplate(projectID string, repoName string) string {
 	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%s"
-  description        = "Test Project Description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
 resource "betterado_git_repository" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
+  project_id = %[1]q
+  name       = "%[2]s"
   initialization {
     init_type = "Clean"
   }
 }
-`, projectName, repoName)
+`, projectID, repoName)
 }
 
-func hclRepoPolicyPathLengthBasic(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyPathLengthResourceTemplate(projectName, repoName)
+func hclRepoPolicyPathLengthBasic(projectID string, repoName string) string {
+	repoBlock := hclPolicyPathLengthResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_max_path_length" "test" {
-  project_id      = betterado_project.test.id
+  project_id      = %[2]q
   enabled         = true
   blocking        = true
   max_path_length = 500
   repository_ids  = [betterado_git_repository.test.id]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclRepoPolicyPathLengthUpdate(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyPathLengthResourceTemplate(projectName, repoName)
+func hclRepoPolicyPathLengthUpdate(projectID string, repoName string) string {
+	repoBlock := hclPolicyPathLengthResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_max_path_length" "test" {
-  project_id      = betterado_project.test.id
+  project_id      = %[2]q
   enabled         = true
   blocking        = true
   max_path_length = 1000
   repository_ids  = [betterado_git_repository.test.id]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclProjectPolicyPathLengthBasic(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyPathLengthResourceTemplate(projectName, repoName)
+func hclProjectPolicyPathLengthBasic(projectID string, repoName string) string {
+	repoBlock := hclPolicyPathLengthResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_max_path_length" "test" {
-  project_id      = betterado_project.test.id
+  project_id      = %[2]q
   enabled         = true
   blocking        = true
   max_path_length = 500
   depends_on      = [betterado_git_repository.test]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }
 
-func hclProjectPolicyPathLengthUpdate(projectName string, repoName string) string {
-	projectAndRepo := hclPolicyPathLengthResourceTemplate(projectName, repoName)
+func hclProjectPolicyPathLengthUpdate(projectID string, repoName string) string {
+	repoBlock := hclPolicyPathLengthResourceTemplate(projectID, repoName)
 	return fmt.Sprintf(`
 %s
 
 resource "betterado_repository_policy_max_path_length" "test" {
-  project_id      = betterado_project.test.id
+  project_id      = %[2]q
   enabled         = true
   blocking        = true
   max_path_length = 1000
   depends_on      = [betterado_git_repository.test]
-}`, projectAndRepo)
+}`, repoBlock, projectID)
 }

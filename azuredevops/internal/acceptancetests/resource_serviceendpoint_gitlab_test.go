@@ -1,3 +1,5 @@
+//go:build (all || resource_serviceendpoint_gitlab) && !exclude_resource_serviceendpoint_gitlab
+
 package acceptancetests
 
 import (
@@ -15,9 +17,9 @@ func TestAccServiceEndpointGitLab_basic(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_gitlab"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointGitLabResourceBasic(projectName, serviceEndpointName),
@@ -41,9 +43,9 @@ func TestAccServiceEndpointGitLab_complete(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_gitlab"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointGitLabResourceComplete(projectName, serviceEndpointName, description),
@@ -69,9 +71,9 @@ func TestAccServiceEndpointGitLab_update(t *testing.T) {
 	resourceType := "betterado_serviceendpoint_gitlab"
 	tfSvcEpNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointGitLabResourceBasic(projectName, serviceEndpointNameFirst),
@@ -103,9 +105,9 @@ func TestAccServiceEndpointGitLab_requiresImportErrorStep(t *testing.T) {
 	tfSvcEpNode := resourceType + ".test"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testutils.PreCheck(t, nil) },
-		Providers:    testutils.GetProviders(),
-		CheckDestroy: testutils.CheckServiceEndpointDestroyed(resourceType),
+		PreCheck:                 func() { testutils.PreCheck(t, nil) },
+		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		CheckDestroy:             testutils.CheckServiceEndpointDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
 				Config: hclSvcEndpointGitLabResourceBasic(projectName, serviceEndpointName),

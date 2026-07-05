@@ -1,0 +1,4 @@
+=== RUN   TestChangelog_HasPipelineApprovalEntry
+--- PASS: TestChangelog_HasPipelineApprovalEntry (0.00s)
+PASS
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/pipelinesapproval	0.003s

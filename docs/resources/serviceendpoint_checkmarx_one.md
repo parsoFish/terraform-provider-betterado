@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_checkmarx_one Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a Checkmarx One Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_checkmarx_one (Resource)
 
-
+Manages a Checkmarx One Service Connection within Azure DevOps.
 
 
 
@@ -17,30 +17,19 @@ description: |-
 
 ### Required
 
-- `project_id` (String)
-- `server_url` (String)
-- `service_endpoint_name` (String)
+- `project_id` (String) The ID of the project.
+- `server_url` (String) The URL of the Checkmarx One server.
+- `service_endpoint_name` (String) The Service Endpoint name.
 
 ### Optional
 
-- `api_key` (String, Sensitive)
-- `authorization_url` (String)
-- `client_id` (String)
-- `client_secret` (String, Sensitive)
-- `description` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `api_key` (String, Sensitive) The API key for Checkmarx One authentication. Conflicts with client_id/client_secret.
+- `authorization_url` (String) The authorization URL for OAuth authentication. Conflicts with api_key.
+- `client_id` (String) The client ID for OAuth authentication. Conflicts with api_key.
+- `client_secret` (String, Sensitive) The client secret for OAuth authentication. Conflicts with api_key.
+- `description` (String) The Service Endpoint description.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.

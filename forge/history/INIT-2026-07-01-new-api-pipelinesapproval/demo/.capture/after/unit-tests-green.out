@@ -1,0 +1,14 @@
+=== RUN   TestChangelog_HasPipelineApprovalEntry
+--- PASS: TestChangelog_HasPipelineApprovalEntry (0.00s)
+=== RUN   TestPipelineApprovalsDataSource_Metadata
+--- PASS: TestPipelineApprovalsDataSource_Metadata (0.00s)
+=== RUN   TestPipelineApprovalsDataSource_Schema
+--- PASS: TestPipelineApprovalsDataSource_Schema (0.00s)
+=== RUN   TestPipelinesApprovalGapMatrix
+--- PASS: TestPipelinesApprovalGapMatrix (0.00s)
+=== RUN   TestPipelineApprovalResource_Metadata
+--- PASS: TestPipelineApprovalResource_Metadata (0.00s)
+=== RUN   TestPipelineApprovalResource_Schema
+--- PASS: TestPipelineApprovalResource_Schema (0.00s)
+PASS
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/pipelinesapproval	0.003s

@@ -1,0 +1,6 @@
+=== RUN   TestPipelinesApprovalClient
+=== RUN   TestPipelinesApprovalClient/AggregatedClient_has_PipelinesApprovalClient_field_of_pipelinesapproval.Client_type
+--- PASS: TestPipelinesApprovalClient (0.00s)
+    --- PASS: TestPipelinesApprovalClient/AggregatedClient_has_PipelinesApprovalClient_field_of_pipelinesapproval.Client_type (0.00s)
+PASS
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client	0.003s

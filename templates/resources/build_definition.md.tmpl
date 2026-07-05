@@ -1,0 +1,26 @@
+---
+page_title: "betterado_build_definition Resource - betterado"
+subcategory: "Build"
+description: |-
+  Manages a build (pipeline) definition within an Azure DevOps project.
+---
+
+# betterado_build_definition (Resource)
+
+Manages an Azure DevOps build (pipeline) definition. A build definition specifies
+how source code is compiled, tested, and packaged. It references a repository and
+a YAML pipeline file or inline steps.
+
+## Example Usage
+
+{{ tffile "examples/resources/betterado_build_definition/resource.tf" }}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import
+
+Build definitions are imported using `projectID/buildDefinitionID`:
+
+```shell
+terraform import betterado_build_definition.example 00000000-0000-0000-0000-000000000000/1
+```

@@ -3,12 +3,12 @@
 page_title: "betterado_serviceendpoint_black_duck Resource - betterado"
 subcategory: ""
 description: |-
-  
+  Manages a Black Duck Service Connection within Azure DevOps.
 ---
 
 # betterado_serviceendpoint_black_duck (Resource)
 
-
+Manages a Black Duck Service Connection within Azure DevOps.
 
 
 
@@ -17,27 +17,16 @@ description: |-
 
 ### Required
 
-- `api_token` (String, Sensitive)
-- `project_id` (String)
-- `server_url` (String)
-- `service_endpoint_name` (String)
+- `api_token` (String, Sensitive) The API token for the Black Duck server.
+- `project_id` (String) The ID of the project.
+- `server_url` (String) The URL of the Black Duck server.
+- `service_endpoint_name` (String) The Service Endpoint name.
 
 ### Optional
 
-- `description` (String)
-- `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `description` (String) The Service Endpoint description.
 
 ### Read-Only
 
-- `authorization` (Map of String)
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--timeouts"></a>
-### Nested Schema for `timeouts`
-
-Optional:
-
-- `create` (String)
-- `delete` (String)
-- `read` (String)
-- `update` (String)
+- `authorization` (Map of String) Specifies the authorization scheme and parameters.
+- `id` (String) The ID of the service endpoint.
