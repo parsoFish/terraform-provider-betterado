@@ -342,6 +342,8 @@ func (r *ExtensionInstallResource) Delete(ctx context.Context, req resource.Dele
 
 // expandExtensionInstall converts the Terraform model into an InstalledExtension struct
 // suitable for API calls (e.g. UpdateInstalledExtension).
+//
+//nolint:unused // exercised by the tag-gated round-trip tests (resource_extension_install_framework_test.go)
 func expandExtensionInstall(model *extensionInstallModel) *extensionmanagement.InstalledExtension {
 	publisherID := model.PublisherID.ValueString()
 	extensionID := model.ExtensionID.ValueString()
