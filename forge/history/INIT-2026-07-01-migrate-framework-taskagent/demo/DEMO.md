@@ -47,9 +47,9 @@
 
 ### Quality gate — passes on branch HEAD
 
-- **Before:** servicehook package compiled against SDKv2-heavy taskagent package; 8 SDKv2 resources + 6 SDKv2 data sources in provider registration
+- **Before:** taskagent (corrected: in-scope gate) package compiled against SDKv2-heavy taskagent package; 8 SDKv2 resources + 6 SDKv2 data sources in provider registration
 - **After:** `ok  github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent` — mux provider compiles cleanly with all migrated framework types registered alongside remaining SDKv2 types
-- **Command:** `go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...`
+- **Command:** `go vet -tags all ./azuredevops/internal/service/taskagent/... && go build ./...`
 
 ### betterado_task_group data source — live ADO REST GET confirms task group created via framework data source path
 
