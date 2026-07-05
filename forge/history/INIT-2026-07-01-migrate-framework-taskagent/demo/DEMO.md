@@ -1,8 +1,8 @@
 # Migrate taskagent resources and data sources to terraform-plugin-framework
 
-> _Derived from `demo.json` (ADR 021). Essence:_ All SDKv2 resources and data sources in the taskagent package are migrated to terraform-plugin-framework, muxed alongside SDKv2. This eliminates deprecated SDKv2 code paths for agent_pool, agent_queue, deployment_group, elastic_pool, environment, environment_resource_kubernetes, variable_group (resource+data source), variable_group_variable, and the task_group data source. A field-coverage gap matrix documents the ADO Task Agent API v7.1 parity. The dead SDKv2 ResourceVariableGroup + CRUD functions are deleted from resource_variable_group.go; only the KV-search helpers still referenced by the framework files are retained.
+> _Derived from `demo.json` (ADR 021). Essence:_ All SDKv2 resources and data sources in the taskagent package are migrated to terraform-plugin-framework, muxed alongside SDKv2. This eliminates deprecated SDKv2 code paths for agent_pool, agent_queue, deployment_group, elastic_pool, environment, environment_resource_kubernetes, variable_group (resource+data source), variable_group_variable, and the task_group data source. A field-coverage gap matrix documents the ADO Task Agent API v7.1 parity. The SDKv2 resource_variable_group.go has been fully removed (renamed to resource_variable_group_kvhelpers.go); the KV-search helpers still referenced by the framework files are retained there.
 >
-> **Updated by UWI-2 (2026-07-04):** Re-authored to reflect actual HEAD state — WI-9/WI-10/WI-11 complete; env-gated skips for deployment_group/elastic_pool recorded honestly; all liveEvidence URLs/capturedAt verified against on-disk captures; diffStat updated to actual `git diff --shortstat origin/main...HEAD`.
+> **Updated by UWI-2 (2026-07-04):** Re-authored to reflect actual HEAD state — WI-9/WI-10/WI-11 complete; env-gated skips for deployment_group/elastic_pool recorded honestly; all liveEvidence URLs/capturedAt verified against on-disk captures; diffStat updated to actual `git diff --shortstat origin/main...HEAD` (123 files changed, 7825 insertions(+), 5447 deletions(-)).
 
 ## Intent & Outcome
 

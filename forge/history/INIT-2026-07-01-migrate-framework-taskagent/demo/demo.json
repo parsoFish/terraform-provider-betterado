@@ -1,9 +1,9 @@
 {
   "title": "Migrate taskagent resources and data sources to terraform-plugin-framework",
-  "essence": "All SDKv2 resources and data sources in the taskagent package are migrated to terraform-plugin-framework, muxed alongside SDKv2. This eliminates deprecated SDKv2 code paths for agent_pool, agent_queue, deployment_group, elastic_pool, environment, environment_resource_kubernetes, variable_group (resource+data source), variable_group_variable, and the task_group data source. A field-coverage gap matrix documents the ADO Task Agent API v7.1 parity. The dead SDKv2 ResourceVariableGroup + CRUD functions are deleted from resource_variable_group.go; only the KV-search helpers still referenced by the framework files are retained.",
+  "essence": "All SDKv2 resources and data sources in the taskagent package are migrated to terraform-plugin-framework, muxed alongside SDKv2. This eliminates deprecated SDKv2 code paths for agent_pool, agent_queue, deployment_group, elastic_pool, environment, environment_resource_kubernetes, variable_group (resource+data source), variable_group_variable, and the task_group data source. A field-coverage gap matrix documents the ADO Task Agent API v7.1 parity. The SDKv2 resource_variable_group.go has been fully removed (renamed to resource_variable_group_kvhelpers.go); the KV-search helpers still referenced by the framework files are retained there.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-01-migrate-framework-taskagent",
-  "diffStat": "122 files changed, 7568 insertions(+), 4667 deletions(-)",
+  "diffStat": "123 files changed, 7825 insertions(+), 5447 deletions(-)",
   "checkpoints": [
     {
       "label": "Quality gate green",
@@ -288,7 +288,7 @@
     {
       "criterion": "GIVEN SDKv2 variable_group files are deregistered and deleted WHEN provider.go ResourcesMap and DataSourcesMap are inspected THEN betterado_variable_group is absent from SDKv2 maps; source files deleted; framework_provider.go includes new factories; provider_test.go counts updated",
       "verdict": "met",
-      "evidence": "provider.go has comment noting betterado_variable_group is now a framework resource; resource_variable_group_framework.go in diff; framework_provider.go registers NewVariableGroupResource, NewVariableGroupDataSource; data_variable_group.go in diff (removed). SDKv2 CRUD+resource funcs deleted from resource_variable_group.go in UWI-2."
+      "evidence": "provider.go has comment noting betterado_variable_group is now a framework resource; resource_variable_group_framework.go in diff; framework_provider.go registers NewVariableGroupResource, NewVariableGroupDataSource; data_variable_group.go in diff (removed). SDKv2 CRUD+resource funcs deleted and resource_variable_group.go renamed to resource_variable_group_kvhelpers.go (KV-search helpers retained) in UWI-2."
     },
     {
       "criterion": "GIVEN live acceptance test runs WHEN CaptureLiveEvidence is called THEN CaptureLiveEvidence(\"acceptance-resource-variable-group\", url, apiResponse) writes .forge/live-evidence/acceptance-resource-variable-group.json",
