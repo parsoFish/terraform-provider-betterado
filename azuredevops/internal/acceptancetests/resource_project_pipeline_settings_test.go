@@ -94,25 +94,3 @@ resource "betterado_project_pipeline_settings" "test" {
 }
 `, projectID, enforceJobAuthScope, enforceReferencedRepoScopedToken, enforceSettableVar, publishPipelineMetadata, statusBadgesArePrivate, enforceJobAuthScopeForReleases)
 }
-
-func hclProjectPipelineSettings(projectName string, enforceJobAuthScope, enforceReferencedRepoScopedToken, enforceSettableVar, publishPipelineMetadata, statusBadgesArePrivate, enforceJobAuthScopeForReleases bool) string {
-	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%s"
-  description        = "description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
-resource "betterado_project_pipeline_settings" "test" {
-  project_id                           = betterado_project.test.id
-  enforce_job_scope                    = %t
-  enforce_referenced_repo_scoped_token = %t
-  enforce_settable_var                 = %t
-  publish_pipeline_metadata            = %t
-  status_badges_are_private            = %t
-  enforce_job_scope_for_release        = %t
-}
-`, projectName, enforceJobAuthScope, enforceReferencedRepoScopedToken, enforceSettableVar, publishPipelineMetadata, statusBadgesArePrivate, enforceJobAuthScopeForReleases)
-}

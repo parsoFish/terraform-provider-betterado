@@ -69,19 +69,3 @@ data "betterado_teams" "test" {
 }
 `, projectID)
 }
-
-func hclTeamsDataSourceBasic(name string) string {
-	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name               = "%[1]s"
-  description        = "description"
-  visibility         = "private"
-  version_control    = "Git"
-  work_item_template = "Agile"
-}
-
-data "betterado_teams" "test" {
-  project_id = betterado_project.test.id
-}
-`, name)
-}

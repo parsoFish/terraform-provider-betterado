@@ -199,19 +199,6 @@ resource "betterado_team" "test" {
 `, projectID, teamName)
 }
 
-func hclTeamBasic(projectName, teamName string) string {
-	return fmt.Sprintf(`
-resource "betterado_project" "test" {
-  name = "%s"
-}
-
-resource "betterado_team" "test" {
-  project_id = betterado_project.test.id
-  name       = "%s"
-}
-`, projectName, teamName)
-}
-
 func hclTeamUpdate(projectName, teamName, description string) string {
 	return fmt.Sprintf(`
 resource "betterado_project" "test" {
