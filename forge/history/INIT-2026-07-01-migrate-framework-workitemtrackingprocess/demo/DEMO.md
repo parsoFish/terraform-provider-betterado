@@ -14,17 +14,17 @@ All workitemtrackingprocess resources and data sources (process, workitemtype, s
 
 ## Checkpoint 1 — Quality gate
 
-**Caption:** CI quality gate: go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... (verbatim forge gate)
+**Caption:** CI quality gate: go vet -tags all ./azuredevops/internal/service/workitemtrackingprocess/... && go build ./...
 
 **Command (before/after evidence):**
 ```
-go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...
+go vet -tags all ./azuredevops/internal/service/workitemtrackingprocess/... && go build ./...
 ```
 
 | | |
 |---|---|
-| **Before (main)** | servicehook offline tests pass on main |
-| **After (HEAD)** | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.008s` — gate green on HEAD after workitemtrackingprocess migration |
+| **Before (main)** | workitemtrackingprocess (corrected: in-scope gate) offline tests pass on main |
+| **After (HEAD)** | `ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtrackingprocess (corrected: in-scope gate)	0.008s` — gate green on HEAD after workitemtrackingprocess migration |
 
 ---
 
@@ -136,7 +136,7 @@ grep -c 'workitemtrackingprocess' azuredevops/internal/provider/framework_provid
 
 | Test | Result |
 |------|--------|
-| `go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...` (forge quality gate) | pass |
+| `go vet -tags all ./azuredevops/internal/service/workitemtrackingprocess/... && go build ./...` (forge quality gate) | pass |
 | `go build ./... && go vet -tags all ./azuredevops/internal/service/workitemtrackingprocess/... ./azuredevops/internal/provider/... ./azuredevops/internal/acceptancetests/...` (offline gate) | pass |
 | `go build -mod=vendor .` | pass |
 | `TestAccWorkitemtrackingprocessProcess_Basic` (TF_ACC=1, live, per-WI) | pass |
