@@ -9,6 +9,10 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ### FEATURES
 
+- **`betterado_extension_install` resource (new, framework-native).** Installs and uninstalls Azure DevOps Marketplace extensions at the organisation level via the ExtensionManagement API. Manages `publisher_id` + `extension_id`; supports `version` (optional, defaults to latest); idempotent apply and destroy. Registered in the framework provider only — no SDKv2 registration.
+
+### FEATURES
+
 - **New resource `betterado_pipeline_approval`** — manages a Pipelines Approval
   decision in Azure DevOps via terraform-plugin-framework. Supports reading and
   updating (approve/reject with optional comment) an existing pipeline approval

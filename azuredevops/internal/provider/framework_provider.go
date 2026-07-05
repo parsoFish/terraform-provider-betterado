@@ -17,6 +17,7 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/build"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/dashboard"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extension"
+	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/extensionmanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/featuremanagement"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/feed"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/git"
@@ -322,6 +323,7 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		testplan.NewTestConfigurationResource,
 		testplan.NewTestVariableResource,
 		pipelinesapproval.NewPipelineApprovalResource,
+		extensionmanagement.NewExtensionInstallResource,
 	}
 }
 
