@@ -49,7 +49,7 @@
 
 - **Before:** servicehook package compiled against SDKv2-heavy taskagent package; 8 SDKv2 resources + 6 SDKv2 data sources in provider registration
 - **After:** `ok  github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/taskagent` — mux provider compiles cleanly with all migrated framework types registered alongside remaining SDKv2 types
-- **Command:** `go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...`
+- **Command:** `go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...`
 
 ### betterado_task_group data source — live ADO REST GET confirms task group created via framework data source path
 

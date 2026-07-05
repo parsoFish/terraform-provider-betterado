@@ -8,14 +8,14 @@
     {
       "label": "Quality gate green",
       "caption": "CI-equivalent unit/integration gate passes on branch HEAD",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
-      "beforeNote": "Gate runs against SDKv2-only taskagent package",
-      "afterNote": "Gate passes — ok github.com/.../taskagent"
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
+      "beforeNote": "Gate runs against branch HEAD including all taskagent framework migrations",
+      "afterNote": "Gate passes — ok github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook"
     },
     {
       "label": "task_group data source migrated (WI-2)",
       "caption": "betterado_task_group data source now served by framework; live REST GET confirms creation",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "data_task_group.go lived in SDKv2; DataSourcesMap included betterado_task_group",
       "afterNote": "data_task_group_framework.go registered in framework_provider.go DataSources(); SDKv2 file removed. Live evidence: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/taskgroups/7c7c70d2-1814-473e-b307-70f15f914631?api-version=7.1 (capturedAt: 2026-07-03T23:17:23Z)",
       "liveEvidence": {
@@ -28,7 +28,7 @@
     {
       "label": "agent_pool resource + data sources migrated (WI-3)",
       "caption": "betterado_agent_pool resource and data sources now served by framework; live REST GET confirms pool created",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "resource_agent_pool.go, data_agent_pool.go, data_agent_pools.go in SDKv2",
       "afterNote": "Framework implementations registered; SDKv2 files removed. Live REST GET: https://dev.azure.com/davidgparsonson/_apis/distributedtask/pools/591?api-version=7.1 (capturedAt: 2026-07-03T23:17:12Z, pool name=test-acc-xm1t9vcku3, poolType=automation)",
       "liveEvidence": {
@@ -41,7 +41,7 @@
     {
       "label": "agent_queue resource + data source migrated (WI-4)",
       "caption": "betterado_agent_queue resource and data source now served by framework",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "resource_agent_queue.go, data_agent_queue.go in SDKv2",
       "afterNote": "Framework implementations registered; SDKv2 files removed. Live REST GET: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/queues/1917?api-version=7.1 (capturedAt: 2026-07-03T23:17:37Z)",
       "liveEvidence": {
@@ -54,7 +54,7 @@
     {
       "label": "environment resource + data source migrated (WI-5)",
       "caption": "betterado_environment resource and data source now served by framework",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "resource_environment.go, data_environment.go in SDKv2",
       "afterNote": "Framework implementations registered; SDKv2 files removed. Live REST GET: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/environments/94?api-version=7.1 (capturedAt: 2026-07-03T23:21:41Z)",
       "liveEvidence": {
@@ -67,7 +67,7 @@
     {
       "label": "environment_resource_kubernetes migrated (WI-6)",
       "caption": "betterado_environment_resource_kubernetes now served by framework",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "resource_environment_resource_kubernetes.go in SDKv2",
       "afterNote": "Framework implementation registered; SDKv2 files removed. Live REST GET: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/environments/98/providers/kubernetes/43?api-version=7.1 (capturedAt: 2026-07-03T23:23:21Z)",
       "liveEvidence": {
@@ -80,7 +80,7 @@
     {
       "label": "deployment_group migrated (WI-7)",
       "caption": "betterado_deployment_group now served by framework; live acceptance legs were env-gated (skipped)",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "resource_deployment_group.go in SDKv2",
       "afterNote": "Framework implementation registered; SDKv2 file removed. Unit tests and provider registration green. Live acceptance TestAccDeploymentGroup_* were skipped in this rig (env-gated: org classic-pipelines policy required to create deployment groups; SPN lacks permission). No CaptureLiveEvidence capture exists for deployment_group — verified by unit tests + go build ./... only.",
       "skipReason": "env-gated: org classic-pipelines policy; no .forge/live-evidence/acceptance-resource-deployment-group.json present"
@@ -88,7 +88,7 @@
     {
       "label": "elastic_pool migrated (WI-8)",
       "caption": "betterado_elastic_pool now served by framework; live acceptance legs were env-gated (skipped)",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "resource_elastic_pool.go (ResourceAgentPoolVMSS) in SDKv2",
       "afterNote": "Framework implementation registered; SDKv2 file removed. Unit tests and provider registration green. Live acceptance TestAccElasticPool was skipped in this rig (env-gated: VMSS SPN with elastic pool permissions not available in standing fixture). No CaptureLiveEvidence capture exists for elastic_pool — verified by unit tests + go build ./... only.",
       "skipReason": "env-gated: VMSS SPN / elastic pool permissions; no .forge/live-evidence/acceptance-resource-elastic-pool.json present"
@@ -96,7 +96,7 @@
     {
       "label": "variable_group resource + data source migrated (WI-9)",
       "caption": "betterado_variable_group resource and data source now served by framework; live REST GET confirms group created",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "resource_variable_group.go, data_variable_group.go in SDKv2; secret variable values required careful sensitive plan modifier handling",
       "afterNote": "Framework implementations registered; SDKv2 CRUD+resource funcs deleted (KV-search helpers retained). Live REST GET: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/variablegroups/1253?api-version=7.1 (capturedAt: 2026-07-04T00:01:21Z, vg 1253). Post-destroy race on ADO side fixed (CheckDestroy timeout extended, no-op fallback added).",
       "liveEvidence": {
@@ -109,7 +109,7 @@
     {
       "label": "variable_group_variable resource migrated (WI-10)",
       "caption": "betterado_variable_group_variable now served by framework; live REST GET confirms variable set within group 1260",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "resource_variable_group_variable.go in SDKv2; SDKv2 file still registered before this iteration",
       "afterNote": "resource_variable_group_variable_framework.go registered in framework_provider.go Resources(); SDKv2 file deleted. Live REST GET: https://dev.azure.com/davidgparsonson/6ddb680c-093d-4953-9561-2266eb7af800/_apis/distributedtask/variablegroups/1260?api-version=7.1 (capturedAt: 2026-07-04T00:11:37Z, vg 1260).",
       "liveEvidence": {
@@ -122,14 +122,14 @@
     {
       "label": "Version bump, CHANGELOG, provider_test.go counts (WI-11)",
       "caption": "PROVIDER_VERSION.txt bumped to 1.3.0; CHANGELOG.md documents all migrated types; provider_test.go counts updated",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "PROVIDER_VERSION.txt=1.2.0; CHANGELOG.md lacked variable_group_variable and full WI-10/WI-11 entries",
       "afterNote": "PROVIDER_VERSION.txt=1.3.0; CHANGELOG.md ## [Unreleased] covers all migrated types including betterado_variable_group_variable; provider_test.go SDKv2 resource/datasource counts updated to reflect all deregistered taskagent types."
     },
     {
       "label": "Gap matrix delivered (WI-1)",
       "caption": "docs/taskagent-gap-matrix.md documents field coverage across all 9 taskagent types plus deferred validator parity gaps",
-      "command": "go test -tags all -count=1 ./azuredevops/internal/service/release/... ./azuredevops/internal/service/taskagent/...",
+      "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "No gap matrix existed for taskagent types; no record of dropped SDKv2 ValidateFuncs",
       "afterNote": "docs/taskagent-gap-matrix.md covers all 9 resource/data-source types with mapped/partial/missing field tables and a new 'Deferred Validator Parity' section listing the 12 SDKv2 ValidateFunc entries not yet ported to framework Validators."
     }
