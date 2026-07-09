@@ -1,17 +1,13 @@
 package testutils
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
-	"github.com/hashicorp/terraform-plugin-mux/tf5to6server"
-	"github.com/hashicorp/terraform-plugin-mux/tf6muxserver"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -19,6 +15,7 @@ import (
 	azdosdk "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
+	internalprovider "github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
@@ -40,7 +37,7 @@ func GetDirectClient() (*client.AggregatedClient, error) {
 	return client.GetAzdoClient(azdosdk.NewAuthProviderPAT(pat), orgURL)
 }
 
-func GetProviderFactories() map[string]func() (*schema.Provider, error) {
+func GetSDKv2ProviderFactories() map[string]func() (*schema.Provider, error) {
 	return map[string]func() (*schema.Provider, error){
 		//nolint:unparam
 		"betterado": func() (*schema.Provider, error) {
@@ -57,31 +54,11 @@ func GetProviders() map[string]*schema.Provider {
 }
 
 // GetMuxProviderFactories returns a ProtoV6ProviderFactories map that serves the
-// full betterado mux provider (SDKv2 resources + framework resources combined).
-// Use this instead of GetProviders() / Providers in acceptance tests that exercise
-// terraform-plugin-framework resources such as betterado_release_definition.
+// pure framework provider. The mux layer has been removed as part of the
+// mux-free cutover (WI-4); all resources are now served by the framework provider.
 func GetMuxProviderFactories() map[string]func() (tfprotov6.ProviderServer, error) {
 	return map[string]func() (tfprotov6.ProviderServer, error){
-		"betterado": func() (tfprotov6.ProviderServer, error) {
-			ctx := context.Background()
-			// Wrap the SDKv2 provider at protocol 6 (same as main.go).
-			upgradedSdkv2, err := tf5to6server.UpgradeServer(ctx, func() tfprotov5.ProviderServer {
-				p := azuredevops.Provider()
-				return schema.NewGRPCProviderServer(p)
-			})
-			if err != nil {
-				return nil, err
-			}
-			mux, err := tf6muxserver.NewMuxServer(
-				ctx,
-				func() tfprotov6.ProviderServer { return upgradedSdkv2 },
-				providerserver.NewProtocol6(azuredevops.NewFrameworkProvider()),
-			)
-			if err != nil {
-				return nil, err
-			}
-			return mux.ProviderServer(), nil
-		},
+		"betterado": providerserver.NewProtocol6WithError(internalprovider.NewFrameworkProvider("test")),
 	}
 }
 

@@ -18,7 +18,7 @@ func TestAccCheckBranchControl_basic(t *testing.T) {
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
@@ -45,7 +45,7 @@ func TestAccCheckBranchControl_complete(t *testing.T) {
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
@@ -77,7 +77,7 @@ func TestAccCheckBranchControl_update(t *testing.T) {
 	tfCheckNode := resourceType + ".test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckPipelineCheckDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{

@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
-	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/serviceendpoint"
 )
 
 // Provider - The top level Azure DevOps Provider definition.
@@ -117,25 +116,25 @@ func Provider() *schema.Provider {
 			// betterado_serviceendpoint_gitlab migrated to the framework provider (framework_provider.go).
 			// betterado_serviceendpoint_incomingwebhook migrated to the framework provider (framework_provider.go).
 			// betterado_serviceendpoint_jenkins migrated to the framework provider (framework_provider.go).
-			"betterado_serviceendpoint_jfrog_artifactory_v2":  serviceendpoint.ResourceServiceEndpointJFrogArtifactoryV2(),
-			"betterado_serviceendpoint_jfrog_distribution_v2": serviceendpoint.ResourceServiceEndpointJFrogDistributionV2(),
-			"betterado_serviceendpoint_jfrog_platform_v2":     serviceendpoint.ResourceServiceEndpointJFrogPlatformV2(),
-			"betterado_serviceendpoint_jfrog_xray_v2":         serviceendpoint.ResourceServiceEndpointJFrogXRayV2(),
-			"betterado_serviceendpoint_kubernetes":            serviceendpoint.ResourceServiceEndpointKubernetes(),
-			"betterado_serviceendpoint_maven":                 serviceendpoint.ResourceServiceEndpointMaven(),
-			"betterado_serviceendpoint_nexus":                 serviceendpoint.ResourceServiceEndpointNexus(),
+			// betterado_serviceendpoint_jfrog_artifactory_v2 migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_jfrog_distribution_v2 migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_jfrog_platform_v2 migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_jfrog_xray_v2 migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_kubernetes migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_maven migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_nexus migrated to the framework provider (framework_provider.go).
 			// betterado_serviceendpoint_npm migrated to the framework provider (framework_provider.go).
-			"betterado_serviceendpoint_nuget":         serviceendpoint.ResourceServiceEndpointNuGet(),
-			"betterado_serviceendpoint_octopusdeploy": serviceendpoint.ResourceServiceEndpointOctopusDeploy(),
-			"betterado_serviceendpoint_openshift":     serviceendpoint.ResourceServiceEndpointOpenshift(),
+			// betterado_serviceendpoint_nuget migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_octopusdeploy migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_openshift migrated to the framework provider (framework_provider.go).
 			// betterado_serviceendpoint_permissions is now registered in the framework provider (framework_provider.go)
-			"betterado_serviceendpoint_runpipeline":   serviceendpoint.ResourceServiceEndpointRunPipeline(),
-			"betterado_serviceendpoint_servicefabric": serviceendpoint.ResourceServiceEndpointServiceFabric(),
-			"betterado_serviceendpoint_snyk":          serviceendpoint.ResourceServiceEndpointSnyk(),
+			// betterado_serviceendpoint_runpipeline migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_servicefabric migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_snyk migrated to the framework provider (framework_provider.go).
 			// betterado_serviceendpoint_sonarcloud migrated to the framework provider (framework_provider.go).
-			"betterado_serviceendpoint_sonarqube":               serviceendpoint.ResourceServiceEndpointSonarQube(),
-			"betterado_serviceendpoint_ssh":                     serviceendpoint.ResourceServiceEndpointSSH(),
-			"betterado_serviceendpoint_visualstudiomarketplace": serviceendpoint.ResourceServiceEndpointMarketplace(),
+			// betterado_serviceendpoint_sonarqube migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_ssh migrated to the framework provider (framework_provider.go).
+			// betterado_serviceendpoint_visualstudiomarketplace migrated to the framework provider (framework_provider.go).
 			// betterado_servicehook_permissions is now registered in the framework provider (framework_provider.go)
 			// betterado_servicehook_storage_queue_pipelines migrated to the framework provider (framework_provider.go).
 			// betterado_servicehook_webhook_tfs migrated to the framework provider (framework_provider.go).

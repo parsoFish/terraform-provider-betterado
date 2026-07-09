@@ -26,7 +26,7 @@ func TestAccServiceEndpointAzureCR_spn_basic(t *testing.T) {
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
 		},
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkServiceEndpointDockerRegistryDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
@@ -59,7 +59,7 @@ func TestAccServiceEndpointAzureCR_spn_update(t *testing.T) {
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
 		},
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkServiceEndpointDockerRegistryDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
@@ -101,7 +101,7 @@ func TestAccServiceEndpointAzureCR_workLoadIdentity_basic(t *testing.T) {
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
 		},
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkServiceEndpointDockerRegistryDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
@@ -134,7 +134,7 @@ func TestAccServiceEndpointAzureCR_workLoadIdentity_update(t *testing.T) {
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
 		},
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkServiceEndpointDockerRegistryDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{

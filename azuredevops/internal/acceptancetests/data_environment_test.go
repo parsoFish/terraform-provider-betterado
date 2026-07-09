@@ -17,7 +17,7 @@ func TestAccEnvironment_dataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkEnvironmentDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -42,7 +42,7 @@ func TestAccEnvironment_dataSource_by_name(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkEnvironmentDestroyed,
 		Steps: []resource.TestStep{
 			{

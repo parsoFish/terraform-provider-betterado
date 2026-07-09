@@ -17,7 +17,7 @@ import (
 
 // getInheritedControlDirectClient builds an AggregatedClient directly from AZDO env vars.
 // Used because ProtoV6ProviderFactories does not configure the SDKv2 provider singleton,
-// so testutils.GetProvider().Meta() would be nil when using GetMuxedProviderFactories().
+// so testutils.GetProvider().Meta() would be nil when using GetProviderFactories().
 func getInheritedControlDirectClient() (*client.AggregatedClient, error) {
 	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
 	pat := os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
@@ -65,7 +65,7 @@ func TestAccWorkitemtrackingprocessInheritedControl_Basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -92,7 +92,7 @@ func TestAccWorkitemtrackingprocessInheritedControl_Update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -132,7 +132,7 @@ func TestAccWorkitemtrackingprocessInheritedControl_Revert(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{

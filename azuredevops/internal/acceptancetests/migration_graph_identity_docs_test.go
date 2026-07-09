@@ -48,7 +48,7 @@ func testAccMigrationDocs_GroupDataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclMigrationDocsGroupDataSource(groupName),
@@ -78,7 +78,7 @@ func testAccMigrationDocs_GroupsDataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclMigrationDocsGroupsDataSource(),
@@ -104,7 +104,7 @@ func testAccMigrationDocs_DescriptorDataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclMigrationDocsDescriptorDataSource(),
@@ -130,7 +130,7 @@ func testAccMigrationDocs_StorageKeyDataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclMigrationDocsStorageKeyDataSource(),
@@ -155,7 +155,7 @@ func testAccMigrationDocs_GroupMembershipDataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclMigrationDocsGroupMembershipDataSource(),
@@ -181,7 +181,7 @@ func testAccMigrationDocs_UserDataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclMigrationDocsUserDataSource(),
@@ -207,7 +207,7 @@ func testAccMigrationDocs_UsersDataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclMigrationDocsUsersDataSource(),
@@ -242,7 +242,7 @@ func testAccMigrationDocs_ServicePrincipalDataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_SERVICE_PRINCIPAL_OBJECT_ID"}) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclMigrationDocsServicePrincipalDataSource(servicePrincipalObjectId),
@@ -270,7 +270,7 @@ func testAccMigrationDocs_IdentityGroupDataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclMigrationDocsIdentityGroupDataSource(groupName),
@@ -297,7 +297,7 @@ func testAccMigrationDocs_IdentityGroupsDataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclMigrationDocsIdentityGroupsDataSource(),
@@ -323,7 +323,7 @@ func testAccMigrationDocs_IdentityUserDataSource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclMigrationDocsIdentityUserDataSource(),
@@ -352,7 +352,7 @@ func testAccMigrationDocs_GroupResource(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             nil,
 		Steps: []resource.TestStep{
 			{

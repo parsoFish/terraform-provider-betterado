@@ -30,7 +30,7 @@ func TestAccDeploymentGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil); enableClassicPipelinesForFixtureProject(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkDeploymentGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{
@@ -63,7 +63,7 @@ func TestAccDeploymentGroup_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil); enableClassicPipelinesForFixtureProject(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkDeploymentGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{
@@ -105,7 +105,7 @@ func TestAccDeploymentGroup_withPoolId(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil); enableClassicPipelinesForFixtureProject(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkDeploymentGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{

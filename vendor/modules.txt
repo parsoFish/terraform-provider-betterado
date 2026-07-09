@@ -123,7 +123,6 @@ github.com/golang/protobuf/ptypes/empty
 # github.com/google/go-cmp v0.7.0
 ## explicit; go 1.21
 github.com/google/go-cmp/cmp
-github.com/google/go-cmp/cmp/cmpopts
 github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
@@ -295,13 +294,6 @@ github.com/hashicorp/terraform-plugin-log/internal/hclogutils
 github.com/hashicorp/terraform-plugin-log/internal/logging
 github.com/hashicorp/terraform-plugin-log/tflog
 github.com/hashicorp/terraform-plugin-log/tfsdklog
-# github.com/hashicorp/terraform-plugin-mux v0.23.1
-## explicit; go 1.25.0
-github.com/hashicorp/terraform-plugin-mux/internal/logging
-github.com/hashicorp/terraform-plugin-mux/internal/tfprotov5tov6
-github.com/hashicorp/terraform-plugin-mux/internal/tfprotov6tov5
-github.com/hashicorp/terraform-plugin-mux/tf5to6server
-github.com/hashicorp/terraform-plugin-mux/tf6muxserver
 # github.com/hashicorp/terraform-plugin-sdk/v2 v2.40.1
 ## explicit; go 1.25.8
 github.com/hashicorp/terraform-plugin-sdk/v2/diag

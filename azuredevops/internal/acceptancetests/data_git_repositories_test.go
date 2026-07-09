@@ -22,7 +22,7 @@ func TestAccDataSourceGitRepositories(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories:  testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories:  testutils.GetProviderFactories(),
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
@@ -48,7 +48,7 @@ func TestAccDataSourceGitRepositories_All(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories:  testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories:  testutils.GetProviderFactories(),
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{

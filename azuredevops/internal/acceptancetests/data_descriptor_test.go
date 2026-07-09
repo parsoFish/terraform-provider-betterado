@@ -13,7 +13,7 @@ func TestAccDescriptorDatasource_user(t *testing.T) {
 	tfNode := "data.betterado_descriptor.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testutils.PreCheck(t, nil) },
-		ProviderFactories:         testutils.GetProviderFactories(),
+		ProviderFactories:         testutils.GetSDKv2ProviderFactories(),
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
@@ -31,7 +31,7 @@ func TestAccDescriptorDatasource_project(t *testing.T) {
 	tfNode := "data.betterado_descriptor.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testutils.PreCheck(t, nil) },
-		ProviderFactories:         testutils.GetProviderFactories(),
+		ProviderFactories:         testutils.GetSDKv2ProviderFactories(),
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
@@ -50,7 +50,7 @@ func TestAccDescriptorDatasource_group(t *testing.T) {
 	tfNode := "data.betterado_descriptor.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testutils.PreCheck(t, nil) },
-		ProviderFactories:         testutils.GetProviderFactories(),
+		ProviderFactories:         testutils.GetSDKv2ProviderFactories(),
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{

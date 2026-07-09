@@ -25,7 +25,7 @@ func TestAccVariableGroup_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkVariableGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{
@@ -58,7 +58,7 @@ func TestAccVariableGroup_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkVariableGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{
@@ -122,7 +122,7 @@ func TestAccVariableGroup_secretValue(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkVariableGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{
@@ -159,7 +159,7 @@ func TestAccVariableGroup_keyVault_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkVariableGroupDestroyedMux,
 		Steps: []resource.TestStep{
 			{

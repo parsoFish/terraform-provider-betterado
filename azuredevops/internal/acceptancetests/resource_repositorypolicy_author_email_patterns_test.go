@@ -28,7 +28,7 @@ func testAccRepositoryPolicyAuthorEmailPatternsRepoPolicyBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyBasic(projectID, repoName),
@@ -53,7 +53,7 @@ func testAccRepositoryPolicyAuthorEmailPatternsRepoPolicyUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclRepositoryPolicyAuthorEmailPatternsResourceRepoPolicyBasic(projectID, repoName),
@@ -83,7 +83,7 @@ func testAccRepositoryPolicyAuthorEmailPatternsProjectPolicyBasic(t *testing.T) 
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyBasic(projectID, repoName),
@@ -108,7 +108,7 @@ func testAccRepositoryPolicyAuthorEmailPatternsProjectPolicyUpdate(t *testing.T)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclRepositoryPolicyAuthorEmailPatternsResourceProjectPolicyBasic(projectID, repoName),

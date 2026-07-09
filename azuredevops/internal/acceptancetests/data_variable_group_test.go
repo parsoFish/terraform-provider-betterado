@@ -14,7 +14,7 @@ func TestAccVariableGroupDataSource_Basic(t *testing.T) {
 	tfNode := "data.betterado_variable_group.vg"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclVariableGroupDataSourceFixture(variableGroupName),
@@ -37,7 +37,7 @@ func TestAccVariableGroupDataSource_KeyVault(t *testing.T) {
 	tfNode := "betterado_variable_group.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: variableGroupKeyVaultFixture(variableGroupName),

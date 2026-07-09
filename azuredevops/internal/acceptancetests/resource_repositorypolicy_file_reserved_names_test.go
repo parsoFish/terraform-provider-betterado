@@ -28,7 +28,7 @@ func testAccRepoPolicyReservedNamesBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclRepoPolicyReservedNamesBasic(projectID, repoName),
@@ -52,7 +52,7 @@ func testAccRepoPolicyReservedNamesUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclRepoPolicyReservedNamesBasic(projectID, repoName),
@@ -81,7 +81,7 @@ func testAccProjectPolicyReservedNamesBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectPolicyReservedNamesBasic(projectID, repoName),
@@ -105,7 +105,7 @@ func testAccProjectPolicyReservedNamesUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectPolicyReservedNamesBasic(projectID, repoName),

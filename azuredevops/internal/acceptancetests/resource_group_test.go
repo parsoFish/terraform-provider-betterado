@@ -328,7 +328,7 @@ func TestAccGroupResource_Framework(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGroupDestroyedFramework,
 		Steps: []resource.TestStep{
 			// Step 1: create + assert read-back populates all computed attrs.

@@ -14,7 +14,7 @@ func TestAccDataSecurityNamespaces_basic(t *testing.T) {
 	tfNode := "data.betterado_security_namespaces.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaces_basic(),

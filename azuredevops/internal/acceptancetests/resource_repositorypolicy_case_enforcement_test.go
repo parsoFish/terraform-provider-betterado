@@ -28,7 +28,7 @@ func testAccRepoPolicyEnforceConsistentCaseBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclRepoPolicyEnforceConsistentCaseBasic(projectID, repoName),
@@ -53,7 +53,7 @@ func testAccRepoPolicyEnforceConsistentCaseUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclRepoPolicyEnforceConsistentCaseBasic(projectID, repoName),
@@ -83,7 +83,7 @@ func testAccProjectPolicyEnforceConsistentCaseBasic(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectPolicyEnforceConsistentCaseBasic(projectID, repoName),
@@ -108,7 +108,7 @@ func testAccProjectPolicyEnforceConsistentCaseUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclProjectPolicyEnforceConsistentCaseBasic(projectID, repoName),

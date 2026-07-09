@@ -48,15 +48,18 @@ import (
 // BetteradoFrameworkProvider is the terraform-plugin-framework provider stub.
 // It is multiplexed with the existing SDKv2 provider in main.go so that
 // framework resources can be registered here without touching main.go.
-type BetteradoFrameworkProvider struct{}
+type BetteradoFrameworkProvider struct {
+	version string
+}
 
 // NewFrameworkProvider returns a provider.Provider for use in the mux setup.
-func NewFrameworkProvider() provider.Provider {
-	return &BetteradoFrameworkProvider{}
+func NewFrameworkProvider(version string) provider.Provider {
+	return &BetteradoFrameworkProvider{version: version}
 }
 
 func (p *BetteradoFrameworkProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "betterado"
+	resp.Version = p.version
 }
 
 // Schema mirrors every attribute from the SDKv2 provider schema exactly.
@@ -275,6 +278,22 @@ func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resou
 		serviceendpoint.NewServiceEndpointGitLabResource,
 		serviceendpoint.NewServiceEndpointIncomingWebhookResource,
 		serviceendpoint.NewServiceEndpointJenkinsResource,
+		serviceendpoint.NewServiceEndpointJFrogArtifactoryV2Resource,
+		serviceendpoint.NewServiceEndpointJFrogDistributionV2Resource,
+		serviceendpoint.NewServiceEndpointJFrogPlatformV2Resource,
+		serviceendpoint.NewServiceEndpointJFrogXRayV2Resource,
+		serviceendpoint.NewServiceEndpointKubernetesResource,
+		serviceendpoint.NewServiceEndpointMavenResource,
+		serviceendpoint.NewServiceEndpointNexusResource,
+		serviceendpoint.NewServiceEndpointNuGetResource,
+		serviceendpoint.NewServiceEndpointOctopusDeployResource,
+		serviceendpoint.NewServiceEndpointOpenshiftResource,
+		serviceendpoint.NewServiceEndpointRunPipelineResource,
+		serviceendpoint.NewServiceEndpointServiceFabricResource,
+		serviceendpoint.NewServiceEndpointSnykResource,
+		serviceendpoint.NewServiceEndpointSonarQubeResource,
+		serviceendpoint.NewServiceEndpointSSHResource,
+		serviceendpoint.NewServiceEndpointVisualStudioMarketplaceResource,
 		feed.NewFeedResource,
 		feed.NewFeedPermissionResource,
 		feed.NewFeedRetentionPolicyResource,

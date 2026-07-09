@@ -34,7 +34,7 @@ func TestAccServiceEndpointDockerRegistry_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkServiceEndpointDockerRegistryDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{
@@ -70,7 +70,7 @@ func TestAccServiceEndpointDockerRegistry_CreateAndUpdate(t *testing.T) {
 		PreCheck: func() {
 			testutils.PreCheck(t, nil)
 		},
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkServiceEndpointDockerRegistryDestroyed(resourceType),
 		Steps: []resource.TestStep{
 			{

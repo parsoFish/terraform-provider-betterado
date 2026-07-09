@@ -15,7 +15,7 @@ func TestAccProject_dataSource_withID(t *testing.T) {
 	tfNode := "data.betterado_project.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		// No CheckDestroy: standing-demo is never deleted.
 		Steps: []resource.TestStep{
 			{
@@ -39,7 +39,7 @@ func TestAccProject_dataSource_withName(t *testing.T) {
 	tfNode := "data.betterado_project.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		// No CheckDestroy: standing-demo is never deleted.
 		Steps: []resource.TestStep{
 			{

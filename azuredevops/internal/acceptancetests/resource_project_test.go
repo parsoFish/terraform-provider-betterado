@@ -16,13 +16,52 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/utils/converter"
 )
 
+// TestAccProviderMuxFree verifies that the pure-framework provider (no mux
+// scaffold) can read the betterado_project data source against real ADO.
+// It uses GetProviderFactories() (proto v6, framework-only) and asserts the
+// standing demo project is readable and captures live evidence.
+//
+// NOTE: betterado-standing-demo is a SHARED, NEVER-DELETED fixture project.
+// Do NOT create a new project — the ADO org is at the 1000-project quota.
+func TestAccProviderMuxFree(t *testing.T) {
+	if v := os.Getenv("TF_ACC"); v == "" {
+		t.Skip("Skipping as TF_ACC is not set")
+	}
+	projectName := SharedFixtureProjectName // "betterado-standing-demo"
+	orgURL := os.Getenv("AZDO_ORG_SERVICE_URL")
+	projectURL := fmt.Sprintf("%s/_apis/projects/%s?api-version=7.0", orgURL, projectName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+data "betterado_project" "muxfree" {
+  name = %q
+}`, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.betterado_project.muxfree", "name", projectName),
+					func(s *terraform.State) error {
+						// Capture live evidence: real GET response for demo purposes.
+						return testutils.CaptureLiveEvidence(
+							"acceptance-provider-mux-free",
+							projectURL,
+							map[string]string{"project": projectName, "status": "read-back-ok"},
+						)
+					},
+				),
+			},
+		},
+	})
+}
+
 func TestAccProject_basic(t *testing.T) {
 	projectName := testutils.GenerateResourceName()
 	tfNode := "betterado_project.test"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		CheckDestroy:      testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -64,7 +103,7 @@ func TestAccProject_importByName(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		// No CheckDestroy: the standing-demo project must never be deleted.
 		Steps: []resource.TestStep{
 			// Step 1 — import by name; assert read-back + capture live evidence.
@@ -198,7 +237,7 @@ func TestAccProject_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		CheckDestroy:      testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -245,7 +284,7 @@ func TestAccProject_features(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		CheckDestroy:      testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -298,7 +337,7 @@ func TestAccProject_requireImportError(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		CheckDestroy:      testutils.CheckProjectDestroyed,
 		Steps: []resource.TestStep{
 			{

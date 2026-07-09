@@ -109,7 +109,7 @@ func TestAccGroupMembership_Framework(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGroupMembershipDestroyedFramework,
 		Steps: []resource.TestStep{
 			// Step 1: Create with mode=overwrite and one member; assert read-back.

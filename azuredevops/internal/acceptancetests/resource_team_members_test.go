@@ -28,7 +28,7 @@ func TestAccTeamMembers_CreateAndUpdate(t *testing.T) {
 	tfNode := "betterado_team_members.team_members"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: config1,

@@ -14,7 +14,7 @@ import (
 )
 
 func TestFrameworkProvider_HasReleaseFolderResource(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 	provWithResources, ok := p.(interface {
 		Resources(context.Context) []func() resource.Resource
 	})
@@ -37,7 +37,7 @@ func TestFrameworkProvider_HasReleaseFolderResource(t *testing.T) {
 }
 
 func TestFrameworkProvider_HasUserEntitlementResource(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 	provWithResources, ok := p.(interface {
 		Resources(context.Context) []func() resource.Resource
 	})
@@ -60,7 +60,7 @@ func TestFrameworkProvider_HasUserEntitlementResource(t *testing.T) {
 }
 
 func TestFrameworkProvider_HasTaskGroupResource(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 	provWithResources, ok := p.(interface {
 		Resources(context.Context) []func() resource.Resource
 	})
@@ -83,7 +83,7 @@ func TestFrameworkProvider_HasTaskGroupResource(t *testing.T) {
 }
 
 func TestFrameworkProvider_HasGroupEntitlementResource(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 	provWithResources, ok := p.(interface {
 		Resources(context.Context) []func() resource.Resource
 	})
@@ -106,7 +106,7 @@ func TestFrameworkProvider_HasGroupEntitlementResource(t *testing.T) {
 }
 
 func TestFrameworkProvider_HasServicePrincipalEntitlementResource(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 	provWithResources, ok := p.(interface {
 		Resources(context.Context) []func() resource.Resource
 	})
@@ -129,7 +129,7 @@ func TestFrameworkProvider_HasServicePrincipalEntitlementResource(t *testing.T) 
 }
 
 func TestFrameworkProvider_HasNotificationSubscriptionResource(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 	provWithResources, ok := p.(interface {
 		Resources(context.Context) []func() resource.Resource
 	})
@@ -150,7 +150,7 @@ func TestFrameworkProvider_HasNotificationSubscriptionResource(t *testing.T) {
 }
 
 func TestFrameworkProvider_HasNotificationSubscriptionDataSource(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 	provWithDataSources, ok := p.(interface {
 		DataSources(context.Context) []func() datasource.DataSource
 	})
@@ -171,7 +171,7 @@ func TestFrameworkProvider_HasNotificationSubscriptionDataSource(t *testing.T) {
 }
 
 func TestFrameworkProvider_HasPipelineResource(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 	provWithResources, ok := p.(interface {
 		Resources(context.Context) []func() resource.Resource
 	})
@@ -194,7 +194,7 @@ func TestFrameworkProvider_HasPipelineResource(t *testing.T) {
 }
 
 func TestFrameworkProvider_HasPipelineDataSource(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 	provWithDataSources, ok := p.(interface {
 		DataSources(context.Context) []func() datasource.DataSource
 	})
@@ -221,7 +221,7 @@ func TestFrameworkProvider_HasPipelineDataSource(t *testing.T) {
 }
 
 func TestFrameworkProvider_HasAccountsDataSource(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 	provWithDataSources, ok := p.(interface {
 		DataSources(context.Context) []func() datasource.DataSource
 	})
@@ -244,7 +244,7 @@ func TestFrameworkProvider_HasAccountsDataSource(t *testing.T) {
 }
 
 func TestFrameworkProvider_HasProfileDataSource(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 	provWithDataSources, ok := p.(interface {
 		DataSources(context.Context) []func() datasource.DataSource
 	})
@@ -267,7 +267,7 @@ func TestFrameworkProvider_HasProfileDataSource(t *testing.T) {
 }
 
 func TestFrameworkProvider(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 
 	provWithResources, ok := p.(interface {
 		Resources(context.Context) []func() resource.Resource
@@ -329,7 +329,7 @@ func TestFrameworkProvider(t *testing.T) {
 }
 
 func TestFrameworkProvider_HasPipelineApprovalResources(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 
 	// Check resource
 	provWithResources, ok := p.(interface {
@@ -371,7 +371,7 @@ func TestFrameworkProvider_HasPipelineApprovalResources(t *testing.T) {
 }
 
 func TestFrameworkProvider_HasExtensionInstallResource(t *testing.T) {
-	p := frameworkprovider.NewFrameworkProvider()
+	p := frameworkprovider.NewFrameworkProvider("test")
 	provWithResources, ok := p.(interface {
 		Resources(context.Context) []func() resource.Resource
 	})
@@ -391,4 +391,35 @@ func TestFrameworkProvider_HasExtensionInstallResource(t *testing.T) {
 		}
 	}
 	require.True(t, found, "framework provider must register betterado_extension_install")
+}
+
+// TestFrameworkProvider_MuxFree verifies that the pure-framework provider can be
+// instantiated and serves resources without requiring SDKv2 mux. This is the
+// post-mux-cutover sanity check for WI-4.
+func TestFrameworkProvider_MuxFree(t *testing.T) {
+	// Verify the framework provider can be instantiated and serves resources
+	// without requiring SDKv2 mux. This is the post-mux-cutover sanity check.
+	p := frameworkprovider.NewFrameworkProvider("test")
+	require.NotNil(t, p, "NewFrameworkProvider must return a non-nil provider")
+
+	provWithResources, ok := p.(interface {
+		Resources(context.Context) []func() resource.Resource
+	})
+	require.True(t, ok, "framework provider must implement Resources()")
+
+	factories := provWithResources.Resources(context.Background())
+	require.NotEmpty(t, factories, "framework provider must expose resources")
+
+	// Spot-check: betterado_project must be registered (representative resource).
+	found := false
+	for _, factory := range factories {
+		r := factory()
+		var metaResp resource.MetadataResponse
+		r.Metadata(context.Background(), resource.MetadataRequest{ProviderTypeName: "betterado"}, &metaResp)
+		if metaResp.TypeName == "betterado_project" {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "framework provider must register betterado_project")
 }

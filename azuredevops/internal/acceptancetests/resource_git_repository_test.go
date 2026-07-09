@@ -23,7 +23,7 @@ func TestAccGitRepository_withDefaultBranch(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -56,7 +56,7 @@ func TestAccGitRepository_update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -97,7 +97,7 @@ func TestAccGitRepository_disabled(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -129,7 +129,7 @@ func TestAccGitRepository_disabledCannotUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -168,7 +168,7 @@ func TestAccGitRepository_incorrectInitialization(t *testing.T) {
 	gitRepoName := testutils.GenerateResourceName()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config:      hclGitRepositoryIncorrectInitialization(gitRepoName),
@@ -184,7 +184,7 @@ func TestAccGitRepository_importGitRepository(t *testing.T) {
 	tfRepoNode := "betterado_git_repository.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclGitRepositoryImport(gitRepoName),
@@ -209,7 +209,7 @@ func TestAccGitRepository_import_by_name(t *testing.T) {
 	tfRepoNode := "betterado_git_repository.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclGitRepositoryBasic(gitRepoName, "Clean"),
@@ -250,7 +250,7 @@ func TestAccGitRepository_initializationClean(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -273,7 +273,7 @@ func TestAccGitRepository_uninitialized(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -297,7 +297,7 @@ func TestAccGitRepository_forkBranchNotEmpty(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { preCheckGitRepository(t) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -334,7 +334,7 @@ func TestAccGitRepository_privateImportServiceEndpointBranchNotEmpty(t *testing.
 				"AZDO_GENERIC_GIT_SERVICE_CONNECTION_PASSWORD",
 			})
 		},
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -372,7 +372,7 @@ func TestAccGitRepository_privateUserNamePasswordImportBranchNotEmpty(t *testing
 				"AZDO_GENERIC_GIT_SERVICE_CONNECTION_PASSWORD",
 			})
 		},
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGitRepoDestroyed,
 		Steps: []resource.TestStep{
 			{

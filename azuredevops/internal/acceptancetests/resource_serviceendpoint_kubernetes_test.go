@@ -72,7 +72,7 @@ func TestAccServiceEndpointKubernetes_serviceAccount(t *testing.T) {
 	tfSvcEpNode := "betterado_serviceendpoint_kubernetes.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		CheckDestroy:      checkSvcEndpointKubernetesDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -107,7 +107,7 @@ func TestAccServiceEndpointKubernetes_kubeConfig(t *testing.T) {
 	tfSvcEpNode := "betterado_serviceendpoint_kubernetes.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		CheckDestroy:      checkSvcEndpointKubernetesDestroyed,
 		Steps: []resource.TestStep{
 			{

@@ -13,7 +13,7 @@ func TestAccWorkitemtrackingprocessProcesses_DataSource_AllProcesses(t *testing.
 	tfNode := "data.betterado_workitemtrackingprocess_processes.all"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSourceAllProcesses(),

@@ -20,7 +20,7 @@ func TestAccGroupEntitlement_Create(t *testing.T) {
 	tfNode := "betterado_group_entitlement.test"
 	displayName := "group-038c153d-c86e-443c-b6f6-3d97378025d0"
 	resource.ParallelTest(t, resource.TestCase{
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGroupEntitlementDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -49,7 +49,7 @@ func TestAccGroupEntitlement_AAD_Create(t *testing.T) {
 	originId := os.Getenv("AZDO_TEST_AAD_GROUP_ID")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_GROUP_ID"}) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkGroupEntitlementDestroyed,
 		Steps: []resource.TestStep{
 			{

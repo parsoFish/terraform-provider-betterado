@@ -34,7 +34,7 @@ func TestAccEnvironment_CreateAndUpdate(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkEnvironmentDestroyed,
 		Steps: []resource.TestStep{
 			{

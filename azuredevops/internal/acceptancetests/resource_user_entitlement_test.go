@@ -24,7 +24,7 @@ func TestAccUserEntitlement_Create(t *testing.T) {
 	principalName := os.Getenv("AZDO_TEST_AAD_USER_EMAIL")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_USER_EMAIL"}) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkUserEntitlementDestroyed,
 		Steps: []resource.TestStep{
 			{

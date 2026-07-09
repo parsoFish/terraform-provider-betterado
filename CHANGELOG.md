@@ -7,6 +7,21 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ## [Unreleased]
 
+### BREAKING CHANGES
+
+- **Mux scaffold removed.** The provider no longer uses `tf6muxserver` +
+  `tf5to6server`. All `betterado_*` resources and data sources are now served
+  exclusively by terraform-plugin-framework. Requires **Terraform >= 1.x**
+  (plugin protocol 6). Users running Terraform 0.12–0.14 must upgrade.
+
+### INTERNAL
+
+- `azuredevops/framework.go` re-export shim deleted.
+- `azuredevops/provider.go` SDKv2 `Provider()` factory no longer used from
+  `main.go`; `ResourcesMap` and `DataSourcesMap` are empty.
+- `main.go` now calls `tf6server.Serve` directly with
+  `providerserver.NewProtocol6WithError`.
+
 ### FEATURES
 
 - **`betterado_task_group` data source migrated to terraform-plugin-framework.**

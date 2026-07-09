@@ -88,7 +88,7 @@ func TestAccExtension_basic(t *testing.T) {
 	tfNode := "betterado_extension.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkExtensionDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -118,7 +118,7 @@ func TestAccExtension_complete(t *testing.T) {
 	tfNode := "betterado_extension.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkExtensionDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -151,7 +151,7 @@ func TestAccExtension_update(t *testing.T) {
 	tfNode := "betterado_extension.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkExtensionDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -219,7 +219,7 @@ func TestAccExtension_requireImportError(t *testing.T) {
 	tfNode := "betterado_extension.test"
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkExtensionDestroyed,
 		Steps: []resource.TestStep{
 			{

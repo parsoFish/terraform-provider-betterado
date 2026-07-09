@@ -24,7 +24,7 @@ func TestAccServicePrincipalEntitlement_create(t *testing.T) {
 	ServicePrincipalId := os.Getenv("AZDO_TEST_AAD_SERVICE_PRINCIPAL_OBJECT_ID")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, &[]string{"AZDO_TEST_AAD_SERVICE_PRINCIPAL_OBJECT_ID"}) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             checkServicePrincipalEntitlementDestroyed,
 		Steps: []resource.TestStep{
 			{

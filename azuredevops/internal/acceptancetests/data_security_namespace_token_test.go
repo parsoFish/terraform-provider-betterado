@@ -22,7 +22,7 @@ func TestAccDataSecurityNamespaceToken_collection(t *testing.T) {
 	tfNode := "data.betterado_security_namespace_token.test"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_collection(),
@@ -49,7 +49,7 @@ func TestAccDataSecurityNamespaceToken_project(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_project(projectName),
@@ -91,7 +91,7 @@ func TestAccDataSecurityNamespaceToken_gitRepositories_project(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_gitRepositories_project(projectName),
@@ -134,7 +134,7 @@ func TestAccDataSecurityNamespaceToken_gitRepositories_repository(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_gitRepositories_repository(projectName, repoName),
@@ -185,7 +185,7 @@ func TestAccDataSecurityNamespaceToken_build_project(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_build_project(projectName),
@@ -223,7 +223,7 @@ func TestAccDataSecurityNamespaceToken_build_path(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_build_path(projectName, folderName),
@@ -272,7 +272,7 @@ func TestAccDataSecurityNamespaceToken_build_definition(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_build_definition(projectName, repoName, buildName),
@@ -334,7 +334,7 @@ func TestAccDataSecurityNamespaceToken_css(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_css(projectName),
@@ -376,7 +376,7 @@ func TestAccDataSecurityNamespaceToken_iteration(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_iteration(projectName),
@@ -418,7 +418,7 @@ func TestAccDataSecurityNamespaceToken_tagging_project(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_tagging_project(projectName),
@@ -454,7 +454,7 @@ func TestAccDataSecurityNamespaceToken_tagging_collection(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_tagging_collection(),
@@ -481,7 +481,7 @@ func TestAccDataSecurityNamespaceToken_serviceHooks_project(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_serviceHooks_project(projectName),
@@ -522,7 +522,7 @@ func TestAccDataSecurityNamespaceToken_serviceHooks_collection(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_serviceHooks_collection(),
@@ -549,7 +549,7 @@ func TestAccDataSecurityNamespaceToken_workItemQueryFolders(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_workItemQueryFolders(projectName),
@@ -591,7 +591,7 @@ func TestAccDataSecurityNamespaceToken_analytics(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_analytics(projectName),
@@ -633,7 +633,7 @@ func TestAccDataSecurityNamespaceToken_analyticsViews(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_analyticsViews(projectName),
@@ -674,7 +674,7 @@ func TestAccDataSecurityNamespaceToken_process(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_process(),
@@ -703,7 +703,7 @@ func TestAccDataSecurityNamespaceToken_auditLog(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_auditLog(),
@@ -729,7 +729,7 @@ func TestAccDataSecurityNamespaceToken_buildAdministration(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_buildAdministration(),
@@ -755,7 +755,7 @@ func TestAccDataSecurityNamespaceToken_server(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_server(),
@@ -781,7 +781,7 @@ func TestAccDataSecurityNamespaceToken_versionControlPrivileges(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testutils.PreCheck(t, nil) },
-		ProviderFactories: testutils.GetProviderFactories(),
+		ProviderFactories: testutils.GetSDKv2ProviderFactories(),
 		Steps: []resource.TestStep{
 			{
 				Config: hclDataSecurityNamespaceToken_versionControlPrivileges(),

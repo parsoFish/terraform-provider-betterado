@@ -64,7 +64,7 @@ func TestAccWorkitemtrackingprocessControl_Basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -98,7 +98,7 @@ func TestAccWorkitemtrackingprocessControl_Update(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -157,7 +157,7 @@ func TestAccWorkitemtrackingprocessControl_Move(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                 func() { testutils.PreCheck(t, nil) },
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy:             testutils.CheckProcessDestroyed,
 		Steps: []resource.TestStep{
 			{
@@ -227,7 +227,7 @@ func TestAccWorkitemtrackingprocessControl_Contribution(t *testing.T) {
 			// the API and clean up in CheckDestroy instead.
 			testutils.EnsureExtensionInstalled(t, multivaluePublisher, multivalueExtension)
 		},
-		ProtoV6ProviderFactories: testutils.GetMuxedProviderFactories(),
+		ProtoV6ProviderFactories: testutils.GetProviderFactories(),
 		CheckDestroy: func(s *terraform.State) error {
 			testutils.EnsureExtensionUninstalled(t, multivaluePublisher, multivalueExtension)
 			return testutils.CheckProcessDestroyed(s)
