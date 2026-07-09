@@ -25,7 +25,7 @@ func main() {
 
 	err := tf6server.Serve(
 		"registry.terraform.io/parsoFish/betterado",
-		providerserver.NewProtocol6(azuredevops.NewFrameworkProvider()),
+		providerserver.NewProtocol6(azuredevops.NewFrameworkProvider(version)),
 		serveOpts...,
 	)
 	if err != nil {

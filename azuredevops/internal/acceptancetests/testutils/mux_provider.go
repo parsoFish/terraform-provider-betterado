@@ -11,6 +11,6 @@ import (
 // GetMuxedProviderFactories which used tf5to6server and tf6muxserver.
 func GetProviderFactories() map[string]func() (tfprotov6.ProviderServer, error) {
 	return map[string]func() (tfprotov6.ProviderServer, error){
-		"betterado": providerserver.NewProtocol6WithError(internalprovider.NewFrameworkProvider()),
+		"betterado": providerserver.NewProtocol6WithError(internalprovider.NewFrameworkProvider("test")),
 	}
 }

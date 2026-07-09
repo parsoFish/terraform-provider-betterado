@@ -58,7 +58,7 @@ func GetProviders() map[string]*schema.Provider {
 // mux-free cutover (WI-4); all resources are now served by the framework provider.
 func GetMuxProviderFactories() map[string]func() (tfprotov6.ProviderServer, error) {
 	return map[string]func() (tfprotov6.ProviderServer, error){
-		"betterado": providerserver.NewProtocol6WithError(internalprovider.NewFrameworkProvider()),
+		"betterado": providerserver.NewProtocol6WithError(internalprovider.NewFrameworkProvider("test")),
 	}
 }
 

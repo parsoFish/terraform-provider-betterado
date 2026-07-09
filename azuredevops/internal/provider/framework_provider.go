@@ -48,15 +48,18 @@ import (
 // BetteradoFrameworkProvider is the terraform-plugin-framework provider stub.
 // It is multiplexed with the existing SDKv2 provider in main.go so that
 // framework resources can be registered here without touching main.go.
-type BetteradoFrameworkProvider struct{}
+type BetteradoFrameworkProvider struct {
+	version string
+}
 
 // NewFrameworkProvider returns a provider.Provider for use in the mux setup.
-func NewFrameworkProvider() provider.Provider {
-	return &BetteradoFrameworkProvider{}
+func NewFrameworkProvider(version string) provider.Provider {
+	return &BetteradoFrameworkProvider{version: version}
 }
 
 func (p *BetteradoFrameworkProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
 	resp.TypeName = "betterado"
+	resp.Version = p.version
 }
 
 // Schema mirrors every attribute from the SDKv2 provider schema exactly.

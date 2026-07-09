@@ -8,6 +8,6 @@ import (
 // NewFrameworkProvider returns the terraform-plugin-framework provider.
 // This shim allows main.go to call NewFrameworkProvider() from the azuredevops
 // package without violating Go's internal-package access rules.
-func NewFrameworkProvider() provider.Provider {
-	return internalprovider.NewFrameworkProvider()
+func NewFrameworkProvider(version string) provider.Provider {
+	return internalprovider.NewFrameworkProvider(version)
 }
