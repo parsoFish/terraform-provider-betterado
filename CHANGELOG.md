@@ -17,6 +17,8 @@ ENHANCEMENTS:
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-07-11
+
 ### BREAKING CHANGES
 
 - **Mux scaffold removed.** The provider no longer uses `tf6muxserver` +
