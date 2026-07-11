@@ -7,8 +7,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-
+	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	frameworkprovider "github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider"
 	"github.com/stretchr/testify/require"
 )
@@ -422,4 +425,99 @@ func TestFrameworkProvider_MuxFree(t *testing.T) {
 		}
 	}
 	require.True(t, found, "framework provider must register betterado_project")
+}
+
+// buildProviderSchema returns the provider schema and its tftypes.Type so
+// tests can construct a well-typed tfsdk.Config without going through the
+// full plugin server stack.
+func buildProviderSchema(t *testing.T) (schema.Schema, tftypes.Type) {
+	t.Helper()
+	p := frameworkprovider.NewFrameworkProvider("test")
+	var schemaResp provider.SchemaResponse
+	p.Schema(context.Background(), provider.SchemaRequest{}, &schemaResp)
+	require.False(t, schemaResp.Diagnostics.HasError(), "provider.Schema must not return errors")
+	schemaType := schemaResp.Schema.Type().TerraformType(context.Background())
+	return schemaResp.Schema, schemaType
+}
+
+// nullStringAttrs returns a map of tftypes.Value for every string attribute in
+// the provider schema, with all values set to null.
+func nullProviderConfig(schemaType tftypes.Type) map[string]tftypes.Value {
+	objType, ok := schemaType.(tftypes.Object)
+	if !ok {
+		panic("provider schema type must be tftypes.Object")
+	}
+	vals := make(map[string]tftypes.Value, len(objType.AttributeTypes))
+	for name, attrType := range objType.AttributeTypes {
+		vals[name] = tftypes.NewValue(attrType, nil) // null
+	}
+	return vals
+}
+
+// TestFrameworkConfigure_NoCredential verifies that calling Configure() with a
+// config where all credential fields are empty/false and all relevant env vars
+// are unset produces exactly one error diagnostic naming the available auth
+// methods.
+func TestFrameworkConfigure_NoCredential(t *testing.T) {
+	// Unset all credential env vars so the resolver cannot fall back to them.
+	credEnvVars := []string{
+		"AZDO_PERSONAL_ACCESS_TOKEN",
+		"ARM_CLIENT_ID", "AZURE_CLIENT_ID", "ARM_CLIENT_ID_FILE_PATH",
+		"ARM_TENANT_ID",
+		"ARM_CLIENT_SECRET", "ARM_CLIENT_SECRET_PATH", "ARM_CLIENT_SECRET_FILE_PATH",
+		"ARM_CLIENT_CERTIFICATE_PATH", "ARM_CLIENT_CERTIFICATE", "ARM_CLIENT_CERTIFICATE_PASSWORD",
+		"ARM_OIDC_TOKEN", "ARM_OIDC_TOKEN_FILE_PATH", "AZURE_FEDERATED_TOKEN_FILE",
+		"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "SYSTEM_ACCESSTOKEN",
+		"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL", "SYSTEM_OIDCREQUESTURI",
+		"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID",
+		"AZURESUBSCRIPTION_SERVICE_CONNECTION_ID",
+		"ARM_USE_OIDC", "ARM_USE_MSI",
+	}
+	for _, ev := range credEnvVars {
+		t.Setenv(ev, "")
+	}
+	// Explicitly disable CLI fallback: applyEnvFallbacks defaults use_cli=true
+	// when ARM_USE_CLI is unset; set it to "false" so the resolver does not
+	// fall back to Azure CLI authentication.
+	t.Setenv("ARM_USE_CLI", "false")
+	// Also unset org_service_url env.
+	t.Setenv("AZDO_ORG_SERVICE_URL", "https://dev.azure.com/fakeorg")
+
+	provSchema, schemaType := buildProviderSchema(t)
+
+	// Build a null-filled config plus the org URL; all credentials empty.
+	configVals := nullProviderConfig(schemaType)
+	objType := schemaType.(tftypes.Object)
+
+	// Set org_service_url to a non-empty value so the resolver reaches the
+	// credential check (not blocked by missing org URL).
+	configVals["org_service_url"] = tftypes.NewValue(tftypes.String, "https://dev.azure.com/fakeorg")
+
+	// Explicitly set use_cli=false (not null) so the resolver sees it disabled.
+	configVals["use_cli"] = tftypes.NewValue(objType.AttributeTypes["use_cli"], false)
+	configVals["use_msi"] = tftypes.NewValue(objType.AttributeTypes["use_msi"], false)
+	configVals["use_oidc"] = tftypes.NewValue(objType.AttributeTypes["use_oidc"], false)
+
+	rawConfig := tftypes.NewValue(schemaType, configVals)
+
+	p := frameworkprovider.NewFrameworkProvider("test")
+	var configResp provider.ConfigureResponse
+	p.Configure(context.Background(), provider.ConfigureRequest{
+		Config: tfsdk.Config{
+			Raw:    rawConfig,
+			Schema: provSchema,
+		},
+	}, &configResp)
+
+	require.True(t, configResp.Diagnostics.HasError(),
+		"Configure() must report an error when no credential is available")
+
+	// AC7: exactly one error; its detail must reference the available auth methods.
+	var errs []string
+	for _, d := range configResp.Diagnostics.Errors() {
+		errs = append(errs, d.Summary())
+	}
+	require.Len(t, errs, 1, "Configure() must produce exactly one error diagnostic, got: %v", errs)
+	require.Contains(t, errs[0], "credential",
+		"error summary must reference available auth methods (got: %q)", errs[0])
 }
