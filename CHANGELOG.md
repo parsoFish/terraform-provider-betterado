@@ -5,6 +5,13 @@ changelog starts at the first public release of the fork. The inherited history
 from the upstream `microsoft/azuredevops` provider is preserved in
 [`CHANGELOG-upstream.md`](./CHANGELOG-upstream.md).
 
+## 2.0.1 (Unreleased)
+
+ENHANCEMENTS:
+
+* provider: all 17 credential methods (PAT, Azure CLI, MSI, client-secret, OIDC) now wired in the framework `Configure()` path; non-PAT auth no longer silently no-ops.
+* provider: `terraform-registry-manifest.json` updated to declare protocol version 6.0 for Terraform 1.x handshake compatibility.
+
 ## [Unreleased]
 
 ### BREAKING CHANGES
