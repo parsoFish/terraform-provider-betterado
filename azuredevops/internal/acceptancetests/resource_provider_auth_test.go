@@ -38,8 +38,11 @@ func TestAccAuthParity_CLIPath(t *testing.T) {
 			"probe error: %v", err)
 	}
 
+	// AC5: use t.Setenv instead of os.Unsetenv so AZDO_PERSONAL_ACCESS_TOKEN is
+	// automatically restored after this test, preventing PAT-based tests running
+	// in the same process from seeing a missing token.
 	// MUST happen BEFORE provider init so the CLI auth path is exercised.
-	os.Unsetenv("AZDO_PERSONAL_ACCESS_TOKEN") //nolint:errcheck
+	t.Setenv("AZDO_PERSONAL_ACCESS_TOKEN", "")
 
 	orgServiceURL := os.Getenv("AZDO_ORG_SERVICE_URL")
 	if orgServiceURL == "" {
@@ -64,26 +67,72 @@ func TestAccAuthParity_CLIPath(t *testing.T) {
 }
 
 // TestAccAuthParity_CredentialConstruction is a unit-style credential
-// construction proof. It does NOT use resource.ParallelTest and makes no live
-// ADO calls. It verifies that aztfauth.NewCredential can construct a credential
-// object for all five auth method variants without error. This test always runs
-// (with or without TF_ACC) and documents that all credential paths are wired.
+// construction proof that does NOT require live credentials or TF_ACC.
+// It verifies that aztfauth.NewCredential can construct a credential object
+// for each auth method variant without error, confirming that all credential
+// paths are wired correctly in the provider.
+//
+// Coverage:
+//   - ClientSecret: service principal with client secret
+//   - ClientCertificate: service principal with client certificate (PEM/PFX)
+//   - OIDCToken: OIDC static token
+//   - OIDCTokenFile: OIDC token read from a file path
+//   - OIDCTokenRequest: OIDC token via Actions/ADO request URL
+//   - CLI: Azure CLI credential
+//   - MSI: Managed Service Identity
 func TestAccAuthParity_CredentialConstruction(t *testing.T) {
 	tests := []struct {
 		name string
 		opts aztfauth.Option
 	}{
 		{
-			name: "PAT",
-			// PAT is handled upstream before aztfauth; provide a dummy to reach the
-			// aztfauth construction path for completeness. Real PAT path doesn't call
-			// aztfauth.NewCredential but we still exercise it to confirm the import
-			// compiles and the option set is valid.
+			name: "ClientSecret",
 			opts: aztfauth.Option{
 				TenantId:        "00000000-0000-0000-0000-000000000000",
 				ClientId:        "00000000-0000-0000-0000-000000000001",
-				ClientSecret:    "fake-pat-via-secret-path",
+				ClientSecret:    "fake-secret",
 				UseClientSecret: true,
+			},
+		},
+		{
+			name: "ClientCertificate",
+			// UseClientCert=true with an empty ClientCertBase64 / ClientCertPfxFile
+			// constructs the credential object without error (aztfauth accepts empty
+			// cert content at construction time; the credential will fail at token
+			// acquisition, not at construction).
+			opts: aztfauth.Option{
+				TenantId:       "00000000-0000-0000-0000-000000000000",
+				ClientId:       "00000000-0000-0000-0000-000000000001",
+				UseClientCert:  true,
+				ClientCertBase64: "",
+			},
+		},
+		{
+			name: "OIDCToken",
+			opts: aztfauth.Option{
+				TenantId:     "00000000-0000-0000-0000-000000000000",
+				ClientId:     "00000000-0000-0000-0000-000000000001",
+				UseOIDCToken: true,
+				OIDCToken:    "fake-oidc-token",
+			},
+		},
+		{
+			name: "OIDCTokenFile",
+			opts: aztfauth.Option{
+				TenantId:         "00000000-0000-0000-0000-000000000000",
+				ClientId:         "00000000-0000-0000-0000-000000000001",
+				UseOIDCTokenFile: true,
+				OIDCTokenFile:    "/dev/null",
+			},
+		},
+		{
+			name: "OIDCTokenRequest",
+			opts: aztfauth.Option{
+				TenantId:            "00000000-0000-0000-0000-000000000000",
+				ClientId:            "00000000-0000-0000-0000-000000000001",
+				UseOIDCTokenRequest: true,
+				OIDCRequestToken:    "fake-request-token",
+				OIDCRequestURL:      "https://example.com/oidc/token",
 			},
 		},
 		{
@@ -96,24 +145,6 @@ func TestAccAuthParity_CredentialConstruction(t *testing.T) {
 			name: "MSI",
 			opts: aztfauth.Option{
 				UseMSI: true,
-			},
-		},
-		{
-			name: "ClientSecret",
-			opts: aztfauth.Option{
-				TenantId:        "00000000-0000-0000-0000-000000000000",
-				ClientId:        "00000000-0000-0000-0000-000000000001",
-				ClientSecret:    "fake-secret",
-				UseClientSecret: true,
-			},
-		},
-		{
-			name: "OIDC",
-			opts: aztfauth.Option{
-				TenantId:     "00000000-0000-0000-0000-000000000000",
-				ClientId:     "00000000-0000-0000-0000-000000000001",
-				UseOIDCToken: true,
-				OIDCToken:    "fake-oidc-token",
 			},
 		},
 	}

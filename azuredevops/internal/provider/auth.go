@@ -13,9 +13,14 @@ import (
 	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 )
 
-// FrameworkAuthConfig holds all 17 credential attributes decoded from the
+// FrameworkAuthConfig holds all 19 credential attributes decoded from the
 // Terraform provider configuration block. Zero-value fields trigger env-var
 // fallback resolution inside resolveFrameworkAuthProvider.
+//
+// UseCLI is a pointer so that the explicit-false case (use_cli = false in HCL)
+// is distinguished from the null/absent case (attribute not set): null means
+// "apply env-var fallback then default to true"; explicit false means "disable
+// CLI auth regardless of environment".
 type FrameworkAuthConfig struct {
 	OrgServiceURL                string
 	PersonalAccessToken          string
@@ -34,8 +39,12 @@ type FrameworkAuthConfig struct {
 	OIDCTokenFilePath            string
 	OIDCAzureServiceConnectionID string
 	UseOIDC                      bool
-	UseCLI                       bool
-	UseMSI                       bool
+	// UseCLI is a *bool so null (absent) is distinguishable from explicit false.
+	// nil  → not set in HCL; applyEnvFallbacks will check ARM_USE_CLI, then default true.
+	// &false → explicitly set to false in HCL; CLI auth is disabled unconditionally.
+	// &true  → explicitly set to true in HCL; CLI auth is enabled.
+	UseCLI *bool
+	UseMSI bool
 }
 
 // multiEnvLookup returns the value of the first env var in vars that is
@@ -49,26 +58,41 @@ func multiEnvLookup(vars ...string) string {
 	return ""
 }
 
-// parseBoolEnv parses an environment variable as a boolean. Returns (false,
-// false) when the env var is unset; returns (val, true) when set.
-func parseBoolEnv(name string) (val bool, set bool) {
+// parseBoolEnv parses an environment variable as a boolean.
+//   - Returns (false, false, "") when the env var is unset or empty.
+//   - Returns (val, true, "") when set and valid.
+//   - Returns (false, false, warning) when set but not a valid boolean; the
+//     warning names the variable and value so callers can surface a diagnostic.
+func parseBoolEnv(name string) (val bool, set bool, warning string) {
 	raw := os.Getenv(name)
 	if raw == "" {
-		return false, false
+		return false, false, ""
 	}
 	b, err := strconv.ParseBool(raw)
 	if err != nil {
-		return false, false
+		return false, false, fmt.Sprintf(
+			"ignoring malformed boolean env var %s=%q: expected true/false/1/0 (env var treated as unset)",
+			name, raw,
+		)
 	}
-	return b, true
+	return b, true, ""
 }
 
 // applyEnvFallbacks fills in zero-value fields on cfg using the canonical
 // environment variables, matching SDKv2 MultiEnvDefaultFunc / EnvDefaultFunc
-// semantics (ARM_* / AZURE_* precedence). The useCLI flag defaults to true
-// when neither config nor ARM_USE_CLI supplies a value (matching SDKv2's
-// EnvDefaultFunc("ARM_USE_CLI", true) behaviour).
-func applyEnvFallbacks(cfg *FrameworkAuthConfig) {
+// semantics (ARM_* / AZURE_* precedence).
+//
+// It returns a slice of human-readable warning strings for any env vars that
+// were set but could not be parsed (e.g. ARM_USE_CLI=flase). Callers should
+// surface these as provider diagnostics.
+//
+// UseCLI behaviour:
+//   - If cfg.UseCLI is non-nil (explicit HCL value), it is left unchanged.
+//   - If cfg.UseCLI is nil, ARM_USE_CLI is checked; if unset, defaults to true
+//     (matching SDKv2's EnvDefaultFunc("ARM_USE_CLI", true) behaviour).
+func applyEnvFallbacks(cfg *FrameworkAuthConfig) []string {
+	var warnings []string
+
 	if cfg.PersonalAccessToken == "" {
 		cfg.PersonalAccessToken = multiEnvLookup("AZDO_PERSONAL_ACCESS_TOKEN")
 	}
@@ -83,7 +107,11 @@ func applyEnvFallbacks(cfg *FrameworkAuthConfig) {
 	}
 	if len(cfg.AuxiliaryTenantIDs) == 0 {
 		if raw := multiEnvLookup("ARM_AUXILIARY_TENANT_IDS"); raw != "" {
-			cfg.AuxiliaryTenantIDs = strings.Split(raw, ",")
+			parts := strings.Split(raw, ",")
+			for i, p := range parts {
+				parts[i] = strings.TrimSpace(p)
+			}
+			cfg.AuxiliaryTenantIDs = parts
 		}
 	}
 	if cfg.ClientCertificatePath == "" {
@@ -124,28 +152,49 @@ func applyEnvFallbacks(cfg *FrameworkAuthConfig) {
 	// Boolean env-var fallbacks. The caller may have already set these from the
 	// HCL config; only override if the env var is explicitly set.
 	if !cfg.UseOIDC {
-		if v, set := parseBoolEnv("ARM_USE_OIDC"); set {
+		if v, set, w := parseBoolEnv("ARM_USE_OIDC"); set {
 			cfg.UseOIDC = v
+		} else if w != "" {
+			warnings = append(warnings, w)
 		}
 	}
 	if !cfg.UseMSI {
-		if v, set := parseBoolEnv("ARM_USE_MSI"); set {
+		if v, set, w := parseBoolEnv("ARM_USE_MSI"); set {
 			cfg.UseMSI = v
+		} else if w != "" {
+			warnings = append(warnings, w)
 		}
 	}
 
-	// use_cli: SDKv2 uses EnvDefaultFunc("ARM_USE_CLI", true) — the default
-	// value when the env var is not set is true. We mirror that here: if the
-	// caller passed UseCLI=false (the zero value), we check ARM_USE_CLI; if the
-	// env var is also unset we default to true.
-	if !cfg.UseCLI {
-		if v, set := parseBoolEnv("ARM_USE_CLI"); set {
-			cfg.UseCLI = v
+	// use_cli: only apply env-var / default logic when the caller did NOT supply
+	// an explicit HCL value (cfg.UseCLI == nil). An explicit false means "user
+	// intentionally disabled CLI auth" and must be honoured even when
+	// ARM_USE_CLI is unset (security-relevant: prevents ambient az identity).
+	if cfg.UseCLI == nil {
+		v, set, w := parseBoolEnv("ARM_USE_CLI")
+		if w != "" {
+			warnings = append(warnings, w)
+		}
+		if set {
+			cfg.UseCLI = &v
 		} else {
-			// Default to true when neither HCL nor env var supplies a value.
-			cfg.UseCLI = true
+			// Default to true when neither HCL nor env var supplies a value,
+			// matching SDKv2 EnvDefaultFunc("ARM_USE_CLI", true) behaviour.
+			t := true
+			cfg.UseCLI = &t
 		}
 	}
+
+	return warnings
+}
+
+// useCLIValue returns the effective bool value of cfg.UseCLI, defaulting to
+// false if the pointer is nil (should not occur after applyEnvFallbacks).
+func useCLIValue(cfg *FrameworkAuthConfig) bool {
+	if cfg.UseCLI == nil {
+		return false
+	}
+	return *cfg.UseCLI
 }
 
 // resolveFrameworkAuthProvider accepts a FrameworkAuthConfig (decoded from the
@@ -158,12 +207,16 @@ func applyEnvFallbacks(cfg *FrameworkAuthConfig) {
 // Env-var fallbacks are applied before credential resolution so callers only
 // need to set the struct fields from the HCL config; the function handles the
 // ambient environment.
-func resolveFrameworkAuthProvider(_ context.Context, cfg FrameworkAuthConfig) (azuredevops.AuthProvider, error) {
-	applyEnvFallbacks(&cfg)
+//
+// Any diagnostic warnings from env-var parsing (e.g. malformed booleans) are
+// logged via the standard logger. Callers that want framework diagnostics should
+// call applyEnvFallbacks themselves and inspect the returned warnings.
+func resolveFrameworkAuthProvider(_ context.Context, cfg FrameworkAuthConfig) (azuredevops.AuthProvider, []string, error) {
+	warnings := applyEnvFallbacks(&cfg)
 
 	// 1. Personal Access Token
 	if cfg.PersonalAccessToken != "" {
-		return azuredevops.NewAuthProviderPAT(cfg.PersonalAccessToken), nil
+		return azuredevops.NewAuthProviderPAT(cfg.PersonalAccessToken), warnings, nil
 	}
 
 	// 2. AAD / CLI / MSI / OIDC via aztfauth
@@ -188,16 +241,16 @@ func resolveFrameworkAuthProvider(_ context.Context, cfg FrameworkAuthConfig) (a
 		OIDCRequestURL:             cfg.OIDCRequestURL,
 		ADOServiceConnectionId:     cfg.OIDCAzureServiceConnectionID,
 		UseMSI:                     cfg.UseMSI,
-		UseAzureCLI:                cfg.UseCLI,
+		UseAzureCLI:                useCLIValue(&cfg),
 		AdditionallyAllowedTenants: cfg.AuxiliaryTenantIDs,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("no credential method resolved: set personal_access_token / use_cli / use_msi / use_oidc or client_secret+tenant_id+client_id: %w", err)
+		return nil, warnings, fmt.Errorf("no credential method resolved: set personal_access_token / use_cli / use_msi / use_oidc or client_secret+tenant_id+client_id: %w", err)
 	}
 
 	const AzureDevOpsAppDefaultScope = "499b84ac-1321-427f-aa17-267ca6975798/.default"
 	ap := azuredevops.NewAuthProviderAAD(cred, policy.TokenRequestOptions{
 		Scopes: []string{AzureDevOpsAppDefaultScope},
 	})
-	return ap, nil
+	return ap, warnings, nil
 }

@@ -9,8 +9,11 @@ from the upstream `microsoft/azuredevops` provider is preserved in
 
 ENHANCEMENTS:
 
-* provider: all 17 credential methods (PAT, Azure CLI, MSI, client-secret, OIDC) now wired in the framework `Configure()` path; non-PAT auth no longer silently no-ops.
+* provider: all 19 credential methods (PAT, Azure CLI, MSI, client-secret, client-certificate, OIDC token / token-file / token-request) now wired in the framework `Configure()` path; non-PAT auth no longer silently no-ops.
 * provider: `terraform-registry-manifest.json` updated to declare protocol version 6.0 for Terraform 1.x handshake compatibility.
+* provider: `ARM_AUXILIARY_TENANT_IDS` env-var fallback for `auxiliary_tenant_ids` is now active and trims whitespace from each comma-separated element (e.g. `"tenant-a, tenant-b"` → `["tenant-a", "tenant-b"]`). The legacy SDKv2 provider silently discarded this env var (EnvDefaultFunc on TypeList is a no-op); this is intentional new behavior in the framework port.
+* provider: explicit `use_cli = false` in HCL is now correctly honoured when `ARM_USE_CLI` is unset — CLI auth is not re-enabled by the env-var default path. Previously the null/false distinction was collapsed, making `use_cli = false` ineffective without also setting `ARM_USE_CLI=false` in the environment (security fix).
+* provider: malformed boolean env vars (e.g. `ARM_USE_CLI=flase`) now produce a provider warning diagnostic naming the variable and the bad value, instead of silently treating it as unset.
 
 ## [Unreleased]
 

@@ -166,7 +166,7 @@ func (p *BetteradoFrameworkProvider) Schema(_ context.Context, _ provider.Schema
 // If no usable credential is found an error diagnostic is added and Configure
 // returns without building a client.
 func (p *BetteradoFrameworkProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	// Decode all 17 credential attributes from the HCL provider block.
+	// Decode all 19 credential attributes from the HCL provider block.
 	// GetAttribute returns "" / false when an attribute is null or unknown.
 	var (
 		orgURLCfg                     types.String
@@ -224,6 +224,16 @@ func (p *BetteradoFrameworkProvider) Configure(ctx context.Context, req provider
 		}
 	}
 
+	// Thread the null vs explicit-false distinction for use_cli.
+	// useCLICfg.IsNull() means the attribute was absent in HCL (→ nil *bool).
+	// useCLICfg.ValueBool() on a null types.Bool returns false, collapsing the
+	// distinction — so we check IsNull() first.
+	var useCLIPtr *bool
+	if !useCLICfg.IsNull() && !useCLICfg.IsUnknown() {
+		v := useCLICfg.ValueBool()
+		useCLIPtr = &v
+	}
+
 	cfg := FrameworkAuthConfig{
 		OrgServiceURL:                orgURLCfg.ValueString(),
 		PersonalAccessToken:          patCfg.ValueString(),
@@ -242,7 +252,7 @@ func (p *BetteradoFrameworkProvider) Configure(ctx context.Context, req provider
 		OIDCTokenFilePath:            oidcTokenFilePathCfg.ValueString(),
 		OIDCAzureServiceConnectionID: oidcAzureServiceConnectionCfg.ValueString(),
 		UseOIDC:                      useOIDCCfg.ValueBool(),
-		UseCLI:                       useCLICfg.ValueBool(),
+		UseCLI:                       useCLIPtr,
 		UseMSI:                       useMSICfg.ValueBool(),
 	}
 
@@ -251,7 +261,12 @@ func (p *BetteradoFrameworkProvider) Configure(ctx context.Context, req provider
 		cfg.OrgServiceURL = os.Getenv("AZDO_ORG_SERVICE_URL")
 	}
 
-	authProvider, err := resolveFrameworkAuthProvider(ctx, cfg)
+	authProvider, warnings, err := resolveFrameworkAuthProvider(ctx, cfg)
+	// Surface any env-var parse warnings (e.g. malformed boolean values) as
+	// provider diagnostics before checking for a hard error.
+	for _, w := range warnings {
+		resp.Diagnostics.AddWarning("Provider env-var configuration warning", w)
+	}
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Provider configuration error — no credential method resolved",
