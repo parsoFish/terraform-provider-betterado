@@ -64,7 +64,7 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/prov
 
 **After output:**
 ```
-ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider	0.005s
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider	0.006s
 
 ```
 
@@ -108,11 +108,82 @@ ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acce
 
 - **Before:** terraform-registry-manifest.json declared protocol_versions ["5.0"]; PROVIDER_VERSION.txt = 2.0.0
 - **After:** terraform-registry-manifest.json now declares ["6.0"]; PROVIDER_VERSION.txt = 2.0.1
+- **Command:** `cat terraform-registry-manifest.json`
+
+**Before output:**
+```
+{
+  "version": 1,
+  "metadata": {
+    "protocol_versions": ["5.0"]
+  }
+}
+
+```
+
+**After output:**
+```
+{
+  "version": 1,
+  "metadata": {
+    "protocol_versions": ["6.0"]
+  }
+}
+
+```
 
 ### PROVIDER_VERSION.txt bumped from 2.0.0 to 2.0.1
 
 - **Before:** PROVIDER_VERSION.txt = 2.0.0
 - **After:** PROVIDER_VERSION.txt = 2.0.1
+- **Command:** `cat PROVIDER_VERSION.txt`
+
+**Before output:**
+```
+2.0.0
+
+```
+
+**After output:**
+```
+2.0.1
+
+```
+
+### Protocol 6.0 + version bump
+
+
+**Before output:**
+```
+{
+  "version": 1,
+  "metadata": {
+    "protocol_versions": ["5.0"]
+  }
+}
+2.0.0
+[stderr] cat: '&&': No such file or directory
+cat: echo: No such file or directory
+cat: "'---'": No such file or directory
+cat: '&&': No such file or directory
+cat: cat: No such file or directory
+```
+
+**After output:**
+```
+{
+  "version": 1,
+  "metadata": {
+    "protocol_versions": ["6.0"]
+  }
+}
+2.0.1
+[stderr] cat: '&&': No such file or directory
+cat: echo: No such file or directory
+cat: "'---'": No such file or directory
+cat: '&&': No such file or directory
+cat: cat: No such file or directory
+```
 
 ## Files Changed
 

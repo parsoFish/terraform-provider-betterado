@@ -12,7 +12,9 @@
       "beforeNote": "Gate ran against pre-initiative code (PAT-only Configure, no resolveFrameworkAuthProvider)",
       "afterNote": "Gate passes on branch HEAD with full credential resolver wired in",
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s\n"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s\n",
+      "beforeImage": null,
+      "afterImage": null
     },
     {
       "label": "Auth resolver unit tests (all 9 paths)",
@@ -21,7 +23,9 @@
       "beforeNote": "TestResolveFrameworkAuth tests did not exist; non-PAT callers received nil from Configure()",
       "afterNote": "9 test cases pass: PAT, env-fallback PAT, CLI, MSI, AAD, OIDC, no-credential error, env-var fallbacks, use_cli=true default",
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.004s [no tests to run]\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.005s\n"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.006s\n",
+      "beforeImage": null,
+      "afterImage": null
     },
     {
       "label": "Configure() no-credential fail-fast diagnostic",
@@ -30,7 +34,9 @@
       "beforeNote": "Configure() returned early with resp.ResourceData = nil on no-credential (silent failure, deferred panic at first resource call)",
       "afterNote": "Configure() adds a human-readable diagnostic error naming all available credential options",
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.004s [no tests to run]\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.004s\n"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.004s\n",
+      "beforeImage": null,
+      "afterImage": null
     },
     {
       "label": "Acceptance test compilation (hollow gate)",
@@ -39,21 +45,39 @@
       "beforeNote": "TestAccAuthParity tests did not exist",
       "afterNote": "TestAccAuthParity_CredentialConstruction proves construction of 6 credential methods without a live ADO call; TestAccAuthParity_CLIPath skips if az CLI cannot mint ADO tokens",
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t0.007s [no tests to run]\n",
-      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t0.007s\n"
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t0.007s\n",
+      "beforeImage": null,
+      "afterImage": null
     },
     {
       "label": "Protocol 6.0 declaration",
       "caption": "terraform-registry-manifest.json now declares protocol_versions [\"6.0\"] (was [\"5.0\"])",
       "command": "cat terraform-registry-manifest.json",
       "beforeNote": "terraform-registry-manifest.json declared protocol_versions [\"5.0\"]; PROVIDER_VERSION.txt = 2.0.0",
-      "afterNote": "terraform-registry-manifest.json now declares [\"6.0\"]; PROVIDER_VERSION.txt = 2.0.1"
+      "afterNote": "terraform-registry-manifest.json now declares [\"6.0\"]; PROVIDER_VERSION.txt = 2.0.1",
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeOutput": "{\n  \"version\": 1,\n  \"metadata\": {\n    \"protocol_versions\": [\"5.0\"]\n  }\n}\n",
+      "afterOutput": "{\n  \"version\": 1,\n  \"metadata\": {\n    \"protocol_versions\": [\"6.0\"]\n  }\n}\n"
     },
     {
       "label": "Version bump",
       "caption": "PROVIDER_VERSION.txt bumped from 2.0.0 to 2.0.1",
       "command": "cat PROVIDER_VERSION.txt",
       "beforeNote": "PROVIDER_VERSION.txt = 2.0.0",
-      "afterNote": "PROVIDER_VERSION.txt = 2.0.1"
+      "afterNote": "PROVIDER_VERSION.txt = 2.0.1",
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeOutput": "2.0.0\n",
+      "afterOutput": "2.0.1\n"
+    },
+    {
+      "label": "Protocol 6.0 + version bump",
+      "caption": "Protocol 6.0 + version bump",
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeOutput": "{\n  \"version\": 1,\n  \"metadata\": {\n    \"protocol_versions\": [\"5.0\"]\n  }\n}\n2.0.0\n[stderr] cat: '&&': No such file or directory\ncat: echo: No such file or directory\ncat: \"'---'\": No such file or directory\ncat: '&&': No such file or directory\ncat: cat: No such file or directory",
+      "afterOutput": "{\n  \"version\": 1,\n  \"metadata\": {\n    \"protocol_versions\": [\"6.0\"]\n  }\n}\n2.0.1\n[stderr] cat: '&&': No such file or directory\ncat: echo: No such file or directory\ncat: \"'---'\": No such file or directory\ncat: '&&': No such file or directory\ncat: cat: No such file or directory"
     }
   ],
   "acEvaluations": [
@@ -162,5 +186,9 @@
       "verdict": "met",
       "evidence": "testutils.CaptureLiveEvidence('acceptance-auth-parity', ...) called inside TestAccAuthParity_CLIPath step Check func; writes .forge/live-evidence/acceptance-auth-parity.json when TF_ACC=1 and az CLI auth succeeds"
     }
-  ]
+  ],
+  "capture": {
+    "nonce": "2d7bd0e3244e392e6bf94f609695eb24",
+    "capturedAt": "2026-07-11T01:22:45.431Z"
+  }
 }
