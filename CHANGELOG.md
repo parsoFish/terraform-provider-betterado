@@ -5,7 +5,7 @@ changelog starts at the first public release of the fork. The inherited history
 from the upstream `microsoft/azuredevops` provider is preserved in
 [`CHANGELOG-upstream.md`](./CHANGELOG-upstream.md).
 
-## 2.0.1 (Unreleased)
+## 2.0.1 (2026-07-11)
 
 ENHANCEMENTS:
 
