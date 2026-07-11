@@ -124,11 +124,11 @@ func TestResolveFrameworkAuthOIDC(t *testing.T) {
 	t.Setenv("ARM_USE_MSI", "false")
 
 	cfg := FrameworkAuthConfig{
-		UseOIDC:  true,
+		UseOIDC:   true,
 		OIDCToken: "my-oidc-token",
-		TenantID: "tenant-id-here",
-		ClientID: "client-id-here",
-		UseCLI:   false,
+		TenantID:  "tenant-id-here",
+		ClientID:  "client-id-here",
+		UseCLI:    false,
 	}
 	ap, err := resolveFrameworkAuthProvider(context.Background(), cfg)
 	if err != nil {

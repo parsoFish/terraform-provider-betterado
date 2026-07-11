@@ -110,10 +110,10 @@ func TestAccAuthParity_CredentialConstruction(t *testing.T) {
 		{
 			name: "OIDC",
 			opts: aztfauth.Option{
-				TenantId:        "00000000-0000-0000-0000-000000000000",
-				ClientId:        "00000000-0000-0000-0000-000000000001",
-				UseOIDCToken:    true,
-				OIDCToken:       "fake-oidc-token",
+				TenantId:     "00000000-0000-0000-0000-000000000000",
+				ClientId:     "00000000-0000-0000-0000-000000000001",
+				UseOIDCToken: true,
+				OIDCToken:    "fake-oidc-token",
 			},
 		},
 	}
@@ -170,4 +170,3 @@ func captureAuthParityEvidence(tfNode, orgURL string) resource.TestCheckFunc {
 		return nil
 	}
 }
-
