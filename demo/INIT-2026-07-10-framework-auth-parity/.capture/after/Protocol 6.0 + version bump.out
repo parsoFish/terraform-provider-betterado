@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "metadata": {
+    "protocol_versions": ["6.0"]
+  }
+}
+2.0.1
+[stderr] cat: '&&': No such file or directory
+cat: echo: No such file or directory
+cat: "'---'": No such file or directory
+cat: '&&': No such file or directory
+cat: cat: No such file or directory

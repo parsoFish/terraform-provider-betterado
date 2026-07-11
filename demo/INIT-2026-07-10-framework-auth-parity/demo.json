@@ -10,35 +10,55 @@
       "caption": "Full initiative gate: go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "Gate ran against pre-initiative code (PAT-only Configure, no resolveFrameworkAuthProvider)",
-      "afterNote": "Gate passes on branch HEAD with full credential resolver wired in"
+      "afterNote": "Gate passes on branch HEAD with full credential resolver wired in",
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s\n",
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s\n"
     },
     {
       "label": "Auth resolver unit tests (all 9 paths)",
       "caption": "resolveFrameworkAuthProvider covers PAT, env-fallback, CLI, MSI, AAD client-secret, OIDC, no-credential error, env-var mapping, use_cli default",
       "command": "go test -tags all -count=1 -run TestResolveFrameworkAuth ./azuredevops/internal/provider/",
       "beforeNote": "TestResolveFrameworkAuth tests did not exist; non-PAT callers received nil from Configure()",
-      "afterNote": "9 test cases pass: PAT, env-fallback PAT, CLI, MSI, AAD, OIDC, no-credential error, env-var fallbacks, use_cli=true default"
+      "afterNote": "9 test cases pass: PAT, env-fallback PAT, CLI, MSI, AAD, OIDC, no-credential error, env-var fallbacks, use_cli=true default",
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.004s [no tests to run]\n",
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.005s\n"
     },
     {
       "label": "Configure() no-credential fail-fast diagnostic",
       "caption": "TestFrameworkConfigure_NoCredential: Configure() now AddError instead of silently returning nil",
       "command": "go test -tags all -count=1 -run TestFrameworkConfigure_NoCredential ./azuredevops/internal/provider/",
       "beforeNote": "Configure() returned early with resp.ResourceData = nil on no-credential (silent failure, deferred panic at first resource call)",
-      "afterNote": "Configure() adds a human-readable diagnostic error naming all available credential options"
+      "afterNote": "Configure() adds a human-readable diagnostic error naming all available credential options",
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.004s [no tests to run]\n",
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.004s\n"
     },
     {
       "label": "Acceptance test compilation (hollow gate)",
       "caption": "TestAccAuthParity compiles and skips cleanly without TF_ACC; credential-construction proof always runs",
       "command": "go test -tags all -count=1 -run TestAccAuthParity ./azuredevops/internal/acceptancetests/",
       "beforeNote": "TestAccAuthParity tests did not exist",
-      "afterNote": "TestAccAuthParity_CredentialConstruction proves construction of all 5 credential methods without a live ADO call; TestAccAuthParity_CLIPath skips if az CLI cannot mint ADO tokens"
+      "afterNote": "TestAccAuthParity_CredentialConstruction proves construction of all 5 credential methods without a live ADO call; TestAccAuthParity_CLIPath skips if az CLI cannot mint ADO tokens",
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t0.007s [no tests to run]\n",
+      "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t0.007s\n"
     },
     {
       "label": "Protocol 6.0 + version bump",
       "caption": "terraform-registry-manifest.json declares protocol 6.0; PROVIDER_VERSION.txt = 2.0.1",
       "command": "cat terraform-registry-manifest.json && echo '---' && cat PROVIDER_VERSION.txt",
       "beforeNote": "terraform-registry-manifest.json declared protocol_versions [\"5.0\"]; PROVIDER_VERSION.txt = 2.0.0",
-      "afterNote": "terraform-registry-manifest.json now declares [\"6.0\"]; PROVIDER_VERSION.txt = 2.0.1"
+      "afterNote": "terraform-registry-manifest.json now declares [\"6.0\"]; PROVIDER_VERSION.txt = 2.0.1",
+      "beforeImage": null,
+      "afterImage": null,
+      "beforeOutput": "{\n  \"version\": 1,\n  \"metadata\": {\n    \"protocol_versions\": [\"5.0\"]\n  }\n}\n2.0.0\n[stderr] cat: '&&': No such file or directory\ncat: echo: No such file or directory\ncat: \"'---'\": No such file or directory\ncat: '&&': No such file or directory\ncat: cat: No such file or directory",
+      "afterOutput": "{\n  \"version\": 1,\n  \"metadata\": {\n    \"protocol_versions\": [\"6.0\"]\n  }\n}\n2.0.1\n[stderr] cat: '&&': No such file or directory\ncat: echo: No such file or directory\ncat: \"'---'\": No such file or directory\ncat: '&&': No such file or directory\ncat: cat: No such file or directory"
     }
   ],
   "acEvaluations": [

@@ -36,26 +36,111 @@
 
 - **Before:** Gate ran against pre-initiative code (PAT-only Configure, no resolveFrameworkAuthProvider)
 - **After:** Gate passes on branch HEAD with full credential resolver wired in
+- **Command:** `go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...`
+
+**Before output:**
+```
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.003s
+
+```
+
+**After output:**
+```
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook	0.003s
+
+```
 
 ### resolveFrameworkAuthProvider covers PAT, env-fallback, CLI, MSI, AAD client-secret, OIDC, no-credential error, env-var mapping, use_cli default
 
 - **Before:** TestResolveFrameworkAuth tests did not exist; non-PAT callers received nil from Configure()
 - **After:** 9 test cases pass: PAT, env-fallback PAT, CLI, MSI, AAD, OIDC, no-credential error, env-var fallbacks, use_cli=true default
+- **Command:** `go test -tags all -count=1 -run TestResolveFrameworkAuth ./azuredevops/internal/provider/`
+
+**Before output:**
+```
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider	0.004s [no tests to run]
+
+```
+
+**After output:**
+```
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider	0.005s
+
+```
 
 ### TestFrameworkConfigure_NoCredential: Configure() now AddError instead of silently returning nil
 
 - **Before:** Configure() returned early with resp.ResourceData = nil on no-credential (silent failure, deferred panic at first resource call)
 - **After:** Configure() adds a human-readable diagnostic error naming all available credential options
+- **Command:** `go test -tags all -count=1 -run TestFrameworkConfigure_NoCredential ./azuredevops/internal/provider/`
+
+**Before output:**
+```
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider	0.004s [no tests to run]
+
+```
+
+**After output:**
+```
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider	0.004s
+
+```
 
 ### TestAccAuthParity compiles and skips cleanly without TF_ACC; credential-construction proof always runs
 
 - **Before:** TestAccAuthParity tests did not exist
 - **After:** TestAccAuthParity_CredentialConstruction proves construction of all 5 credential methods without a live ADO call; TestAccAuthParity_CLIPath skips if az CLI cannot mint ADO tokens
+- **Command:** `go test -tags all -count=1 -run TestAccAuthParity ./azuredevops/internal/acceptancetests/`
+
+**Before output:**
+```
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests	0.007s [no tests to run]
+
+```
+
+**After output:**
+```
+ok  	github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests	0.007s
+
+```
 
 ### terraform-registry-manifest.json declares protocol 6.0; PROVIDER_VERSION.txt = 2.0.1
 
 - **Before:** terraform-registry-manifest.json declared protocol_versions ["5.0"]; PROVIDER_VERSION.txt = 2.0.0
 - **After:** terraform-registry-manifest.json now declares ["6.0"]; PROVIDER_VERSION.txt = 2.0.1
+- **Command:** `cat terraform-registry-manifest.json && echo '---' && cat PROVIDER_VERSION.txt`
+
+**Before output:**
+```
+{
+  "version": 1,
+  "metadata": {
+    "protocol_versions": ["5.0"]
+  }
+}
+2.0.0
+[stderr] cat: '&&': No such file or directory
+cat: echo: No such file or directory
+cat: "'---'": No such file or directory
+cat: '&&': No such file or directory
+cat: cat: No such file or directory
+```
+
+**After output:**
+```
+{
+  "version": 1,
+  "metadata": {
+    "protocol_versions": ["6.0"]
+  }
+}
+2.0.1
+[stderr] cat: '&&': No such file or directory
+cat: echo: No such file or directory
+cat: "'---'": No such file or directory
+cat: '&&': No such file or directory
+cat: cat: No such file or directory
+```
 
 ## Files Changed
 
