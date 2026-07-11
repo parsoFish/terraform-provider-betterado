@@ -190,11 +190,23 @@ cat: cat: No such file or directory
 ```
 CHANGELOG.md                                       |  10 +
  PROVIDER_VERSION.txt                               |   2 +-
- .../acceptancetests/resource_provider_auth_test.go | 203 ++++++++++++++
+ .../acceptancetests/resource_provider_auth_test.go | 198 +++++++++++++
  azuredevops/internal/provider/auth.go              | 256 +++++++++++++++++
  azuredevops/internal/provider/auth_test.go         | 309 +++++++++++++++++++++
  .../internal/provider/framework_provider.go        | 156 ++++++++---
  .../internal/provider/framework_provider_test.go   | 100 ++++++-
+ .../Acceptance test compilation (hollow gate).out  |   1 +
+ .../Auth resolver unit tests (all 9 paths).out     |   1 +
+ ...figure() no-credential fail-fast diagnostic.out |   1 +
+ .../.capture/after/Protocol 6.0 + version bump.out |  12 +
+ ...ate \342\200\224 servicehook package tests.out" |   1 +
+ .../Acceptance test compilation (hollow gate).out  |   1 +
+ .../Auth resolver unit tests (all 9 paths).out     |   1 +
+ ...figure() no-credential fail-fast diagnostic.out |   1 +
+ .../before/Protocol 6.0 + version bump.out         |  12 +
+ ...ate \342\200\224 servicehook package tests.out" |   1 +
+ demo/INIT-2026-07-10-framework-auth-parity/DEMO.md | 200 +++++++++++++
+ .../demo.json                                      | 194 +++++++++++++
  terraform-registry-manifest.json                   |   2 +-
- 8 files changed (core), 20 total including demo artifacts
+ 20 files changed, 1417 insertions(+), 42 deletions(-)
 ```
