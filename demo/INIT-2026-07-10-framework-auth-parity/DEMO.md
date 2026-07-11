@@ -60,5 +60,15 @@
 ## Files Changed
 
 ```
-8 files changed, 809 insertions(+), 42 deletions(-)
+CHANGELOG.md                                       |   7 +
+ PROVIDER_VERSION.txt                               |   2 +-
+ .../acceptancetests/resource_provider_auth_test.go | 173 ++++++++++++++++
+ azuredevops/internal/provider/auth.go              | 203 +++++++++++++++++++
+ azuredevops/internal/provider/auth_test.go         | 223 +++++++++++++++++++++
+ .../internal/provider/framework_provider.go        | 141 +++++++++----
+ .../internal/provider/framework_provider_test.go   | 100 ++++++++-
+ demo/INIT-2026-07-10-framework-auth-parity/DEMO.md |  64 ++++++
+ .../demo.json                                      | 151 ++++++++++++++
+ terraform-registry-manifest.json                   |   2 +-
+ 10 files changed, 1024 insertions(+), 42 deletions(-)
 ```
