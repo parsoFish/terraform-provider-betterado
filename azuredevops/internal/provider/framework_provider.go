@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	azuredevops "github.com/microsoft/azure-devops-go-api/azuredevops/v7"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/client"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service"
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/accounts"
@@ -45,14 +44,15 @@ import (
 	"github.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/workitemtrackingprocess"
 )
 
-// BetteradoFrameworkProvider is the terraform-plugin-framework provider stub.
-// It is multiplexed with the existing SDKv2 provider in main.go so that
-// framework resources can be registered here without touching main.go.
+// BetteradoFrameworkProvider is the terraform-plugin-framework provider
+// implementation. It registers all framework resources and data sources and
+// handles provider configuration using the pure framework credential resolver.
 type BetteradoFrameworkProvider struct {
 	version string
 }
 
-// NewFrameworkProvider returns a provider.Provider for use in the mux setup.
+// NewFrameworkProvider returns a provider.Provider backed entirely by
+// terraform-plugin-framework.
 func NewFrameworkProvider(version string) provider.Provider {
 	return &BetteradoFrameworkProvider{version: version}
 }
@@ -62,11 +62,9 @@ func (p *BetteradoFrameworkProvider) Metadata(_ context.Context, _ provider.Meta
 	resp.Version = p.version
 }
 
-// Schema mirrors every attribute from the SDKv2 provider schema exactly.
-// The tf6muxserver mux requires both providers to expose an identical schema;
-// any mismatch causes "Invalid Provider Server Combination" at plan time.
-// This schema is intentionally read-only here — Configure() reads credentials
-// from env vars directly; the SDKv2 provider handles the actual HCL block.
+// Schema declares all 19 provider-level attributes. Configure() reads these
+// values and, with env-var fallbacks, resolves the appropriate credential
+// method via resolveFrameworkAuthProvider.
 func (p *BetteradoFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
@@ -156,48 +154,128 @@ func (p *BetteradoFrameworkProvider) Schema(_ context.Context, _ provider.Schema
 	}
 }
 
-// Configure builds the AggregatedClient and stores it as resp.ResourceData /
-// resp.DataSourceData so framework resources (e.g. TaskGroupResource,
-// ReleaseDefinitionResource) can retrieve it via ConfigureRequest.ProviderData.
+// Configure decodes the HCL provider block, resolves credentials via
+// resolveFrameworkAuthProvider, builds an AggregatedClient, and stores it as
+// resp.ResourceData / resp.DataSourceData so framework resources can retrieve
+// it via ConfigureRequest.ProviderData.
 //
-// The mux multiplexes the provider Configure call across both the SDKv2 provider
-// and this framework provider, passing the SAME parsed HCL provider config to
-// each. Credentials are read from the HCL provider block (org_service_url +
-// personal_access_token) first, falling back to the canonical AZDO_* environment
-// variables when an attribute is null/unset — matching the SDKv2 provider's
-// EnvDefaultFunc behaviour. The two providers share no runtime state, so this one
-// builds its own client.
+// Credential priority (highest to lowest):
+//  1. personal_access_token (or AZDO_PERSONAL_ACCESS_TOKEN env var)
+//  2. AAD: client_secret, client_certificate, OIDC, MSI, or Azure CLI
+//
+// If no usable credential is found an error diagnostic is added and Configure
+// returns without building a client.
 func (p *BetteradoFrameworkProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	// Read credentials from the HCL provider config. GetAttribute leaves the
-	// value null when the attribute is unset/unknown, in which case ValueString
-	// returns "" and we fall back to the environment variable.
-	var orgURLCfg, patCfg types.String
+	// Decode all 19 credential attributes from the HCL provider block.
+	// GetAttribute returns "" / false when an attribute is null or unknown.
+	var (
+		orgURLCfg                     types.String
+		patCfg                        types.String
+		clientIDCfg                   types.String
+		clientIDFilePathCfg           types.String
+		tenantIDCfg                   types.String
+		auxiliaryTenantIDsCfg         types.List
+		clientCertPathCfg             types.String
+		clientCertCfg                 types.String
+		clientCertPasswordCfg         types.String
+		clientSecretCfg               types.String
+		clientSecretPathCfg           types.String
+		oidcRequestTokenCfg           types.String
+		oidcRequestURLCfg             types.String
+		oidcTokenCfg                  types.String
+		oidcTokenFilePathCfg          types.String
+		oidcAzureServiceConnectionCfg types.String
+		useOIDCCfg                    types.Bool
+		useCLICfg                     types.Bool
+		useMSICfg                     types.Bool
+	)
+
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("org_service_url"), &orgURLCfg)...)
 	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("personal_access_token"), &patCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("client_id"), &clientIDCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("client_id_file_path"), &clientIDFilePathCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("tenant_id"), &tenantIDCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("auxiliary_tenant_ids"), &auxiliaryTenantIDsCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("client_certificate_path"), &clientCertPathCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("client_certificate"), &clientCertCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("client_certificate_password"), &clientCertPasswordCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("client_secret"), &clientSecretCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("client_secret_path"), &clientSecretPathCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("oidc_request_token"), &oidcRequestTokenCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("oidc_request_url"), &oidcRequestURLCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("oidc_token"), &oidcTokenCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("oidc_token_file_path"), &oidcTokenFilePathCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("oidc_azure_service_connection_id"), &oidcAzureServiceConnectionCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("use_oidc"), &useOIDCCfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("use_cli"), &useCLICfg)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("use_msi"), &useMSICfg)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	orgURL := orgURLCfg.ValueString()
-	if orgURL == "" {
-		orgURL = os.Getenv("AZDO_ORG_SERVICE_URL")
-	}
-	pat := patCfg.ValueString()
-	if pat == "" {
-		pat = os.Getenv("AZDO_PERSONAL_ACCESS_TOKEN")
+	// Decode auxiliary_tenant_ids list into []string.
+	var auxTenantIDs []string
+	if !auxiliaryTenantIDsCfg.IsNull() && !auxiliaryTenantIDsCfg.IsUnknown() {
+		elements := auxiliaryTenantIDsCfg.Elements()
+		for _, el := range elements {
+			if sv, ok := el.(types.String); ok {
+				auxTenantIDs = append(auxTenantIDs, sv.ValueString())
+			}
+		}
 	}
 
-	// If PAT credentials are unavailable (e.g. an unknown value during plan, or
-	// AAD/OIDC auth handled by the SDKv2 provider) leave resp.ResourceData nil
-	// and let an individual resource's Configure report the error only when it
-	// actually needs the client. This keeps the provider Configure step from
-	// failing for non-PAT auth flows.
-	if orgURL == "" || pat == "" {
+	// Thread the null vs explicit-false distinction for use_cli.
+	// useCLICfg.IsNull() means the attribute was absent in HCL (→ nil *bool).
+	// useCLICfg.ValueBool() on a null types.Bool returns false, collapsing the
+	// distinction — so we check IsNull() first.
+	var useCLIPtr *bool
+	if !useCLICfg.IsNull() && !useCLICfg.IsUnknown() {
+		v := useCLICfg.ValueBool()
+		useCLIPtr = &v
+	}
+
+	cfg := FrameworkAuthConfig{
+		OrgServiceURL:                orgURLCfg.ValueString(),
+		PersonalAccessToken:          patCfg.ValueString(),
+		ClientID:                     clientIDCfg.ValueString(),
+		ClientIDFilePath:             clientIDFilePathCfg.ValueString(),
+		TenantID:                     tenantIDCfg.ValueString(),
+		AuxiliaryTenantIDs:           auxTenantIDs,
+		ClientCertificatePath:        clientCertPathCfg.ValueString(),
+		ClientCertificate:            clientCertCfg.ValueString(),
+		ClientCertificatePassword:    clientCertPasswordCfg.ValueString(),
+		ClientSecret:                 clientSecretCfg.ValueString(),
+		ClientSecretPath:             clientSecretPathCfg.ValueString(),
+		OIDCRequestToken:             oidcRequestTokenCfg.ValueString(),
+		OIDCRequestURL:               oidcRequestURLCfg.ValueString(),
+		OIDCToken:                    oidcTokenCfg.ValueString(),
+		OIDCTokenFilePath:            oidcTokenFilePathCfg.ValueString(),
+		OIDCAzureServiceConnectionID: oidcAzureServiceConnectionCfg.ValueString(),
+		UseOIDC:                      useOIDCCfg.ValueBool(),
+		UseCLI:                       useCLIPtr,
+		UseMSI:                       useMSICfg.ValueBool(),
+	}
+
+	// Apply env-var fallback for org_service_url before credential resolution.
+	if cfg.OrgServiceURL == "" {
+		cfg.OrgServiceURL = os.Getenv("AZDO_ORG_SERVICE_URL")
+	}
+
+	authProvider, warnings, err := resolveFrameworkAuthProvider(ctx, cfg)
+	// Surface any env-var parse warnings (e.g. malformed boolean values) as
+	// provider diagnostics before checking for a hard error.
+	for _, w := range warnings {
+		resp.Diagnostics.AddWarning("Provider env-var configuration warning", w)
+	}
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Provider configuration error — no credential method resolved",
+			"Set personal_access_token (or AZDO_PERSONAL_ACCESS_TOKEN), or configure one of: use_cli=true, use_msi=true, use_oidc=true with an OIDC token, or client_secret+tenant_id+client_id for service principal auth.",
+		)
 		return
 	}
 
-	authProvider := azuredevops.NewAuthProviderPAT(pat)
-	agg, err := client.GetAzdoClient(authProvider, orgURL)
+	agg, err := client.GetAzdoClient(authProvider, cfg.OrgServiceURL)
 	if err != nil {
 		resp.Diagnostics.AddError(
 			"Failed to configure Azure DevOps client",
@@ -229,7 +307,7 @@ func (p *BetteradoFrameworkProvider) Configure(ctx context.Context, req provider
 //	    }
 //	}
 //
-// No changes to main.go are needed after the mux is wired in this file.
+// No changes to main.go are needed to add new resources or data sources here.
 
 func (p *BetteradoFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
