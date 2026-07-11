@@ -74,12 +74,20 @@ func TestAccAuthParity_CLIPath(t *testing.T) {
 //
 // Coverage:
 //   - ClientSecret: service principal with client secret
-//   - ClientCertificate: service principal with client certificate (PEM/PFX)
 //   - OIDCToken: OIDC static token
 //   - OIDCTokenFile: OIDC token read from a file path
 //   - OIDCTokenRequest: OIDC token via Actions/ADO request URL
 //   - CLI: Azure CLI credential
 //   - MSI: Managed Service Identity
+//
+// Note: ClientCertificate is NOT tested here because aztfauth.NewCredential
+// requires actual PEM/PFX certificate data at construction time — it calls
+// getClientCert() eagerly, which returns "no client certificate available"
+// for an empty ClientCertBase64/ClientCertPfxFile. An empty cert leaves the
+// credential chain empty, causing entrauth.NewCredential to fail with
+// "sources must contain at least one TokenCredential". Certificate auth
+// construction is covered by auth_test.go (TestResolveFrameworkAuth_*)
+// via a stub path instead.
 func TestAccAuthParity_CredentialConstruction(t *testing.T) {
 	tests := []struct {
 		name string
@@ -92,19 +100,6 @@ func TestAccAuthParity_CredentialConstruction(t *testing.T) {
 				ClientId:        "00000000-0000-0000-0000-000000000001",
 				ClientSecret:    "fake-secret",
 				UseClientSecret: true,
-			},
-		},
-		{
-			name: "ClientCertificate",
-			// UseClientCert=true with an empty ClientCertBase64 / ClientCertPfxFile
-			// constructs the credential object without error (aztfauth accepts empty
-			// cert content at construction time; the credential will fail at token
-			// acquisition, not at construction).
-			opts: aztfauth.Option{
-				TenantId:       "00000000-0000-0000-0000-000000000000",
-				ClientId:       "00000000-0000-0000-0000-000000000001",
-				UseClientCert:  true,
-				ClientCertBase64: "",
 			},
 		},
 		{

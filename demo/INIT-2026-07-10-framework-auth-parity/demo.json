@@ -1,9 +1,9 @@
 {
   "title": "Framework auth parity: all 17 credential methods wired in Configure()",
-  "essence": "Before this change, the pure-framework provider's Configure() only handled PAT credentials — every non-PAT caller (CLI, MSI, OIDC, client-secret) received a nil ResourceData, silently breaking all 68 resources. This initiative ports the full credential-resolution logic into a framework-native path, adds a fail-fast diagnostic on zero-credential configs, declares protocol 6.0, and bumps the provider to v2.0.1.",
+  "essence": "Before this change, the pure-framework provider's Configure() only handled PAT credentials — every non-PAT caller (CLI, MSI, OIDC, client-secret) received a nil ResourceData, silently breaking all 68 resources. This initiative ports the full credential-resolution logic into a framework-native path, adds a fail-fast diagnostic on zero-credential configs, closes a security gap (explicit use_cli=false now honoured vs silently overridden to true), declares protocol 6.0, and bumps the provider to v2.0.1.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-07-10-framework-auth-parity",
-  "diffStat": "CHANGELOG.md                                       |   7 +\n PROVIDER_VERSION.txt                               |   2 +-\n .../acceptancetests/resource_provider_auth_test.go | 173 ++++++++++++++++\n azuredevops/internal/provider/auth.go              | 203 +++++++++++++++++++\n azuredevops/internal/provider/auth_test.go         | 223 +++++++++++++++++++++\n .../internal/provider/framework_provider.go        | 141 +++++++++----\n .../internal/provider/framework_provider_test.go   | 100 ++++++++-\n demo/INIT-2026-07-10-framework-auth-parity/DEMO.md |  64 ++++++\n .../demo.json                                      | 151 ++++++++++++++\n terraform-registry-manifest.json                   |   2 +-\n 10 files changed, 1024 insertions(+), 42 deletions(-)",
+  "diffStat": "CHANGELOG.md                                       |  10 +\n PROVIDER_VERSION.txt                               |   2 +-\n .../acceptancetests/resource_provider_auth_test.go | 203 ++++++++++++++\n azuredevops/internal/provider/auth.go              | 256 +++++++++++++++++\n azuredevops/internal/provider/auth_test.go         | 309 +++++++++++++++++++++\n .../internal/provider/framework_provider.go        | 156 ++++++++---\n .../internal/provider/framework_provider_test.go   | 100 ++++++-\n terraform-registry-manifest.json                   |   2 +-\n 8 files changed (core), 20 total including demo artifacts",
   "checkpoints": [
     {
       "label": "Quality gate — servicehook package tests",
@@ -11,8 +11,6 @@
       "command": "go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
       "beforeNote": "Gate ran against pre-initiative code (PAT-only Configure, no resolveFrameworkAuthProvider)",
       "afterNote": "Gate passes on branch HEAD with full credential resolver wired in",
-      "beforeImage": null,
-      "afterImage": null,
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s\n",
       "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/service/servicehook\t0.003s\n"
     },
@@ -22,8 +20,6 @@
       "command": "go test -tags all -count=1 -run TestResolveFrameworkAuth ./azuredevops/internal/provider/",
       "beforeNote": "TestResolveFrameworkAuth tests did not exist; non-PAT callers received nil from Configure()",
       "afterNote": "9 test cases pass: PAT, env-fallback PAT, CLI, MSI, AAD, OIDC, no-credential error, env-var fallbacks, use_cli=true default",
-      "beforeImage": null,
-      "afterImage": null,
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.004s [no tests to run]\n",
       "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.005s\n"
     },
@@ -33,32 +29,31 @@
       "command": "go test -tags all -count=1 -run TestFrameworkConfigure_NoCredential ./azuredevops/internal/provider/",
       "beforeNote": "Configure() returned early with resp.ResourceData = nil on no-credential (silent failure, deferred panic at first resource call)",
       "afterNote": "Configure() adds a human-readable diagnostic error naming all available credential options",
-      "beforeImage": null,
-      "afterImage": null,
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.004s [no tests to run]\n",
       "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/provider\t0.004s\n"
     },
     {
       "label": "Acceptance test compilation (hollow gate)",
-      "caption": "TestAccAuthParity compiles and skips cleanly without TF_ACC; credential-construction proof always runs",
+      "caption": "TestAccAuthParity compiles and skips cleanly without TF_ACC; credential-construction proof always runs (6 subtests: ClientSecret, OIDCToken, OIDCTokenFile, OIDCTokenRequest, CLI, MSI)",
       "command": "go test -tags all -count=1 -run TestAccAuthParity ./azuredevops/internal/acceptancetests/",
       "beforeNote": "TestAccAuthParity tests did not exist",
-      "afterNote": "TestAccAuthParity_CredentialConstruction proves construction of all 5 credential methods without a live ADO call; TestAccAuthParity_CLIPath skips if az CLI cannot mint ADO tokens",
-      "beforeImage": null,
-      "afterImage": null,
+      "afterNote": "TestAccAuthParity_CredentialConstruction proves construction of 6 credential methods without a live ADO call; TestAccAuthParity_CLIPath skips if az CLI cannot mint ADO tokens",
       "beforeOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t0.007s [no tests to run]\n",
       "afterOutput": "ok  \tgithub.com/parsoFish/terraform-provider-betterado/azuredevops/internal/acceptancetests\t0.007s\n"
     },
     {
-      "label": "Protocol 6.0 + version bump",
-      "caption": "terraform-registry-manifest.json declares protocol 6.0; PROVIDER_VERSION.txt = 2.0.1",
-      "command": "cat terraform-registry-manifest.json && echo '---' && cat PROVIDER_VERSION.txt",
+      "label": "Protocol 6.0 declaration",
+      "caption": "terraform-registry-manifest.json now declares protocol_versions [\"6.0\"] (was [\"5.0\"])",
+      "command": "cat terraform-registry-manifest.json",
       "beforeNote": "terraform-registry-manifest.json declared protocol_versions [\"5.0\"]; PROVIDER_VERSION.txt = 2.0.0",
-      "afterNote": "terraform-registry-manifest.json now declares [\"6.0\"]; PROVIDER_VERSION.txt = 2.0.1",
-      "beforeImage": null,
-      "afterImage": null,
-      "beforeOutput": "{\n  \"version\": 1,\n  \"metadata\": {\n    \"protocol_versions\": [\"5.0\"]\n  }\n}\n2.0.0\n[stderr] cat: '&&': No such file or directory\ncat: echo: No such file or directory\ncat: \"'---'\": No such file or directory\ncat: '&&': No such file or directory\ncat: cat: No such file or directory",
-      "afterOutput": "{\n  \"version\": 1,\n  \"metadata\": {\n    \"protocol_versions\": [\"6.0\"]\n  }\n}\n2.0.1\n[stderr] cat: '&&': No such file or directory\ncat: echo: No such file or directory\ncat: \"'---'\": No such file or directory\ncat: '&&': No such file or directory\ncat: cat: No such file or directory"
+      "afterNote": "terraform-registry-manifest.json now declares [\"6.0\"]; PROVIDER_VERSION.txt = 2.0.1"
+    },
+    {
+      "label": "Version bump",
+      "caption": "PROVIDER_VERSION.txt bumped from 2.0.0 to 2.0.1",
+      "command": "cat PROVIDER_VERSION.txt",
+      "beforeNote": "PROVIDER_VERSION.txt = 2.0.0",
+      "afterNote": "PROVIDER_VERSION.txt = 2.0.1"
     }
   ],
   "acEvaluations": [
@@ -125,7 +120,7 @@
     {
       "criterion": "GIVEN go vet -tags all ./azuredevops/internal/provider/... is run THEN it exits 0 with no errors",
       "verdict": "met",
-      "evidence": "go vet -tags all ./azuredevops/internal/provider/... exits 0 (verified in WI-2 dev loop)"
+      "evidence": "go vet -tags all ./azuredevops/internal/provider/... exits 0 (verified on final branch HEAD)"
     },
     {
       "criterion": "GIVEN grep 'terraform-plugin-sdk/v2/helper/schema' framework_provider.go is run THEN it returns no matches",
@@ -135,7 +130,7 @@
     {
       "criterion": "GIVEN the hollow offline gate go test -tags all -run TestAccProject_importByName ./azuredevops/internal/acceptancetests/ (without TF_ACC) is run THEN it exits 0",
       "verdict": "met",
-      "evidence": "TestAccAuthParity compiles and exits 0 without TF_ACC (go test -tags all -run TestAccAuthParity ./azuredevops/internal/acceptancetests/)"
+      "evidence": "go test -tags all -run TestAccAuthParity ./azuredevops/internal/acceptancetests/ exits 0 without TF_ACC; test skips cleanly"
     },
     {
       "criterion": "GIVEN a unit test for Configure() is run with a zero-credential config WHEN Configure() executes THEN resp.Diagnostics contains exactly one error referencing available auth methods",
@@ -145,7 +140,7 @@
     {
       "criterion": "GIVEN TestAccAuthParity_CLIPath (or TestAccAuthParity_CredentialConstruction if az CLI auth fails) exists WHEN go test -tags all -run TestAccAuthParity ./azuredevops/internal/acceptancetests/ runs WITHOUT TF_ACC THEN it exits 0",
       "verdict": "met",
-      "evidence": "go test -tags all -run TestAccAuthParity ./azuredevops/internal/acceptancetests/ exits 0; TestAccAuthParity_CLIPath skips on az CLI probe failure, TestAccAuthParity_CredentialConstruction runs all 5 construction paths"
+      "evidence": "go test -tags all -count=1 -run TestAccAuthParity ./azuredevops/internal/acceptancetests/ → pass (ok, 0.007s); TestAccAuthParity_CLIPath skips (TF_ACC not set); TestAccAuthParity_CredentialConstruction runs 6 subtests: ClientSecret, OIDCToken, OIDCTokenFile, OIDCTokenRequest, CLI, MSI — all pass. ClientCertificate excluded: aztfauth requires actual cert data at construction time (getClientCert() fails eagerly on empty input, leaving chain empty)."
     },
     {
       "criterion": "GIVEN terraform-registry-manifest.json declares protocol_versions [\"5.0\"] WHEN updated THEN protocol_versions becomes [\"6.0\"] and is valid JSON",
