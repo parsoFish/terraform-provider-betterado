@@ -239,6 +239,157 @@
 
 ---
 
+### Identity
+
+- **betterado resources/data sources:** `data.betterado_identity_group`, `data.betterado_identity_groups`, `data.betterado_identity_user`
+- **Classification:** `betterado-inherited` (identity lookup is upstream; betterado adds no net-new identity resources)
+- **gap-open count:** 7
+  - `betterado_identity_group.provider_display_name` — display name used for lookup but not returned as a computed output attribute
+  - `betterado_identity_group.is_active` — active/inactive flag returned by `ReadIdentity`; useful for health-check automations
+  - `betterado_identity_group.is_container` — always `true` for groups; useful as type assertion
+  - `betterado_identity_groups[].is_active` — active flag per group item; consistency with single-group data source
+  - `betterado_identity_groups[].is_container` — container flag per group item; consistency with single-group data source
+  - `betterado_identity_user.provider_display_name` — display name available from API but not returned as output attribute
+  - `betterado_identity_user.is_active` — active/inactive flag; useful for detecting disabled accounts
+- **gap-deferred count:** 10
+  - `betterado_identity_group.member_ids` — re-evaluation: `non-declarative-forever` (consumers should use dedicated membership data sources)
+  - `betterado_identity_group.member_of` — re-evaluation: `complexity-then` (complex nested type; low priority)
+  - `betterado_identity_group.members` — re-evaluation: `non-declarative-forever` (duplicate of memberIds as descriptors; use group_membership)
+  - `betterado_identity_group.custom_display_name` — re-evaluation: `complexity-then` (custom override; rarely set; low value)
+  - `betterado_identity_group.master_id` — re-evaluation: `non-declarative-forever` (internal identity master ID; not useful in TF)
+  - `betterado_identity_group.meta_type_id` — re-evaluation: `non-declarative-forever` (internal enum; not in public API docs)
+  - `betterado_identity_group.properties` — re-evaluation: `complexity-then` (opaque property bag; schema varies per identity)
+  - `betterado_identity_group.resource_version` — re-evaluation: `non-declarative-forever` (internal version counter)
+  - `betterado_identity_group.social_descriptor` — re-evaluation: `complexity-then` (MSA social descriptor; low relevance for AAD-backed orgs)
+  - `betterado_identity_group.unique_user_id` — re-evaluation: `non-declarative-forever` (internal user ID; not useful in TF)
+- **v7.1→v7.2 delta:** no known changes to `Identity` struct or `ReadIdentity`/`ReadIdentities`/`ListGroups` API surface in v7.2; identity descriptor model is stable (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Graph
+
+- **betterado resources/data sources:** `betterado_group`, `data.betterado_group`, `data.betterado_groups`, `betterado_group_membership`, `data.betterado_group_membership`, `betterado_descriptor`, `betterado_storage_key`, `data.betterado_user`, `data.betterado_users`, `data.betterado_service_principal`
+- **Classification:** `betterado-inherited` (group/user/service-principal graph is upstream; betterado adds no net-new graph resources)
+- **gap-open count:** 14
+  - `data.betterado_group.description` — not exposed in data source read-back; already in flattenGroup
+  - `data.betterado_group.mail` (mailAddress) — not exposed in data source read-back; needed for AAD group identification
+  - `data.betterado_group.domain` — not exposed in data source read-back; useful for project scope identification
+  - `data.betterado_group.principal_name` — needed for cross-reference with other resources
+  - `data.betterado_group.subject_kind` — useful for disambiguating group type
+  - `data.betterado_group.url` — REST URL for cross-referencing
+  - `data.betterado_groups[].subject_kind` — not exposed per-item; consistency with other data sources
+  - `data.betterado_service_principal.application_id` — AAD application ID; required for identity federation workflows
+  - `data.betterado_service_principal.subject_kind` — consistency; always `"servicePrincipal"`
+  - `data.betterado_service_principal.domain` — tenant domain for the service principal
+  - `data.betterado_service_principal.principal_name` — UPN-style name useful for role assignments
+  - `data.betterado_service_principal.mail_address` — email of service principal
+  - `data.betterado_users[].subject_kind` — not exposed per-item; consistency with single-user data source
+  - `data.betterado_users[].domain` — domain info already available in GraphUser struct
+- **gap-deferred count:** 29
+  - `_links` on all types — re-evaluation: `non-declarative-forever` (REST navigation links; no consumer value in TF state)
+  - `legacyDescriptor` on all types — re-evaluation: `non-declarative-forever` (internal use only per SDK doc comment)
+  - `url` on service_principal/users — re-evaluation: `complexity-then` (low-value read-only REST URL)
+  - `directoryAlias` on user/service_principal/users — re-evaluation: `complexity-then` (rarely needed in TF)
+  - `isDeletedInOrigin` on user/service_principal — re-evaluation: `non-declarative-forever` (soft-delete state; provider handles implicitly)
+  - `metaType` on user/service_principal — re-evaluation: `non-declarative-forever` (internal meta type)
+  - `isDeleted` on group resource — re-evaluation: `non-declarative-forever` (used internally to trigger d.SetId(""); not needed in state)
+- **v7.1→v7.2 delta:** no known changes to `GraphGroup`, `GraphUser`, `GraphServicePrincipal`, or `GraphMembership` declarative surfaces in v7.2; subject descriptor model and storage key API are stable (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Security
+
+- **betterado resources/data sources:** `betterado_security_permissions`, `data.betterado_security_namespace`, `data.betterado_security_namespaces`, `data.betterado_security_namespace_token`
+- **Classification:** `betterado-inherited` (security namespace, ACL, and token resources are upstream; betterado adds no net-new security resources)
+- **gap-open count:** 0
+- **gap-deferred count:** 6
+  - `betterado_security_permissions.inherit_permissions` (`AccessControlList.InheritPermissions`) — re-evaluation: `complexity-then` (useful for controlling ACL token inheritance; medium complexity; requires separate ACL write path)
+  - `data.betterado_security_namespace_token` — `ReleaseManagement` token template — re-evaluation: `complexity-then` (useful for release pipeline permissions)
+  - `data.betterado_security_namespace_token` — `DistributedTask` token template — re-evaluation: `complexity-then` (complex scope/environment tokens)
+  - `data.betterado_security_namespace_token` — `Library` token template — re-evaluation: `complexity-then` (covered by dedicated permissions resources)
+  - `data.betterado_security_namespace_token` — `MetaTask` token template — re-evaluation: `complexity-then` (task group permissions)
+  - `data.betterado_security_namespace` `ReadPermission`/`WritePermission` — re-evaluation: `complexity-then` (low priority; useful as documentation for consumers)
+- **v7.1→v7.2 delta:** no known changes to `AccessControlList`, `AccessControlEntry`, or `SecurityNamespaceDescription` schemas in v7.2; security namespace bit tables and ACL API are stable (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Permissions
+
+- **betterado resources/data sources:** `betterado_area_permissions`, `betterado_build_definition_permissions`, `betterado_build_folder_permissions`, `betterado_git_permissions`, `betterado_iteration_permissions`, `betterado_library_permissions`, `betterado_project_permissions`, `betterado_serviceendpoint_permissions`, `betterado_servicehook_permissions`, `betterado_tagging_permissions`, `betterado_variable_group_permissions`, `betterado_workitemquery_permissions`, `betterado_workitemtrackingprocess_process_permissions`
+- **Classification:** `betterado-inherited` (all 13 permission resources wrap the upstream ADO ACL API; betterado adds no net-new permission namespaces)
+- **gap-open count:** 0
+- **gap-deferred count:** 13
+  - `InheritPermissions` on all 13 resources — re-evaluation: `complexity-then` (the `InheritPermissions` flag controls whether an ACL token inherits from parent tokens; medium complexity; requires `inherit_permissions` attribute in base schema and separate ACL write; deferred to framework migration follow-up)
+- **v7.1→v7.2 delta:** no known changes to security namespace permission bit tables or ACL API in v7.2; token format templates for all 13 namespaces are stable (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Security Roles
+
+- **betterado resources/data sources:** `betterado_securityrole_assignment`, `data.betterado_securityrole_definitions`
+- **Classification:** `betterado-inherited` (security role assignment and definition resources are upstream; betterado adds no net-new role scopes)
+- **gap-open count:** 0
+- **gap-deferred count:** 1
+  - `betterado_securityrole_assignment.access` (assigned vs inherited) — re-evaluation: `complexity-then` (useful to expose as computed field to distinguish explicit vs inherited assignments; medium priority future enhancement)
+- **v7.1→v7.2 delta:** the SecurityRoles API remains at `7.1-preview.1`; no promotion to stable in v7.2 known at time of writing; `SecurityRoleAssignment` and `SecurityRoleDefinition` struct fields are stable (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Member Entitlement
+
+- **betterado resources/data sources:** `betterado_user_entitlement`, `betterado_group_entitlement`, `betterado_service_principal_entitlement`
+- **Classification:** `betterado-inherited` (user, group, and service principal entitlement resources are upstream; betterado adds no net-new entitlement types)
+- **gap-open count:** 0
+- **gap-deferred count:** 9
+  - `betterado_user_entitlement.project_entitlements` — re-evaluation: `complexity-then` (complex nested type; per-project license assignment)
+  - `betterado_user_entitlement.extensions` (deprecated) — re-evaluation: `non-declarative-forever` (deprecated by ADO; no action)
+  - `betterado_user_entitlement.access_level.msdn_license_type` — re-evaluation: `complexity-then` (MSDN license type enum; low practitioner demand)
+  - `betterado_group_entitlement.members` — re-evaluation: `complexity-then` (create-only hint in SDK; complex nested UserEntitlement list)
+  - `betterado_group_entitlement.project_entitlements` — re-evaluation: `complexity-then` (complex nested type; per-project license rules)
+  - `betterado_group_entitlement.extension_rules` (deprecated) — re-evaluation: `non-declarative-forever` (deprecated by ADO)
+  - `betterado_group_entitlement.license_rule.msdn_license_type` — re-evaluation: `complexity-then` (MSDN license type; low demand)
+  - `betterado_group_entitlement.group.description` — re-evaluation: `complexity-then` (writable group description; low priority)
+  - `betterado_service_principal_entitlement.project_entitlements` — re-evaluation: `complexity-then` (complex nested type; per-project license assignment)
+- **v7.1→v7.2 delta:** no known changes to `UserEntitlement`, `GroupEntitlement`, or `ServicePrincipalEntitlement` structs in v7.2; `AccessLevel` and `LicensingSource` enums are stable (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Notification
+
+- **betterado resources/data sources:** `betterado_notification_subscription` (planned)
+- **Classification:** `betterado-inherited` (notification subscription resource wraps the upstream ADO Notifications API; betterado adds no net-new notification channels)
+- **gap-open count:** 6
+  - `betterado_notification_subscription.subscriber_id` — required field: UUID of user/group receiving notifications; not yet covered (resource in-flight for INIT-2026-07-01-new-api-notification WI-2/WI-3)
+  - `betterado_notification_subscription.channel` — delivery channel block (EmailHtml, EmailPlaintext, User, Group types); not yet covered
+  - `betterado_notification_subscription.filter` — ExpressionFilter block with clauses; not yet covered
+  - `betterado_notification_subscription.description` — optional subscription description; not yet covered
+  - `betterado_notification_subscription.scope_id` — optional project UUID scoping; not yet covered
+  - `betterado_notification_subscription.status` — enable/disable the subscription; not yet covered
+- **gap-deferred count:** 7
+  - `RoleBasedFilter` channel support — re-evaluation: `complexity-then` (requires identity/role resolution; deferred post-MVP)
+  - `ActorFilter` channel support — re-evaluation: `complexity-then` (identity-specific subscriptions; deferred post-MVP)
+  - `ArtifactFilter` channel support — re-evaluation: `complexity-then` (follow subscriptions on specific artifacts; niche use case)
+  - `betterado_notification_subscription_template` data source — re-evaluation: `complexity-then` (read-only API; useful but not required for subscription management)
+  - `betterado_notification_subscriber` resource — re-evaluation: `non-declarative-forever` (org-level subscriber delivery preferences; separate concern)
+  - `betterado_notification_admin_settings` resource — re-evaluation: `non-declarative-forever` (org-level admin settings; single resource with minimal value)
+  - `SubscriptionUserSettings` per-user opt-in/out — re-evaluation: `non-declarative-forever` (user-centric setting; not infrastructure state)
+- **v7.1→v7.2 delta:** the Notifications subscription API remains at `7.1-preview.1`; no promotion to stable in v7.2 known; `NotificationSubscription` create/update parameters are stable (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Service Hook
+
+- **betterado resources/data sources:** `betterado_servicehook_storage_queue_pipelines`, `betterado_servicehook_webhook_tfs`
+- **Classification:** `betterado-inherited` (service hook resources wrap the upstream ADO ServiceHooks API; betterado adds no net-new service hook consumer types)
+- **gap-open count:** 2
+  - `betterado_servicehook_webhook_tfs` — `git_pull_request_commented.comment_pattern` (`publisherInputs.commentPattern`): API supports filtering by comment body substring; absent from TF schema
+  - `betterado_servicehook_webhook_tfs` — `tfvc_checkin.checked_in_by` (`publisherInputs.checkedInBy`): API supports filtering by committer identity; absent from TF schema
+- **gap-deferred count:** 1
+  - `sas_token` consumer input on all service hook resources — re-evaluation: `complexity-then` (SAS token as alternative auth mechanism for storage queue; requires auth-type discriminator; separate work item)
+- **v7.1→v7.2 delta:** no known changes to ServiceHooks `consumerInputs` or `publisherInputs` schemas for `pipelines` or `tfs` publishers in v7.2; service hook subscription envelope is stable (sourced from learn.microsoft.com; live verification pending)
+
+---
+
 ## Priority backlog
 
 <!-- Populated by WI-5 (Synthesis) -->
