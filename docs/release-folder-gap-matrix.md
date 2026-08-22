@@ -16,16 +16,16 @@ are listed below.
 
 | Field | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `Path` | `*string` | mapped | Yes | Required, ForceNew; set as resource ID via `d.SetId()` and as `path` attribute |
-| `Description` | `*string` | mapped | Yes | Optional, default `""`; updated on `UpdateFolder` call |
-| `CreatedBy` | `*webapi.IdentityRef` | missing | No | Server-computed; read-only identity metadata |
-| `CreatedOn` | `*azuredevops.Time` | missing | No | Server-computed; read-only timestamp |
-| `LastChangedBy` | `*webapi.IdentityRef` | missing | No | Server-computed; read-only identity metadata |
-| `LastChangedDate` | `*azuredevops.Time` | missing | No | Server-computed; read-only timestamp |
+| `Path` | `*string` | covered | Yes | Required, ForceNew; set as resource ID via `d.SetId()` and as `path` attribute |
+| `Description` | `*string` | covered | Yes | Optional, default `""`; updated on `UpdateFolder` call |
+| `CreatedBy` | `*webapi.IdentityRef` | out-of-scope | No | Server-computed; read-only identity metadata |
+| `CreatedOn` | `*azuredevops.Time` | out-of-scope | No | Server-computed; read-only timestamp |
+| `LastChangedBy` | `*webapi.IdentityRef` | out-of-scope | No | Server-computed; read-only identity metadata |
+| `LastChangedDate` | `*azuredevops.Time` | out-of-scope | No | Server-computed; read-only timestamp |
 
-**Summary:** 2 mapped / 0 partial / 4 missing
+**Summary:** 2 covered / 0 gap-open / 4 out-of-scope
 
-All 4 missing fields are server-computed read-only metadata. There are no writable missing fields.
+All 4 out-of-scope fields are server-computed read-only metadata. There are no writable gap-open fields.
 
 ---
 
@@ -35,8 +35,8 @@ All 4 missing fields are server-computed read-only metadata. There are no writab
 
 | Field | Status | Verdict |
 |---|---|---|
-| `Path` | mapped | ✅ Implemented — `path` (Required, ForceNew) |
-| `Description` | mapped | ✅ Implemented — `description` (Optional, default `""`) |
+| `Path` | covered | covered — `path` (Required, ForceNew) |
+| `Description` | covered | covered — `description` (Optional, default `""`) |
 
 ### 2.2 Read-only / server-computed fields (not writable)
 
@@ -50,7 +50,7 @@ All 4 missing fields are server-computed read-only metadata. There are no writab
 ### writable-column parity verdict
 
 **Writable-column parity is confirmed.** Both writable fields (`Path`, `Description`) are fully
-mapped in the `betterado_release_folder` resource schema. No writable gaps exist. No WI-2
+covered in the `betterado_release_folder` resource schema. No writable gaps exist. No WI-2
 implementation work is required for this resource; the matrix documents this explicitly so
 future maintainers know the audit ran and found no gaps.
 
@@ -78,11 +78,11 @@ No other folder-related SDK read methods (`ListFolders`, etc.) exist in this SDK
 
 | Test | Path exercised | Status |
 |---|---|---|
-| `TestReleaseFolderExpand` | expand → flatten roundtrip for `path`, `description`, `project_id` | ✅ present |
-| `TestReleaseFolderCreate_Error` | `CreateFolder` API error surfaces as diag | ✅ present |
-| `TestReleaseFolderRead_404ClearsID` | empty `GetFolders` response clears resource ID | ✅ present |
-| `TestReleaseFolderUpdate_Args` | `UpdateFolder` called with correct path + description | ✅ present |
-| `TestReleaseFolderDelete_Error` | `DeleteFolder` API error surfaces as diag | ✅ present |
+| `TestReleaseFolderExpand` | expand → flatten roundtrip for `path`, `description`, `project_id` | covered |
+| `TestReleaseFolderCreate_Error` | `CreateFolder` API error surfaces as diag | covered |
+| `TestReleaseFolderRead_404ClearsID` | empty `GetFolders` response clears resource ID | covered |
+| `TestReleaseFolderUpdate_Args` | `UpdateFolder` called with correct path + description | covered |
+| `TestReleaseFolderDelete_Error` | `DeleteFolder` API error surfaces as diag | covered |
 
 **Missing resource unit-test paths:**
 - `TestReleaseFolderRead_Error` — the resource `Read` path when `GetFolders` returns an API error is not directly unit-tested (the 404/empty path is covered by `TestReleaseFolderRead_404ClearsID`, but the API-error branch is not). This is a minor gap; deferred to a future clean-up WI since the live acceptance test exercises the happy path end-to-end.
@@ -91,8 +91,8 @@ No other folder-related SDK read methods (`ListFolders`, etc.) exist in this SDK
 
 | Test | Path exercised | Status |
 |---|---|---|
-| `TestDataReleaseFolder_Read_Populates` | `GetFolders` returns folder → sets ID + description | ✅ present |
-| `TestDataReleaseFolder_Read_NotFound` | empty response → returns error containing path | ✅ present |
+| `TestDataReleaseFolder_Read_Populates` | `GetFolders` returns folder → sets ID + description | covered |
+| `TestDataReleaseFolder_Read_NotFound` | empty response → returns error containing path | covered |
 
 **Missing data-source unit-test paths:**
 - `TestDataReleaseFolder_Read_Error` — the `GetFolders` API-error branch (non-nil `err` return) is not unit-tested. The `dataReleaseFolderRead` function has an explicit `if err != nil` path that wraps the error, but no unit test exercises it. This is a gap noted here; the data-source acceptance test (`TestAccDataReleaseFolder_Basic`) exercises the happy path only.
@@ -101,7 +101,7 @@ No other folder-related SDK read methods (`ListFolders`, etc.) exist in this SDK
 
 | Test | Location | Status |
 |---|---|---|
-| `TestAccDataReleaseFolder_Basic` | `azuredevops/internal/acceptancetests/data_release_folder_test.go` | ✅ present — covers create + data-source read + idempotency |
+| `TestAccDataReleaseFolder_Basic` | `azuredevops/internal/acceptancetests/data_release_folder_test.go` | covered — covers create + data-source read + idempotency |
 | `TestAccReleaseFolder_*` | `azuredevops/internal/acceptancetests/` | ❌ absent — no resource acceptance test file; noted for WI-2 |
 
 The resource acceptance test (`resource_release_folder_test.go` under `acceptancetests/`) is absent.
@@ -114,7 +114,7 @@ WI-2 will add it.
 | Dimension | Result |
 |---|---|
 | Field coverage | All 6 `Folder` struct fields audited |
-| Writable-column parity | **Confirmed** — both writable fields mapped; zero writable gaps |
+| Writable-column parity | **Confirmed** — both writable fields covered; zero writable gaps |
 | Read-only fields omitted | 4 server-computed fields correctly omitted |
 | Data-source SDK method coverage | Complete — `GetFolders` is the only relevant read method |
 | Unit test gaps | 2 minor gaps (resource `Read_Error` path; data-source `Read_Error` path) — deferred |

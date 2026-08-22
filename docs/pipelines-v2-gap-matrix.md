@@ -21,7 +21,7 @@ Terraform attribute, mapping status, and rationale.
 | configuration.type | `Pipeline.Configuration.Type` | `configuration_type` (optional/computed) | **Mapped** | `ConfigurationType` enum: `yaml`, `designerJson`, `justInTime`, `designerHyphenJson`, `unknown`. Defaults to `yaml`. |
 | url | `Pipeline.Url` | `url` (computed) | **Mapped** | Self-referential REST URL of the pipeline. |
 
-### Fields present in `CreatePipelineParameters`
+### Fields listed in `CreatePipelineParameters`
 
 | Field | API path | Terraform attr | Status | Notes |
 |---|---|---|---|---|
