@@ -390,6 +390,135 @@
 
 ---
 
+### Dashboard
+
+- **betterado resources/data sources:** `betterado_dashboard`
+- **Classification:** `betterado-inherited` (dashboard resource wraps the upstream ADO Dashboard API; betterado adds no net-new dashboard features)
+- **gap-open count:** 0
+- **gap-deferred count:** 2
+  - `betterado_dashboard.position` — re-evaluation: `complexity-then` (dashboard ordering in a group; rarely used via IaC; the ADO UI is the natural owner; low demand)
+  - `betterado_dashboard.widgets` — re-evaluation: `complexity-then` (complex nested widget schema with server-side ordering; dedicated WI required to avoid idempotency issues; high effort, deferred pending demand)
+- **v7.1→v7.2 delta:** no known changes to the `Dashboard` struct or `DashboardScope` enum in v7.2; `Widget` API surface is stable (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Extension
+
+- **betterado resources/data sources:** `betterado_extension`, `betterado_extension_install`
+- **Classification:** `betterado-inherited` (extension resources wrap the upstream ADO ExtensionManagement API; betterado adds no net-new extension features)
+- **gap-open count:** 3
+  - `betterado_extension_install.extension_name` — Computed display name; not in framework resource schema (only in legacy `betterado_extension`)
+  - `betterado_extension_install.publisher_name` — Computed display name; not in framework resource schema
+  - `betterado_extension_install.scope` — Computed OAuth scope list; not in framework resource schema
+- **gap-deferred count:** 3
+  - `betterado_extension.installState.lastUpdated` — re-evaluation: `complexity-then` (server-computed timestamp; low IaC value; deferred pending demand)
+  - `betterado_extension.installState.installationIssues` — re-evaluation: `non-declarative-forever` (read-only diagnostic set by ADO platform; not user-controllable)
+  - other `InstallState` flags (VersionCheckError, Warning) — re-evaluation: `non-declarative-forever` (platform error/warning flags; not user-writable)
+- **v7.1→v7.2 delta:** no known changes to `InstalledExtension` or `ExtensionStateFlags` in v7.2; ExtensionManagement API remains at `7.1-preview.1` (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Gallery / ExtensionManagement
+
+- **betterado resources/data sources:** `betterado_extension`, `betterado_extension_install`, `betterado_marketplace_extension` (gap-deferred data source)
+- **Classification:** `betterado-inherited` (Gallery API wraps the Visual Studio Marketplace; betterado adds no net-new gallery features)
+- **gap-open count:** 2
+  - `betterado_marketplace_extension` data source — not yet in schema; deferred pending operator demand for version lookup
+  - `betterado_extension_settings` resource — not yet in schema; ExtensionManagement SDK lacks client methods for extension data collection; deferred
+- **gap-deferred count:** 4
+  - `betterado_marketplace_extension` — re-evaluation: `complexity-then` (Gallery SDK client not yet wired into provider's AggregatedClient; requires `client.go` + provider registration updates)
+  - `betterado_extension_settings` — re-evaluation: `complexity-then` (HTTP client methods absent from SDK; requires raw HTTP or custom client; narrow use case)
+  - `PublishedExtension.statistics` — re-evaluation: `complexity-then` (complex nested stat object; low IaC value)
+  - `GetInstalledExtensions` (list endpoint) — re-evaluation: `complexity-then` (batch list; useful for import; separate WI)
+- **v7.1→v7.2 delta:** no known changes to Gallery `PublishedExtension` or ExtensionManagement `installedextensions` schemas in v7.2; both APIs remain at `7.1-preview.1` (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Feature Management
+
+- **betterado resources/data sources:** `betterado_feature_flag` (gap-open — not yet in schema), `betterado_project_features` (existing; covers 5 hardcoded project features)
+- **Classification:** `betterado-inherited` (feature management resources wrap the upstream ADO Feature Management API; betterado adds no net-new feature flag surfaces)
+- **gap-open count:** 1
+  - `betterado_feature_flag` resource — not yet in schema; planned for a follow-on WI; exposes `SetFeatureState`/`SetFeatureStateForScope` for arbitrary feature IDs at host or project scope
+- **gap-deferred count:** 2
+  - user-scoped feature flags (`userScope="me"`) — re-evaluation: `non-declarative-forever` (personal preferences for the authenticated user; non-idempotent across runs; excluded from `betterado_feature_flag` scope)
+  - `data.betterado_feature_flag` data source (feature definition metadata) — re-evaluation: `complexity-then` (read-only; lower priority than the state resource; deferred until resource is live)
+- **v7.1→v7.2 delta:** Feature Management API remains at `7.1-preview.1`; no promotion to stable in v7.2 known; `ContributedFeatureState` create/update parameters are stable (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Work Item Tracking
+
+- **betterado resources/data sources:** `betterado_workitem`, `betterado_workitemtracking_field`, `betterado_workitemquery`, `betterado_workitemquery_folder`, `data.betterado_area`, `data.betterado_iteration`
+- **Classification:** `betterado-inherited` (work item tracking resources wrap the upstream ADO Work Item Tracking API; workitem and workitemquery are upstream; betterado adds no net-new WIT surfaces)
+- **gap-open count:** 3
+  - `betterado_workitem.System.AssignedTo` — assignee identity field; writable via JSON Patch but not exposed in schema; deferred out of scope for migration initiative
+  - `betterado_workitem.System.History` — comment/history HTML entry; writable but deferred out of scope
+  - `betterado_workitem` arbitrary link types — child links, related links, remote links beyond parent hierarchy; deferred out of scope
+- **gap-deferred count:** 6
+  - `betterado_workitemquery.isPublic` — re-evaluation: `complexity-then` (public/private query visibility; deferred out of scope for migration initiative)
+  - `betterado_workitemquery.columns` — re-evaluation: `complexity-then` (display column list; deferred)
+  - `betterado_workitemquery.sortColumns` — re-evaluation: `complexity-then` (sort column list; deferred)
+  - `betterado_workitemquery.filterOptions` — re-evaluation: `complexity-then` (link filter mode enum; deferred)
+  - `betterado_workitemquery.clauses` / `linkClauses` / `sourceClauses` / `targetClauses` — re-evaluation: `complexity-then` (structured clause trees; WIQL covers the functional need; deferred)
+  - `data.betterado_iteration.attributes` (`startDate`, `finishDate`) — re-evaluation: `7.2-api-improvement-feasible` (sprint dates visible in ADO boards; high practitioner value; straightforward to add as Computed strings)
+- **v7.1→v7.2 delta:** no known changes to `WorkItem`, `WorkItemField2`, or `QueryHierarchyItem` structs in v7.2; Work Item Tracking REST API is stable at v7.1 (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Work Item Tracking Process
+
+- **betterado resources/data sources:** `betterado_workitemtrackingprocess_process`, `betterado_workitemtrackingprocess_workitemtype`, `betterado_workitemtrackingprocess_state`, `betterado_workitemtrackingprocess_inherited_state`, `betterado_workitemtrackingprocess_rule`, `betterado_workitemtrackingprocess_field`, `betterado_workitemtrackingprocess_list`, `betterado_workitemtrackingprocess_page`, `betterado_workitemtrackingprocess_inherited_page`, `betterado_workitemtrackingprocess_group`, `betterado_workitemtrackingprocess_control`, `betterado_workitemtrackingprocess_inherited_control`, `betterado_workitemtrackingprocess_system_control`
+- **Classification:** `betterado-inherited` (work item tracking process resources wrap the upstream ADO Work Item Tracking Process API; betterado adds no net-new process customisation surfaces)
+- **gap-open count:** 0
+- **gap-deferred count:** 8
+  - `betterado_workitemtrackingprocess_workitemtype.behaviors` — re-evaluation: `complexity-then` (separate sub-resource endpoint; dedicated WI required)
+  - `betterado_workitemtrackingprocess_field.allowed_values` — re-evaluation: `complexity-then` (list/picklist integration handled via `_process_list`; duplicating here conflicts; deferred)
+  - `betterado_workitemtrackingprocess_page.contribution` / `is_contribution` — re-evaluation: `complexity-then` (extension contribution pages; deferred pending demand)
+  - `betterado_workitemtrackingprocess_group.contribution` / `is_contribution` / `height` — re-evaluation: `complexity-then` (extension contribution groups; deferred pending demand)
+  - `betterado_workitemtrackingprocess_inherited_page.visible` / `order` — re-evaluation: `complexity-then` (uncommon inherited-page override; deferred)
+  - `betterado_workitemtrackingprocess_inherited_control.read_only` — re-evaluation: `complexity-then` (uncommon override for inherited controls; deferred)
+  - `betterado_workitemtrackingprocess_system_control.metadata` / `watermark` — re-evaluation: `complexity-then` (uncommon system control overrides; deferred)
+  - `customization_type` Computed fields (various resources) — re-evaluation: `complexity-then` (low-priority server-assigned enum; could be added as Computed; deferred)
+- **v7.1→v7.2 delta:** no known changes to Work Item Tracking Process API structs (`ProcessInfo`, `ProcessWorkItemType`, `WorkItemStateResultModel`, `ProcessRule`, `Page`, `Group`, `Control`) in v7.2; API remains stable (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Accounts / Profile
+
+- **betterado resources/data sources:** `data.betterado_accounts`, `data.betterado_profile` (gap-open — not yet in schema)
+- **Classification:** `betterado-inherited` (accounts and profile surfaces wrap the upstream ADO Accounts and Profile APIs; betterado adds no net-new account or profile management)
+- **gap-open count:** 2
+  - `data.betterado_profile` data source — not yet in schema; Profile API fields (`display_name`, `email_address`, `public_alias` from `coreAttributes`) are the primary gap; follow-on WI required
+  - `data.betterado_accounts.ownerId` query parameter — not exposed; deferred as `member_id` covers the primary PAT-based use case
+- **gap-deferred count:** 3
+  - `data.betterado_accounts.account_owner` — re-evaluation: `complexity-then` (owner UUID; low consumer demand identified in initiative)
+  - `data.betterado_accounts.account_status` — re-evaluation: `complexity-then` (account enabled/disabled/deleted enum; useful but no consumer use-case identified)
+  - `data.betterado_profile.coreAttributes` (all fields) — re-evaluation: `complexity-then` (dynamic map requiring careful modelling; `display_name`, `email_address`, `public_alias` are the priority fields for a follow-on WI)
+- **v7.1→v7.2 delta:** no known changes to Accounts API `Account` struct or Profile API `Profile` struct in v7.2; both APIs use `vssps.visualstudio.com` endpoints which are version-independent (sourced from learn.microsoft.com; live verification pending)
+
+---
+
+### Test
+
+- **betterado resources/data sources:** `betterado_test_plan` (gap-open), `betterado_test_suite` (gap-open), `betterado_test_configuration` (gap-open), `betterado_test_variable` (gap-open), `betterado_test_result_retention_settings` (gap-open), `data.betterado_test_run` (gap-open), `data.betterado_test_result` (gap-open)
+- **Classification:** `betterado-inherited` (test resources wrap the upstream ADO Test and TestPlan APIs; betterado adds no net-new test infrastructure)
+- **gap-open count:** 7
+  - `betterado_test_plan` resource — not yet in schema; requires `_apis/testplan/Plans` client (not in vendored legacy SDK); WI-2 target
+  - `betterado_test_suite` resource — not yet in schema; requires `_apis/testplan/Suites` client; WI-3 target
+  - `betterado_test_configuration` resource — not yet in schema; requires `_apis/testplan/Configurations` client; WI-4 target
+  - `betterado_test_variable` resource — not yet in schema; requires `_apis/testplan/Variables` client; WI-4 target
+  - `betterado_test_result_retention_settings` resource — not yet in schema; singleton project-level policy; Get+Update only; WI-5 target
+  - `data.betterado_test_run` data source — not yet in schema; query test runs by build/pipeline; WI-6 target
+  - `data.betterado_test_result` data source — not yet in schema; query test results for a given run; WI-7 target
+- **gap-deferred count:** 3
+  - Test Point as managed resource — re-evaluation: `non-declarative-forever` (server-computed join record; no Create or Delete; execution-time only)
+  - Test Session — re-evaluation: `non-declarative-forever` (exploratory testing execution container; transient; not declarative IaC)
+  - Test Run / Result Attachment — re-evaluation: `non-declarative-forever` (binary payload attachments uploaded by test runners; ephemeral execution artifacts)
+- **v7.1→v7.2 delta:** legacy `_apis/test` package remains at v7.1; modern `_apis/testplan` package endpoints are not versioned via v7.x query param; no breaking changes known to `TestPlan`, `TestSuite`, `TestConfiguration`, or `TestVariable` API schemas in v7.2 (sourced from learn.microsoft.com; live verification pending)
+
+---
+
 ## Priority backlog
 
 <!-- Populated by WI-5 (Synthesis) -->
