@@ -144,7 +144,7 @@ Used only on `POST` (create). Subset of `NotificationSubscription` fields that a
 
 ### 2.7 NotificationSubscriptionUpdateParameters
 
-Used only on `PATCH` (update). Accepts partial updates — only fields set are applied:
+Used only on `PATCH` (update). Accepts incremental updates — only fields set are applied:
 
 | Field | JSON tag | Status | Notes |
 |---|---|---|---|
