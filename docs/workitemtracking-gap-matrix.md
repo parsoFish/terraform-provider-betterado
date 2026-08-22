@@ -29,7 +29,7 @@ routed via `fieldMapping`/`systemFieldMapping`; custom fields via `custom_fields
 | `rev` | integer | no | `gap-open (computed)` | Revision number; deferred — not needed for TF lifecycle |
 | `fields` | map[string]any | yes (via patch) | `covered` | Routed individually — see System Fields table below |
 | `relations` | []WorkItemRelation | yes (via patch) | `covered` | Computed list of `{rel, url}`; writable gap for link management (see below) |
-| `_links` | object | no | `gap-deferred` | HAL link references; deferred — not useful in TF config |
+| `_links` | object | no | `gap-deferred` | HAL link references; deferred — not useful in TF config | — re-evaluation: `non-declarative-forever`
 | `commentVersionRef` | WorkItemCommentVersionRef | no | `gap-open (computed)` | Comment version; deferred — not needed for TF lifecycle |
 
 ### System fields (written via `/fields/<path>` patch)
@@ -76,7 +76,7 @@ API type: `WorkItemField2`
 | API field | Type | Writable | Schema status | Notes |
 |-----------|------|----------|---------------|-------|
 | `url` | string | no | `covered` | Computed — `url` attribute |
-| `_links` | object | no | `gap-deferred` | HAL links; deferred — not useful in TF config |
+| `_links` | object | no | `gap-deferred` | HAL links; deferred — not useful in TF config | — re-evaluation: `non-declarative-forever`
 | `name` | string | yes (ForceNew) | `covered` | `name` — Required, ForceNew |
 | `referenceName` | string | yes (ForceNew) | `covered` | `reference_name` — Required, ForceNew; also used as TF resource ID |
 | `type` | FieldType | yes (ForceNew) | `covered` | `type` — Required, ForceNew; validated enum |
@@ -105,8 +105,8 @@ API type: `QueryHierarchyItem` (IsFolder=false)
 | API field | Type | Writable | Schema status | Notes |
 |-----------|------|----------|---------------|-------|
 | `id` | uuid | no | `covered` | Computed — TF resource ID via `SetId` |
-| `url` | string | no | `gap-deferred` | Not exposed; deferred — not needed for TF config |
-| `_links` | object | no | `gap-deferred` | HAL links; deferred |
+| `url` | string | no | `gap-deferred` | Not exposed; deferred — not needed for TF config | — re-evaluation: `non-declarative-forever`
+| `_links` | object | no | `gap-deferred` | HAL links; deferred | — re-evaluation: `non-declarative-forever`
 | `name` | string | yes | `covered` | `name` — Required; updatable |
 | `wiql` | string | yes | `covered` | `wiql` — Required, max 32000 chars; updatable |
 | `path` | string | yes (ForceNew implied by parent) | `gap-open` | Query path in folder hierarchy; deferred — path is derived from `parent_id`/`area` and folder name, not directly writable in a meaningful way |
@@ -129,8 +129,8 @@ API type: `QueryHierarchyItem` (IsFolder=false)
 | `lastModifiedDate` | datetime | no | `gap-open (computed)` | Deferred — server-assigned metadata |
 | `lastExecutedBy` | IdentityReference | no | `gap-open (computed)` | Deferred — server-assigned metadata |
 | `lastExecutedDate` | datetime | no | `gap-open (computed)` | Deferred — server-assigned metadata |
-| `hasChildren` | bool | no | `gap-deferred` | Not applicable to non-folder queries |
-| `children` | []QueryHierarchyItem | no | `gap-deferred` | Not applicable to non-folder queries |
+| `hasChildren` | bool | no | `gap-deferred` | Not applicable to non-folder queries | — re-evaluation: `non-declarative-forever`
+| `children` | []QueryHierarchyItem | no | `gap-deferred` | Not applicable to non-folder queries | — re-evaluation: `non-declarative-forever`
 | `area` / `parent_id` | — | yes (ForceNew) | `covered` | TF-only routing attributes; `area` accepts `"Shared Queries"` or `"My Queries"`, `parent_id` is a UUID |
 
 > **Writable gaps resolved:** none in this initiative.
@@ -146,8 +146,8 @@ API type: `QueryHierarchyItem` (IsFolder=true)
 | API field | Type | Writable | Schema status | Notes |
 |-----------|------|----------|---------------|-------|
 | `id` | uuid | no | `covered` | Computed — TF resource ID via `SetId` |
-| `url` | string | no | `gap-deferred` | Not exposed; deferred |
-| `_links` | object | no | `gap-deferred` | HAL links; deferred |
+| `url` | string | no | `gap-deferred` | Not exposed; deferred | — re-evaluation: `non-declarative-forever`
+| `_links` | object | no | `gap-deferred` | HAL links; deferred | — re-evaluation: `non-declarative-forever`
 | `name` | string | yes (ForceNew) | `covered` | `name` — Required, ForceNew |
 | `isFolder` | bool | yes (ForceNew) | `covered` (implicit) | Hard-coded to `true` on create; enforced via read validation |
 | `path` | string | yes (ForceNew implied) | `gap-open` | Folder path; deferred — derived from `parent_id`/`area` + name; not directly meaningful to set |
@@ -155,18 +155,18 @@ API type: `QueryHierarchyItem` (IsFolder=true)
 | `isDeleted` | bool | yes | `gap-open` | Soft-delete/restore; deferred — out of scope |
 | `hasChildren` | bool | no | `gap-open (computed)` | Deferred — not actionable |
 | `children` | []QueryHierarchyItem | no | `gap-open (computed)` | Deferred — managed by child query resources |
-| `wiql` | string | no | `gap-deferred` | Not applicable to folders |
-| `queryType` | QueryType | no | `gap-deferred` | Not applicable to folders |
-| `clauses` | WorkItemQueryClause | no | `gap-deferred` | Not applicable to folders |
-| `columns` | []WorkItemFieldReference | no | `gap-deferred` | Not applicable to folders |
-| `sortColumns` | []WorkItemQuerySortColumn | no | `gap-deferred` | Not applicable to folders |
-| `filterOptions` | LinkQueryMode | no | `gap-deferred` | Not applicable to folders |
+| `wiql` | string | no | `gap-deferred` | Not applicable to folders | — re-evaluation: `non-declarative-forever`
+| `queryType` | QueryType | no | `gap-deferred` | Not applicable to folders | — re-evaluation: `non-declarative-forever`
+| `clauses` | WorkItemQueryClause | no | `gap-deferred` | Not applicable to folders | — re-evaluation: `non-declarative-forever`
+| `columns` | []WorkItemFieldReference | no | `gap-deferred` | Not applicable to folders | — re-evaluation: `non-declarative-forever`
+| `sortColumns` | []WorkItemQuerySortColumn | no | `gap-deferred` | Not applicable to folders | — re-evaluation: `non-declarative-forever`
+| `filterOptions` | LinkQueryMode | no | `gap-deferred` | Not applicable to folders | — re-evaluation: `non-declarative-forever`
 | `createdBy` | IdentityReference | no | `gap-open (computed)` | Deferred — server-assigned metadata |
 | `createdDate` | datetime | no | `gap-open (computed)` | Deferred — server-assigned metadata |
 | `lastModifiedBy` | IdentityReference | no | `gap-open (computed)` | Deferred — server-assigned metadata |
 | `lastModifiedDate` | datetime | no | `gap-open (computed)` | Deferred — server-assigned metadata |
-| `lastExecutedBy` | IdentityReference | no | `gap-deferred` | Not applicable to folders |
-| `lastExecutedDate` | datetime | no | `gap-deferred` | Not applicable to folders |
+| `lastExecutedBy` | IdentityReference | no | `gap-deferred` | Not applicable to folders | — re-evaluation: `non-declarative-forever`
+| `lastExecutedDate` | datetime | no | `gap-deferred` | Not applicable to folders | — re-evaluation: `non-declarative-forever`
 | `area` / `parent_id` | — | yes (ForceNew) | `covered` | TF-only routing attributes (same as query resource) |
 
 > **Writable gaps resolved:** none in this initiative.
@@ -182,15 +182,15 @@ API type: `WorkItemClassificationNode` (StructureGroup=Areas)
 | API field | Type | Writable | Schema status | Notes |
 |-----------|------|----------|---------------|-------|
 | `identifier` | uuid | no | `covered` | Computed — TF ID via `SetId(node.Identifier.String())` |
-| `url` | string | no | `gap-deferred` | Not exposed; deferred |
-| `_links` | object | no | `gap-deferred` | HAL links; deferred |
+| `url` | string | no | `gap-deferred` | Not exposed; deferred | — re-evaluation: `non-declarative-forever`
+| `_links` | object | no | `gap-deferred` | HAL links; deferred | — re-evaluation: `non-declarative-forever`
 | `name` | string | no | `covered` | `name` — Computed |
 | `path` | string | yes (lookup key) | `covered` | `path` — Optional+Computed; used as the lookup path, stripped of project prefix |
 | `hasChildren` | bool | no | `covered` | `has_children` — Computed |
 | `children` | []WorkItemClassificationNode | no | `covered` | `children` — Computed list of `{id, name, project_id, path, has_children}` |
 | `attributes` | map[string]any | no | `gap-open (computed)` | Dictionary of node attributes (e.g., start/finish dates for iterations); deferred — not relevant for areas (areas have no standard attributes) |
 | `id` (integer) | integer | no | `gap-open (computed)` | Integer node ID; deferred — `identifier` (GUID) is the canonical ID |
-| `structureType` | TreeNodeStructureType | no | `gap-deferred` | Always `"area"` for this data source; deferred — no value in exposing a constant |
+| `structureType` | TreeNodeStructureType | no | `gap-deferred` | Always `"area"` for this data source; deferred — no value in exposing a constant | — re-evaluation: `non-declarative-forever`
 | `fetch_children` | bool | n/a | `covered` | TF-only control attribute — sets depth=1 when true to populate `children` |
 | `project_id` | string | yes (lookup key) | `covered` | `project_id` — Required; used as the project scope for the API call |
 
@@ -206,15 +206,15 @@ API type: `WorkItemClassificationNode` (StructureGroup=Iterations)
 | API field | Type | Writable | Schema status | Notes |
 |-----------|------|----------|---------------|-------|
 | `identifier` | uuid | no | `covered` | Computed — TF ID via `SetId(node.Identifier.String())` |
-| `url` | string | no | `gap-deferred` | Not exposed; deferred |
-| `_links` | object | no | `gap-deferred` | HAL links; deferred |
+| `url` | string | no | `gap-deferred` | Not exposed; deferred | — re-evaluation: `non-declarative-forever`
+| `_links` | object | no | `gap-deferred` | HAL links; deferred | — re-evaluation: `non-declarative-forever`
 | `name` | string | no | `covered` | `name` — Computed |
 | `path` | string | yes (lookup key) | `covered` | `path` — Optional+Computed; used as the lookup path |
 | `hasChildren` | bool | no | `covered` | `has_children` — Computed |
 | `children` | []WorkItemClassificationNode | no | `covered` | `children` — Computed list of `{id, name, project_id, path, has_children}` |
 | `attributes` | map[string]any | no | `gap-open (computed)` | Iteration-specific attributes: `startDate` and `finishDate` (datetime); deferred — out of scope for this migration initiative, but a meaningful gap for users who want to read iteration dates |
 | `id` (integer) | integer | no | `gap-open (computed)` | Integer node ID; deferred — GUID `identifier` is the canonical ID |
-| `structureType` | TreeNodeStructureType | no | `gap-deferred` | Always `"iteration"` for this data source; deferred — no value in exposing a constant |
+| `structureType` | TreeNodeStructureType | no | `gap-deferred` | Always `"iteration"` for this data source; deferred — no value in exposing a constant | — re-evaluation: `non-declarative-forever`
 | `fetch_children` | bool | n/a | `covered` | TF-only control attribute |
 | `project_id` | string | yes (lookup key) | `covered` | `project_id` — Required |
 

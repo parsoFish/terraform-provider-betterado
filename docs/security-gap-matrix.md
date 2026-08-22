@@ -44,8 +44,8 @@ The resource calls two ADO Security REST API endpoints:
 | `principal` | subject descriptor → resolved to `Descriptor` (`AccessControlEntry.Descriptor`) | Yes | **covered** | Required; `ForceNew`; provider resolves via `ReadIdentities` to an identity descriptor |
 | `permissions` | `AccessControlEntry.Allow` + `AccessControlEntry.Deny` (bitmask) | Yes | **covered** | Required TypeMap; valid values `allow`/`deny`/`notset`; permission names resolved via namespace action definitions |
 | `replace` | `merge` flag on `SetAccessControlEntries` (inverted: `merge = !replace`) | Yes | **covered** | Optional; default `true`; controls whether unmanaged bits are preserved |
-| — | `AccessControlEntry.ExtendedInfo` (`effectiveAllow`, `effectiveDeny`, `inheritedAllow`, `inheritedDeny`) | No | **deferred** | Read-only inherited permission info; surfaced internally for wait-loop but not exposed as TF attributes |
-| — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Controls inheritance on the ACL token; not currently exposed; **Recommend** for future WI |
+| — | `AccessControlEntry.ExtendedInfo` (`effectiveAllow`, `effectiveDeny`, `inheritedAllow`, `inheritedDeny`) | No | **deferred** | Read-only inherited permission info; surfaced internally for wait-loop but not exposed as TF attributes — re-evaluation: `non-declarative-forever` |
+| — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Controls inheritance on the ACL token; not currently exposed; **Recommend** for future WI — re-evaluation: `complexity-then` |
 | — | `AccessControlList.IncludeExtendedInfo` | No | out-of-scope (read flag) | Used as query parameter only; not a schema field |
 
 **Summary — betterado_security_permissions:** 5 covered / 0 gap-open / 1 gap-deferred (`InheritPermissions`) / 2 read-only/internal

@@ -53,7 +53,7 @@
 | `installedextensionsbyname/{pub}/{ext}` | GET | `GetInstalledExtensionByName` | `betterado_extension` + `betterado_extension_install` | covered |
 | `installedextensionsbyname/{pub}/{ext}[/{ver}]` | POST | `InstallExtensionByName` | `betterado_extension` + `betterado_extension_install` | covered |
 | `installedextensionsbyname/{pub}/{ext}` | DELETE | `UninstallExtensionByName` | `betterado_extension` + `betterado_extension_install` | covered |
-| `installedextensions` | GET | `GetInstalledExtensions` | data source — `betterado_marketplace_extension` (deferred; see §4.2) | gap-deferred |
+| `installedextensions` | GET | `GetInstalledExtensions` | data source — `betterado_marketplace_extension` (deferred; see §4.2) | gap-deferred — re-evaluation: `complexity-then` |
 | `installedextensions` | PATCH | `UpdateInstalledExtension` | `betterado_extension` + `betterado_extension_install` | covered |
 
 ### 2.2 `InstalledExtension` Field Coverage
@@ -98,7 +98,7 @@ The Gallery API (`_apis/gallery`) is the **Marketplace catalogue** API. It is di
 
 | Endpoint | HTTP Method | SDK Method | Relevant to? | TF Verdict |
 |----------|------------|-----------|--------------|------------|
-| `extensions/{publisherName}/{extensionName}` | GET | `GetExtension` | `betterado_marketplace_extension` data source | **gap-deferred** (see §4.3) |
+| `extensions/{publisherName}/{extensionName}` | GET | `GetExtension` | `betterado_marketplace_extension` data source | **gap-deferred** (see §4.3) — re-evaluation: `complexity-then` |
 | `extensionquery` | POST | `QueryExtensions` | bulk marketplace lookup | **out-of-scope** (no TF lifecycle) |
 | `extensions` (draft/create/publish) | POST | `CreateExtension`, `CreateExtensionWithPublisher` | extension publishing | **out-of-scope** (per initiative) |
 | `publishers/{pub}` (CRUD) | GET/POST/PUT/DELETE | `GetPublisher`, `CreatePublisher`, etc. | publisher management | **out-of-scope** (per initiative) |
@@ -124,10 +124,10 @@ Only the fields relevant to `betterado_marketplace_extension` (a read-only data 
 | `categories` | `*[]string` | `categories` | in scope |
 | `tags` | `*[]string` | `tags` | in scope |
 | `flags` | `*PublishedExtensionFlags` | `flags` | in scope (Computed) |
-| `statistics` | `*[]ExtensionStatistic` | `statistics` | gap-deferred (complex nested object; low IaC value) |
-| `sharedWith` | `*[]ExtensionShare` | — | gap-deferred (sharing management; out of scope) |
-| `deploymentType` | `*ExtensionDeploymentTechnology` | — | gap-deferred (internal deployment enum; no IaC value) |
-| `installationTargets` | `*[]InstallationTarget` | — | gap-deferred (marketplace targeting; no IaC value) |
+| `statistics` | `*[]ExtensionStatistic` | `statistics` | gap-deferred (complex nested object; low IaC value) — re-evaluation: `complexity-then` |
+| `sharedWith` | `*[]ExtensionShare` | — | gap-deferred (sharing management; out of scope) — re-evaluation: `non-declarative-forever` |
+| `deploymentType` | `*ExtensionDeploymentTechnology` | — | gap-deferred (internal deployment enum; no IaC value) — re-evaluation: `non-declarative-forever` |
+| `installationTargets` | `*[]InstallationTarget` | — | gap-deferred (marketplace targeting; no IaC value) — re-evaluation: `non-declarative-forever` |
 | `conflictListFlag` | `*string` | — | out-of-scope (marketplace admin detail; ADO-internal conflict tracking flag) |
 
 ---

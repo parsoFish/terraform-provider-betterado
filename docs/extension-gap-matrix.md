@@ -41,7 +41,7 @@ to Terraform management have been covered:
 |---|---|
 | `disabled` (via `InstallState.Flags`) | **Resolved** — covered as `disabled` Optional+Computed bool |
 | `version` | **Resolved** — covered as `version` Optional+Computed string; enables pinning |
-| Other `InstallState` flags (e.g. `VersionCheckError`, `Warning`) | **gap-deferred** — these flags are set by the ADO platform in error/warning states and cannot be controlled by a Terraform write; deferring since the ADO API does not expose them as writable. |
+| Other `InstallState` flags (e.g. `VersionCheckError`, `Warning`) | **gap-deferred** — these flags are set by the ADO platform in error/warning states and cannot be controlled by a Terraform write; deferring since the ADO API does not expose them as writable. — re-evaluation: `non-declarative-forever` |
 
 All remaining gap-open fields are either read-only ADO manifest metadata
 (not useful to manage in Terraform) or internal platform fields. No further

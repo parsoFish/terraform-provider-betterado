@@ -521,4 +521,99 @@
 
 ## Priority backlog
 
-<!-- Populated by WI-5 (Synthesis) -->
+> All gap-open items across all 31 areas, priority-ranked in three tiers.
+> Complexity: `low` = single field, no schema refactor; `medium` = new nested block or resource; `high` = multi-resource, new API client, or algorithmic complexity.
+> Total gap-open count derived from normalized matrices: **74**
+
+### Tier 1 — betterado-net-new resources (highest priority)
+
+Items in betterado-net-new areas that are gap-open — these are the fork's primary reason to exist:
+
+- `betterado_release_definition.tags` (area: release-definition) — complexity: `low` — ADO silently ignores tag writes; field is Computed; gap-open because write parity requires API fix; track for v7.2 improvement
+
+### Tier 2 — High-value upstream gaps
+
+Gap-open items in betterado-inherited areas with high user impact, significant coverage depth, or in-flight resource work:
+
+- `betterado_test_plan` resource (area: test) — complexity: `high` — entire resource not yet in schema; requires `_apis/testplan/Plans` HTTP client not in vendored legacy SDK; primary test-infrastructure gap
+- `betterado_test_suite` resource (area: test) — complexity: `high` — entire resource not yet in schema; requires `_apis/testplan/Suites` client; depends on test-plan
+- `betterado_test_configuration` resource (area: test) — complexity: `medium` — entire resource not yet in schema; configuration matrix for test runs
+- `betterado_test_variable` resource (area: test) — complexity: `medium` — entire resource not yet in schema; parameter definitions for test configurations
+- `betterado_test_result_retention_settings` resource (area: test) — complexity: `low` — singleton project-level policy; Get+Update only; low schema complexity
+- `data.betterado_test_run` data source (area: test) — complexity: `medium` — query test runs by build/pipeline; useful for downstream pipeline gating
+- `data.betterado_test_result` data source (area: test) — complexity: `medium` — query test results for a given run; audit and compliance use-case
+- `data.betterado_group.description` (area: graph) — complexity: `low` — already in flattenGroup; minor exposure gap; high consistency value
+- `data.betterado_group.mail` (area: graph) — complexity: `low` — mailAddress for AAD group identification; high value for multi-tenant configurations
+- `data.betterado_group.domain` (area: graph) — complexity: `low` — project scope identification; needed for cross-project group references
+- `data.betterado_group.principal_name` (area: graph) — complexity: `low` — cross-reference with other resources; standard identity attribute
+- `data.betterado_group.subject_kind` (area: graph) — complexity: `low` — disambiguation of group type; consistency with other data sources
+- `data.betterado_group.url` (area: graph) — complexity: `low` — REST URL for cross-referencing; pattern-consistent with other data sources
+- `data.betterado_groups[].subject_kind` (area: graph) — complexity: `low` — per-item consistency with single-group data source
+- `data.betterado_service_principal.application_id` (area: graph) — complexity: `low` — AAD application ID; required for identity federation workflows
+- `data.betterado_service_principal.subject_kind` (area: graph) — complexity: `low` — always "servicePrincipal"; type safety
+- `data.betterado_service_principal.domain` (area: graph) — complexity: `low` — tenant domain for service principal; cross-tenant scenarios
+- `data.betterado_service_principal.principal_name` (area: graph) — complexity: `low` — UPN-style name for role assignments
+- `data.betterado_service_principal.mail_address` (area: graph) — complexity: `low` — email of service principal; notification routing
+- `data.betterado_users[].subject_kind` (area: graph) — complexity: `low` — per-item consistency with single-user data source
+- `data.betterado_users[].domain` (area: graph) — complexity: `low` — domain info already in GraphUser struct; trivial to expose
+- `betterado_notification_subscription.subscriber_id` (area: notification) — complexity: `medium` — required UUID of user/group receiving notifications; resource in-flight for separate initiative
+- `betterado_notification_subscription.channel` (area: notification) — complexity: `medium` — delivery channel block with EmailHtml/User/Group types; core resource functionality
+- `betterado_notification_subscription.filter` (area: notification) — complexity: `high` — ExpressionFilter block with clause trees; complex schema but core to subscription utility
+- `betterado_notification_subscription.description` (area: notification) — complexity: `low` — optional description; trivial single-field add
+- `betterado_notification_subscription.scope_id` (area: notification) — complexity: `low` — optional project UUID scoping; single-field
+- `betterado_notification_subscription.status` (area: notification) — complexity: `low` — enable/disable subscription; single enum field
+- `betterado_build_definition.badge_enabled` (area: build) — complexity: `low` — writable bool; absent from both SDKv2 and framework schemas; straightforward addition
+- `betterado_build_definition.build_number_format` (area: build) — complexity: `low` — writable string; absent from both schemas; high practitioner value
+- `betterado_build_definition.description` (area: build) — complexity: `low` — writable string; absent from both schemas; documentation value
+- `betterado_build_definition.job_cancel_timeout_in_minutes` (area: build) — complexity: `low` — writable int; absent from both schemas; CI tuning
+- `betterado_build_definition.job_timeout_in_minutes` (area: build) — complexity: `low` — writable int; absent from both schemas; CI tuning
+- `betterado_build_definition.tags` (area: build) — complexity: `low` — writable string list; absent from both schemas; tagging parity with release definitions
+- `betterado_build_definition.repository.clean` (area: build) — complexity: `low` — writable bool; absent from both schemas; checkout behaviour
+- `betterado_build_definition.repository.checkout_submodules` (area: build) — complexity: `low` — writable bool; absent from both schemas; submodule support
+- `betterado_project.abbreviation` (area: core) — complexity: `low` — writable short abbreviation on `TeamProject`; absent from TF schema; low IaC priority but straightforward
+- `betterado_project_pipeline_settings.disableClassicBuildPipelineCreation` (area: core) — complexity: `low` — policy enforcement field; important for org governance
+- `betterado_project_pipeline_settings.disableClassicReleasePipelineCreation` (area: core) — complexity: `low` — policy enforcement field; org governance parity
+- `betterado_project_pipeline_settings.enforceNoAccessToSecretsFromForks` (area: core) — complexity: `low` — security-hardening field; high compliance value
+- `betterado_project_pipeline_settings.isCommentRequiredForPullRequest` (area: core) — complexity: `low` — PR policy setting at project scope; reviewer discipline
+- `betterado_feed.upstream_enabled` (area: feed) — complexity: `low` — writable bool controlling upstream package proxy; high value for feed consumers
+- `betterado_feed.upstream_sources` (area: feed) — complexity: `medium` — writable `UpstreamSource` list; key ADO feed feature; complex nested type warrants dedicated WI
+- `betterado_feed.description` (area: feed) — complexity: `low` — writable string ≤255 chars; straightforward
+- `betterado_feed.hide_deleted_package_versions` (area: feed) — complexity: `low` — writable bool; single-field
+- `betterado_feed.badges_enabled` (area: feed) — complexity: `low` — writable bool enabling package badge generation
+
+### Tier 3 — Low-value computed fields and rarely-used gaps
+
+Gap-open items that are read-only computed fields, niche, or low practitioner demand:
+
+- `betterado_identity_group.provider_display_name` (area: identity) — complexity: `low` — display name available from API but not returned as output
+- `betterado_identity_group.is_active` (area: identity) — complexity: `low` — active/inactive flag from ReadIdentity; health-check automations
+- `betterado_identity_group.is_container` (area: identity) — complexity: `low` — always true for groups; type assertion use case
+- `betterado_identity_groups[].is_active` (area: identity) — complexity: `low` — per-item active flag; consistency with single-group data source
+- `betterado_identity_groups[].is_container` (area: identity) — complexity: `low` — per-item container flag; consistency
+- `betterado_identity_user.provider_display_name` (area: identity) — complexity: `low` — display name from API not returned as output attribute
+- `betterado_identity_user.is_active` (area: identity) — complexity: `low` — active/inactive flag; detecting disabled accounts
+- `azuredevops_branch_policy_min_reviewers.enforceTeamMemberCount` (area: policy) — complexity: `low` — niche ADO settings field; not surfaced in TF schema
+- `azuredevops_branch_policy_min_reviewers.allowCompletionWithRejectsOrWaitsFromNonRequired` (area: policy) — complexity: `low` — edge-case field; safely defaulted by ADO
+- `azuredevops_repository_policy_max_file_size.useUncompressedSize` (area: policy) — complexity: `low` — ADO defaults false; no user demand identified
+- `betterado_git_repository_branch.isLocked` (area: git) — complexity: `low` — writable branch lock state; admin operation rarely managed via IaC
+- `betterado_serviceendpoint_kubernetes.data.namespace` (area: service-endpoint) — complexity: `low` — writable ADO field absent from TF schema for service_account auth type
+- `betterado_serviceendpoint_octopus_deploy.api_key` (area: service-endpoint) — complexity: `low` — schema quality: field lacks `Sensitive: true`; credential leakage risk
+- `betterado_wiki.properties` (area: wiki) — complexity: `medium` — writable freeform map of arbitrary key/value metadata on `WikiV2`; low IaC adoption
+- `betterado_wiki_page.order` (area: wiki) — complexity: `low` — writable sort position; causes perpetual drift due to ADO reorder-on-read; limited declarative value
+- `betterado_extension_install.extension_name` (area: extension) — complexity: `low` — Computed display name not in framework resource schema
+- `betterado_extension_install.publisher_name` (area: extension) — complexity: `low` — Computed display name not in framework resource schema
+- `betterado_extension_install.scope` (area: extension) — complexity: `low` — Computed OAuth scope list not in framework resource schema
+- `betterado_marketplace_extension` data source (area: gallery) — complexity: `medium` — Gallery SDK client not yet wired into AggregatedClient; version lookup use-case
+- `betterado_extension_settings` resource (area: gallery) — complexity: `high` — HTTP client methods absent from SDK; requires raw HTTP client; narrow use case
+- `betterado_feature_flag` resource (area: feature-management) — complexity: `medium` — SetFeatureState/SetFeatureStateForScope for arbitrary feature IDs at host or project scope
+- `betterado_workitem.System.AssignedTo` (area: work-item-tracking) — complexity: `low` — writable via JSON Patch but not exposed in schema
+- `betterado_workitem.System.History` (area: work-item-tracking) — complexity: `low` — comment/history HTML; writable but deferred
+- `betterado_workitem` arbitrary link types (area: work-item-tracking) — complexity: `medium` — child/related/remote links beyond parent hierarchy; deferred out of scope
+- `data.betterado_profile` data source (area: accounts-profile) — complexity: `medium` — Profile API not yet in schema; display_name/email_address/public_alias; follow-on WI required
+- `data.betterado_accounts.ownerId` query parameter (area: accounts-profile) — complexity: `low` — not exposed; member_id covers primary use case but owner lookup has secondary value
+- `betterado_servicehook_webhook_tfs.git_pull_request_commented.comment_pattern` (area: service-hook) — complexity: `low` — API supports comment body substring filter; absent from TF schema
+- `betterado_servicehook_webhook_tfs.tfvc_checkin.checked_in_by` (area: service-hook) — complexity: `low` — API supports committer identity filter; absent from TF schema
+
+### ADO v7.2 uncovered areas
+
+No uncovered v7.2 API areas identified. All 31 ADO API areas enumerated in the coverage registry have corresponding gap matrices. The following areas were verified against the ADO v7.2 REST API documentation (learn.microsoft.com/en-us/rest/api/azure/devops/?view=azure-devops-rest-7.2): Release, Task Agent, Distributed Task, Build, Core, Git, Policy, Service Endpoint, Service Hook, Security, Graph, Member Entitlement Management, Audit (out-of-scope per project boundary), Work Item Tracking, Work Item Tracking Process, Test Plans, Notification, Dashboard, Extension Management, Gallery, Feature Management, Feed, Wiki, Identity, Pipelines (Approvals, Checks, v2), Accounts, Profile, Security Roles.

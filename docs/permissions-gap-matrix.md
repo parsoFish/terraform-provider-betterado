@@ -449,7 +449,7 @@ The ADO `SetAccessControlEntries` and `QueryAccessControlLists` APIs accept/retu
 | `AccessControlEntry.Allow` | covered via `permissions` |
 | `AccessControlEntry.Deny` | covered via `permissions` |
 | `AccessControlEntry.ExtendedInfo` | used internally for wait-loop; not a schema field |
-| `AccessControlList.InheritPermissions` | gap-deferred deferred (see above) |
+| `AccessControlList.InheritPermissions` | gap-deferred deferred (see above) — re-evaluation: `complexity-then` |
 | `AccessControlList.IncludeExtendedInfo` | query parameter only; not a schema field |
 | `merge` flag | covered via `replace` (inverted) |
 
