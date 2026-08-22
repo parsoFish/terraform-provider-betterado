@@ -21,7 +21,7 @@ Consumer: `azureStorageQueue` · Consumer action: `enqueue` · Publisher: `pipel
 | `queueName` | `queue_name` | string | yes | `schema.TypeString`, Required | **covered** |
 | `visiTimeout` | `visi_timeout` | int (seconds) | no | `schema.TypeInt`, Optional, Default `0` | **covered** |
 | `ttl` | `ttl` | int (seconds) | no | `schema.TypeInt`, Optional, Default `604800` | **covered** |
-| `sasToken` | — | string | no | not in schema | **gap-deferred** |
+| `sasToken` | — | string | no | not in schema | **gap-deferred** | — re-evaluation: `non-declarative-forever`
 
 > **`sasToken` note:** The v7.1 API accepts a SAS token as an alternative auth mechanism for the storage queue. The SDKv2 schema uses `account_key` (primary/secondary key) only. Exposing `sasToken` would require a mutually-exclusive `account_key` / `sas_token` credential model; deferred to a dedicated auth-enhancement work item.
 

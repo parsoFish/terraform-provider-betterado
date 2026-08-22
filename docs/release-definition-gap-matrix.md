@@ -28,7 +28,7 @@
 | `_links` | `interface{}` | out-of-scope | No | Read-only REST nav links; out of scope |
 | `projectReference` | `*ProjectReference` | out-of-scope | No | Read-only; the project is tracked as `project_id` string, not the nested struct |
 | `url` | `*string` | out-of-scope | No | Read-only REST URL; out of scope |
-| `comment` | `*string` | gap-deferred | Yes | Optional per-save comment; deferred (rarely used via TF) |
+| `comment` | `*string` | gap-deferred | Yes | Optional per-save comment; deferred (rarely used via TF) — re-evaluation: `complexity-then` |
 | `createdBy` | `*webapi.IdentityRef` | out-of-scope | No | Read-only computed metadata |
 | `createdOn` | `*azuredevops.Time` | out-of-scope | No | Read-only computed metadata |
 | `isDeleted` | `*bool` | out-of-scope | No | Read-only; soft-delete state |
@@ -131,7 +131,7 @@
 | `triggers[schedule].schedule.daysToRelease` | `int` | covered | Yes | Bitmask 0–127 |
 | `triggers[schedule].branchFilters` | `[]string` | out-of-scope | No | ADO does not return branchFilters for schedule triggers in GET response; intentionally excluded to prevent perpetual diff |
 | `triggers[containerImageTrigger]` | `ContainerImageTrigger` | **covered** | Yes | `container_image_trigger` block — added in INIT-2026-06-17 (WI-4); acceptance-tested in WI-5 |
-| `triggers[pullRequestTrigger]` | (not in SDK) | gap-deferred | Yes | PR deployment trigger; **Out of scope** (no SDK type) |
+| `triggers[pullRequestTrigger]` | (not in SDK) | gap-deferred | Yes | PR deployment trigger; **Out of scope** (no SDK type) — re-evaluation: `non-declarative-forever` |
 
 **Summary — Triggers:** 13 covered / 0 gap-open / 2 out-of-scope
 
@@ -179,7 +179,7 @@
 | `workflow_task[].inputs` | `*map[string]string` | covered | Yes | TypeMap |
 | `workflow_task[].timeoutInMinutes` | `*int` | **covered** | Yes | `workflow_task.timeout_in_minutes` — added in INIT-2026-06-17 (WI-3) |
 | `workflow_task[].retryCountOnTaskFailure` | `*int` | **covered** | Yes | `workflow_task.retry_count_on_task_failure` — added in INIT-2026-06-17 (WI-3) |
-| `workflow_task[].overrideInputs` | `*map[string]string` | gap-deferred | Yes | Override inputs at runtime; **Defer** |
+| `workflow_task[].overrideInputs` | `*map[string]string` | gap-deferred | Yes | Override inputs at runtime; **Defer** — re-evaluation: `complexity-then` |
 
 **Summary — WorkflowTask:** 11 covered / 0 gap-open / 1 out-of-scope
 

@@ -86,7 +86,7 @@ The `Approval` struct returned by all three API methods carries the following fi
 
 ### Declarative-manageable state (via `UpdateApprovals`)
 
-The following fields represent the **only state that Terraform can declare** for a pipeline approval:
+The following fields constitute the **only state that Terraform can declare** for a pipeline approval:
 
 | Field | Type | Values | betterado attribute |
 |---|---|---|---|

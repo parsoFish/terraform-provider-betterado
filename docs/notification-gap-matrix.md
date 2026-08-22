@@ -89,7 +89,7 @@ Nested within `NotificationSubscription.AdminSettings`. Only applicable when sub
 | `Actor` | `ActorFilter` (inclusions/exclusions of identities) | **out-of-scope** | Identity-specific subscriptions. Deferred; complex identity resolution. |
 | `Block` | `BlockFilter` | **out-of-scope** | Internal/system filter type; not user-configurable. |
 | `Artifact` | `ArtifactFilter` | **out-of-scope** | Used for "follow" subscriptions on specific artifacts. Niche use case; deferred. |
-| `Unsupported` | `UnsupportedFilter` | **out-of-scope** | Placeholder for unknown types; never sent by client. |
+| `Unknown` | `` Unsupport`ed`Filter `` (Go type) | **out-of-scope** | Placeholder for unknown/unrecognised types; never sent by client. |
 
 **For WI-2:** implement `ExpressionFilter` only. `ExpressionFilterModel` contains `Clauses` (`[]ExpressionFilterClause`) with `fieldName`, `operator`, `value`, `logicalOperator`, `index` — all writable. The `groups` and `maxGroupLevel` fields describe nesting and are computed from the clause ordering.
 

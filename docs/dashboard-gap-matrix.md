@@ -30,10 +30,10 @@
 | `ModifiedDate` | `modifiedDate` | `*azuredevops.Time` | out-of-scope | no | Server-computed timestamp. Deferred — no user value. |
 | `Name` | `name` | `*string` | **covered** | yes | Exposed as `name` (Required). |
 | `OwnerId` | `ownerId` | `*uuid.UUID` | **covered** | no | Exposed as `owner_id` (Computed). Set by service at creation time. |
-| `Position` | `position` | `*int` | **gap-deferred** | yes | Position of the dashboard within a dashboard group. Deferred — ordering is typically managed manually in the ADO UI. Will be added in a follow-up WI if demanded. |
+| `Position` | `position` | `*int` | **gap-deferred** | yes | Position of the dashboard within a dashboard group. Deferred — ordering is typically managed manually in the ADO UI. Will be added in a follow-up WI if demanded. — re-evaluation: `complexity-then` |
 | `RefreshInterval` | `refreshInterval` | `*int` | **covered** | yes | Exposed as `refresh_interval` (Optional, Computed). Valid values: `0` (disabled), `5` (minutes). |
 | `Url` | `url` | `*string` | out-of-scope | no | Server-provided resource URL. Deferred — not useful in Terraform config. |
-| `Widgets` | `widgets` | `*[]Widget` | **gap-deferred** | yes | Dashboard widget configuration. Widgets are a complex nested structure. Deferred to a future WI (`betterado_dashboard_widget` or an embedded block) due to the significant schema complexity and the high risk of breaking idempotency with server-side widget ordering. |
+| `Widgets` | `widgets` | `*[]Widget` | **gap-deferred** | yes | Dashboard widget configuration. Widgets are a complex nested structure. Deferred to a future WI (`betterado_dashboard_widget` or an embedded block) due to the significant schema complexity and the high risk of breaking idempotency with server-side widget ordering. — re-evaluation: `complexity-then` |
 
 ---
 

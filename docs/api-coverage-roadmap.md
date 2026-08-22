@@ -1,11 +1,11 @@
 # betterado — API-coverage roadmap (north star + first initiative)
 
-> **Status: parked plan.** Written 2026-05-31 from the forge onboarding session.
-> Pick this up **after** the forge-hardening refinement (forge `docs/known-gaps.md`
-> §2026-05-31 — PM faithfulness, gate auto-derivation, PR hygiene, unifier cost),
-> then convert the Release initiative below into a forge manifest and run it
-> roadmap-scale. This is intentionally ONE initiative detailed as the template,
-> not the whole roadmap.
+> **Status: active — gap registry initialized 2026-08-23.**
+> INIT-2026-08-14-betterado-gap-registry completed the 31-area gap matrix and priority
+> backlog (docs/gap-registry.md). The Release initiative substrate (FEAT-1/2/4) shipped;
+> FEAT-3 (environment template) remains not-started. The forge-hardening refinement
+> concerns flagged in 2026-05-31 have been resolved. Next: execute priority backlog
+> items from docs/gap-registry.md ## Priority backlog (Tier 1 → Tier 2 → Tier 3).
 
 ## North star
 
