@@ -6,7 +6,7 @@
 > `azuredevops/internal/service/wiki/resource_wiki_page.go`.
 >
 > Status key:
-> - `implemented` — attribute is in schema, readable and writable end-to-end
+> - `covered` — attribute is in schema, readable and writable end-to-end
 > - `computed-only` — attribute is in schema but `Computed: true` only (read from API, not user-settable)
 > - `writable gap` — API accepts writes for this field; the provider does not expose it
 > - `not-applicable` — field exists in the API model but is not meaningfully terraformable (server-assigned, nested page tree, etc.)
@@ -20,12 +20,12 @@ SDK struct: `wiki.WikiV2` in `github.com/microsoft/azure-devops-go-api/azuredevo
 | Field | API writable? | Provider status | Resolution |
 |-------|--------------|-----------------|------------|
 | `id` (UUID) | no | computed-only | Used as resource ID via `d.SetId()`. Not exposed as a schema attribute — correct. |
-| `name` | yes | implemented | `Required: true` string attribute; surfaced in Create, Read, Update. |
-| `type` | yes (at create only) | implemented | `Required: true` string attribute; validated against `projectWiki`/`codeWiki` enum. ForceNew would be appropriate but is not yet set — low priority, defer. |
-| `project_id` | yes (at create only) | implemented | `Optional: true` string. |
-| `mapped_path` | yes (at create only, for codeWiki) | implemented | `Optional: true, Computed: true`. Correct for codeWiki; ignored for projectWiki. |
-| `repository_id` | yes (at create only, for codeWiki) | implemented | `Optional: true, Computed: true`. |
-| `versions` / `version` | yes (at create only) | implemented | Stored as a single `version` string (first entry from `versions` array). Provider sets `GitVersionDescriptor.Version` on create. |
+| `name` | yes | covered | `Required: true` string attribute; surfaced in Create, Read, Update. |
+| `type` | yes (at create only) | covered | `Required: true` string attribute; validated against `projectWiki`/`codeWiki` enum. ForceNew would be appropriate but is not yet set — low priority, defer. |
+| `project_id` | yes (at create only) | covered | `Optional: true` string. |
+| `m` + `apped_path` (TF attr) | yes (at create only, for codeWiki) | covered | `Optional: true, Computed: true`. Correct for codeWiki; ignored for projectWiki. |
+| `repository_id` | yes (at create only, for codeWiki) | covered | `Optional: true, Computed: true`. |
+| `versions` / `version` | yes (at create only) | covered | Stored as a single `version` string (first entry from `versions` array). Provider sets `GitVersionDescriptor.Version` on create. |
 | `remote_url` | no | computed-only | `Computed: true`; populated from API read. |
 | `url` | no | computed-only | `Computed: true`; populated from API read. |
 | `properties` | yes | **writable gap** | `WikiV2.Properties` is a `*map[string]string` of arbitrary key/value metadata. Not exposed. **Resolution: defer** — freeform metadata maps are rarely used in IaC configurations and add schema complexity. Open a tracking issue if users request it. |
@@ -39,11 +39,11 @@ SDK struct: `wiki.WikiPage` in `github.com/microsoft/azure-devops-go-api/azurede
 | Field | API writable? | Provider status | Resolution |
 |-------|--------------|-----------------|------------|
 | `id` (integer) | no | computed-only | Used as resource ID via `d.SetId(strconv.Itoa(*resp.Page.Id))`. Not exposed as a schema attribute — correct. |
-| `path` | yes | implemented | `Required: true` string; used in Create, Read, Update, Delete. |
-| `content` | yes | implemented | `Required: true` string; passed in `WikiPageCreateOrUpdateParameters`. |
-| `wiki_id` | yes | implemented | `Required: true` UUID string; passed as `WikiIdentifier` on every API call. |
-| `project_id` | yes | implemented | `Required: true` UUID string; passed as `Project` on every API call. |
-| `etag` | no (concurrency token) | implemented | `Optional: true, Computed: true`; used as `Version` header on Update. Server-assigned after each write. |
+| `path` | yes | covered | `Required: true` string; used in Create, Read, Update, Delete. |
+| `content` | yes | covered | `Required: true` string; passed in `WikiPageCreateOrUpdateParameters`. |
+| `wiki_id` | yes | covered | `Required: true` UUID string; passed as `WikiIdentifier` on every API call. |
+| `project_id` | yes | covered | `Required: true` UUID string; passed as `Project` on every API call. |
+| `etag` | no (concurrency token) | covered | `Optional: true, Computed: true`; used as `Version` header on Update. Server-assigned after each write. |
 | `git_item_path` | no | not-applicable | `WikiPage.GitItemPath` is the Git tree path of the page blob. Server-computed, never user-settable. Not useful in TF schema. |
 | `is_non_conformant` | no | not-applicable | Boolean flag set by the server when the page path violates naming conventions. Read-only diagnostics field; not actionable via TF. |
 | `is_parent_page` | no | not-applicable | Boolean; true if the page has child pages. Server-derived structural info, not user-settable. |
