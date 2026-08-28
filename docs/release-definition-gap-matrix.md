@@ -13,33 +13,33 @@
 
 | Field path | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `id` | `*int` | mapped | No | Computed; set as resource ID via `d.SetId()` |
-| `name` | `*string` | mapped | Yes | Required |
-| `path` | `*string` | mapped | Yes | Optional, default `\` |
-| `description` | `*string` | mapped | Yes | Optional |
-| `releaseNameFormat` | `*string` | mapped | Yes | Optional, default `Release-$(rev:r)` |
-| `revision` | `*int` | mapped | No | Computed; used for optimistic-concurrency on update |
-| `artifacts` | `*[]Artifact` | mapped | Yes | Optional list block — see §1.4 |
-| `environments` | `*[]ReleaseDefinitionEnvironment` | mapped | Yes | Required list block — see §1.2 |
-| `variables` | `*map[string]ConfigurationVariableValue` | mapped | Yes | Optional set block |
-| `variableGroups` | `*[]int` | mapped | Yes | Optional list of int |
-| `tags` | `*[]string` | partial | Yes | Optional+Computed; NOTE: ADO silently ignores tags on write (always returns `[]`), so the field is Computed to avoid perpetual diff |
-| `triggers` | `*[]interface{}` | mapped | Yes | Optional list block with `cd_artifact_trigger` and `schedule_trigger` sub-blocks — see §1.5 |
-| `_links` | `interface{}` | missing | No | Read-only REST nav links; out of scope |
-| `projectReference` | `*ProjectReference` | missing | No | Read-only; the project is tracked as `project_id` string, not the nested struct |
-| `url` | `*string` | missing | No | Read-only REST URL; out of scope |
-| `comment` | `*string` | missing | Yes | Optional per-save comment; deferred (rarely used via TF) |
-| `createdBy` | `*webapi.IdentityRef` | missing | No | Read-only computed metadata |
-| `createdOn` | `*azuredevops.Time` | missing | No | Read-only computed metadata |
-| `isDeleted` | `*bool` | missing | No | Read-only; soft-delete state |
-| `lastRelease` | `*ReleaseReference` | missing | No | Read-only reference to last release |
-| `modifiedBy` | `*webapi.IdentityRef` | missing | No | Read-only computed metadata |
-| `modifiedOn` | `*azuredevops.Time` | missing | No | Read-only computed metadata |
-| `properties` | `interface{}` | missing | No | Opaque bag; typically empty |
-| `retentionPolicy` | `*RetentionPolicy` | missing | No | **Deprecated** in ADO SDK (use env-level retention); out of scope |
-| `source` | `*ReleaseDefinitionSource` | missing | No | Read-only enum (ibiza, restApi, etc.) |
+| `id` | `*int` | covered | No | Computed; set as resource ID via `d.SetId()` |
+| `name` | `*string` | covered | Yes | Required |
+| `path` | `*string` | covered | Yes | Optional, default `\` |
+| `description` | `*string` | covered | Yes | Optional |
+| `releaseNameFormat` | `*string` | covered | Yes | Optional, default `Release-$(rev:r)` |
+| `revision` | `*int` | covered | No | Computed; used for optimistic-concurrency on update |
+| `artifacts` | `*[]Artifact` | covered | Yes | Optional list block — see §1.4 |
+| `environments` | `*[]ReleaseDefinitionEnvironment` | covered | Yes | Required list block — see §1.2 |
+| `variables` | `*map[string]ConfigurationVariableValue` | covered | Yes | Optional set block |
+| `variableGroups` | `*[]int` | covered | Yes | Optional list of int |
+| `tags` | `*[]string` | gap-open | Yes | Optional+Computed; NOTE: ADO silently ignores tags on write (always returns `[]`), so the field is Computed to avoid perpetual diff |
+| `triggers` | `*[]interface{}` | covered | Yes | Optional list block with `cd_artifact_trigger` and `schedule_trigger` sub-blocks — see §1.5 |
+| `_links` | `interface{}` | out-of-scope | No | Read-only REST nav links; out of scope |
+| `projectReference` | `*ProjectReference` | out-of-scope | No | Read-only; the project is tracked as `project_id` string, not the nested struct |
+| `url` | `*string` | out-of-scope | No | Read-only REST URL; out of scope |
+| `comment` | `*string` | gap-deferred | Yes | Optional per-save comment; deferred (rarely used via TF) — re-evaluation: `complexity-then` |
+| `createdBy` | `*webapi.IdentityRef` | out-of-scope | No | Read-only computed metadata |
+| `createdOn` | `*azuredevops.Time` | out-of-scope | No | Read-only computed metadata |
+| `isDeleted` | `*bool` | out-of-scope | No | Read-only; soft-delete state |
+| `lastRelease` | `*ReleaseReference` | out-of-scope | No | Read-only reference to last release |
+| `modifiedBy` | `*webapi.IdentityRef` | out-of-scope | No | Read-only computed metadata |
+| `modifiedOn` | `*azuredevops.Time` | out-of-scope | No | Read-only computed metadata |
+| `properties` | `interface{}` | out-of-scope | No | Opaque bag; typically empty |
+| `retentionPolicy` | `*RetentionPolicy` | out-of-scope | No | **Deprecated** in ADO SDK (use env-level retention); out of scope |
+| `source` | `*ReleaseDefinitionSource` | out-of-scope | No | Read-only enum (ibiza, restApi, etc.) |
 
-**Summary — ReleaseDefinition top-level:** 9 mapped / 1 partial / 12 missing (all missing are read-only or deprecated)
+**Summary — ReleaseDefinition top-level:** 9 covered / 1 gap-open / 12 out-of-scope (all absent are read-only or deprecated)
 
 ---
 
@@ -47,33 +47,33 @@
 
 | Field path | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `environment[].id` | `*int` | mapped | No | Computed |
-| `environment[].name` | `*string` | mapped | Yes | Required |
-| `environment[].rank` | `*int` | mapped | Yes | Required |
-| `environment[].owner` | `*webapi.IdentityRef` | mapped | Yes | Optional+Computed (resolved by ADO); only `.Id` is used |
-| `environment[].conditions` | `*[]Condition` | mapped | Yes | Optional+Computed list block |
-| `environment[].preDeployApprovals` | `*ReleaseDefinitionApprovals` | mapped | Yes | Optional+Computed — see §1.3 |
-| `environment[].postDeployApprovals` | `*ReleaseDefinitionApprovals` | mapped | Yes | Optional+Computed — see §1.3 |
-| `environment[].deployPhases` | `*[]interface{}` | mapped | Yes | Required list block — see §1.6 |
-| `environment[].retentionPolicy` | `*EnvironmentRetentionPolicy` | mapped | Yes | Optional+Computed — see §1.7 |
-| `environment[].environmentOptions` | `*EnvironmentOptions` | mapped | Yes | Optional+Computed — see §1.8 |
-| `environment[].executionPolicy` | `*EnvironmentExecutionPolicy` | mapped | Yes | Optional+Computed — see §1.9 |
-| `environment[].preDeploymentGates` | `*ReleaseDefinitionGatesStep` | mapped | Yes | Optional — see §1.10 |
-| `environment[].postDeploymentGates` | `*ReleaseDefinitionGatesStep` | mapped | Yes | Optional — see §1.10 |
-| `environment[].variables` | `*map[string]ConfigurationVariableValue` | mapped | Yes | Optional set block |
-| `environment[].variableGroups` | `*[]int` | mapped | Yes | Optional list of int |
-| `environment[].badgeUrl` | `*string` | missing | No | Read-only URL computed by ADO |
-| `environment[].currentRelease` | `*ReleaseShallowReference` | missing | No | Read-only reference |
-| `environment[].demands` | `*[]interface{}` | missing | No | Env-level demands (separate from phase-level); rarely used |
-| `environment[].deployStep` | `*ReleaseDefinitionDeployStep` | missing | No | Read-only internal gate step ID |
-| `environment[].environmentTriggers` | `*[]EnvironmentTrigger` | **mapped** | Yes | `environment_trigger` block — implemented in INIT-2026-06-17 (WI-3) |
-| `environment[].processParameters` | `*ProcessParameters` | missing | No | Internal pipeline parameters; rarely exposed via TF |
-| `environment[].properties` | `interface{}` | **mapped** | Yes | `stages[].properties` map — implemented in INIT-2026-06-17 (WI-3) |
-| `environment[].queueId` | `*int` | missing | No | Top-level legacy queue; superseded by `deploymentInput.queueId` inside a phase |
-| `environment[].runOptions` | `*map[string]string` | missing | No | **Deprecated** in ADO SDK; use EnvironmentOptions |
-| `environment[].schedules` | `*[]ReleaseSchedule` | **mapped** | Yes | `stages[].schedule` block — implemented in INIT-2026-06-17 (WI-3) |
+| `environment[].id` | `*int` | covered | No | Computed |
+| `environment[].name` | `*string` | covered | Yes | Required |
+| `environment[].rank` | `*int` | covered | Yes | Required |
+| `environment[].owner` | `*webapi.IdentityRef` | covered | Yes | Optional+Computed (resolved by ADO); only `.Id` is used |
+| `environment[].conditions` | `*[]Condition` | covered | Yes | Optional+Computed list block |
+| `environment[].preDeployApprovals` | `*ReleaseDefinitionApprovals` | covered | Yes | Optional+Computed — see §1.3 |
+| `environment[].postDeployApprovals` | `*ReleaseDefinitionApprovals` | covered | Yes | Optional+Computed — see §1.3 |
+| `environment[].deployPhases` | `*[]interface{}` | covered | Yes | Required list block — see §1.6 |
+| `environment[].retentionPolicy` | `*EnvironmentRetentionPolicy` | covered | Yes | Optional+Computed — see §1.7 |
+| `environment[].environmentOptions` | `*EnvironmentOptions` | covered | Yes | Optional+Computed — see §1.8 |
+| `environment[].executionPolicy` | `*EnvironmentExecutionPolicy` | covered | Yes | Optional+Computed — see §1.9 |
+| `environment[].preDeploymentGates` | `*ReleaseDefinitionGatesStep` | covered | Yes | Optional — see §1.10 |
+| `environment[].postDeploymentGates` | `*ReleaseDefinitionGatesStep` | covered | Yes | Optional — see §1.10 |
+| `environment[].variables` | `*map[string]ConfigurationVariableValue` | covered | Yes | Optional set block |
+| `environment[].variableGroups` | `*[]int` | covered | Yes | Optional list of int |
+| `environment[].badgeUrl` | `*string` | out-of-scope | No | Read-only URL computed by ADO |
+| `environment[].currentRelease` | `*ReleaseShallowReference` | out-of-scope | No | Read-only reference |
+| `environment[].demands` | `*[]interface{}` | out-of-scope | No | Env-level demands (separate from phase-level); rarely used |
+| `environment[].deployStep` | `*ReleaseDefinitionDeployStep` | out-of-scope | No | Read-only internal gate step ID |
+| `environment[].environmentTriggers` | `*[]EnvironmentTrigger` | **covered** | Yes | `environment_trigger` block — added in INIT-2026-06-17 (WI-3) |
+| `environment[].processParameters` | `*ProcessParameters` | out-of-scope | No | Internal pipeline parameters; rarely exposed via TF |
+| `environment[].properties` | `interface{}` | **covered** | Yes | `stages[].properties` map — added in INIT-2026-06-17 (WI-3) |
+| `environment[].queueId` | `*int` | out-of-scope | No | Top-level legacy queue; superseded by `deploymentInput.queueId` inside a phase |
+| `environment[].runOptions` | `*map[string]string` | out-of-scope | No | **Deprecated** in ADO SDK; use EnvironmentOptions |
+| `environment[].schedules` | `*[]ReleaseSchedule` | **covered** | Yes | `stages[].schedule` block — added in INIT-2026-06-17 (WI-3) |
 
-**Summary — Environment:** 18 mapped / 0 partial / 7 missing
+**Summary — Environment:** 18 covered / 0 gap-open / 7 out-of-scope
 
 ---
 
@@ -81,19 +81,19 @@
 
 | Field path | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `pre/post_deploy_approval[].approver[].id` | `*webapi.IdentityRef.Id` | mapped | Yes | Approver identity UUID |
-| `pre/post_deploy_approval[].approver[].isAutomated` | `*bool` | mapped | Yes | |
-| `pre/post_deploy_approval[].approver[].rank` | `*int` | mapped | Yes | |
-| `pre/post_deploy_approval[].approver[].isNotificationOn` | `*bool` | missing | No | Read-only computed field |
-| `pre/post_deploy_approval[].approver[].id (step id)` | `*int` | missing | No | Internal step ID (different from approver UUID); read-only |
-| `pre/post_deploy_approval[].approval_options.requiredApproverCount` | `*int` | mapped | Yes | `required_approver_count` |
-| `pre/post_deploy_approval[].approval_options.releaseCreatorCanBeApprover` | `*bool` | mapped | Yes | |
-| `pre/post_deploy_approval[].approval_options.enforceIdentityRevalidation` | `*bool` | mapped | Yes | |
-| `pre/post_deploy_approval[].approval_options.timeoutInMinutes` | `*int` | mapped | Yes | |
-| `pre/post_deploy_approval[].approval_options.executionOrder` | `*ApprovalExecutionOrder` | mapped | Yes | `beforeGates` / `afterSuccessfulGates` / `afterGatesAlways` |
-| `pre/post_deploy_approval[].approval_options.autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped` | `*bool` | mapped | Yes | Long field name preserved |
+| `pre/post_deploy_approval[].approver[].id` | `*webapi.IdentityRef.Id` | covered | Yes | Approver identity UUID |
+| `pre/post_deploy_approval[].approver[].isAutomated` | `*bool` | covered | Yes | |
+| `pre/post_deploy_approval[].approver[].rank` | `*int` | covered | Yes | |
+| `pre/post_deploy_approval[].approver[].isNotificationOn` | `*bool` | out-of-scope | No | Read-only computed field |
+| `pre/post_deploy_approval[].approver[].id (step id)` | `*int` | out-of-scope | No | Internal step ID (different from approver UUID); read-only |
+| `pre/post_deploy_approval[].approval_options.requiredApproverCount` | `*int` | covered | Yes | `required_approver_count` |
+| `pre/post_deploy_approval[].approval_options.releaseCreatorCanBeApprover` | `*bool` | covered | Yes | |
+| `pre/post_deploy_approval[].approval_options.enforceIdentityRevalidation` | `*bool` | covered | Yes | |
+| `pre/post_deploy_approval[].approval_options.timeoutInMinutes` | `*int` | covered | Yes | |
+| `pre/post_deploy_approval[].approval_options.executionOrder` | `*ApprovalExecutionOrder` | covered | Yes | `beforeGates` / `afterSuccessfulGates` / `afterGatesAlways` |
+| `pre/post_deploy_approval[].approval_options.autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped` | `*bool` | covered | Yes | Long field name preserved |
 
-**Summary — Approvals:** 9 mapped / 0 partial / 2 missing (both read-only)
+**Summary — Approvals:** 9 covered / 0 gap-open / 2 out-of-scope (both read-only)
 
 ---
 
@@ -101,14 +101,14 @@
 
 | Field path | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `artifact[].alias` | `*string` | mapped | Yes | Required |
-| `artifact[].type` | `*string` | mapped | Yes | Required; validated against allowed type list |
-| `artifact[].isPrimary` | `*bool` | mapped | Yes | Optional |
-| `artifact[].definitionReference` | `*map[string]ArtifactSourceReference` | mapped | Yes | TypeMap; API-computed keys filtered on read |
-| `artifact[].isRetained` | `*bool` | missing | No | Read-only; set by release runtime |
-| `artifact[].sourceId` | `*string` | missing | No | **Deprecated** in ADO SDK; use alias |
+| `artifact[].alias` | `*string` | covered | Yes | Required |
+| `artifact[].type` | `*string` | covered | Yes | Required; validated against allowed type list |
+| `artifact[].isPrimary` | `*bool` | covered | Yes | Optional |
+| `artifact[].definitionReference` | `*map[string]ArtifactSourceReference` | covered | Yes | TypeMap; API-computed keys filtered on read |
+| `artifact[].isRetained` | `*bool` | out-of-scope | No | Read-only; set by release runtime |
+| `artifact[].sourceId` | `*string` | out-of-scope | No | **Deprecated** in ADO SDK; use alias |
 
-**Summary — Artifact:** 4 mapped / 0 partial / 2 missing (both read-only or deprecated)
+**Summary — Artifact:** 4 covered / 0 gap-open / 2 out-of-scope (both read-only or deprecated)
 
 ---
 
@@ -116,24 +116,24 @@
 
 | Field path | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `triggers[artifactSource].triggerType` | string enum | mapped | Yes | Implicit; always `"artifactSource"` for `cd_artifact_trigger` |
-| `triggers[artifactSource].artifactAlias` | `string` | mapped | Yes | `artifact_alias` |
-| `triggers[artifactSource].triggerConditions[].sourceBranch` | `string` | mapped | Yes | `branch_filter.include[]` |
-| `triggers[artifactSource].triggerConditions[].tags` | `*[]string` | **mapped** | Yes | `tag_filter[].tags` — implemented in INIT-2026-06-17 (WI-4) |
-| `triggers[artifactSource].triggerConditions[].createReleaseOnBuildTagging` | `*bool` | **mapped** | Yes | `cd_artifact_trigger.create_release_on_build_tagging` — implemented in INIT-2026-06-17 (WI-4) |
-| `triggers[artifactSource].use_build_definition_branch` | `*bool` | **mapped** | Yes | `cd_artifact_trigger.use_build_definition_branch` — implemented in INIT-2026-06-17 (WI-4) |
-| `triggers[sourceRepo]` | `SourceRepoTrigger` | **mapped** | Yes | `source_repo_trigger` block — implemented in INIT-2026-06-17 (WI-4) |
-| `triggers[schedule].triggerType` | string enum | mapped | Yes | Implicit; `"schedule"` for `schedule_trigger` |
-| `triggers[schedule].schedule.scheduleOnlyWithChanges` | `bool` | mapped | Yes | |
-| `triggers[schedule].schedule.startHours` | `int` | mapped | Yes | |
-| `triggers[schedule].schedule.startMinutes` | `int` | mapped | Yes | |
-| `triggers[schedule].schedule.timeZoneId` | `string` | mapped | Yes | |
-| `triggers[schedule].schedule.daysToRelease` | `int` | mapped | Yes | Bitmask 0–127 |
-| `triggers[schedule].branchFilters` | `[]string` | missing | No | ADO does not return branchFilters for schedule triggers in GET response; intentionally excluded to prevent perpetual diff |
-| `triggers[containerImageTrigger]` | `ContainerImageTrigger` | **mapped** | Yes | `container_image_trigger` block — implemented in INIT-2026-06-17 (WI-4); acceptance-tested in WI-5 |
-| `triggers[pullRequestTrigger]` | (not in SDK) | missing | Yes | PR deployment trigger; **Out of scope** (no SDK type) |
+| `triggers[artifactSource].triggerType` | string enum | covered | Yes | Implicit; always `"artifactSource"` for `cd_artifact_trigger` |
+| `triggers[artifactSource].artifactAlias` | `string` | covered | Yes | `artifact_alias` |
+| `triggers[artifactSource].triggerConditions[].sourceBranch` | `string` | covered | Yes | `branch_filter.include[]` |
+| `triggers[artifactSource].triggerConditions[].tags` | `*[]string` | **covered** | Yes | `tag_filter[].tags` — added in INIT-2026-06-17 (WI-4) |
+| `triggers[artifactSource].triggerConditions[].createReleaseOnBuildTagging` | `*bool` | **covered** | Yes | `cd_artifact_trigger.create_release_on_build_tagging` — added in INIT-2026-06-17 (WI-4) |
+| `triggers[artifactSource].use_build_definition_branch` | `*bool` | **covered** | Yes | `cd_artifact_trigger.use_build_definition_branch` — added in INIT-2026-06-17 (WI-4) |
+| `triggers[sourceRepo]` | `SourceRepoTrigger` | **covered** | Yes | `source_repo_trigger` block — added in INIT-2026-06-17 (WI-4) |
+| `triggers[schedule].triggerType` | string enum | covered | Yes | Implicit; `"schedule"` for `schedule_trigger` |
+| `triggers[schedule].schedule.scheduleOnlyWithChanges` | `bool` | covered | Yes | |
+| `triggers[schedule].schedule.startHours` | `int` | covered | Yes | |
+| `triggers[schedule].schedule.startMinutes` | `int` | covered | Yes | |
+| `triggers[schedule].schedule.timeZoneId` | `string` | covered | Yes | |
+| `triggers[schedule].schedule.daysToRelease` | `int` | covered | Yes | Bitmask 0–127 |
+| `triggers[schedule].branchFilters` | `[]string` | out-of-scope | No | ADO does not return branchFilters for schedule triggers in GET response; intentionally excluded to prevent perpetual diff |
+| `triggers[containerImageTrigger]` | `ContainerImageTrigger` | **covered** | Yes | `container_image_trigger` block — added in INIT-2026-06-17 (WI-4); acceptance-tested in WI-5 |
+| `triggers[pullRequestTrigger]` | (not in SDK) | gap-deferred | Yes | PR deployment trigger; **Out of scope** (no SDK type) — re-evaluation: `non-declarative-forever` |
 
-**Summary — Triggers:** 13 mapped / 0 partial / 2 missing
+**Summary — Triggers:** 13 covered / 0 gap-open / 2 out-of-scope
 
 ---
 
@@ -141,47 +141,47 @@
 
 | Field path | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `deploy_phase[].name` | `*string` | mapped | Yes | |
-| `deploy_phase[].rank` | `*int` | mapped | Yes | |
-| `deploy_phase[].phaseType` | `*DeployPhaseTypes` | mapped | Yes | `agentBasedDeployment` / `runOnServer` / `machineGroupBasedDeployment` |
-| `deploy_phase[].refName` | `*string` | missing | No | Internal reference name; read-only |
-| `deploy_phase[].workflowTasks` | `*[]WorkflowTask` | mapped | Yes | `workflow_task[]` sub-block — see §1.6.1 |
-| `deploy_phase[].deploymentInput.condition` | `*string` | mapped | Yes | |
-| `deploy_phase[].deploymentInput.jobCancelTimeoutInMinutes` | `*int` | mapped | Yes | |
-| `deploy_phase[].deploymentInput.timeoutInMinutes` | `*int` | mapped | Yes | |
-| `deploy_phase[].deploymentInput.queueId` | `*int` | mapped | Yes | Not sent for `runOnServer` phases |
-| `deploy_phase[].deploymentInput.enableAccessToken` | `*bool` | mapped | Yes | |
-| `deploy_phase[].deploymentInput.skipArtifactsDownload` | `*bool` | mapped | Yes | |
-| `deploy_phase[].deploymentInput.agentSpecification.identifier` | `*string` | mapped | Yes | `agent_specification` — e.g. `"ubuntu-latest"` |
-| `deploy_phase[].deploymentInput.demands` | `*[]interface{}` | mapped | Yes | Flattened as `[]string` |
-| `deploy_phase[].deploymentInput.parallelExecution.type` | string | mapped | Yes | `none` / `multiConfiguration` / `multiMachine` |
-| `deploy_phase[].deploymentInput.parallelExecution.maxNumberOfAgents` | `int` | mapped | Yes | |
-| `deploy_phase[].deploymentInput.parallelExecution.multipliers` | `*string` (comma-joined) | mapped | Yes | Stored as list in TF; joined to comma string for API |
-| `deploy_phase[].deploymentInput.parallelExecution.continueOnError` | `bool` | mapped | Yes | |
-| `deploy_phase[].deploymentInput.overrideInputs` | `*map[string]string` | **mapped** | Yes | `deployment_input.override_inputs` — implemented in INIT-2026-06-17 (WI-3) |
-| `deploy_phase[].deploymentInput.artifactsDownloadInput` | `*ArtifactsDownloadInput` | missing | No | Fine-grained per-artifact download control; **Defer** |
-| `deploy_phase[].deploymentInput.imageId` | `*int` | missing | No | Legacy image ID; rarely used |
+| `deploy_phase[].name` | `*string` | covered | Yes | |
+| `deploy_phase[].rank` | `*int` | covered | Yes | |
+| `deploy_phase[].phaseType` | `*DeployPhaseTypes` | covered | Yes | `agentBasedDeployment` / `runOnServer` / `machineGroupBasedDeployment` |
+| `deploy_phase[].refName` | `*string` | out-of-scope | No | Internal reference name; read-only |
+| `deploy_phase[].workflowTasks` | `*[]WorkflowTask` | covered | Yes | `workflow_task[]` sub-block — see §1.6.1 |
+| `deploy_phase[].deploymentInput.condition` | `*string` | covered | Yes | |
+| `deploy_phase[].deploymentInput.jobCancelTimeoutInMinutes` | `*int` | covered | Yes | |
+| `deploy_phase[].deploymentInput.timeoutInMinutes` | `*int` | covered | Yes | |
+| `deploy_phase[].deploymentInput.queueId` | `*int` | covered | Yes | Not sent for `runOnServer` phases |
+| `deploy_phase[].deploymentInput.enableAccessToken` | `*bool` | covered | Yes | |
+| `deploy_phase[].deploymentInput.skipArtifactsDownload` | `*bool` | covered | Yes | |
+| `deploy_phase[].deploymentInput.agentSpecification.identifier` | `*string` | covered | Yes | `agent_specification` — e.g. `"ubuntu-latest"` |
+| `deploy_phase[].deploymentInput.demands` | `*[]interface{}` | covered | Yes | Flattened as `[]string` |
+| `deploy_phase[].deploymentInput.parallelExecution.type` | string | covered | Yes | `none` / `multiConfiguration` / `multiMachine` |
+| `deploy_phase[].deploymentInput.parallelExecution.maxNumberOfAgents` | `int` | covered | Yes | |
+| `deploy_phase[].deploymentInput.parallelExecution.multipliers` | `*string` (comma-joined) | covered | Yes | Stored as list in TF; joined to comma string for API |
+| `deploy_phase[].deploymentInput.parallelExecution.continueOnError` | `bool` | covered | Yes | |
+| `deploy_phase[].deploymentInput.overrideInputs` | `*map[string]string` | **covered** | Yes | `deployment_input.override_inputs` — added in INIT-2026-06-17 (WI-3) |
+| `deploy_phase[].deploymentInput.artifactsDownloadInput` | `*ArtifactsDownloadInput` | out-of-scope | No | Fine-grained per-artifact download control; **Defer** |
+| `deploy_phase[].deploymentInput.imageId` | `*int` | out-of-scope | No | Legacy image ID; rarely used |
 
-**Summary — DeployPhase/DeploymentInput:** 16 mapped / 0 partial / 3 missing
+**Summary — DeployPhase/DeploymentInput:** 16 covered / 0 gap-open / 3 out-of-scope
 
 #### 1.6.1 WorkflowTask
 
 | Field path | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `workflow_task[].name` | `*string` | mapped | Yes | |
-| `workflow_task[].taskId` (UUID) | `*uuid.UUID` | mapped | Yes | `task_id` |
-| `workflow_task[].version` | `*string` | mapped | Yes | Version spec e.g. `"1.*"` |
-| `workflow_task[].enabled` | `*bool` | mapped | Yes | |
-| `workflow_task[].alwaysRun` | `*bool` | mapped | Yes | `always_run` |
-| `workflow_task[].continueOnError` | `*bool` | mapped | Yes | `continue_on_error` |
-| `workflow_task[].condition` | `*string` | mapped | Yes | |
-| `workflow_task[].definitionType` | `*string` | mapped | Yes | `definition_type` (`"task"` / `"metaTask"`) |
-| `workflow_task[].inputs` | `*map[string]string` | mapped | Yes | TypeMap |
-| `workflow_task[].timeoutInMinutes` | `*int` | **mapped** | Yes | `workflow_task.timeout_in_minutes` — implemented in INIT-2026-06-17 (WI-3) |
-| `workflow_task[].retryCountOnTaskFailure` | `*int` | **mapped** | Yes | `workflow_task.retry_count_on_task_failure` — implemented in INIT-2026-06-17 (WI-3) |
-| `workflow_task[].overrideInputs` | `*map[string]string` | missing | Yes | Override inputs at runtime; **Defer** |
+| `workflow_task[].name` | `*string` | covered | Yes | |
+| `workflow_task[].taskId` (UUID) | `*uuid.UUID` | covered | Yes | `task_id` |
+| `workflow_task[].version` | `*string` | covered | Yes | Version spec e.g. `"1.*"` |
+| `workflow_task[].enabled` | `*bool` | covered | Yes | |
+| `workflow_task[].alwaysRun` | `*bool` | covered | Yes | `always_run` |
+| `workflow_task[].continueOnError` | `*bool` | covered | Yes | `continue_on_error` |
+| `workflow_task[].condition` | `*string` | covered | Yes | |
+| `workflow_task[].definitionType` | `*string` | covered | Yes | `definition_type` (`"task"` / `"metaTask"`) |
+| `workflow_task[].inputs` | `*map[string]string` | covered | Yes | TypeMap |
+| `workflow_task[].timeoutInMinutes` | `*int` | **covered** | Yes | `workflow_task.timeout_in_minutes` — added in INIT-2026-06-17 (WI-3) |
+| `workflow_task[].retryCountOnTaskFailure` | `*int` | **covered** | Yes | `workflow_task.retry_count_on_task_failure` — added in INIT-2026-06-17 (WI-3) |
+| `workflow_task[].overrideInputs` | `*map[string]string` | gap-deferred | Yes | Override inputs at runtime; **Defer** — re-evaluation: `complexity-then` |
 
-**Summary — WorkflowTask:** 11 mapped / 0 partial / 1 missing
+**Summary — WorkflowTask:** 11 covered / 0 gap-open / 1 out-of-scope
 
 ---
 
@@ -189,11 +189,11 @@
 
 | Field path | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `retention_policy[].daysToKeep` | `*int` | mapped | Yes | Default 30 |
-| `retention_policy[].releasesToKeep` | `*int` | mapped | Yes | Default 3 |
-| `retention_policy[].retainBuild` | `*bool` | mapped | Yes | Default true |
+| `retention_policy[].daysToKeep` | `*int` | covered | Yes | Default 30 |
+| `retention_policy[].releasesToKeep` | `*int` | covered | Yes | Default 3 |
+| `retention_policy[].retainBuild` | `*bool` | covered | Yes | Default true |
 
-**Summary — EnvironmentRetentionPolicy:** 3 mapped / 0 partial / 0 missing ✅
+**Summary — EnvironmentRetentionPolicy:** 3 covered / 0 gap-open / 0 out-of-scope covered
 
 ---
 
@@ -201,17 +201,17 @@
 
 | Field path | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `environment_options[].emailNotificationType` | `*string` (**Deprecated**) | mapped | Yes | Still functional in API; default `OnlyOnFailure` |
-| `environment_options[].emailRecipients` | `*string` (**Deprecated**) | mapped | Yes | Optional+Computed; blank sends as nil (API uses default) |
-| `environment_options[].enableAccessToken` | `*bool` (**Deprecated**) | mapped | Yes | Deprecated; prefer `deploymentInput.enableAccessToken` |
-| `environment_options[].skipArtifactsDownload` | `*bool` (**Deprecated**) | mapped | Yes | Deprecated; prefer `deploymentInput.skipArtifactsDownload` |
-| `environment_options[].timeoutInMinutes` | `*int` (**Deprecated**) | mapped | Yes | Deprecated; prefer `deploymentInput.timeoutInMinutes` |
-| `environment_options[].publishDeploymentStatus` | `*bool` | mapped | Yes | |
-| `environment_options[].badgeEnabled` | `*bool` | mapped | Yes | |
-| `environment_options[].autoLinkWorkItems` | `*bool` | mapped | Yes | |
-| `environment_options[].pullRequestDeploymentEnabled` | `*bool` | mapped | Yes | |
+| `environment_options[].emailNotificationType` | `*string` (**Deprecated**) | covered | Yes | Still functional in API; default `OnlyOnFailure` |
+| `environment_options[].emailRecipients` | `*string` (**Deprecated**) | covered | Yes | Optional+Computed; blank sends as nil (API uses default) |
+| `environment_options[].enableAccessToken` | `*bool` (**Deprecated**) | covered | Yes | Deprecated; prefer `deploymentInput.enableAccessToken` |
+| `environment_options[].skipArtifactsDownload` | `*bool` (**Deprecated**) | covered | Yes | Deprecated; prefer `deploymentInput.skipArtifactsDownload` |
+| `environment_options[].timeoutInMinutes` | `*int` (**Deprecated**) | covered | Yes | Deprecated; prefer `deploymentInput.timeoutInMinutes` |
+| `environment_options[].publishDeploymentStatus` | `*bool` | covered | Yes | |
+| `environment_options[].badgeEnabled` | `*bool` | covered | Yes | |
+| `environment_options[].autoLinkWorkItems` | `*bool` | covered | Yes | |
+| `environment_options[].pullRequestDeploymentEnabled` | `*bool` | covered | Yes | |
 
-**Summary — EnvironmentOptions:** 9 mapped / 0 partial / 0 missing ✅ (all 5 deprecated fields intentionally kept — still functional in ADO API)
+**Summary — EnvironmentOptions:** 9 covered / 0 gap-open / 0 out-of-scope covered (all 5 deprecated fields intentionally kept — still functional in ADO API)
 
 ---
 
@@ -219,10 +219,10 @@
 
 | Field path | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `execution_policy[].concurrencyCount` | `*int` | mapped | Yes | Default 1 |
-| `execution_policy[].queueDepthCount` | `*int` | mapped | Yes | Default 0; validated `{0,1}` |
+| `execution_policy[].concurrencyCount` | `*int` | covered | Yes | Default 1 |
+| `execution_policy[].queueDepthCount` | `*int` | covered | Yes | Default 0; validated `{0,1}` |
 
-**Summary — EnvironmentExecutionPolicy:** 2 mapped / 0 partial / 0 missing ✅
+**Summary — EnvironmentExecutionPolicy:** 2 covered / 0 gap-open / 0 out-of-scope covered
 
 ---
 
@@ -230,15 +230,15 @@
 
 | Field path | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `pre/post_deployment_gates[].gates_options[].isEnabled` | `*bool` | mapped | Yes | |
-| `pre/post_deployment_gates[].gates_options[].timeout` | `*int` | mapped | Yes | |
-| `pre/post_deployment_gates[].gates_options[].samplingInterval` | `*int` | mapped | Yes | |
-| `pre/post_deployment_gates[].gates_options[].stabilizationTime` | `*int` | mapped | Yes | |
-| `pre/post_deployment_gates[].gates_options[].minimumSuccessDuration` | `*int` | mapped | Yes | |
-| `pre/post_deployment_gates[].gates[].tasks[]` (WorkflowTask) | `*[]WorkflowTask` | mapped | Yes | `gate[].task[]` reuses `workflowTaskSchema()` |
-| `pre/post_deployment_gates[].id` | `*int` | missing | No | Read-only step ID assigned by ADO |
+| `pre/post_deployment_gates[].gates_options[].isEnabled` | `*bool` | covered | Yes | |
+| `pre/post_deployment_gates[].gates_options[].timeout` | `*int` | covered | Yes | |
+| `pre/post_deployment_gates[].gates_options[].samplingInterval` | `*int` | covered | Yes | |
+| `pre/post_deployment_gates[].gates_options[].stabilizationTime` | `*int` | covered | Yes | |
+| `pre/post_deployment_gates[].gates_options[].minimumSuccessDuration` | `*int` | covered | Yes | |
+| `pre/post_deployment_gates[].gates[].tasks[]` (WorkflowTask) | `*[]WorkflowTask` | covered | Yes | `gate[].task[]` reuses `workflowTaskSchema()` |
+| `pre/post_deployment_gates[].id` | `*int` | out-of-scope | No | Read-only step ID assigned by ADO |
 
-**Summary — GatesStep:** 6 mapped / 0 partial / 1 missing (read-only)
+**Summary — GatesStep:** 6 covered / 0 gap-open / 1 out-of-scope (read-only)
 
 ---
 
@@ -246,11 +246,11 @@
 
 | Field path | ADO type | TF schema status | Writable? | Notes |
 |---|---|---|---|---|
-| `variable[].value` | `*string` | mapped | Yes | Empty string default; state-preserved for secrets |
-| `variable[].isSecret` | `*bool` | mapped | Yes | `is_secret`; ADO returns null for secret values |
-| `variable[].allowOverride` | `*bool` | mapped | Yes | `allow_override` |
+| `variable[].value` | `*string` | covered | Yes | Empty string default; state-preserved for secrets |
+| `variable[].isSecret` | `*bool` | covered | Yes | `is_secret`; ADO returns null for secret values |
+| `variable[].allowOverride` | `*bool` | covered | Yes | `allow_override` |
 
-**Summary — ConfigurationVariableValue:** 3 mapped / 0 partial / 0 missing ✅
+**Summary — ConfigurationVariableValue:** 3 covered / 0 gap-open / 0 out-of-scope covered
 
 ---
 
@@ -272,9 +272,9 @@
 | ConfigurationVariableValue | 3 | 0 | 0 |
 | **TOTAL** | **103** | **1** | **30** |
 
-> **103 mapped / 1 partial / 30 missing** across all types — refreshed by initiative INIT-2026-06-17.
-> Of the 30 missing fields: **29 are read-only / computed / deprecated** (zero action required).
-> **All 8 previously-writable gaps are now mapped:** `environmentTriggers`, `stages[].schedule`, `stages[].properties`, artifact trigger `tags`/`createReleaseOnBuildTagging`/`use_build_definition_branch`, `source_repo_trigger`, `workflowTask.timeoutInMinutes`, `workflowTask.retryCountOnTaskFailure`, `deploymentInput.overrideInputs`, `containerImageTrigger`.
+> **103 covered / 1 gap-open / 30 out-of-scope** across all types — refreshed by initiative INIT-2026-06-17.
+> Of the 30 out-of-scope fields: **29 are read-only / computed / deprecated** (zero action required).
+> **All 8 previously-writable gaps are now covered:** `environmentTriggers`, `stages[].schedule`, `stages[].properties`, artifact trigger `tags`/`createReleaseOnBuildTagging`/`use_build_definition_branch`, `source_repo_trigger`, `workflowTask.timeoutInMinutes`, `workflowTask.retryCountOnTaskFailure`, `deploymentInput.overrideInputs`, `containerImageTrigger`.
 > The one remaining writable-but-deferred gap is `workflow_task[].overrideInputs` (runtime override inputs; Defer).
 
 ### Read-only / Computed fields (explicit callout)
@@ -299,8 +299,8 @@ The SDK `Client` interface (vendor/…/release/client.go) exposes these read-rel
 
 | SDK method | Surfaced by data source? | Verdict |
 |---|---|---|
-| `GetReleaseDefinition` | ✅ Yes — `data_release_definition.go` (lookup by ID or name via `GetReleaseDefinitions`) | Surfaced |
-| `GetReleaseDefinitions` | ✅ Yes — `data_release_definitions.go` (list, optionally filtered by path/name) | Surfaced |
+| `GetReleaseDefinition` | covered — added — `data_release_definition.go` (lookup by ID or name via `GetReleaseDefinitions`) | Surfaced |
+| `GetReleaseDefinitions` | covered — added — `data_release_definitions.go` (list, optionally filtered by path/name) | Surfaced |
 | `GetDefinitionRevision` | ❌ No | **Recommend** — useful for auditing/diff against a specific historical snapshot |
 | `GetReleaseDefinitionHistory` | ❌ No | **Recommend** — surfaces revision log (who changed what, when) |
 | `GetRelease` | ❌ No | Defer — release instances are a separate domain |
@@ -366,7 +366,7 @@ The following schema attributes have **no dedicated acceptance-test assertion**:
 
 Per **2026-05-31-forge-onboarding-findings**:
 
-- **`retention_policy` is missing** from tests — the schema field exists and is wired, but no acceptance test asserts the round-trip. The provider code path (`expandRetentionPolicy` / `flattenRetentionPolicy`) appears correct but is unvalidated end-to-end.
+- **`retention_policy` is absent** from tests — the schema field exists and is wired, but no acceptance test asserts the round-trip. The provider code path (`expandRetentionPolicy` / `flattenRetentionPolicy`) appears correct but is unvalidated end-to-end.
 - **`pre_deploy_approval` sub-test gap** — `TestAccReleaseDefinition_withApprovalOptions` tests the `approval_options` sub-block but does not wire a real approver identity, so `approver[]` is empty. The `approver.id` / `is_automated` / `rank` round-trip is untested.
 
 ### 3.4 Recommended New Test Cases

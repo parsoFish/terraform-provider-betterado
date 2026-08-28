@@ -39,16 +39,16 @@ The resource calls two ADO Security REST API endpoints:
 
 | TF field | API field / concept | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `namespace_id` | `SecurityNamespaceId` (UUID) | Yes | **mapped** | Required; `ForceNew`; used as key to both `SetAccessControlEntries` and `QueryAccessControlLists` |
-| `token` | `Token` in `AccessControlList` / `AccessControlEntry` | Yes | **mapped** | Required; `ForceNew`; the security token scoping the ACL |
-| `principal` | subject descriptor → resolved to `Descriptor` (`AccessControlEntry.Descriptor`) | Yes | **mapped** | Required; `ForceNew`; provider resolves via `ReadIdentities` to an identity descriptor |
-| `permissions` | `AccessControlEntry.Allow` + `AccessControlEntry.Deny` (bitmask) | Yes | **mapped** | Required TypeMap; valid values `allow`/`deny`/`notset`; permission names resolved via namespace action definitions |
-| `replace` | `merge` flag on `SetAccessControlEntries` (inverted: `merge = !replace`) | Yes | **mapped** | Optional; default `true`; controls whether unmanaged bits are preserved |
-| — | `AccessControlEntry.ExtendedInfo` (`effectiveAllow`, `effectiveDeny`, `inheritedAllow`, `inheritedDeny`) | No | **deferred** | Read-only inherited permission info; surfaced internally for wait-loop but not exposed as TF attributes |
-| — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Controls inheritance on the ACL token; not currently exposed; **Recommend** for future WI |
-| — | `AccessControlList.IncludeExtendedInfo` | No | missing (read flag) | Used as query parameter only; not a schema field |
+| `namespace_id` | `SecurityNamespaceId` (UUID) | Yes | **covered** | Required; `ForceNew`; used as key to both `SetAccessControlEntries` and `QueryAccessControlLists` |
+| `token` | `Token` in `AccessControlList` / `AccessControlEntry` | Yes | **covered** | Required; `ForceNew`; the security token scoping the ACL |
+| `principal` | subject descriptor → resolved to `Descriptor` (`AccessControlEntry.Descriptor`) | Yes | **covered** | Required; `ForceNew`; provider resolves via `ReadIdentities` to an identity descriptor |
+| `permissions` | `AccessControlEntry.Allow` + `AccessControlEntry.Deny` (bitmask) | Yes | **covered** | Required TypeMap; valid values `allow`/`deny`/`notset`; permission names resolved via namespace action definitions |
+| `replace` | `merge` flag on `SetAccessControlEntries` (inverted: `merge = !replace`) | Yes | **covered** | Optional; default `true`; controls whether unmanaged bits are preserved |
+| — | `AccessControlEntry.ExtendedInfo` (`effectiveAllow`, `effectiveDeny`, `inheritedAllow`, `inheritedDeny`) | No | **deferred** | Read-only inherited permission info; surfaced internally for wait-loop but not exposed as TF attributes — re-evaluation: `non-declarative-forever` |
+| — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Controls inheritance on the ACL token; not currently exposed; **Recommend** for future WI — re-evaluation: `complexity-then` |
+| — | `AccessControlList.IncludeExtendedInfo` | No | out-of-scope (read flag) | Used as query parameter only; not a schema field |
 
-**Summary — betterado_security_permissions:** 5 mapped / 0 partial / 1 deferred-writable (`InheritPermissions`) / 2 read-only/internal
+**Summary — betterado_security_permissions:** 5 covered / 0 gap-open / 1 gap-deferred (`InheritPermissions`) / 2 read-only/internal
 
 #### Writable gap detail
 
@@ -72,32 +72,32 @@ The resource calls two ADO Security REST API endpoints:
 
 | TF field | API field | Status | Notes |
 |---|---|---|---|
-| `name` (input) | `Name` | **mapped** | Lookup key; optional input (conflicts with `id`) |
-| `id` (input + computed) | `NamespaceId` (UUID) | **mapped** | Lookup key; optional input (conflicts with `name`); set as computed output |
-| `display_name` | `DisplayName` | **mapped** | Computed |
-| `actions[].name` | `Actions[].Name` | **mapped** | Computed |
-| `actions[].display_name` | `Actions[].DisplayName` | **mapped** | Computed |
-| `actions[].bit` | `Actions[].Bit` | **mapped** | Computed |
-| — | `DataspaceCategory` | missing | Read-only metadata; low value for TF consumers |
-| — | `ElementLength` | missing | Read-only internal separator config |
-| — | `ExtensionType` | missing | Read-only; plugin extension type string |
-| — | `IsRemotable` | missing | Read-only boolean; low value for TF consumers |
-| — | `ReadPermission` | missing | Read-only bitmask; low value for TF consumers |
-| — | `SeparatorValue` | missing | Read-only internal config |
-| — | `StructureValue` | missing | Read-only internal config |
-| — | `SystemBitMask` | missing | Read-only internal config |
-| — | `UseTokenTranslator` | missing | Read-only internal config |
-| — | `WritePermission` | missing | Read-only bitmask; low value for TF consumers |
-| — | `Actions[].NamespaceId` | missing | Read-only backlink; redundant (already in parent) |
+| `name` (input) | `Name` | **covered** | Lookup key; optional input (conflicts with `id`) |
+| `id` (input + computed) | `NamespaceId` (UUID) | **covered** | Lookup key; optional input (conflicts with `name`); set as computed output |
+| `display_name` | `DisplayName` | **covered** | Computed |
+| `actions[].name` | `Actions[].Name` | **covered** | Computed |
+| `actions[].display_name` | `Actions[].DisplayName` | **covered** | Computed |
+| `actions[].bit` | `Actions[].Bit` | **covered** | Computed |
+| — | `DataspaceCategory` | out-of-scope | Read-only metadata; low value for TF consumers |
+| — | `ElementLength` | out-of-scope | Read-only internal separator config |
+| — | `ExtensionType` | out-of-scope | Read-only; plugin extension type string |
+| — | `IsRemotable` | out-of-scope | Read-only boolean; low value for TF consumers |
+| — | `ReadPermission` | out-of-scope | Read-only bitmask; low value for TF consumers |
+| — | `SeparatorValue` | out-of-scope | Read-only internal config |
+| — | `StructureValue` | out-of-scope | Read-only internal config |
+| — | `SystemBitMask` | out-of-scope | Read-only internal config |
+| — | `UseTokenTranslator` | out-of-scope | Read-only internal config |
+| — | `WritePermission` | out-of-scope | Read-only bitmask; low value for TF consumers |
+| — | `Actions[].NamespaceId` | out-of-scope | Read-only backlink; redundant (already in parent) |
 
-**Summary — betterado_security_namespace:** 6 mapped / 0 partial / 11 missing (all missing are read-only internal fields of negligible value to TF practitioners)
+**Summary — betterado_security_namespace:** 6 covered / 0 gap-open / 11 out-of-scope (all out-of-scope are read-only internal fields of negligible value to TF practitioners)
 
 #### Writable gap detail
 
 | Gap | Verdict | Rationale |
 |---|---|---|
 | `ReadPermission` / `WritePermission` bits | **Deferred** | Could be useful as documentation for consumers to understand namespace permission requirements; low priority |
-| All other missing fields | **Resolved (omit)** | Read-only internal bookkeeping fields; no action required |
+| All other out-of-scope fields | **Resolved (omit)** | Read-only internal bookkeeping fields; no action required |
 
 ---
 
@@ -116,15 +116,15 @@ This data source generates security tokens for known namespaces — it has no di
 
 | TF field | Purpose | Status | Notes |
 |---|---|---|---|
-| `namespace_id` | Input: namespace UUID (mutually exclusive with `namespace_name`) | **mapped** | `ExactlyOneOf` constraint |
-| `namespace_name` | Input: namespace name to resolve | **mapped** | `ExactlyOneOf` constraint; resolved via `QuerySecurityNamespaces` |
-| `identifiers` | Input: TypeMap of namespace-specific identifiers (e.g. `project_id`, `repository_id`) | **mapped** | Optional; validated per namespace template |
-| `return_identifier_info` | Mode switch: return required/optional identifier lists instead of a token | **mapped** | Optional bool; default false |
-| `token` | Computed output: generated security token | **mapped** | Computed |
-| `required_identifiers` | Computed output: list of required identifier keys for namespace | **mapped** | Computed; only populated when `return_identifier_info = true` |
-| `optional_identifiers` | Computed output: list of optional identifier keys for namespace | **mapped** | Computed; only populated when `return_identifier_info = true` |
+| `namespace_id` | Input: namespace UUID (mutually exclusive with `namespace_name`) | **covered** | `ExactlyOneOf` constraint |
+| `namespace_name` | Input: namespace name to resolve | **covered** | `ExactlyOneOf` constraint; resolved via `QuerySecurityNamespaces` |
+| `identifiers` | Input: TypeMap of namespace-specific identifiers (e.g. `project_id`, `repository_id`) | **covered** | Optional; validated per namespace template |
+| `return_identifier_info` | Mode switch: return required/optional identifier lists instead of a token | **covered** | Optional bool; default false |
+| `token` | Computed output: generated security token | **covered** | Computed |
+| `required_identifiers` | Computed output: list of required identifier keys for namespace | **covered** | Computed; only populated when `return_identifier_info = true` |
+| `optional_identifiers` | Computed output: list of optional identifier keys for namespace | **covered** | Computed; only populated when `return_identifier_info = true` |
 
-#### Namespace token templates implemented
+#### Namespace token templates covered
 
 | Namespace | UUID | Identifiers | Token pattern |
 |---|---|---|---|
@@ -146,7 +146,7 @@ This data source generates security tokens for known namespaces — it has no di
 | VersionControlPrivileges | `66312704-…` | none | `Global` |
 | ServiceEndpoints | `49b48001-…` | none (role-based) | Error: use role assignments |
 
-#### Gaps — unimplemented namespaces in token templates
+#### Gaps — namespaces without token templates
 
 The following namespaces are defined in `SecurityNamespaceIDValues` but have no token template in `namespaceTokenTemplates`:
 
@@ -173,15 +173,15 @@ The following namespaces are defined in `SecurityNamespaceIDValues` but have no 
 
 | TF field | API field | Status | Notes |
 |---|---|---|---|
-| `namespaces[].id` | `NamespaceId` | **mapped** | Computed |
-| `namespaces[].name` | `Name` | **mapped** | Computed |
-| `namespaces[].display_name` | `DisplayName` | **mapped** | Computed |
-| `namespaces[].actions[].name` | `Actions[].Name` | **mapped** | Computed |
-| `namespaces[].actions[].display_name` | `Actions[].DisplayName` | **mapped** | Computed |
-| `namespaces[].actions[].bit` | `Actions[].Bit` | **mapped** | Computed |
-| — | Same `SecurityNamespaceDescription` read-only fields as §3.2 | missing | Same verdict: **Resolved (omit)** |
+| `namespaces[].id` | `NamespaceId` | **covered** | Computed |
+| `namespaces[].name` | `Name` | **covered** | Computed |
+| `namespaces[].display_name` | `DisplayName` | **covered** | Computed |
+| `namespaces[].actions[].name` | `Actions[].Name` | **covered** | Computed |
+| `namespaces[].actions[].display_name` | `Actions[].DisplayName` | **covered** | Computed |
+| `namespaces[].actions[].bit` | `Actions[].Bit` | **covered** | Computed |
+| — | Same `SecurityNamespaceDescription` read-only fields as §3.2 | out-of-scope | Same verdict: **Resolved (omit)** |
 
-**Summary — betterado_security_namespaces:** 6 mapped / 0 partial / 11 missing (all read-only internal; same as single-namespace data source)
+**Summary — betterado_security_namespaces:** 6 covered / 0 gap-open / 11 out-of-scope (all read-only internal; same as single-namespace data source)
 
 ---
 

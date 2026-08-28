@@ -53,7 +53,7 @@ Approvals gate pipeline execution on one or more human approvers.
 | Approval requester type | `settings.approvalType` | — | none | ADO field for group vs individual; not exposed |
 | Allow approval from previous stage | `settings.allowApproversToApproveOwnPipeline` | — | none | ADO field; not exposed in betterado |
 
-**Coverage summary:** 5 / 7 settings fields mapped (2 missing: niche ADO approval-type fields)
+**Coverage summary:** 5 / 7 settings fields covered (2 out-of-scope: niche ADO approval-type fields)
 
 ---
 
@@ -74,7 +74,7 @@ Branch Control restricts pipeline runs to specific branches. Implemented as a ta
 | Definition ref (task) | `settings.definitionRef` | *(hardcoded)* | full | Fixed: `86b05a0c-…` `evaluatebranchProtection` v0.0.1 |
 | Timeout | *(top-level `timeout`)* | `timeout` | full | Optional, default `1440` minutes |
 
-**Coverage summary:** 5 / 5 configurable fields mapped ✅ (definitionRef is hardcoded constant)
+**Coverage summary:** 5 / 5 configurable fields covered (definitionRef is hardcoded constant)
 
 ---
 
@@ -96,7 +96,7 @@ Business Hours checks restrict pipeline runs to a defined schedule window. Imple
 | Definition ref (task) | `settings.definitionRef` | *(hardcoded)* | full | Fixed: `445fde2f-…` `evaluateBusinessHours` v0.0.1 |
 | Timeout | *(top-level `timeout`)* | `timeout` | full | Optional, default `1440` minutes |
 
-**Coverage summary:** 6 / 6 configurable fields mapped ✅ (definitionRef is hardcoded constant)
+**Coverage summary:** 6 / 6 configurable fields covered (definitionRef is hardcoded constant)
 
 ---
 
@@ -113,7 +113,7 @@ Exclusive Lock ensures only one pipeline run can access the protected resource a
 | *(no type-specific settings)* | — | — | full | Check type has no configurable settings payload |
 | Timeout | *(top-level `timeout`)* | `timeout` | full | Optional, default `43200` minutes |
 
-**Coverage summary:** 0 additional settings fields (check is presence-only) ✅
+**Coverage summary:** 0 additional settings fields (check is presence-only) covered
 
 ---
 
@@ -134,7 +134,7 @@ Required Template checks enforce that pipelines extend from an approved template
 | — template path | `extendsChecks[].templatePath` | `required_template[].template_path` | full | Required string (path to YAML template) |
 | Timeout | *(top-level `timeout`)* | — | none | No timeout exposed for this check type; API defaults apply |
 
-**Coverage summary:** 4 / 4 extends-check fields mapped ✅ (timeout not exposed — API default)
+**Coverage summary:** 4 / 4 extends-check fields covered (timeout not exposed — API default)
 
 ---
 
@@ -161,7 +161,7 @@ Invoke REST API checks call an external HTTP endpoint to gate pipeline progress.
 | Success criteria | `settings.inputs.successCriteria` | `success_criteria` | full | Optional; only used with `ApiResponse` completion |
 | Timeout | *(top-level `timeout`)* | `timeout` | full | Optional, default `1440` minutes |
 
-**Coverage summary:** 11 / 11 configurable fields mapped ✅
+**Coverage summary:** 11 / 11 configurable fields covered
 
 ---
 
@@ -171,7 +171,7 @@ Invoke REST API checks call an external HTTP endpoint to gate pipeline progress.
 |---|---|---|
 | Task Check (generic) | `fe1de3ee-a436-41b4-bb20-f6eb4cb879a7` | — |
 
-**Coverage: none** — The generic `TaskCheck` type is the internal ADO type used by Branch Control, Business Hours, and Invoke REST API checks. betterado does not expose a generic task-check resource; instead it provides type-safe purpose-built resources for each supported task definition. Custom task checks (beyond the three supported ones) cannot be managed via betterado.
+**Coverage: none** — The generic `TaskCheck` type is the internal ADO type used by Branch Control, Business Hours, and Invoke REST API checks. betterado does not expose a generic task-check resource; instead it provides type-safe purpose-built resources for each covered task definition. Custom task checks (beyond the three covered ones) cannot be managed via betterado.
 
 ---
 
@@ -189,7 +189,7 @@ Invoke REST API checks call an external HTTP endpoint to gate pipeline progress.
 
 | Check Type | ADO UUID | betterado resource | Coverage |
 |---|---|---|---|
-| Approval | `8c6f20a7-…-f762fafe0d4d` | `azuredevops_check_approval` | **full** (2 niche fields missing) |
+| Approval | `8c6f20a7-…-f762fafe0d4d` | `azuredevops_check_approval` | **full** (2 niche fields absent) |
 | Branch Control | `fe1de3ee-…-f6eb4cb879a7` | `azuredevops_check_branch_control` | **full** |
 | Business Hours | `fe1de3ee-…-f6eb4cb879a7` | `azuredevops_check_business_hours` | **full** |
 | Exclusive Lock | `2ef31ad6-…-2cbc9b4e5563` | `azuredevops_check_exclusive_lock` | **full** |

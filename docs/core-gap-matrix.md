@@ -11,7 +11,7 @@
 > - Pipeline Settings: <https://learn.microsoft.com/en-us/rest/api/azure/devops/build/general-settings/get?view=azure-devops-rest-7.1>
 
 **Status legend:**
-- `implemented` — field exists in the TF schema and is read/written correctly
+- `covered` — field exists in the TF schema and is read/written correctly
 - `read-only` — field exists in the API but is not user-configurable; may be exposed as Computed
 - `gap` — field is writable in the API but absent from the TF schema
 - `out-of-scope` — field is not applicable for Terraform management (e.g. REST nav links, deprecated fields)
@@ -25,11 +25,11 @@ ADO type: `core.TeamProject` (Projects — List / Get / Create / Update / Delete
 
 | API field | TF attribute | Status | Notes |
 |---|---|---|---|
-| `name` | `name` | implemented | Required; whitespace-only rejected via framework validator |
-| `description` | `description` | implemented | Optional, default `""` |
-| `visibility` | `visibility` | implemented | Optional, `private`/`public` validated; default `private` |
-| `capabilities.versioncontrol.sourceControlType` | `version_control` | implemented | ForceNew; `Git`/`Tfvc` validated; default `Git` |
-| `capabilities.processTemplate.templateTypeId` | `work_item_template` | implemented | ForceNew; stored as name, looked up to UUID on create; default `Agile` |
+| `name` | `name` | covered | Required; whitespace-only rejected via framework validator |
+| `description` | `description` | covered | Optional, default `""` |
+| `visibility` | `visibility` | covered | Optional, `private`/`public` validated; default `private` |
+| `capabilities.versioncontrol.sourceControlType` | `version_control` | covered | ForceNew; `Git`/`Tfvc` validated; default `Git` |
+| `capabilities.processTemplate.templateTypeId` | `work_item_template` | covered | ForceNew; stored as name, looked up to UUID on create; default `Agile` |
 | `capabilities.processTemplate.templateTypeId` | `process_template_id` | read-only | Computed string; the raw UUID of the process template |
 | _(inline via resource)_ | `features` | **breaking-deferral** | **BREAKING CHANGE (framework migration):** The `features` inline TypeMap from the SDKv2 `betterado_project` is **absent from the framework resource** (`resource_project_framework.go`). Feature management is now the exclusive responsibility of the dedicated `betterado_project_features` resource. Users relying on `betterado_project.features` must migrate to `betterado_project_features`. Rationale: separating concerns avoids the state inconsistency bugs observed in the SDKv2 inline implementation; see CHANGELOG for migration guidance. |
 | `id` | _(resource ID)_ | read-only | Set via `resp.State.Set` after create |
@@ -41,7 +41,7 @@ ADO type: `core.TeamProject` (Projects — List / Get / Create / Update / Delete
 | `defaultTeam` | — | out-of-scope | Read-only reference; managed via `betterado_team` |
 | `abbreviation` | — | gap | Short project abbreviation; writable via Update API. **Deferred:** rarely used in IaC, low priority for this migration. |
 
-**Summary:** 6 implemented / 3 read-only / 5 out-of-scope / 1 breaking-deferral (`features`) / 1 gap (deferred)
+**Summary:** 6 covered / 3 read-only / 5 out-of-scope / 1 breaking-deferral (`features`) / 1 gap (deferred)
 
 ---
 
@@ -52,17 +52,17 @@ ADO type: Feature Management API — `ContributedFeatureState` per scope `projec
 
 | API field / feature ID | TF attribute | Status | Notes |
 |---|---|---|---|
-| `ms.vss-work.agile` (Boards) | `features["boards"]` | implemented | `enabled`/`disabled` |
-| `ms.vss-code.version-control` (Repositories) | `features["repositories"]` | implemented | `enabled`/`disabled` |
-| `ms.vss-build.pipelines` (Pipelines) | `features["pipelines"]` | implemented | `enabled`/`disabled` |
-| `ms.vss-test-web.test` (Test Plans) | `features["testplans"]` | implemented | `enabled`/`disabled` |
-| `ms.azure-artifacts.feature` (Artifacts) | `features["artifacts"]` | implemented | `enabled`/`disabled` |
-| `project_id` | `project_id` | implemented | Required, ForceNew UUID |
+| `ms.vss-work.agile` (Boards) | `features["boards"]` | covered | `enabled`/`disabled` |
+| `ms.vss-code.version-control` (Repositories) | `features["repositories"]` | covered | `enabled`/`disabled` |
+| `ms.vss-build.pipelines` (Pipelines) | `features["pipelines"]` | covered | `enabled`/`disabled` |
+| `ms.vss-test-web.test` (Test Plans) | `features["testplans"]` | covered | `enabled`/`disabled` |
+| `ms.azure-artifacts.feature` (Artifacts) | `features["artifacts"]` | covered | `enabled`/`disabled` |
+| `project_id` | `project_id` | covered | Required, ForceNew UUID |
 | `featureId` (scope) | — | read-only | Populated internally; not user-configurable |
 | `scope.settingScope` | — | read-only | Always `"project"` for this resource |
 | `scope.userScoped` | — | read-only | Always `false` for project-level features |
 
-**Summary:** 6 implemented / 3 read-only / 0 gaps
+**Summary:** 6 covered / 3 read-only / 0 gaps
 
 ---
 
@@ -73,19 +73,19 @@ ADO type: `build.PipelineGeneralSettings` (Build General Settings GET/UPDATE)
 
 | API field | TF attribute | Status | Notes |
 |---|---|---|---|
-| `enforceJobAuthScope` | `enforce_job_scope` | implemented | Optional+Computed bool; limits job auth scope to current project for non-release pipelines |
-| `enforceReferencedRepoScopedToken` | `enforce_referenced_repo_scoped_token` | implemented | Optional+Computed bool; protect access to repos in YAML pipelines |
-| `enforceSettableVar` | `enforce_settable_var` | implemented | Optional+Computed bool; limit variables settable at queue time |
-| `publishPipelineMetadata` | `publish_pipeline_metadata` | implemented | Optional+Computed bool; publish metadata from pipelines |
-| `statusBadgesArePrivate` | `status_badges_are_private` | implemented | Optional+Computed bool; disable anonymous access to badges |
-| `enforceJobAuthScopeForReleases` | `enforce_job_scope_for_release` | implemented | Optional+Computed bool; limits job auth scope for release pipelines |
-| `project_id` | `project_id` | implemented | Required, ForceNew UUID |
+| `enforceJobAuthScope` | `enforce_job_scope` | covered | Optional+Computed bool; limits job auth scope to current project for non-release pipelines |
+| `enforceReferencedRepoScopedToken` | `enforce_referenced_repo_scoped_token` | covered | Optional+Computed bool; protect access to repos in YAML pipelines |
+| `enforceSettableVar` | `enforce_settable_var` | covered | Optional+Computed bool; limit variables settable at queue time |
+| `publishPipelineMetadata` | `publish_pipeline_metadata` | covered | Optional+Computed bool; publish metadata from pipelines |
+| `statusBadgesArePrivate` | `status_badges_are_private` | covered | Optional+Computed bool; disable anonymous access to badges |
+| `enforceJobAuthScopeForReleases` | `enforce_job_scope_for_release` | covered | Optional+Computed bool; limits job auth scope for release pipelines |
+| `project_id` | `project_id` | covered | Required, ForceNew UUID |
 | `disableClassicBuildPipelineCreation` | — | gap | Whether classic build pipelines can be created. **Deferred:** policy enforcement field added in later ADO versions; implement in follow-up WI. |
 | `disableClassicReleasePipelineCreation` | — | gap | Whether classic release pipelines can be created. **Deferred:** same rationale as above. |
 | `enforceNoAccessToSecretsFromForks` | — | gap | Prevents pipelines in fork PRs from accessing secrets. **Deferred:** security-hardening field; implement in follow-up WI. |
 | `isCommentRequiredForPullRequest` | — | gap | Requires comment resolution before PR completion. **Deferred:** lower priority; implement in follow-up WI. |
 
-**Summary:** 7 implemented / 0 read-only / 4 gaps (all deferred)
+**Summary:** 7 covered / 0 read-only / 4 gaps (all deferred)
 
 ---
 
@@ -96,12 +96,12 @@ ADO type: `core.ProjectProperty` (Project Properties API — Get/Set via key pre
 
 | API field | TF attribute | Status | Notes |
 |---|---|---|---|
-| `project_id` | `project_id` | implemented | Required, ForceNew UUID |
-| Tag names (key suffix after `Microsoft.TeamFoundation.Project.Tag.`) | `tags` (set of strings) | implemented | Required TypeSet; add/remove via PATCH JSON operations |
+| `project_id` | `project_id` | covered | Required, ForceNew UUID |
+| Tag names (key suffix after `Microsoft.TeamFoundation.Project.Tag.`) | `tags` (set of strings) | covered | Required TypeSet; add/remove via PATCH JSON operations |
 | Tag value (`"true"`) | — | read-only | Always `"true"` for presence-based tags; not user-configurable |
 | Property key format (`Microsoft.TeamFoundation.Project.Tag.<name>`) | — | read-only | Internal key format; abstracted by the resource |
 
-**Summary:** 2 implemented / 2 read-only / 0 gaps
+**Summary:** 2 covered / 2 read-only / 0 gaps
 
 ---
 
@@ -112,19 +112,19 @@ ADO type: `core.WebApiTeam` (Teams — Create / Get / Update / Delete)
 
 | API field | TF attribute | Status | Notes |
 |---|---|---|---|
-| `project_id` | `project_id` | implemented | Required, ForceNew UUID |
-| `name` | `name` | implemented | Required string |
-| `description` | `description` | implemented | Optional, default `""`, max 256 chars |
+| `project_id` | `project_id` | covered | Required, ForceNew UUID |
+| `name` | `name` | covered | Required string |
+| `description` | `description` | covered | Optional, default `""`, max 256 chars |
 | `id` | _(resource ID)_ | read-only | Set via `d.SetId(team.Id.String())` |
 | `identityUrl` | — | out-of-scope | Read-only REST URL |
 | `url` | — | out-of-scope | Read-only REST URL |
 | `projectId` | — | read-only | Returned by API; tracked via `project_id` attribute |
 | `projectName` | — | out-of-scope | Redundant with `project_id` context |
 | _(via Graph descriptor API)_ | `descriptor` | read-only | Computed; fetched via `clients.GraphClient.GetDescriptor`; needed for permission references |
-| _(via Identity API)_ | `administrators` | implemented | Optional+Computed set of subject descriptors; managed via security namespace permissions |
-| _(via Identity API)_ | `members` | implemented | Optional+Computed set of subject descriptors; managed via `identity.AddMember`/`RemoveMember` |
+| _(via Identity API)_ | `administrators` | covered | Optional+Computed set of subject descriptors; managed via security namespace permissions |
+| _(via Identity API)_ | `members` | covered | Optional+Computed set of subject descriptors; managed via `identity.AddMember`/`RemoveMember` |
 
-**Summary:** 5 implemented / 4 read-only or out-of-scope / 0 gaps
+**Summary:** 5 covered / 4 read-only or out-of-scope / 0 gaps
 
 ---
 
@@ -137,12 +137,12 @@ ADO type: Identity security namespace ACL (Identity namespace, not a direct Team
 
 | API concept | TF attribute | Status | Notes |
 |---|---|---|---|
-| `project_id` (team lookup) | `project_id` | implemented | Required, ForceNew UUID |
-| `team_id` (team lookup) | `team_id` | implemented | Required, ForceNew UUID |
-| ACL permission grant mode | `mode` | implemented | Optional `"add"` (default) or `"overwrite"`; controls whether unmanaged admins are preserved |
-| Subject descriptors with full ACL bits | `administrators` | implemented | Required set of subject descriptors; grants/revokes Read+Write+Delete+ManageMembership+CreateScope bits |
+| `project_id` (team lookup) | `project_id` | covered | Required, ForceNew UUID |
+| `team_id` (team lookup) | `team_id` | covered | Required, ForceNew UUID |
+| ACL permission grant mode | `mode` | covered | Optional `"add"` (default) or `"overwrite"`; controls whether unmanaged admins are preserved |
+| Subject descriptors with full ACL bits | `administrators` | covered | Required set of subject descriptors; grants/revokes Read+Write+Delete+ManageMembership+CreateScope bits |
 
-**Summary:** 4 implemented / 0 read-only / 0 gaps
+**Summary:** 4 covered / 0 read-only / 0 gaps
 
 ---
 
@@ -155,12 +155,12 @@ ADO type: `identity.AddMember` / `identity.RemoveMember` / `identity.ReadMembers
 
 | API concept | TF attribute | Status | Notes |
 |---|---|---|---|
-| `project_id` (team lookup) | `project_id` | implemented | Required, ForceNew UUID |
-| `team_id` (team lookup) | `team_id` | implemented | Required, ForceNew UUID |
-| Membership operation mode | `mode` | implemented | Optional `"add"` (default) or `"overwrite"`; controls whether unmanaged members are preserved |
-| Subject descriptors (identity members) | `members` | implemented | Required set of subject descriptors (min 1); managed via `AddMember`/`RemoveMember` with convergence polling |
+| `project_id` (team lookup) | `project_id` | covered | Required, ForceNew UUID |
+| `team_id` (team lookup) | `team_id` | covered | Required, ForceNew UUID |
+| Membership operation mode | `mode` | covered | Optional `"add"` (default) or `"overwrite"`; controls whether unmanaged members are preserved |
+| Subject descriptors (identity members) | `members` | covered | Required set of subject descriptors (min 1); managed via `AddMember`/`RemoveMember` with convergence polling |
 
-**Summary:** 4 implemented / 0 read-only / 0 gaps
+**Summary:** 4 covered / 0 read-only / 0 gaps
 
 ---
 
