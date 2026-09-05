@@ -13,9 +13,9 @@
 This matrix compares every field returned by the ADO Graph REST API v7.1 (as reflected in the Go SDK models in `vendor/github.com/microsoft/azure-devops-go-api/azuredevops/v7/graph/models.go`) against what is currently exposed by the provider resources and data sources in `azuredevops/internal/service/graph/`.
 
 Coverage status values:
-- **supported** — field is present in the TF schema and correctly wired
-- **gap** — field is in the API response but absent from the TF schema (and would be useful to expose)
-- **deferred** — field is in the API response but intentionally excluded (with rationale)
+- `covered` — field is present in the TF schema and correctly wired
+- `gap-open` — field is in the API response but absent from the TF schema (and would be useful to expose)
+- `gap-deferred` — field is in the API response but intentionally excluded (with rationale)
 
 ---
 
@@ -27,22 +27,22 @@ The `GraphGroup` struct is the canonical ADO type for both resource and data sou
 
 | Field path (API JSON key) | Go SDK field | TF schema attribute | Status | Writable? | Notes |
 |---|---|---|---|---|---|
-| `descriptor` | `Descriptor *string` | `descriptor` | **supported** | No | Computed; used as resource ID (`d.SetId`) |
-| `displayName` | `DisplayName *string` | `display_name` | **supported** | Yes | Optional+Computed; conflicts with `origin_id` / `mail` |
-| `description` | `Description *string` | `description` | **supported** | Yes | Optional |
-| `mailAddress` | `MailAddress *string` | `mail` | **supported** | Yes | Optional+Computed; used to create group by mail (AAD/AD) |
-| `originId` | `OriginId *string` | `origin_id` | **supported** | Yes | Optional+Computed; used to create group by origin ID |
-| `origin` | `Origin *string` | `origin` | **supported** | No | Computed; read-back from API |
-| `subjectKind` | `SubjectKind *string` | `subject_kind` | **supported** | No | Computed; always `"group"` for group subjects |
-| `domain` | `Domain *string` | `domain` | **supported** | No | Computed; maps `vstfs:///Classification/TeamProject/…` to `scope` |
-| `principalName` | `PrincipalName *string` | `principal_name` | **supported** | No | Computed |
-| `url` | `Url *string` | `url` | **supported** | No | Computed |
-| _(derived via GetStorageKey)_ | _(GraphStorageKeyResult.Value)_ | `group_id` | **supported** | No | Computed; UUID of the group, obtained via separate GetStorageKey call |
-| _(managed via membership API)_ | _(GraphMembership)_ | `members` | **supported** | Yes | Optional+Computed TypeSet of member descriptors |
-| _(scope input → GetDescriptor)_ | _(uuid scope → descriptor)_ | `scope` | **supported** | Yes | Optional+ForceNew; project UUID used to scope group creation |
-| `_links` | `Links interface{}` | _(absent)_ | **deferred** | No | Read-only REST navigation links; not useful in TF state |
-| `legacyDescriptor` | `LegacyDescriptor *string` | _(absent)_ | **deferred** | No | Internal-use-only legacy descriptor for old IMS; out of scope |
-| `isDeleted` | `IsDeleted *bool` | _(absent)_ | **deferred** | No | Read-only soft-delete state; provider uses it to clear resource on read when true |
+| `descriptor` | `Descriptor *string` | `descriptor` | covered | No | Computed; used as resource ID (`d.SetId`) |
+| `displayName` | `DisplayName *string` | `display_name` | covered | Yes | Optional+Computed; conflicts with `origin_id` / `mail` |
+| `description` | `Description *string` | `description` | covered | Yes | Optional |
+| `mailAddress` | `MailAddress *string` | `mail` | covered | Yes | Optional+Computed; used to create group by mail (AAD/AD) |
+| `originId` | `OriginId *string` | `origin_id` | covered | Yes | Optional+Computed; used to create group by origin ID |
+| `origin` | `Origin *string` | `origin` | covered | No | Computed; read-back from API |
+| `subjectKind` | `SubjectKind *string` | `subject_kind` | covered | No | Computed; always `"group"` for group subjects |
+| `domain` | `Domain *string` | `domain` | covered | No | Computed; maps `vstfs:///Classification/TeamProject/…` to `scope` |
+| `principalName` | `PrincipalName *string` | `principal_name` | covered | No | Computed |
+| `url` | `Url *string` | `url` | covered | No | Computed |
+| _(derived via GetStorageKey)_ | _(GraphStorageKeyResult.Value)_ | `group_id` | covered | No | Computed; UUID of the group, obtained via separate GetStorageKey call |
+| _(managed via membership API)_ | _(GraphMembership)_ | `members` | covered | Yes | Optional+Computed TypeSet of member descriptors |
+| _(scope input → GetDescriptor)_ | _(uuid scope → descriptor)_ | `scope` | covered | Yes | Optional+ForceNew; project UUID used to scope group creation |
+| `_links` | `Links interface{}` | _(absent)_ | gap-deferred | No | Read-only REST navigation links; not useful in TF state |
+| `legacyDescriptor` | `LegacyDescriptor *string` | _(absent)_ | gap-deferred | No | Internal-use-only legacy descriptor for old IMS; out of scope |
+| `isDeleted` | `IsDeleted *bool` | _(absent)_ | gap-deferred | No | Read-only soft-delete state; provider uses it to clear resource on read when true |
 
 **Summary — `betterado_group` resource:** 13 supported / 0 gaps / 3 deferred (all deferred are read-only internal fields)
 
@@ -50,20 +50,20 @@ The `GraphGroup` struct is the canonical ADO type for both resource and data sou
 
 | Field path (API JSON key) | TF schema attribute | Status | Notes |
 |---|---|---|---|
-| `displayName` | `name` (input) | **supported** | Required lookup key |
-| _(project UUID input)_ | `project_id` | **supported** | Optional; scopes group lookup to project |
-| `descriptor` | `descriptor` | **supported** | Computed; set as resource ID |
-| `originId` | `origin_id` | **supported** | Computed |
-| `origin` | `origin` | **supported** | Computed |
-| _(derived via GetStorageKey)_ | `group_id` | **supported** | Computed; UUID via separate GetStorageKey call |
-| `description` | _(absent)_ | **gap** | Not exposed in data source read-back; implement in this initiative |
-| `mailAddress` | _(absent)_ | **gap** | Not exposed in data source read-back; implement in this initiative |
-| `domain` | _(absent)_ | **gap** | Not exposed in data source read-back; implement in this initiative |
-| `principalName` | _(absent)_ | **gap** | Not exposed in data source read-back; implement in this initiative |
-| `subjectKind` | _(absent)_ | **gap** | Not exposed in data source read-back; implement in this initiative |
-| `url` | _(absent)_ | **gap** | Not exposed in data source read-back; implement in this initiative |
-| `_links` | _(absent)_ | **deferred** | Read-only navigation links; not useful in TF |
-| `legacyDescriptor` | _(absent)_ | **deferred** | Internal only |
+| `displayName` | `name` (input) | covered | Required lookup key |
+| _(project UUID input)_ | `project_id` | covered | Optional; scopes group lookup to project |
+| `descriptor` | `descriptor` | covered | Computed; set as resource ID |
+| `originId` | `origin_id` | covered | Computed |
+| `origin` | `origin` | covered | Computed |
+| _(derived via GetStorageKey)_ | `group_id` | covered | Computed; UUID via separate GetStorageKey call |
+| `description` | _(absent)_ | gap-open | Not exposed in data source read-back; implement in this initiative |
+| `mailAddress` | _(absent)_ | gap-open | Not exposed in data source read-back; implement in this initiative |
+| `domain` | _(absent)_ | gap-open | Not exposed in data source read-back; implement in this initiative |
+| `principalName` | _(absent)_ | gap-open | Not exposed in data source read-back; implement in this initiative |
+| `subjectKind` | _(absent)_ | gap-open | Not exposed in data source read-back; implement in this initiative |
+| `url` | _(absent)_ | gap-open | Not exposed in data source read-back; implement in this initiative |
+| `_links` | _(absent)_ | gap-deferred | Read-only navigation links; not useful in TF |
+| `legacyDescriptor` | _(absent)_ | gap-deferred | Internal only |
 
 **Summary — `betterado_group` data source:** 6 supported / 6 gaps (implement in this initiative) / 2 deferred
 
@@ -75,9 +75,9 @@ The `betterado_descriptor` data source wraps the `GetDescriptor` API call. The A
 
 | Field path (API JSON key) | Go SDK field | TF schema attribute | Status | Notes |
 |---|---|---|---|---|
-| _(input UUID)_ | _(storageKey query param)_ | `storage_key` | **supported** | Required input |
-| `value` | `GraphDescriptorResult.Value *string` | `descriptor` | **supported** | Computed output |
-| `_links` | `Links interface{}` | _(absent)_ | **deferred** | Navigation links; not useful in TF |
+| _(input UUID)_ | _(storageKey query param)_ | `storage_key` | covered | Required input |
+| `value` | `GraphDescriptorResult.Value *string` | `descriptor` | covered | Computed output |
+| `_links` | `Links interface{}` | _(absent)_ | gap-deferred | Navigation links; not useful in TF |
 
 **Summary — `betterado_descriptor` data source:** 2 supported / 0 gaps / 1 deferred
 
@@ -89,9 +89,9 @@ The `betterado_storage_key` data source wraps the `GetStorageKey` API call (inve
 
 | Field path (API JSON key) | Go SDK field | TF schema attribute | Status | Notes |
 |---|---|---|---|---|
-| _(input descriptor)_ | _(subjectDescriptor query param)_ | `descriptor` | **supported** | Required input |
-| `value` | `GraphStorageKeyResult.Value *uuid.UUID` | `storage_key` | **supported** | Computed output UUID |
-| `_links` | `Links interface{}` | _(absent)_ | **deferred** | Navigation links; not useful in TF |
+| _(input descriptor)_ | _(subjectDescriptor query param)_ | `descriptor` | covered | Required input |
+| `value` | `GraphStorageKeyResult.Value *uuid.UUID` | `storage_key` | covered | Computed output UUID |
+| `_links` | `Links interface{}` | _(absent)_ | gap-deferred | Navigation links; not useful in TF |
 
 **Summary — `betterado_storage_key` data source:** 2 supported / 0 gaps / 1 deferred
 
@@ -105,10 +105,10 @@ The resource manages the set of memberships for a given group descriptor, using 
 
 | Concept | API field | TF schema attribute | Status | Notes |
 |---|---|---|---|---|
-| Container group descriptor | `GraphMembership.ContainerDescriptor` | `group` | **supported** | Required+ForceNew input |
-| Member descriptor set | `GraphMembership.MemberDescriptor` | `members` | **supported** | Required TypeSet |
-| Membership mode | _(provider logic)_ | `mode` | **supported** | Optional; `"add"` (default) or `"overwrite"` — controls reconciliation strategy |
-| `_links` | `Links interface{}` | _(absent)_ | **deferred** | Navigation links on membership; not useful in TF |
+| Container group descriptor | `GraphMembership.ContainerDescriptor` | `group` | covered | Required+ForceNew input |
+| Member descriptor set | `GraphMembership.MemberDescriptor` | `members` | covered | Required TypeSet |
+| Membership mode | _(provider logic)_ | `mode` | covered | Optional; `"add"` (default) or `"overwrite"` — controls reconciliation strategy |
+| `_links` | `Links interface{}` | _(absent)_ | gap-deferred | Navigation links on membership; not useful in TF |
 
 **Summary — `betterado_group_membership` resource:** 3 supported / 0 gaps / 1 deferred
 
@@ -116,9 +116,9 @@ The resource manages the set of memberships for a given group descriptor, using 
 
 | Concept | API field | TF schema attribute | Status | Notes |
 |---|---|---|---|---|
-| Container group descriptor | `GraphMembership.ContainerDescriptor` | `group_descriptor` | **supported** | Required input |
-| Member descriptor list | `GraphMembership.MemberDescriptor` | `members` | **supported** | Computed list of member descriptors |
-| `_links` | `Links interface{}` | _(absent)_ | **deferred** | Navigation links; not useful in TF |
+| Container group descriptor | `GraphMembership.ContainerDescriptor` | `group_descriptor` | covered | Required input |
+| Member descriptor list | `GraphMembership.MemberDescriptor` | `members` | covered | Computed list of member descriptors |
+| `_links` | `Links interface{}` | _(absent)_ | gap-deferred | Navigation links; not useful in TF |
 
 **Summary — `betterado_group_membership` data source:** 2 supported / 0 gaps / 1 deferred
 
@@ -132,21 +132,21 @@ Each item in the `groups` set reflects a `GraphGroup` entry:
 
 | Field path (API JSON key) | TF schema attribute (`groups[]`) | Status | Notes |
 |---|---|---|---|
-| _(derived via GetStorageKey)_ | `id` | **supported** | Computed UUID (storage key) for each group |
-| `descriptor` | `descriptor` | **supported** | Computed |
-| `origin` | `origin` | **supported** | Computed |
-| `originId` | `origin_id` | **supported** | Optional (used as filter hint) |
-| `mailAddress` | `mail_address` | **supported** | Optional (used as filter hint) |
-| `displayName` | `display_name` | **supported** | Optional (used as filter hint) |
-| `description` | `description` | **supported** | Optional (used as filter hint) |
-| `url` | `url` | **supported** | Computed |
-| `domain` | `domain` | **supported** | Computed |
-| `principalName` | `principal_name` | **supported** | Computed |
-| _(project scope filter)_ | `project_id` | **supported** | Optional top-level filter |
-| `subjectKind` | _(absent in groups[])_ | **gap** | Not exposed per-item; implement in this initiative |
-| `_links` | _(absent)_ | **deferred** | Navigation links; not useful in TF |
-| `legacyDescriptor` | _(absent)_ | **deferred** | Internal only |
-| `isDeleted` | _(absent)_ | **deferred** | Soft-delete flag; filtered by provider logic already |
+| _(derived via GetStorageKey)_ | `id` | covered | Computed UUID (storage key) for each group |
+| `descriptor` | `descriptor` | covered | Computed |
+| `origin` | `origin` | covered | Computed |
+| `originId` | `origin_id` | covered | Optional (used as filter hint) |
+| `mailAddress` | `mail_address` | covered | Optional (used as filter hint) |
+| `displayName` | `display_name` | covered | Optional (used as filter hint) |
+| `description` | `description` | covered | Optional (used as filter hint) |
+| `url` | `url` | covered | Computed |
+| `domain` | `domain` | covered | Computed |
+| `principalName` | `principal_name` | covered | Computed |
+| _(project scope filter)_ | `project_id` | covered | Optional top-level filter |
+| `subjectKind` | _(absent in groups[])_ | gap-open | Not exposed per-item; implement in this initiative |
+| `_links` | _(absent)_ | gap-deferred | Navigation links; not useful in TF |
+| `legacyDescriptor` | _(absent)_ | gap-deferred | Internal only |
+| `isDeleted` | _(absent)_ | gap-deferred | Soft-delete flag; filtered by provider logic already |
 
 **Summary — `betterado_groups` data source:** 11 supported / 1 gap / 3 deferred
 
@@ -160,21 +160,21 @@ The `betterado_service_principal` data source uses `ReadIdentities` (Identity AP
 
 | Field path (API JSON key) | Go SDK field | TF schema attribute | Status | Notes |
 |---|---|---|---|---|
-| `descriptor` | `Descriptor *string` | `descriptor` | **supported** | Computed; set as resource ID |
-| `displayName` | `DisplayName *string` | `display_name` | **supported** | Required lookup input |
-| `originId` | `OriginId *string` | `origin_id` | **supported** | Computed |
-| `origin` | `Origin *string` | `origin` | **supported** | Computed |
-| `applicationId` | `ApplicationId *string` | _(absent)_ | **gap** | AAD application ID; implement in this initiative |
-| `subjectKind` | `SubjectKind *string` | _(absent)_ | **gap** | Always `"servicePrincipal"`; implement in this initiative |
-| `domain` | `Domain *string` | _(absent)_ | **gap** | Tenant domain; implement in this initiative |
-| `principalName` | `PrincipalName *string` | _(absent)_ | **gap** | UPN-style name; implement in this initiative |
-| `mailAddress` | `MailAddress *string` | _(absent)_ | **gap** | Email of service principal; implement in this initiative |
-| `url` | `Url *string` | _(absent)_ | **deferred** | Read-only REST URL; low value in TF state |
-| `directoryAlias` | `DirectoryAlias *string` | _(absent)_ | **deferred** | Short alias in backing directory; low priority |
-| `isDeletedInOrigin` | `IsDeletedInOrigin *bool` | _(absent)_ | **deferred** | Deletion state in identity provider; read-only |
-| `metaType` | `MetaType *string` | _(absent)_ | **deferred** | Internal meta type (e.g. "member", "guest"); low value |
-| `_links` | `Links interface{}` | _(absent)_ | **deferred** | Navigation links; not useful in TF |
-| `legacyDescriptor` | `LegacyDescriptor *string` | _(absent)_ | **deferred** | Internal only |
+| `descriptor` | `Descriptor *string` | `descriptor` | covered | Computed; set as resource ID |
+| `displayName` | `DisplayName *string` | `display_name` | covered | Required lookup input |
+| `originId` | `OriginId *string` | `origin_id` | covered | Computed |
+| `origin` | `Origin *string` | `origin` | covered | Computed |
+| `applicationId` | `ApplicationId *string` | _(absent)_ | gap-open | AAD application ID; implement in this initiative |
+| `subjectKind` | `SubjectKind *string` | _(absent)_ | gap-open | Always `"servicePrincipal"`; implement in this initiative |
+| `domain` | `Domain *string` | _(absent)_ | gap-open | Tenant domain; implement in this initiative |
+| `principalName` | `PrincipalName *string` | _(absent)_ | gap-open | UPN-style name; implement in this initiative |
+| `mailAddress` | `MailAddress *string` | _(absent)_ | gap-open | Email of service principal; implement in this initiative |
+| `url` | `Url *string` | _(absent)_ | gap-deferred | Read-only REST URL; low value in TF state |
+| `directoryAlias` | `DirectoryAlias *string` | _(absent)_ | gap-deferred | Short alias in backing directory; low priority |
+| `isDeletedInOrigin` | `IsDeletedInOrigin *bool` | _(absent)_ | gap-deferred | Deletion state in identity provider; non-writable |
+| `metaType` | `MetaType *string` | _(absent)_ | gap-deferred | Internal meta type (e.g. "member", "guest"); low value |
+| `_links` | `Links interface{}` | _(absent)_ | gap-deferred | Navigation links; not useful in TF |
+| `legacyDescriptor` | `LegacyDescriptor *string` | _(absent)_ | gap-deferred | Internal only |
 
 **Summary — `betterado_service_principal` data source:** 4 supported / 5 gaps (implement in this initiative) / 6 deferred
 
@@ -188,20 +188,20 @@ The data source accepts a `descriptor` and calls `GetUser`.
 
 | Field path (API JSON key) | Go SDK field | TF schema attribute | Status | Notes |
 |---|---|---|---|---|
-| _(input)_ | _(descriptor query param)_ | `descriptor` | **supported** | Required input |
-| `displayName` | `DisplayName *string` | `display_name` | **supported** | Computed |
-| `domain` | `Domain *string` | `domain` | **supported** | Computed |
-| `mailAddress` | `MailAddress *string` | `mail_address` | **supported** | Computed |
-| `origin` | `Origin *string` | `origin` | **supported** | Computed |
-| `originId` | `OriginId *string` | `origin_id` | **supported** | Computed |
-| `principalName` | `PrincipalName *string` | `principal_name` | **supported** | Computed |
-| `subjectKind` | `SubjectKind *string` | `subject_kind` | **supported** | Computed |
-| `url` | `Url *string` | _(absent)_ | **deferred** | Read-only REST URL; low value in TF state |
-| `directoryAlias` | `DirectoryAlias *string` | _(absent)_ | **deferred** | Short alias; low priority for data source |
-| `isDeletedInOrigin` | `IsDeletedInOrigin *bool` | _(absent)_ | **deferred** | Deletion state; read-only |
-| `metaType` | `MetaType *string` | _(absent)_ | **deferred** | Internal meta type; low value |
-| `_links` | `Links interface{}` | _(absent)_ | **deferred** | Navigation links; not useful in TF |
-| `legacyDescriptor` | `LegacyDescriptor *string` | _(absent)_ | **deferred** | Internal only |
+| _(input)_ | _(descriptor query param)_ | `descriptor` | covered | Required input |
+| `displayName` | `DisplayName *string` | `display_name` | covered | Computed |
+| `domain` | `Domain *string` | `domain` | covered | Computed |
+| `mailAddress` | `MailAddress *string` | `mail_address` | covered | Computed |
+| `origin` | `Origin *string` | `origin` | covered | Computed |
+| `originId` | `OriginId *string` | `origin_id` | covered | Computed |
+| `principalName` | `PrincipalName *string` | `principal_name` | covered | Computed |
+| `subjectKind` | `SubjectKind *string` | `subject_kind` | covered | Computed |
+| `url` | `Url *string` | _(absent)_ | gap-deferred | Read-only REST URL; low value in TF state |
+| `directoryAlias` | `DirectoryAlias *string` | _(absent)_ | gap-deferred | Short alias; low priority for data source |
+| `isDeletedInOrigin` | `IsDeletedInOrigin *bool` | _(absent)_ | gap-deferred | Deletion state; non-writable |
+| `metaType` | `MetaType *string` | _(absent)_ | gap-deferred | Internal meta type; low value |
+| `_links` | `Links interface{}` | _(absent)_ | gap-deferred | Navigation links; not useful in TF |
+| `legacyDescriptor` | `LegacyDescriptor *string` | _(absent)_ | gap-deferred | Internal only |
 
 **Summary — `betterado_user` data source:** 8 supported / 0 gaps / 6 deferred
 
@@ -213,31 +213,31 @@ The data source calls `ListUsers` (paginated) with optional filters; each item r
 
 | Attribute | Status | Notes |
 |---|---|---|
-| `principal_name` | **supported** | Optional filter; conflicts with `origin`/`origin_id` |
-| `subject_types` | **supported** | Optional TypeSet filter |
-| `origin` | **supported** | Optional filter; conflicts with `principal_name` |
-| `origin_id` | **supported** | Optional filter; conflicts with `principal_name` |
-| `features` | **supported** | Optional; `concurrent_workers` for parallel GetStorageKey calls |
+| `principal_name` | covered | Optional filter; conflicts with `origin`/`origin_id` |
+| `subject_types` | covered | Optional TypeSet filter |
+| `origin` | covered | Optional filter; conflicts with `principal_name` |
+| `origin_id` | covered | Optional filter; conflicts with `principal_name` |
+| `features` | covered | Optional; `concurrent_workers` for parallel GetStorageKey calls |
 
 **Per-user attributes in `users[]` set:**
 
 | Field path (API JSON key) | TF schema attribute (`users[]`) | Status | Notes |
 |---|---|---|---|
-| _(derived via GetStorageKey)_ | `id` | **supported** | Computed UUID (storage key) for each user |
-| `descriptor` | `descriptor` | **supported** | Computed |
-| `principalName` | `principal_name` | **supported** | Computed |
-| `origin` | `origin` | **supported** | Computed |
-| `originId` | `origin_id` | **supported** | Optional (hint for filtering) |
-| `displayName` | `display_name` | **supported** | Computed |
-| `mailAddress` | `mail_address` | **supported** | Computed |
-| `subjectKind` | _(absent in users[])_ | **gap** | Not exposed per-item; implement in this initiative |
-| `domain` | _(absent in users[])_ | **gap** | Not exposed per-item; implement in this initiative |
-| `url` | _(absent)_ | **deferred** | Read-only REST URL; low value |
-| `directoryAlias` | _(absent)_ | **deferred** | Short alias; low priority |
-| `isDeletedInOrigin` | _(absent)_ | **deferred** | Read-only deletion state |
-| `metaType` | _(absent)_ | **deferred** | Internal meta type; low value |
-| `_links` | _(absent)_ | **deferred** | Navigation links; not useful in TF |
-| `legacyDescriptor` | _(absent)_ | **deferred** | Internal only |
+| _(derived via GetStorageKey)_ | `id` | covered | Computed UUID (storage key) for each user |
+| `descriptor` | `descriptor` | covered | Computed |
+| `principalName` | `principal_name` | covered | Computed |
+| `origin` | `origin` | covered | Computed |
+| `originId` | `origin_id` | covered | Optional (hint for filtering) |
+| `displayName` | `display_name` | covered | Computed |
+| `mailAddress` | `mail_address` | covered | Computed |
+| `subjectKind` | _(absent in users[])_ | gap-open | Not exposed per-item; implement in this initiative |
+| `domain` | _(absent in users[])_ | gap-open | Not exposed per-item; implement in this initiative |
+| `url` | _(absent)_ | gap-deferred | Read-only REST URL; low value |
+| `directoryAlias` | _(absent)_ | gap-deferred | Short alias; low priority |
+| `isDeletedInOrigin` | _(absent)_ | gap-deferred | Read-only deletion state |
+| `metaType` | _(absent)_ | gap-deferred | Internal meta type; low value |
+| `_links` | _(absent)_ | gap-deferred | Navigation links; not useful in TF |
+| `legacyDescriptor` | _(absent)_ | gap-deferred | Internal only |
 
 **Summary — `betterado_users` data source:** 12 supported / 2 gaps / 5 deferred
 
@@ -290,7 +290,7 @@ All identified gaps are **read-only computed fields** (not writable by users). N
 |---|---|
 | `_links` on all types | REST navigation links are not useful in declarative TF state; no consumer value |
 | `legacyDescriptor` on all types | `[Internal Use Only]` per SDK doc comment; should not be surfaced |
-| `url` on service_principal / users | Low-value read-only REST URL; consumers can construct from descriptor if needed |
+| `url` on service_principal / users | Low-value non-writable REST URL; consumers can construct from descriptor if needed |
 | `directoryAlias` on user / service_principal / users | Low priority; rarely needed in TF configurations |
 | `isDeletedInOrigin` on user / service_principal | Internal soft-delete state in identity provider; provider handles implicitly |
 | `metaType` on user / service_principal | Internal meta type (`"member"`, `"guest"`); low practical value in IaC |
