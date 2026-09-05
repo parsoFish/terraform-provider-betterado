@@ -37,21 +37,21 @@ All methods are marked `[Preview API]` at version `7.1-preview.1`.
 | Field | ADO Go type | Writable? | TF attribute status | Notes |
 |---|---|---|---|---|
 | `id` | `*string` | No | `feature_id` — Required, ForceNew | Contribution ID (e.g. `ms.vss-work.agile`). User provides on create; becomes the resource ID. |
-| `name` | `*string` | No | Computed (read-only) | Human-readable display name; set by ADO, not the user. |
-| `description` | `*string` | No | Computed (read-only) | Feature description; server-side metadata. |
-| `defaultState` | `*bool` | No | Computed (read-only) | True if the feature is enabled by default when no scope override exists. |
-| `defaultValueRules` | `*[]ContributedFeatureValueRule` | No | Not in scope | Internal handler list for computing default values; never user-writeable. |
-| `overrideRules` | `*[]ContributedFeatureValueRule` | No | Not in scope | Rules that override user state before it is read; server-internal. |
-| `scopes` | `*[]ContributedFeatureSettingScope` | No | Computed (read-only) | Array of `{settingScope, userScoped}` pairs describing where the feature can be scoped. Present as a data-source attribute to let callers verify supported scopes. |
-| `tags` | `*[]string` | No | Computed (read-only) | ADO-supplied classification tags; read-only. |
-| `featureProperties` | `*map[string]interface{}` | No | Not in scope | Opaque extra properties; rarely populated and not stable across ADO versions. |
-| `featureStateChangedListeners` | `*[]ContributedFeatureListener` | No | Not in scope | Server-side side-effect handlers; internal only. |
-| `includeAsClaim` | `*bool` | No | Not in scope | Internal JWT claim inclusion flag; not user-controllable. |
-| `order` | `*int` | No | Not in scope | UI display ordering hint; cosmetic, not meaningful for IaC. |
-| `serviceInstanceType` | `*uuid.UUID` | No | Not in scope | The owning service's instance type UUID; internal routing only. |
-| `_links` | `interface{}` | No | Not in scope | Read-only REST HAL navigation links. |
+| `name` | `*string` | No | Computed (server-assigned) | Human-readable display name; set by ADO, not the user. |
+| `description` | `*string` | No | Computed (server-assigned) | Feature description; server-side metadata. |
+| `defaultState` | `*bool` | No | Computed (server-assigned) | True if the feature is enabled by default when no scope override exists. |
+| `defaultValueRules` | `*[]ContributedFeatureValueRule` | No | `out-of-scope` | Internal handler list for computing default values; never user-writeable. |
+| `overrideRules` | `*[]ContributedFeatureValueRule` | No | `out-of-scope` | Rules that override user state before it is read; server-internal. |
+| `scopes` | `*[]ContributedFeatureSettingScope` | No | Computed (server-assigned) | Array of `{settingScope, userScoped}` pairs describing where the feature can be scoped. Exposed as a data-source attribute to let callers verify supported scopes. |
+| `tags` | `*[]string` | No | Computed (server-assigned) | ADO-supplied classification tags; server-assigned. |
+| `featureProperties` | `*map[string]interface{}` | No | `out-of-scope` | Opaque extra properties; rarely populated and not stable across ADO versions. |
+| `featureStateChangedListeners` | `*[]ContributedFeatureListener` | No | `out-of-scope` | Server-side side-effect handlers; internal only. |
+| `includeAsClaim` | `*bool` | No | `out-of-scope` | Internal JWT claim inclusion flag; not user-controllable. |
+| `order` | `*int` | No | `out-of-scope` | UI display ordering hint; cosmetic, not meaningful for IaC. |
+| `serviceInstanceType` | `*uuid.UUID` | No | `out-of-scope` | The owning service's instance type UUID; internal routing only. |
+| `_links` | `interface{}` | No | `out-of-scope` | Read-only REST HAL navigation links. |
 
-**Summary — ContributedFeature:** 1 user-writable field (`id` as lookup key) / 4 read-only fields worth surfacing / 9 internal/not-in-scope.
+**Summary — ContributedFeature:** 1 user-writable field (`id` as lookup key) / 4 server-assigned fields worth surfacing / 9 internal/out-of-scope.
 
 ---
 
@@ -64,10 +64,10 @@ All methods are marked `[Preview API]` at version `7.1-preview.1`.
 | `featureId` | `*string` | Yes — key | `feature_id` — Required, ForceNew | Contribution ID of the feature being managed. |
 | `state` | `*ContributedFeatureEnabledValue` | Yes | `state` — Required | One of `enabled`, `disabled`, `undefined`. See §4 for semantics. |
 | `scope` | `*ContributedFeatureSettingScope` | Yes — derived | Encoded in `user_scope`, `scope_name`, `scope_value` | The scope struct is constructed from the three TF attributes; not exposed as a nested block. |
-| `overridden` | `*bool` | No | Computed (read-only) | True when an ADO `overrideRule` is controlling the state, preventing user override. |
-| `reason` | `*string` | No | Computed (read-only) | Reason text set by an override rule; server-supplied. |
+| `overridden` | `*bool` | No | Computed (server-assigned) | True when an ADO `overrideRule` is controlling the state, preventing user override. |
+| `reason` | `*string` | No | Computed (server-assigned) | Reason text set by an override rule; server-supplied. |
 
-**Summary — ContributedFeatureState:** 2 writable fields (`featureId`, `state`) + 3 scope routing fields / 2 read-only.
+**Summary — ContributedFeatureState:** 2 writable fields (`featureId`, `state`) + 3 scope routing fields / 2 server-assigned.
 
 ---
 
@@ -156,7 +156,7 @@ Both resources can coexist in the same configuration targeting the same project 
 
 ### 7.2 Feature definitions as a managed resource
 
-`ContributedFeature` (the definition of a feature, with `id`, `name`, `description`, `scopes`, etc.) is **read-only metadata** contributed by ADO extensions and built-in services. It cannot be created, updated, or deleted through the Feature Management REST API. A data source (`data.betterado_feature_flag`) that reads definition metadata is a future candidate but is not part of this initiative.
+`ContributedFeature` (the definition of a feature, with `id`, `name`, `description`, `scopes`, etc.) is **server-assigned metadata** contributed by ADO extensions and built-in services. It cannot be created, updated, or deleted through the Feature Management REST API. A data source (`data.betterado_feature_flag`) that reads definition metadata is a future candidate but is not part of this initiative.
 
 ### 7.3 Batch / composite state management
 
@@ -164,7 +164,7 @@ Both resources can coexist in the same configuration targeting the same project 
 
 ### 7.4 Override rules and computed-only fields
 
-Fields `overridden` and `reason` on `ContributedFeatureState` are surfaced as Computed read-only attributes so operators can inspect whether a feature is being held by an ADO override rule. They are not writable.
+Fields `overridden` and `reason` on `ContributedFeatureState` are surfaced as Computed server-assigned attributes so operators can inspect whether a feature is being held by an ADO override rule. They are not writable.
 
 ---
 
@@ -179,8 +179,8 @@ Based on the above analysis, the `betterado_feature_flag` resource should expose
 | `scope_name` | `TypeString` | No | No | Yes | Route param `scopeName`; e.g. `"project"` |
 | `scope_value` | `TypeString` | No | No | Yes | Route param `scopeValue`; e.g. project GUID |
 | `state` | `TypeString` | Yes | No | No | `ContributedFeatureState.state`; validated enum: `enabled`, `disabled`, `undefined` |
-| `overridden` | `TypeBool` | No | Yes | No | `ContributedFeatureState.overridden`; read-only |
-| `reason` | `TypeString` | No | Yes | No | `ContributedFeatureState.reason`; read-only |
+| `overridden` | `TypeBool` | No | Yes | No | `ContributedFeatureState.overridden`; server-assigned |
+| `reason` | `TypeString` | No | Yes | No | `ContributedFeatureState.reason`; server-assigned |
 
 **Resource ID format:** `<feature_id>/<user_scope>[/<scope_name>/<scope_value>]`
 Example: `ms.vss-work.agile/host/project/00000000-0000-0000-0000-000000000001`

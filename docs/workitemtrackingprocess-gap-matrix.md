@@ -10,9 +10,9 @@ Each table covers one resource or data source. Columns:
 |---|---|
 | `field` | Terraform schema attribute name |
 | `api_field` | Corresponding JSON field in the ADO REST API (read/write model) |
-| `api_writable` | `yes` = writable via POST/PATCH; `no` = read-only from API; `—` = not on API object |
-| `in_schema` | `yes` = present in the TF schema; `no` = absent |
-| `gap_action` | `resolved` = gap closed in this initiative; `defer` = out of scope for now (with rationale); `n/a-computed` = field is server-assigned, computed-only by design |
+| `api_writable` | `yes` = writable via POST/PATCH; `no` = server-assigned from API; `—` = not on API object |
+| `in_schema` | `yes` = covered in the TF schema; `no` = absent |
+| `gap_action` | `covered` = field is surfaced in the TF schema; `gap-deferred` = out of scope for now (with rationale); `out-of-scope` = server-assigned field, computed-only by design |
 
 ---
 
@@ -25,15 +25,15 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `name` | `name` | yes | yes | — |
-| `description` | `description` | yes | yes | — |
-| `parent_process_type_id` | `parentProcessTypeId` | yes (create-only) | yes | — |
-| `reference_name` | `referenceName` | yes (create-only) | yes | — |
-| `is_default` | `isDefault` | yes (update) | yes | — |
-| `is_enabled` | `isEnabled` | yes (update) | yes | — |
-| `customization_type` | `customizationType` | no | yes | n/a-computed |
-| *(id)* | `typeId` | no | *(resource ID)* | n/a-computed |
-| *(projects)* | `projects` | no | no | defer — projects are populated on read when `expand=projects`; surfaced in the data source; not applicable to the resource |
+| `name` | `name` | yes | yes | `covered` |
+| `description` | `description` | yes | yes | `covered` |
+| `parent_process_type_id` | `parentProcessTypeId` | yes (create-only) | yes | `covered` |
+| `reference_name` | `referenceName` | yes (create-only) | yes | `covered` |
+| `is_default` | `isDefault` | yes (update) | yes | `covered` |
+| `is_enabled` | `isEnabled` | yes (update) | yes | `covered` |
+| `customization_type` | `customizationType` | no | yes | `out-of-scope` |
+| *(id)* | `typeId` | no | *(resource ID)* | `out-of-scope` |
+| *(projects)* | `projects` | no | no | `gap-deferred` — projects are populated on read when `expand=projects`; surfaced in the data source; not applicable to the resource |
 
 ---
 
@@ -44,19 +44,19 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | yes | yes | — |
-| `name` | `name` | yes (create-only) | yes | — |
-| `description` | `description` | yes | yes | — |
-| `color` | `color` | yes | yes | — |
-| `icon` | `icon` | yes | yes | — |
-| `parent_work_item_reference_name` | `inheritsFrom` / `inherits` | yes (create-only) | yes | — |
-| `is_enabled` | `isDisabled` (inverted) | yes | yes | — |
-| `reference_name` | `referenceName` | no (assigned) | yes (Computed) | n/a-computed |
-| `url` | `url` | no | yes (Computed) | n/a-computed |
-| `pages` | `layout.pages` | no (via Layout expand) | yes (Computed) | n/a-computed |
-| *(behaviors)* | `behaviors` | yes (separate endpoint) | no | defer — behaviors are a separate sub-resource managed via `/workItemTypes/{witRefName}/behaviors`; out of scope for this initiative |
-| *(states)* | `states` | no (separate endpoint) | no | defer — states are exposed on read via layout expand but managed via the dedicated `state` resource; no gap |
-| *(customization)* | `customization` | no | no | defer — server-assigned enum (system/inherited/custom); could be added as Computed; low priority |
+| `process_id` | *(path param)* | yes | yes | `covered` |
+| `name` | `name` | yes (create-only) | yes | `covered` |
+| `description` | `description` | yes | yes | `covered` |
+| `color` | `color` | yes | yes | `covered` |
+| `icon` | `icon` | yes | yes | `covered` |
+| `parent_work_item_reference_name` | `inheritsFrom` / `inherits` | yes (create-only) | yes | `covered` |
+| `is_enabled` | `isDisabled` (inverted) | yes | yes | `covered` |
+| `reference_name` | `referenceName` | no (assigned) | yes (Computed) | `out-of-scope` |
+| `url` | `url` | no | yes (Computed) | `out-of-scope` |
+| `pages` | `layout.pages` | no (via Layout expand) | yes (Computed) | `out-of-scope` |
+| *(behaviors)* | `behaviors` | yes (separate endpoint) | no | `gap-deferred` — behaviors are a separate sub-resource managed via `/workItemTypes/{witRefName}/behaviors`; out of scope for this initiative |
+| *(states)* | `states` | no (separate endpoint) | no | `gap-deferred` — states are exposed on read via layout expand but managed via the dedicated `state` resource; no gap |
+| *(customization)* | `customization` | no | no | `gap-deferred` — server-assigned enum (system/inherited/custom); could be added as Computed; low priority |
 
 ---
 
@@ -67,16 +67,16 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | yes | yes | — |
-| `work_item_type_id` | *(path param)* | yes | yes | — |
-| `name` | `name` | yes (create-only) | yes | — |
-| `color` | `color` | yes | yes | — |
-| `state_category` | `stateCategory` | yes | yes | — |
-| `order` | `order` | yes | yes | — |
-| `url` | `url` | no | yes (Computed) | n/a-computed |
-| *(customization_type)* | `customizationType` | no | no | defer — server-assigned; could be Computed; low priority |
-| *(hidden)* | `hidden` | no (managed via HideState endpoint) | no | defer — hidden/visible is managed by `betterado_workitemtrackingprocess_inherited_state`; not applicable to custom states resource |
-| *(id)* | `id` | no | *(resource ID)* | n/a-computed |
+| `process_id` | *(path param)* | yes | yes | `covered` |
+| `work_item_type_id` | *(path param)* | yes | yes | `covered` |
+| `name` | `name` | yes (create-only) | yes | `covered` |
+| `color` | `color` | yes | yes | `covered` |
+| `state_category` | `stateCategory` | yes | yes | `covered` |
+| `order` | `order` | yes | yes | `covered` |
+| `url` | `url` | no | yes (Computed) | `out-of-scope` |
+| *(customization_type)* | `customizationType` | no | no | `gap-deferred` — server-assigned; could be Computed; low priority |
+| *(hidden)* | `hidden` | no (managed via HideState endpoint) | no | `gap-deferred` — hidden/visible is managed by `betterado_workitemtrackingprocess_inherited_state`; not applicable to custom states resource |
+| *(id)* | `id` | no | *(resource ID)* | `out-of-scope` |
 
 ---
 
@@ -87,13 +87,13 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | yes | yes | — |
-| `work_item_type_id` | *(path param)* | yes | yes | — |
-| `name` | `name` | no (used for lookup) | yes | — |
-| `visible` | `hidden` (inverted) | yes (via hide endpoint) | yes | — |
-| *(color)* | `color` | no (not writable for inherited states) | no | defer — inherited state color cannot be overridden via this endpoint |
-| *(customization_type)* | `customizationType` | no | no | defer — server-assigned; n/a |
-| *(id)* | `id` | no | *(resource ID)* | n/a-computed |
+| `process_id` | *(path param)* | yes | yes | `covered` |
+| `work_item_type_id` | *(path param)* | yes | yes | `covered` |
+| `name` | `name` | no (used for lookup) | yes | `covered` |
+| `visible` | `hidden` (inverted) | yes (via hide endpoint) | yes | `covered` |
+| *(color)* | `color` | no (not writable for inherited states) | no | `gap-deferred` — inherited state color cannot be overridden via this endpoint |
+| *(customization_type)* | `customizationType` | no | no | `gap-deferred` — server-assigned; n/a |
+| *(id)* | `id` | no | *(resource ID)* | `out-of-scope` |
 
 ---
 
@@ -104,19 +104,19 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | yes | yes | — |
-| `work_item_type_id` | *(path param)* | yes | yes | — |
-| `name` | `name` | yes | yes | — |
-| `is_enabled` | `isDisabled` (inverted) | yes | yes | — |
-| `condition[*].condition_type` | `conditions[*].conditionType` | yes | yes | — |
-| `condition[*].field` | `conditions[*].field` | yes | yes | — |
-| `condition[*].value` | `conditions[*].value` | yes | yes | — |
-| `action[*].action_type` | `actions[*].actionType` | yes | yes | — |
-| `action[*].target_field` | `actions[*].targetField` | yes | yes | — |
-| `action[*].value` | `actions[*].value` | yes | yes | — |
-| `url` | `url` | no | yes (Computed) | n/a-computed |
-| *(customization_type)* | `customizationType` | no | no | defer — server-assigned (system/custom); could be Computed; low priority |
-| *(id)* | `id` | no | *(resource ID)* | n/a-computed |
+| `process_id` | *(path param)* | yes | yes | `covered` |
+| `work_item_type_id` | *(path param)* | yes | yes | `covered` |
+| `name` | `name` | yes | yes | `covered` |
+| `is_enabled` | `isDisabled` (inverted) | yes | yes | `covered` |
+| `condition[*].condition_type` | `conditions[*].conditionType` | yes | yes | `covered` |
+| `condition[*].field` | `conditions[*].field` | yes | yes | `covered` |
+| `condition[*].value` | `conditions[*].value` | yes | yes | `covered` |
+| `action[*].action_type` | `actions[*].actionType` | yes | yes | `covered` |
+| `action[*].target_field` | `actions[*].targetField` | yes | yes | `covered` |
+| `action[*].value` | `actions[*].value` | yes | yes | `covered` |
+| `url` | `url` | no | yes (Computed) | `out-of-scope` |
+| *(customization_type)* | `customizationType` | no | no | `gap-deferred` — server-assigned (system/custom); could be Computed; low priority |
+| *(id)* | `id` | no | *(resource ID)* | `out-of-scope` |
 
 ---
 
@@ -127,20 +127,20 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | yes | yes | — |
-| `work_item_type_id` | *(path param)* | yes | yes | — |
-| `field_id` | `referenceName` | yes (create-only, identifies field) | yes | — |
-| `default_value` | `defaultValue` | yes | yes | — |
-| `read_only` | `readOnly` | yes | yes | — |
-| `required` | `required` | yes | yes | — |
-| `allow_groups` | `allowGroups` | yes | yes (WriteOnly) | — |
-| `customization` | `customization` | no | yes (Computed) | n/a-computed |
-| `is_locked` | `isLocked` | no | yes (Computed) | n/a-computed |
-| `url` | `url` | no | yes (Computed) | n/a-computed |
-| *(allowed_values)* | `allowedValues` | yes | no | defer — `allowedValues` is writable on AddField/UpdateField; list picklist integration is handled through `betterado_workitemtrackingprocess_list`; directly surfacing `allowed_values` here would duplicate concerns; deferred |
-| *(description)* | `description` | no (read-only from API) | no | defer — field description comes from the global field definition, not the per-WIT assignment; not writable here |
-| *(name)* | `name` | no | no | defer — display name comes from global field definition; not writable per-WIT |
-| *(type)* | `type` | no (read-only) | no | defer — field type is set on the global field definition; could be added as Computed; low priority |
+| `process_id` | *(path param)* | yes | yes | `covered` |
+| `work_item_type_id` | *(path param)* | yes | yes | `covered` |
+| `field_id` | `referenceName` | yes (create-only, identifies field) | yes | `covered` |
+| `default_value` | `defaultValue` | yes | yes | `covered` |
+| `read_only` | `readOnly` | yes | yes | `covered` |
+| `required` | `required` | yes | yes | `covered` |
+| `allow_groups` | `allowGroups` | yes | yes (WriteOnly) | `covered` |
+| `customization` | `customization` | no | yes (Computed) | `out-of-scope` |
+| `is_locked` | `isLocked` | no | yes (Computed) | `out-of-scope` |
+| `url` | `url` | no | yes (Computed) | `out-of-scope` |
+| *(allowed_values)* | `allowedValues` | yes | no | `gap-deferred` — `allowedValues` is writable on AddField/UpdateField; list picklist integration is handled through `betterado_workitemtrackingprocess_list`; directly surfacing `allowed_values` here would duplicate concerns; deferred |
+| *(description)* | `description` | no (server-assigned from API) | no | `gap-deferred` — field description comes from the global field definition, not the per-WIT assignment; not writable here |
+| *(name)* | `name` | no | no | `gap-deferred` — display name comes from global field definition; not writable per-WIT |
+| *(type)* | `type` | no (server-assigned) | no | `gap-deferred` — field type is set on the global field definition; could be added as Computed; low priority |
 
 ---
 
@@ -151,12 +151,12 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `name` | `name` | yes | yes | — |
-| `type` | `type` | yes (create-only, ForceNew) | yes | — |
-| `items` | `items` | yes | yes | — |
-| `is_suggested` | `isSuggested` | yes | yes | — |
-| `url` | `url` | no | yes (Computed) | n/a-computed |
-| *(id)* | `id` | no | *(resource ID)* | n/a-computed |
+| `name` | `name` | yes | yes | `covered` |
+| `type` | `type` | yes (create-only, ForceNew) | yes | `covered` |
+| `items` | `items` | yes | yes | `covered` |
+| `is_suggested` | `isSuggested` | yes | yes | `covered` |
+| `url` | `url` | no | yes (Computed) | `out-of-scope` |
+| *(id)* | `id` | no | *(resource ID)* | `out-of-scope` |
 
 ---
 
@@ -167,18 +167,18 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | yes | yes | — |
-| `work_item_type_id` | *(path param)* | yes | yes | — |
-| `label` | `label` | yes | yes | — |
-| `order` | `order` | yes | yes | — |
-| `visible` | `visible` | yes | yes | — |
-| `sections` | `sections` | no (sections auto-created) | yes (Computed) | n/a-computed |
-| *(contribution)* | `contribution` | yes | no | defer — contribution pages (extension tabs) are a less common pattern; the API supports `isContribution`+`contribution` on Page; deferred pending demand |
-| *(is_contribution)* | `isContribution` | yes | no | defer — same as `contribution` |
-| *(inherited)* | `inherited` | no | no | defer — read-only server flag; n/a for custom pages |
-| *(locked)* | `locked` | no | no | defer — read-only API field; n/a for custom pages |
-| *(overridden)* | `overridden` | no | no | defer — read-only server flag; n/a for custom pages |
-| *(page_type)* | `pageType` | yes (auto: custom) | no | defer — always `custom` for resources; exposed in data source; no gap |
+| `process_id` | *(path param)* | yes | yes | `covered` |
+| `work_item_type_id` | *(path param)* | yes | yes | `covered` |
+| `label` | `label` | yes | yes | `covered` |
+| `order` | `order` | yes | yes | `covered` |
+| `visible` | `visible` | yes | yes | `covered` |
+| `sections` | `sections` | no (sections auto-created) | yes (Computed) | `out-of-scope` |
+| *(contribution)* | `contribution` | yes | no | `gap-deferred` — contribution pages (extension tabs) are a less common pattern; the API supports `isContribution`+`contribution` on Page; deferred pending demand |
+| *(is_contribution)* | `isContribution` | yes | no | `gap-deferred` — same as `contribution` |
+| *(inherited)* | `inherited` | no | no | `gap-deferred` — server-assigned flag; n/a for custom pages |
+| *(locked)* | `locked` | no | no | `gap-deferred` — server-assigned API field; n/a for custom pages |
+| *(overridden)* | `overridden` | no | no | `gap-deferred` — server-assigned flag; n/a for custom pages |
+| *(page_type)* | `pageType` | yes (auto: custom) | no | `gap-deferred` — always `custom` for resources; exposed in data source; no gap |
 
 ---
 
@@ -189,12 +189,12 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | yes | yes | — |
-| `work_item_type_id` | *(path param)* | yes | yes | — |
-| `page_id` | `id` | yes (identifies page) | yes | — |
-| `label` | `label` | yes | yes | — |
-| *(visible)* | `visible` | yes | no | defer — inherited page visibility toggle is seldom needed; `betterado_workitemtrackingprocess_page` already handles visible for custom pages; deferred |
-| *(order)* | `order` | yes | no | defer — reordering inherited pages is uncommon; deferred |
+| `process_id` | *(path param)* | yes | yes | `covered` |
+| `work_item_type_id` | *(path param)* | yes | yes | `covered` |
+| `page_id` | `id` | yes (identifies page) | yes | `covered` |
+| `label` | `label` | yes | yes | `covered` |
+| *(visible)* | `visible` | yes | no | `gap-deferred` — inherited page visibility toggle is seldom needed; `betterado_workitemtrackingprocess_page` already handles visible for custom pages; deferred |
+| *(order)* | `order` | yes | no | `gap-deferred` — reordering inherited pages is uncommon; deferred |
 
 ---
 
@@ -205,30 +205,30 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | yes | yes | — |
-| `work_item_type_id` / `work_item_type_reference_name` | *(path param)* | yes | yes | — |
-| `page_id` | *(path param)* | yes | yes | — |
-| `section_id` | *(path param)* | yes | yes | — |
-| `label` | `label` | yes | yes | — |
-| `order` | `order` | yes | yes | — |
-| `visible` | `visible` | yes | yes | — |
-| `control[*].id` | `controls[*].id` | yes | yes | — |
-| `control[*].label` | `controls[*].label` | yes | yes | — |
-| `control[*].visible` | `controls[*].visible` | yes | yes | — |
-| `control[*].read_only` | `controls[*].readOnly` | yes | yes | — |
-| `control[*].metadata` | `controls[*].metadata` | yes | yes | — |
-| `control[*].watermark` | `controls[*].watermark` | yes | yes | — |
-| `control[*].is_contribution` | `controls[*].isContribution` | yes | yes | — |
-| `control[*].contribution.*` | `controls[*].contribution.*` | yes | yes | — |
-| `control[*].control_type` | `controls[*].controlType` | no | yes (Computed) | n/a-computed |
-| `control[*].order` | `controls[*].order` | yes (via list index) | yes (Computed) | — |
-| `control[*].inherited` | `controls[*].inherited` | no | yes (Computed) | n/a-computed |
-| `control[*].overridden` | `controls[*].overridden` | no | yes (Computed) | n/a-computed |
-| *(contribution)* | `contribution` | yes | no | defer — group-level contribution (extension groups) are a less common pattern; deferred pending demand |
-| *(is_contribution)* | `isContribution` | yes | no | defer — same as above |
-| *(height)* | `height` | yes | no | defer — height is only meaningful for contribution groups; deferred with contribution |
-| *(inherited)* | `inherited` | no | no | defer — read-only server flag; n/a for custom groups |
-| *(overridden)* | `overridden` | no | no | defer — read-only server flag; n/a for custom groups |
+| `process_id` | *(path param)* | yes | yes | `covered` |
+| `work_item_type_id` / `work_item_type_reference_name` | *(path param)* | yes | yes | `covered` |
+| `page_id` | *(path param)* | yes | yes | `covered` |
+| `section_id` | *(path param)* | yes | yes | `covered` |
+| `label` | `label` | yes | yes | `covered` |
+| `order` | `order` | yes | yes | `covered` |
+| `visible` | `visible` | yes | yes | `covered` |
+| `control[*].id` | `controls[*].id` | yes | yes | `covered` |
+| `control[*].label` | `controls[*].label` | yes | yes | `covered` |
+| `control[*].visible` | `controls[*].visible` | yes | yes | `covered` |
+| `control[*].read_only` | `controls[*].readOnly` | yes | yes | `covered` |
+| `control[*].metadata` | `controls[*].metadata` | yes | yes | `covered` |
+| `control[*].watermark` | `controls[*].watermark` | yes | yes | `covered` |
+| `control[*].is_contribution` | `controls[*].isContribution` | yes | yes | `covered` |
+| `control[*].contribution.*` | `controls[*].contribution.*` | yes | yes | `covered` |
+| `control[*].control_type` | `controls[*].controlType` | no | yes (Computed) | `out-of-scope` |
+| `control[*].order` | `controls[*].order` | yes (via list index) | yes (Computed) | `covered` |
+| `control[*].inherited` | `controls[*].inherited` | no | yes (Computed) | `out-of-scope` |
+| `control[*].overridden` | `controls[*].overridden` | no | yes (Computed) | `out-of-scope` |
+| *(contribution)* | `contribution` | yes | no | `gap-deferred` — group-level contribution (extension groups) are a less common pattern; deferred pending demand |
+| *(is_contribution)* | `isContribution` | yes | no | `gap-deferred` — same as above |
+| *(height)* | `height` | yes | no | `gap-deferred` — height is only meaningful for contribution groups; deferred with contribution |
+| *(inherited)* | `inherited` | no | no | `gap-deferred` — server-assigned flag; n/a for custom groups |
+| *(overridden)* | `overridden` | no | no | `gap-deferred` — server-assigned flag; n/a for custom groups |
 
 ---
 
@@ -239,25 +239,25 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | yes | yes | — |
-| `work_item_type_reference_name` | *(path param)* | yes | yes | — |
-| `group_id` | *(path param)* | yes | yes | — |
-| `control_id` | `id` | yes (create-only) | yes | — |
-| `label` | `label` | yes | yes | — |
-| `order` | `order` | yes | yes | — |
-| `visible` | `visible` | yes | yes | — |
-| `read_only` | `readOnly` | yes | yes | — |
-| `metadata` | `metadata` | yes | yes | — |
-| `watermark` | `watermark` | yes | yes | — |
-| `is_contribution` | `isContribution` | yes | yes | — |
-| `contribution.contribution_id` | `contribution.contributionId` | yes | yes | — |
-| `contribution.height` | `contribution.height` | yes | yes | — |
-| `contribution.inputs` | `contribution.inputs` | yes | yes | — |
-| `contribution.show_on_deleted_work_item` | `contribution.showOnDeletedWorkItem` | yes | yes | — |
-| `control_type` | `controlType` | no | yes (Computed) | n/a-computed |
-| `inherited` | `inherited` | no | yes (Computed) | n/a-computed |
-| `overridden` | `overridden` | no | yes (Computed) | n/a-computed |
-| *(height)* | `height` | yes | no | defer — control-level `height` (separate from contribution height) is only relevant for HTML controls; the contribution block's `height` is already supported; low priority |
+| `process_id` | *(path param)* | yes | yes | `covered` |
+| `work_item_type_reference_name` | *(path param)* | yes | yes | `covered` |
+| `group_id` | *(path param)* | yes | yes | `covered` |
+| `control_id` | `id` | yes (create-only) | yes | `covered` |
+| `label` | `label` | yes | yes | `covered` |
+| `order` | `order` | yes | yes | `covered` |
+| `visible` | `visible` | yes | yes | `covered` |
+| `read_only` | `readOnly` | yes | yes | `covered` |
+| `metadata` | `metadata` | yes | yes | `covered` |
+| `watermark` | `watermark` | yes | yes | `covered` |
+| `is_contribution` | `isContribution` | yes | yes | `covered` |
+| `contribution.contribution_id` | `contribution.contributionId` | yes | yes | `covered` |
+| `contribution.height` | `contribution.height` | yes | yes | `covered` |
+| `contribution.inputs` | `contribution.inputs` | yes | yes | `covered` |
+| `contribution.show_on_deleted_work_item` | `contribution.showOnDeletedWorkItem` | yes | yes | `covered` |
+| `control_type` | `controlType` | no | yes (Computed) | `out-of-scope` |
+| `inherited` | `inherited` | no | yes (Computed) | `out-of-scope` |
+| `overridden` | `overridden` | no | yes (Computed) | `out-of-scope` |
+| *(height)* | `height` | yes | no | `gap-deferred` — control-level `height` (separate from contribution height) is only relevant for HTML controls; the contribution block's `height` is already supported; low priority |
 
 ---
 
@@ -268,13 +268,13 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | yes | yes | — |
-| `work_item_type_id` | *(path param)* | yes | yes | — |
-| `group_id` | *(path param)* | yes | yes | — |
-| `control_id` | `id` | yes (identifies control) | yes | — |
-| `label` | `label` | yes | yes | — |
-| `visible` | `visible` | yes | yes | — |
-| *(read_only)* | `readOnly` | yes | no | defer — inherited control read-only override is an uncommon customization; `betterado_workitemtrackingprocess_control` handles this for custom controls; deferred |
+| `process_id` | *(path param)* | yes | yes | `covered` |
+| `work_item_type_id` | *(path param)* | yes | yes | `covered` |
+| `group_id` | *(path param)* | yes | yes | `covered` |
+| `control_id` | `id` | yes (identifies control) | yes | `covered` |
+| `label` | `label` | yes | yes | `covered` |
+| `visible` | `visible` | yes | yes | `covered` |
+| *(read_only)* | `readOnly` | yes | no | `gap-deferred` — inherited control server-assigned override is an uncommon customization; `betterado_workitemtrackingprocess_control` handles this for custom controls; deferred |
 
 ---
 
@@ -285,15 +285,15 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | yes | yes | — |
-| `work_item_type_id` | *(path param)* | yes | yes | — |
-| `control_id` | `id` | yes (identifies control) | yes | — |
-| `label` | `label` | yes | yes | — |
-| `visible` | `visible` | yes | yes | — |
-| `control_type` | `controlType` | no | yes (Computed) | n/a-computed |
-| `read_only` | `readOnly` | no (system controls are always read-only) | yes (Computed) | n/a-computed |
-| *(metadata)* | `metadata` | yes | no | defer — system control metadata override is uncommon; deferred |
-| *(watermark)* | `watermark` | yes | no | defer — system control watermark override is uncommon; deferred |
+| `process_id` | *(path param)* | yes | yes | `covered` |
+| `work_item_type_id` | *(path param)* | yes | yes | `covered` |
+| `control_id` | `id` | yes (identifies control) | yes | `covered` |
+| `label` | `label` | yes | yes | `covered` |
+| `visible` | `visible` | yes | yes | `covered` |
+| `control_type` | `controlType` | no | yes (Computed) | `out-of-scope` |
+| `read_only` | `readOnly` | no (system controls are always server-assigned) | yes (Computed) | `out-of-scope` |
+| *(metadata)* | `metadata` | yes | no | `gap-deferred` — system control metadata override is uncommon; deferred |
+| *(watermark)* | `watermark` | yes | no | `gap-deferred` — system control watermark override is uncommon; deferred |
 
 ---
 
@@ -306,19 +306,19 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `id` | `typeId` | n/a (input) | yes | — |
-| `expand` | `$expand` query param | n/a (input) | yes | — |
-| `name` | `name` | no | yes (Computed) | — |
-| `description` | `description` | no | yes (Computed) | — |
-| `parent_process_type_id` | `parentProcessTypeId` | no | yes (Computed) | — |
-| `reference_name` | `referenceName` | no | yes (Computed) | — |
-| `is_default` | `isDefault` | no | yes (Computed) | — |
-| `is_enabled` | `isEnabled` | no | yes (Computed) | — |
-| `customization_type` | `customizationType` | no | yes (Computed) | n/a-computed |
-| `projects[*].id` | `projects[*].id` | no | yes (Computed) | — |
-| `projects[*].name` | `projects[*].name` | no | yes (Computed) | — |
-| `projects[*].description` | `projects[*].description` | no | yes (Computed) | — |
-| `projects[*].url` | `projects[*].url` | no | yes (Computed) | — |
+| `id` | `typeId` | n/a (input) | yes | `covered` |
+| `expand` | `$expand` query param | n/a (input) | yes | `covered` |
+| `name` | `name` | no | yes (Computed) | `covered` |
+| `description` | `description` | no | yes (Computed) | `covered` |
+| `parent_process_type_id` | `parentProcessTypeId` | no | yes (Computed) | `covered` |
+| `reference_name` | `referenceName` | no | yes (Computed) | `covered` |
+| `is_default` | `isDefault` | no | yes (Computed) | `covered` |
+| `is_enabled` | `isEnabled` | no | yes (Computed) | `covered` |
+| `customization_type` | `customizationType` | no | yes (Computed) | `out-of-scope` |
+| `projects[*].id` | `projects[*].id` | no | yes (Computed) | `covered` |
+| `projects[*].name` | `projects[*].name` | no | yes (Computed) | `covered` |
+| `projects[*].description` | `projects[*].description` | no | yes (Computed) | `covered` |
+| `projects[*].url` | `projects[*].url` | no | yes (Computed) | `covered` |
 
 ---
 
@@ -329,16 +329,16 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `expand` | `$expand` query param | n/a (input) | yes | — |
-| `processes[*].id` | `typeId` | no | yes (Computed) | — |
-| `processes[*].name` | `name` | no | yes (Computed) | — |
-| `processes[*].description` | `description` | no | yes (Computed) | — |
-| `processes[*].parent_process_type_id` | `parentProcessTypeId` | no | yes (Computed) | — |
-| `processes[*].reference_name` | `referenceName` | no | yes (Computed) | — |
-| `processes[*].is_default` | `isDefault` | no | yes (Computed) | — |
-| `processes[*].is_enabled` | `isEnabled` | no | yes (Computed) | — |
-| `processes[*].customization_type` | `customizationType` | no | yes (Computed) | n/a-computed |
-| `processes[*].projects[*].*` | `projects[*].*` | no | yes (Computed) | — |
+| `expand` | `$expand` query param | n/a (input) | yes | `covered` |
+| `processes[*].id` | `typeId` | no | yes (Computed) | `covered` |
+| `processes[*].name` | `name` | no | yes (Computed) | `covered` |
+| `processes[*].description` | `description` | no | yes (Computed) | `covered` |
+| `processes[*].parent_process_type_id` | `parentProcessTypeId` | no | yes (Computed) | `covered` |
+| `processes[*].reference_name` | `referenceName` | no | yes (Computed) | `covered` |
+| `processes[*].is_default` | `isDefault` | no | yes (Computed) | `covered` |
+| `processes[*].is_enabled` | `isEnabled` | no | yes (Computed) | `covered` |
+| `processes[*].customization_type` | `customizationType` | no | yes (Computed) | `out-of-scope` |
+| `processes[*].projects[*].*` | `projects[*].*` | no | yes (Computed) | `covered` |
 
 ---
 
@@ -349,19 +349,19 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | n/a (input) | yes | — |
-| `reference_name` | `referenceName` | n/a (input) | yes | — |
-| `name` | `name` | no | yes (Computed) | — |
-| `description` | `description` | no | yes (Computed) | — |
-| `color` | `color` | no | yes (Computed) | — |
-| `icon` | `icon` | no | yes (Computed) | — |
-| `is_enabled` | `isDisabled` (inverted) | no | yes (Computed) | — |
-| `parent_work_item_reference_name` | `inherits` | no | yes (Computed) | — |
-| `customization` | `customization` | no | yes (Computed) | n/a-computed |
-| `url` | `url` | no | yes (Computed) | — |
-| *(behaviors)* | `behaviors` | no | no | defer — behaviors require separate expand; deferred |
-| *(states)* | `states` | no | no | defer — states require separate expand; deferred |
-| *(layout/pages)* | `layout` | no | no | defer — layout is available via expand; the resource exposes pages; deferred for the data source |
+| `process_id` | *(path param)* | n/a (input) | yes | `covered` |
+| `reference_name` | `referenceName` | n/a (input) | yes | `covered` |
+| `name` | `name` | no | yes (Computed) | `covered` |
+| `description` | `description` | no | yes (Computed) | `covered` |
+| `color` | `color` | no | yes (Computed) | `covered` |
+| `icon` | `icon` | no | yes (Computed) | `covered` |
+| `is_enabled` | `isDisabled` (inverted) | no | yes (Computed) | `covered` |
+| `parent_work_item_reference_name` | `inherits` | no | yes (Computed) | `covered` |
+| `customization` | `customization` | no | yes (Computed) | `out-of-scope` |
+| `url` | `url` | no | yes (Computed) | `covered` |
+| *(behaviors)* | `behaviors` | no | no | `gap-deferred` — behaviors require separate expand; deferred |
+| *(states)* | `states` | no | no | `gap-deferred` — states require separate expand; deferred |
+| *(layout/pages)* | `layout` | no | no | `gap-deferred` — layout is available via expand; the resource exposes pages; deferred for the data source |
 
 ---
 
@@ -372,36 +372,36 @@ Each table covers one resource or data source. Columns:
 
 | field | api_field | api_writable | in_schema | gap_action |
 |---|---|---|---|---|
-| `process_id` | *(path param)* | n/a (input) | yes | — |
-| `work_item_types[*].reference_name` | `referenceName` | no | yes (Computed) | — |
-| `work_item_types[*].name` | `name` | no | yes (Computed) | — |
-| `work_item_types[*].description` | `description` | no | yes (Computed) | — |
-| `work_item_types[*].color` | `color` | no | yes (Computed) | — |
-| `work_item_types[*].icon` | `icon` | no | yes (Computed) | — |
-| `work_item_types[*].is_enabled` | `isDisabled` (inverted) | no | yes (Computed) | — |
-| `work_item_types[*].parent_work_item_reference_name` | `inherits` | no | yes (Computed) | — |
-| `work_item_types[*].customization` | `customization` | no | yes (Computed) | n/a-computed |
-| `work_item_types[*].url` | `url` | no | yes (Computed) | — |
-| *(behaviors, states, layout)* | various | no | no | defer — same rationale as singular data source |
+| `process_id` | *(path param)* | n/a (input) | yes | `covered` |
+| `work_item_types[*].reference_name` | `referenceName` | no | yes (Computed) | `covered` |
+| `work_item_types[*].name` | `name` | no | yes (Computed) | `covered` |
+| `work_item_types[*].description` | `description` | no | yes (Computed) | `covered` |
+| `work_item_types[*].color` | `color` | no | yes (Computed) | `covered` |
+| `work_item_types[*].icon` | `icon` | no | yes (Computed) | `covered` |
+| `work_item_types[*].is_enabled` | `isDisabled` (inverted) | no | yes (Computed) | `covered` |
+| `work_item_types[*].parent_work_item_reference_name` | `inherits` | no | yes (Computed) | `covered` |
+| `work_item_types[*].customization` | `customization` | no | yes (Computed) | `out-of-scope` |
+| `work_item_types[*].url` | `url` | no | yes (Computed) | `covered` |
+| *(behaviors, states, layout)* | various | no | no | `gap-deferred` — same rationale as singular data source |
 
 ---
 
 ## Summary of Deferred Gaps
 
-| resource/data-source | missing field | rationale |
+| resource/data-source | field | rationale |
 |---|---|---|
 | `resource_process` | `projects` | Only relevant with `expand=projects`; surfaced in the data source |
 | `resource_workitemtype` | `behaviors` | Separate sub-resource endpoint; separate WI |
 | `resource_workitemtype` | `customization` (Computed) | Low priority server-assigned field |
 | `resource_workitemtype` | `states` (Computed) | Managed via dedicated `state`/`inherited_state` resources |
 | `resource_field` | `allowed_values` | List/picklist integration is via `betterado_workitemtrackingprocess_list`; duplicating here conflicts |
-| `resource_field` | `description`, `name`, `type` (Computed) | Read-only per-WIT; come from global field definition |
+| `resource_field` | `description`, `name`, `type` (Computed) | Server-assigned per-WIT; come from global field definition |
 | `resource_page` | `contribution`, `is_contribution` | Contribution pages (extension tabs) deferred pending demand |
-| `resource_page` | `inherited`, `locked`, `overridden` | Read-only; not applicable to custom pages resource |
+| `resource_page` | `inherited`, `locked`, `overridden` | Server-assigned; not applicable to custom pages resource |
 | `resource_page` | `page_type` | Always `custom`; no user control needed |
 | `resource_inherited_page` | `visible`, `order` | Uncommon for inherited-page management; deferred |
 | `resource_group` | `contribution`, `is_contribution`, `height` | Extension groups deferred pending demand |
-| `resource_group` | `inherited`, `overridden` | Read-only server flags; n/a for custom groups |
+| `resource_group` | `inherited`, `overridden` | Server-assigned flags; n/a for custom groups |
 | `resource_control` | `height` (top-level) | Only relevant for HTML controls; contribution block already covers height |
 | `resource_inherited_control` | `read_only` | Uncommon override for inherited controls; deferred |
 | `resource_system_control` | `metadata`, `watermark` | Uncommon system-control overrides; deferred |
