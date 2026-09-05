@@ -1,11 +1,11 @@
 # betterado — API-coverage roadmap (north star + first initiative)
 
-> **Status: parked plan.** Written 2026-05-31 from the forge onboarding session.
-> Pick this up **after** the forge-hardening refinement (forge `docs/known-gaps.md`
-> §2026-05-31 — PM faithfulness, gate auto-derivation, PR hygiene, unifier cost),
-> then convert the Release initiative below into a forge manifest and run it
-> roadmap-scale. This is intentionally ONE initiative detailed as the template,
-> not the whole roadmap.
+> **Status: active — Release API initiative complete; roadmap-scale execution underway.**
+> Written 2026-05-31 from the forge onboarding session. FEAT-1, FEAT-2, and FEAT-4
+> of the Release initiative have shipped (see reconciled status below). The gap-registry
+> consolidation initiative (INIT-2026-09-05) completed the Coverage index for all 31 ADO
+> API areas — see `docs/gap-registry.md` for the full cross-area coverage status and
+> Priority backlog. FEAT-3 (`release_definition_environment_template`) remains unbuilt.
 
 ## North star
 
@@ -60,37 +60,37 @@ Every feature must, before it's "done":
 (`vsrm.dev.azure.com`, 7.2) to complete **declarative** coverage. Chosen first
 because it's the fork's reason to exist and already has partial substrate.
 
-**Current state (as of 2026-05-31):**
-- `release_definition`: resource built (~1,490 LOC). 6 acceptance tests exist but
-  are **stale** — live `apply` fails on current ADO (`VS402982` stage-level
-  `retention_policy` now required; `VS402877` pre/post approvals now required).
-  **No unit tests.**
-- `release_folder`, `release_definition_environment_template`: **not built.**
+**Current state (reconciled from CHANGELOG.md and git log, 2026-09-05):**
+- `betterado_release_definition`: **shipped 2026-06-14** (v0.1.0). Migrated to
+  terraform-plugin-framework (v1.0.0, 2026-06-20). Full schema parity including
+  triggers, stages, deploy phases, gates, approval options, tags, and idempotency
+  fixes (v1.0.0–v1.0.5). Acceptance tests live-proven. **FEAT-1 complete.**
+- `betterado_release_folder`: **shipped in 0.2.0** (pre-1.0.0; framework migration
+  date: 2026-07-01, v1.2.0). Resource and data source both live. **FEAT-2 complete.**
+- `release_definition_environment_template`: **not built.** FEAT-3 remains open.
+- Release data sources: **shipped 2026-07-01** (v1.2.0). Includes
+  `data.betterado_release_definition`, `data.betterado_release_definitions`,
+  `data.betterado_release_definition_history`, `data.betterado_release_definition_revision`,
+  `data.betterado_release_folder`. **FEAT-4 complete** (expanded beyond original scope).
 
 **Features (dependency-ordered):**
 
 - **FEAT-1 — `release_definition`: complete the substrate.** `depends_on: []`
-  - WI: 5-test unit substrate `resource_release_definition_test.go` (the item
-    deferred from the 2026-05-31 onboarding run). Gate:
-    `go test -tags all -run ^TestReleaseDefinition ./azuredevops/internal/service/release/`.
-  - WI: acceptance refresh — add a stage `retention_policy` + a `pre_deploy_approval`
-    with a valid approver so `TestAccReleaseDefinition_*` pass live. Gate:
-    `env TF_ACC=1 go test -tags all -run TestAccReleaseDefinition ./azuredevops/internal/acceptancetests/`.
-  - WI: schema parity audit vs the 7.2 Release Definitions schema (gates,
-    approvalOptions, properties, tags) + docs/example refresh.
+  **✓ SHIPPED** — v0.1.0 (2026-06-14); framework migration v1.0.0 (2026-06-20).
+  Full schema parity, live TF_ACC acceptance tests, idempotency proven.
 
 - **FEAT-2 — `release_folder`: new resource.** `depends_on: [FEAT-1]`
-  - WIs: schema + expand/flatten + provider registration → CRUD + 5 unit tests →
-    acceptance test + docs/example. (This was the old roadmap's INIT-02.)
+  **✓ SHIPPED** — initial resource in 0.2.0; framework migration v1.2.0 (2026-07-01).
+  Resource and data source live with acceptance tests.
 
 - **FEAT-3 — `release_definition_environment_template`: new resource.** `depends_on: [FEAT-1]`
-  - Create/read/delete only (templates are immutable → no Update; major fields
-    ForceNew). WIs: schema → CRD + unit tests → acceptance + docs.
+  **NOT BUILT** — Create/read/delete only (templates are immutable → no Update; major
+  fields ForceNew). WIs: schema → CRD + unit tests → acceptance + docs. Pending.
 
 - **FEAT-4 — read surface as data sources.** `depends_on: [FEAT-1]`
-  - `data.betterado_release_definition` (by id/name) and
-    `data.betterado_release_definitions` (list). WIs: schema + read + unit tests →
-    docs.
+  **✓ SHIPPED** — v1.2.0 (2026-07-01). Delivered: `data.betterado_release_definition`,
+  `data.betterado_release_definitions`, `data.betterado_release_definition_history`,
+  `data.betterado_release_definition_revision`, `data.betterado_release_folder`.
 
 **Out of declarative scope (documented, NOT built this initiative):** Releases
 (runtime create), Deployments, Approvals (approve/reject), runtime Gates, Manual
