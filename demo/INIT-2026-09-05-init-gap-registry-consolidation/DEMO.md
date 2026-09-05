@@ -10,7 +10,7 @@
 - WI-4a [complete] # WI-4a: Identity/Security tier — 8 matrix normalizations
 - WI-4b [complete] # WI-4b: Collaboration/Long-tail tier — 8 matrix normalizations
 - WI-5 [complete] # WI-5: Synthesis + metadata correction
-- Commit: `ce82aeb6628d7951953256e657674e26f1248d56`
+- Commit: `51f95ad16f7ae61f96705bae84fa655df6359767`
 
 ## Visual Changes
 
@@ -93,5 +93,5 @@
 - `scripts/gates/gap-registry-wi5.sh`
 
 ```
-41 files changed, 2733 insertions(+), 1947 deletions(-)
+41 files changed, 2736 insertions(+), 1947 deletions(-)
 ```
