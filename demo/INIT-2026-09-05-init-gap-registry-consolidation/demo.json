@@ -1,0 +1,176 @@
+{
+  "title": "Gap registry: canonical vocabulary, consolidated registry, priority backlog",
+  "essence": "Gap registry: canonical vocabulary, consolidated registry, priority backlog — 6 work items delivered against 20 acceptance criteria, 2 merge-boundary gates run.",
+  "project": "terraform-provider-betterado",
+  "initiativeId": "INIT-2026-09-05-init-gap-registry-consolidation",
+  "changedRef": "a406875fd4b751c7e7318361824aa7fc7b9755fa",
+  "checkpoints": [
+    {
+      "label": "Changed files",
+      "caption": "39 files changed on this branch: brain/projects/terraform-provider-betterado/profile.md, docs/accounts-profile-gap-matrix.md, docs/api-coverage-roadmap.md, docs/approvalsandchecks-gap-matrix.md, docs/build-gap-matrix.md, docs/core-gap-matrix.md, docs/dashboard-gap-matrix.md, docs/extension-gap-matrix.md, docs/featuremanagement-gap-matrix.md, docs/feed-gap-matrix.md, docs/gallery-extensionmanagement-gap-matrix.md, docs/gap-registry.md, docs/git-gap-matrix.md, docs/graph-gap-matrix.md, docs/identity-gap-matrix.md, docs/memberentitlementmanagement-gap-matrix.md, docs/notification-gap-matrix.md, docs/permissions-gap-matrix.md, docs/pipelinesapproval-gap-matrix.md, docs/policy-gap-matrix.md, docs/release-definition-gap-matrix.md, docs/release-definition-permissions-gap-matrix.md, docs/release-folder-gap-matrix.md, docs/security-gap-matrix.md, docs/securityroles-gap-matrix.md, docs/serviceendpoint-gap-matrix.md, docs/servicehook-gap-matrix.md, docs/task-group-gap-matrix.md, docs/taskagent-gap-matrix.md, docs/test-gap-matrix.md, docs/wiki-gap-matrix.md, docs/workitemtracking-gap-matrix.md, docs/workitemtrackingprocess-gap-matrix.md, scripts/gates/gap-registry-foundation.sh, scripts/gates/gap-registry-wi2.sh, scripts/gates/gap-registry-wi3.sh, scripts/gates/gap-registry-wi4a.sh, scripts/gates/gap-registry-wi4b.sh, scripts/gates/gap-registry-wi5.sh"
+    }
+  ],
+  "diffStat": "39 files changed, 2461 insertions(+), 1947 deletions(-)",
+  "acceptanceCriteria": [
+    "(WI-1) GIVEN a clean worktree before any matrix normalization WHEN `scripts/gates/gap-registry-foundation.sh` is executed THEN `docs/gap-registry.md` exists, contains a `## Vocabulary` section defining exactly the four canonical tokens (`covered`, `gap-open`, `gap-deferred`, `out-of-scope`), and the gate script exits 0",
+    "(WI-1) GIVEN `docs/gap-registry.md` has been created WHEN its structure is inspected THEN it contains a `## Coverage index` stub table with columns Area | Classification | gap-open count | gap-deferred count | v7.1→v7.2 delta (one placeholder row per area is acceptable at this stage), a `## Priority backlog` stub section, and a `## Vocabulary` section",
+    "(WI-1) GIVEN `scripts/gates/` directory and `scripts/gates/gap-registry-foundation.sh` are created WHEN the gate script is inspected THEN the script is a `#!/usr/bin/env bash` script with `set -euo pipefail`, asserts `docs/gap-registry.md` exists, asserts `## Vocabulary` section is present, asserts each of the four canonical tokens (`covered`, `gap-open`, `gap-deferred`, `out-of-scope`) appears in the Vocabulary section, and exits 0 on a valid file",
+    "(WI-2) GIVEN the 8 Release + Pipeline tier matrices have been normalized WHEN `scripts/gates/gap-registry-wi2.sh` is executed THEN the gate script exits 0: 8 new registry rows are present in `docs/gap-registry.md`, no forbidden token appears in table rows or legend blocks of any of the 8 matrix files, and the `## Vocabulary` section in gap-registry.md is still intact",
+    "(WI-2) GIVEN the matrix files are updated WHEN each of the 8 matrix files is inspected THEN Status column values and legend entries use ONLY `covered`, `gap-open`, `gap-deferred`, or `out-of-scope` — no `mapped`, `partial`, `missing`, `implemented`, `✅`, `⚠️`, `🚫`, `read-only`, `present`, `missing-writable-gap`, `missing-computed-gap`, `breaking-deferral` appears in table rows or legend blocks",
+    "(WI-2) GIVEN `docs/gap-registry.md` Coverage index is updated WHEN the registry is read THEN it contains exactly one row per area for all 8 Release + Pipeline areas, each row has: area name, classification (`betterado-net-new` | `betterado-extended` | `betterado-inherited`), gap-open count, gap-deferred count, and a v7.1→v7.2 delta sub-line or explicit statement",
+    "(WI-3) GIVEN the 7 Infrastructure tier matrices have been normalized WHEN `scripts/gates/gap-registry-wi3.sh` is executed THEN the gate script exits 0: 7 new registry rows are present in `docs/gap-registry.md`, no forbidden token appears in table rows or legend blocks of any of the 7 matrix files",
+    "(WI-3) GIVEN the matrix files are updated WHEN each of the 7 matrix files is inspected THEN Status column values and legend entries use ONLY `covered`, `gap-open`, `gap-deferred`, or `out-of-scope` — no forbidden token appears in table rows or legend blocks",
+    "(WI-3) GIVEN `docs/gap-registry.md` Coverage index is updated WHEN the registry is read THEN it contains one row per area for all 7 Infrastructure areas, each row has: area name, classification, gap-open count, gap-deferred count, and a v7.1→v7.2 delta statement",
+    "(WI-4a) GIVEN the 8 Identity/Security tier matrices have been normalized WHEN `scripts/gates/gap-registry-wi4a.sh` is executed THEN the gate script exits 0: 8 new registry rows are present in `docs/gap-registry.md`, no forbidden token appears in table rows or legend blocks of any of the 8 matrix files",
+    "(WI-4a) GIVEN the matrix files are updated WHEN each of the 8 matrix files is inspected THEN Status column values and legend entries use ONLY `covered`, `gap-open`, `gap-deferred`, or `out-of-scope` — no forbidden token appears in table rows or legend blocks",
+    "(WI-4a) GIVEN `docs/gap-registry.md` Coverage index is updated WHEN the registry is read THEN it contains one row per area for all 8 Identity/Security areas, each row has: area name, classification, gap-open count, gap-deferred count, and a v7.1→v7.2 delta statement",
+    "(WI-4b) GIVEN the 8 Collaboration/Long-tail tier matrices have been normalized WHEN `scripts/gates/gap-registry-wi4b.sh` is executed THEN the gate script exits 0: 8 new registry rows are present in `docs/gap-registry.md`, no forbidden token appears in table rows or legend blocks of any of the 8 matrix files",
+    "(WI-4b) GIVEN the matrix files are updated WHEN each of the 8 matrix files is inspected THEN Status column values and legend entries use ONLY `covered`, `gap-open`, `gap-deferred`, or `out-of-scope` — no forbidden token appears in table rows or legend blocks; in particular: `accounts-profile-gap-matrix.md` has no emoji tokens (`✅`, `⚠️`, `🚫`), and `workitemtracking-gap-matrix.md` has no `present`, `missing-writable-gap`, `missing-computed-gap`, or `deferred` tokens",
+    "(WI-4b) GIVEN `docs/gap-registry.md` Coverage index is updated WHEN the registry is read THEN it contains one row per area for all 8 Collaboration/Long-tail areas, each row has: area name, classification, gap-open count, gap-deferred count, and a v7.1→v7.2 delta statement",
+    "(WI-5) GIVEN all 31 matrices are normalized (WI-2 through WI-4b complete) WHEN `scripts/gates/gap-registry-wi5.sh` is executed THEN `docs/gap-registry.md` contains a `## Priority backlog` section with all gap-open items ranked in three tiers (Tier 1 = betterado-net-new resources, Tier 2 = high-value upstream gaps, Tier 3 = low-value computed-field gaps), each item tagged with complexity (`low` | `medium` | `high`) and a one-line rationale, and the gate script exits 0",
+    "(WI-5) GIVEN WI-5 synthesis completes WHEN `scripts/gates/gap-registry-wi5.sh` is executed THEN `docs/gap-registry.md` contains one entry per ADO API area (all 31 areas present in the Coverage index) each with: area name + betterado resource(s)/data source(s), classification, exact gap-open count matching the updated per-area matrix, gap-deferred count with re-evaluation verdicts (`complexity-then` | `non-declarative-forever` | `7.2-api-improvement-feasible`), and a v7.1→v7.2 delta sub-line (explicit statement required; omission is not acceptable)",
+    "(WI-5) GIVEN WI-5 completes WHEN `brain/projects/terraform-provider-betterado/profile.md` is read THEN the net-new resources table lists ALL betterado-net-new resource/data-source types (>5 rows, derived from `framework_provider.go` and `provider.go` registrations), and the API-coverage discipline stat line reflects the freshly derived gap-open count from the registry",
+    "(WI-5) GIVEN WI-5 completes WHEN `docs/api-coverage-roadmap.md` is read THEN the status header no longer contains `parked plan` and FEAT-1/FEAT-2/FEAT-4 completion status is reconciled against what actually shipped (dates from CHANGELOG.md or git log — do NOT invent dates or version numbers)",
+    "(WI-5) GIVEN WI-5 gate script is examined WHEN its content is read THEN it is a bash script in `scripts/gates/` asserting: `## Priority backlog` section exists in gap-registry.md, profile.md net-new table has >5 rows, api-coverage-roadmap.md does not contain the string `parked plan`, and all 31 area rows are present in the gap-registry.md Coverage index, and it does NOT invoke go test / go build / make test"
+  ],
+  "summary": {
+    "bullets": [
+      "WI-1 [complete] # WI-1: Foundation — scaffold gap-registry.md + scripts/gates/",
+      "WI-2 [complete] # WI-2: Release + Pipeline tier — 8 matrix normalizations",
+      "WI-3 [complete] # WI-3: Infrastructure tier — 7 matrix normalizations",
+      "WI-4a [complete] # WI-4a: Identity/Security tier — 8 matrix normalizations",
+      "WI-4b [complete] # WI-4b: Collaboration/Long-tail tier — 8 matrix normalizations",
+      "WI-5 [complete] # WI-5: Synthesis + metadata correction"
+    ],
+    "commitSha": "a406875fd4b751c7e7318361824aa7fc7b9755fa"
+  },
+  "testEvidence": [
+    {
+      "name": "local: go test -tags all -count=1 ./azuredevops/internal/service/servicehook/...",
+      "result": "pass"
+    },
+    {
+      "name": "ci: bash -c make test && golangci-lint run ./azuredevops/... && make terrafmt-check",
+      "result": "pass"
+    }
+  ],
+  "filesChanged": [
+    {
+      "path": "brain/projects/terraform-provider-betterado/profile.md"
+    },
+    {
+      "path": "docs/accounts-profile-gap-matrix.md"
+    },
+    {
+      "path": "docs/api-coverage-roadmap.md"
+    },
+    {
+      "path": "docs/approvalsandchecks-gap-matrix.md"
+    },
+    {
+      "path": "docs/build-gap-matrix.md"
+    },
+    {
+      "path": "docs/core-gap-matrix.md"
+    },
+    {
+      "path": "docs/dashboard-gap-matrix.md"
+    },
+    {
+      "path": "docs/extension-gap-matrix.md"
+    },
+    {
+      "path": "docs/featuremanagement-gap-matrix.md"
+    },
+    {
+      "path": "docs/feed-gap-matrix.md"
+    },
+    {
+      "path": "docs/gallery-extensionmanagement-gap-matrix.md"
+    },
+    {
+      "path": "docs/gap-registry.md"
+    },
+    {
+      "path": "docs/git-gap-matrix.md"
+    },
+    {
+      "path": "docs/graph-gap-matrix.md"
+    },
+    {
+      "path": "docs/identity-gap-matrix.md"
+    },
+    {
+      "path": "docs/memberentitlementmanagement-gap-matrix.md"
+    },
+    {
+      "path": "docs/notification-gap-matrix.md"
+    },
+    {
+      "path": "docs/permissions-gap-matrix.md"
+    },
+    {
+      "path": "docs/pipelinesapproval-gap-matrix.md"
+    },
+    {
+      "path": "docs/policy-gap-matrix.md"
+    },
+    {
+      "path": "docs/release-definition-gap-matrix.md"
+    },
+    {
+      "path": "docs/release-definition-permissions-gap-matrix.md"
+    },
+    {
+      "path": "docs/release-folder-gap-matrix.md"
+    },
+    {
+      "path": "docs/security-gap-matrix.md"
+    },
+    {
+      "path": "docs/securityroles-gap-matrix.md"
+    },
+    {
+      "path": "docs/serviceendpoint-gap-matrix.md"
+    },
+    {
+      "path": "docs/servicehook-gap-matrix.md"
+    },
+    {
+      "path": "docs/task-group-gap-matrix.md"
+    },
+    {
+      "path": "docs/taskagent-gap-matrix.md"
+    },
+    {
+      "path": "docs/test-gap-matrix.md"
+    },
+    {
+      "path": "docs/wiki-gap-matrix.md"
+    },
+    {
+      "path": "docs/workitemtracking-gap-matrix.md"
+    },
+    {
+      "path": "docs/workitemtrackingprocess-gap-matrix.md"
+    },
+    {
+      "path": "scripts/gates/gap-registry-foundation.sh"
+    },
+    {
+      "path": "scripts/gates/gap-registry-wi2.sh"
+    },
+    {
+      "path": "scripts/gates/gap-registry-wi3.sh"
+    },
+    {
+      "path": "scripts/gates/gap-registry-wi4a.sh"
+    },
+    {
+      "path": "scripts/gates/gap-registry-wi4b.sh"
+    },
+    {
+      "path": "scripts/gates/gap-registry-wi5.sh"
+    }
+  ]
+}
