@@ -37,6 +37,13 @@
 | approvalsandchecks | betterado-inherited | 0 | 3 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
 | pipelinesapproval | betterado-inherited | 0 | 3 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
 | pipelines-v2 | betterado-inherited | 0 | 0 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| serviceendpoint | betterado-extended | 1 | 55 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| core | betterado-inherited | 5 | 1 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| build | betterado-extended | 12 | 32 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| policy | betterado-inherited | 3 | 0 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| git | betterado-inherited | 0 | 7 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| feed | betterado-extended | 5 | 1 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| wiki | betterado-inherited | 2 | 0 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
 
 ## Priority backlog
 
