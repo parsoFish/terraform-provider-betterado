@@ -29,7 +29,14 @@
 
 | Area | Classification | gap-open count | gap-deferred count | v7.1→v7.2 delta |
 |---|---|---|---|---|
-| _(populated by WI-2 through WI-4b)_ | | | | |
+| release-definition | betterado-net-new | 0 | 3 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| release-folder | betterado-net-new | 0 | 0 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| release-definition-permissions | betterado-net-new | 0 | 0 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| task-group | betterado-net-new | 0 | 0 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| taskagent | betterado-inherited | 0 | 5 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| approvalsandchecks | betterado-inherited | 0 | 3 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| pipelinesapproval | betterado-inherited | 0 | 3 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| pipelines-v2 | betterado-inherited | 0 | 0 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
 
 ## Priority backlog
 

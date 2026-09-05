@@ -189,7 +189,7 @@ Invoke REST API checks call an external HTTP endpoint to gate pipeline progress.
 
 | Check Type | ADO UUID | betterado resource | Coverage |
 |---|---|---|---|
-| Approval | `8c6f20a7-…-f762fafe0d4d` | `azuredevops_check_approval` | **full** (2 niche fields missing) |
+| Approval | `8c6f20a7-…-f762fafe0d4d` | `azuredevops_check_approval` | **full** (2 niche fields absent) |
 | Branch Control | `fe1de3ee-…-f6eb4cb879a7` | `azuredevops_check_branch_control` | **full** |
 | Business Hours | `fe1de3ee-…-f6eb4cb879a7` | `azuredevops_check_business_hours` | **full** |
 | Exclusive Lock | `2ef31ad6-…-2cbc9b4e5563` | `azuredevops_check_exclusive_lock` | **full** |

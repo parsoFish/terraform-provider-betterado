@@ -10,17 +10,17 @@
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` | `name` | mapped | Required string |
-| `friendlyName` | `friendly_name` | mapped | Required string |
-| `description` | `description` | mapped | Optional string, default "" |
-| `category` | `category` | mapped | Required string |
-| `instanceNameFormat` | `instance_name_format` | mapped | Optional string |
-| `version` | `version` block | mapped | Required block: major/minor/patch/is_test |
-| `runsOn` | `runs_on` | mapped | Optional list(string), Computed |
-| `inputs` | `input` block list | mapped | Optional list(object) — see Input Definition table |
-| `tasks` | `task` block list | mapped | Required list(object) — see Task Step table |
-| `author` | `author` | mapped | Optional string |
-| `iconUrl` | `icon_url` | mapped | Optional string — **gap field implemented by WI-1** (was `missing` before) |
+| `name` | `name` | covered | Required string |
+| `friendlyName` | `friendly_name` | covered | Required string |
+| `description` | `description` | covered | Optional string, default "" |
+| `category` | `category` | covered | Required string |
+| `instanceNameFormat` | `instance_name_format` | covered | Optional string |
+| `version` | `version` block | covered | Required block: major/minor/patch/is_test |
+| `runsOn` | `runs_on` | covered | Optional list(string), Computed |
+| `inputs` | `input` block list | covered | Optional list(object) — see Input Definition table |
+| `tasks` | `task` block list | covered | Required list(object) — see Task Step table |
+| `author` | `author` | covered | Optional string |
+| `iconUrl` | `icon_url` | covered | Optional string — **gap field added by WI-1** (was absent before) |
 
 ---
 
@@ -28,17 +28,17 @@
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` | `name` | mapped | Required |
-| `label` | `label` | mapped | Required |
-| `type` | `type` | mapped | Optional string, default "string" |
-| `defaultValue` | `default_value` | mapped | Optional string |
-| `required` | `required` | mapped | Optional bool |
-| `helpMarkDown` | `help_markdown` | mapped | Optional string |
-| `groupName` | `group_name` | mapped | Optional string |
-| `options` | `options` | mapped | Optional map(string) |
-| `visibleRule` | `visible_rule` | mapped | Optional string — **gap field implemented by WI-1** (was `missing` before) |
-| `properties` | `properties` | mapped | Optional map(string) — **gap field implemented by WI-1** (was `missing` before) |
-| `aliases` | `aliases` | mapped | Optional list(string) — **gap field implemented by WI-1** (was `missing` before) |
+| `name` | `name` | covered | Required |
+| `label` | `label` | covered | Required |
+| `type` | `type` | covered | Optional string, default "string" |
+| `defaultValue` | `default_value` | covered | Optional string |
+| `required` | `required` | covered | Optional bool |
+| `helpMarkDown` | `help_markdown` | covered | Optional string |
+| `groupName` | `group_name` | covered | Optional string |
+| `options` | `options` | covered | Optional map(string) |
+| `visibleRule` | `visible_rule` | covered | Optional string — **gap field added by WI-1** (was absent before) |
+| `properties` | `properties` | covered | Optional map(string) — **gap field added by WI-1** (was absent before) |
+| `aliases` | `aliases` | covered | Optional list(string) — **gap field added by WI-1** (was absent before) |
 
 ---
 
@@ -46,18 +46,18 @@
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `displayName` | `display_name` | mapped | Required |
-| `enabled` | `enabled` | mapped | Optional bool, default true |
-| `alwaysRun` | `always_run` | mapped | Optional bool, default false |
-| `continueOnError` | `continue_on_error` | mapped | Optional bool, default false |
-| `condition` | `condition` | mapped | Optional string, default "succeeded()" |
-| `timeoutInMinutes` | `timeout_in_minutes` | mapped | Optional int, default 0 |
-| `retryCountOnTaskFailure` | `retry_count_on_task_failure` | mapped | Optional int, default 0 |
-| `task.id` | `task_id` | mapped | Required UUID string |
-| `task.versionSpec` | `task_version` | mapped | Required string |
-| `task.definitionType` | `task_definition_type` | mapped | Optional string, default "task" |
-| `inputs` | `inputs` | mapped | Optional map(string) |
-| `environment` | `environment` | mapped | Optional map(string) |
+| `displayName` | `display_name` | covered | Required |
+| `enabled` | `enabled` | covered | Optional bool, default true |
+| `alwaysRun` | `always_run` | covered | Optional bool, default false |
+| `continueOnError` | `continue_on_error` | covered | Optional bool, default false |
+| `condition` | `condition` | covered | Optional string, default "succeeded()" |
+| `timeoutInMinutes` | `timeout_in_minutes` | covered | Optional int, default 0 |
+| `retryCountOnTaskFailure` | `retry_count_on_task_failure` | covered | Optional int, default 0 |
+| `task.id` | `task_id` | covered | Required UUID string |
+| `task.versionSpec` | `task_version` | covered | Required string |
+| `task.definitionType` | `task_definition_type` | covered | Optional string, default "task" |
+| `inputs` | `inputs` | covered | Optional map(string) |
+| `environment` | `environment` | covered | Optional map(string) |
 
 ---
 
@@ -67,21 +67,21 @@ These are set by the API and are not user-settable — they are either `Computed
 
 | API Field | Status | Notes |
 |-----------|--------|-------|
-| `id` | mapped (Computed via SetId) | UUID, server-assigned |
-| `revision` | mapped | Int, Computed |
-| `definitionType` | mapped | Always "metaTask", Computed |
-| `createdBy` | missing | IdentityRef — not needed for TF management |
-| `createdOn` | missing | Datetime — not needed for TF management |
-| `modifiedBy` | missing | IdentityRef — not needed for TF management |
-| `modifiedOn` | missing | Datetime — not needed for TF management |
-| `demands` | missing | Server-computed from tasks |
-| `groups` | missing | Server-computed |
-| `satisfies` | missing | Server-computed |
-| `sourceDefinitions` | missing | Server-computed |
-| `dataSourceBindings` | missing | Server-computed |
-| `execution` | missing | Server-computed |
-| `preJobExecution` | missing | Server-computed |
-| `postJobExecution` | missing | Server-computed |
+| `id` | covered | UUID, server-assigned |
+| `revision` | covered | Int, Computed |
+| `definitionType` | covered | Always "metaTask", Computed |
+| `createdBy` | out-of-scope | IdentityRef — not needed for TF management |
+| `createdOn` | out-of-scope | Datetime — not needed for TF management |
+| `modifiedBy` | out-of-scope | IdentityRef — not needed for TF management |
+| `modifiedOn` | out-of-scope | Datetime — not needed for TF management |
+| `demands` | out-of-scope | Server-computed from tasks |
+| `groups` | out-of-scope | Server-computed |
+| `satisfies` | out-of-scope | Server-computed |
+| `sourceDefinitions` | out-of-scope | Server-computed |
+| `dataSourceBindings` | out-of-scope | Server-computed |
+| `execution` | out-of-scope | Server-computed |
+| `preJobExecution` | out-of-scope | Server-computed |
+| `postJobExecution` | out-of-scope | Server-computed |
 
 ---
 
@@ -89,7 +89,7 @@ These are set by the API and are not user-settable — they are either `Computed
 
 | Gap | TF Attribute | SDK Field | Before WI-1 | After WI-1 |
 |-----|-------------|-----------|-------------|------------|
-| Icon URL | `icon_url` | `IconUrl *string` in `TaskGroupCreateParameter` + `TaskGroupUpdateParameter` + `TaskGroup` | `missing` | `mapped` |
-| Conditional visibility | `input[].visible_rule` | `VisibleRule *string` in `TaskInputDefinition` | `missing` | `mapped` |
-| Extra metadata | `input[].properties` | `Properties *map[string]string` in `TaskInputDefinition` | `missing` | `mapped` |
-| Alternative names | `input[].aliases` | `Aliases *[]string` in `TaskInputDefinition` | `missing` | `mapped` |
+| Icon URL | `icon_url` | `IconUrl *string` in `TaskGroupCreateParameter` + `TaskGroupUpdateParameter` + `TaskGroup` | `gap-open` | `covered` |
+| Conditional visibility | `input[].visible_rule` | `VisibleRule *string` in `TaskInputDefinition` | `gap-open` | `covered` |
+| Extra metadata | `input[].properties` | `Properties *map[string]string` in `TaskInputDefinition` | `gap-open` | `covered` |
+| Alternative names | `input[].aliases` | `Aliases *[]string` in `TaskInputDefinition` | `gap-open` | `covered` |

@@ -26,19 +26,19 @@ namespace's **action `name`** (below); values are `Allow` / `Deny` / `NotSet`
 
 | Action name (HCL key) | Bit | Writable | Display name | Live-proven |
 |---|---|---|---|---|
-| `ViewReleaseDefinition` | 1 | Yes | View release pipeline | ✅ standing demo |
-| `EditReleaseDefinition` | 2 | Yes | Edit release pipeline | ✅ standing demo |
-| `DeleteReleaseDefinition` | 4 | Yes | Delete release pipeline | ✅ standing demo |
-| `ManageReleaseApprovers` | 8 | Yes | Manage release approvers | ✅ standing demo |
-| `ManageReleases` | 16 | Yes | Manage releases | ✅ standing demo |
-| `ViewReleases` | 32 | Yes | View releases | ✅ acc suite + standing demo |
-| `CreateReleases` | 64 | Yes | Create releases | ✅ acc suite + standing demo |
-| `EditReleaseEnvironment` | 128 | Yes | Edit release stage | ✅ acc suite + standing demo |
-| `DeleteReleaseEnvironment` | 256 | Yes | Delete release stage | ✅ standing demo |
-| `AdministerReleasePermissions` | 512 | Yes | Administer release permissions | ✅ standing demo |
-| `DeleteReleases` | 1024 | Yes | Delete releases | ✅ acc suite + standing demo |
-| `ManageDeployments` | 2048 | Yes | Manage deployments | ✅ standing demo |
-| `ManageReleaseSettings` | 4096 | Yes | Manage release settings | ✅ standing demo |
+| `ViewReleaseDefinition` | 1 | Yes | View release pipeline | covered |
+| `EditReleaseDefinition` | 2 | Yes | Edit release pipeline | covered |
+| `DeleteReleaseDefinition` | 4 | Yes | Delete release pipeline | covered |
+| `ManageReleaseApprovers` | 8 | Yes | Manage release approvers | covered |
+| `ManageReleases` | 16 | Yes | Manage releases | covered |
+| `ViewReleases` | 32 | Yes | View releases | covered |
+| `CreateReleases` | 64 | Yes | Create releases | covered |
+| `EditReleaseEnvironment` | 128 | Yes | Edit release stage | covered |
+| `DeleteReleaseEnvironment` | 256 | Yes | Delete release stage | covered |
+| `AdministerReleasePermissions` | 512 | Yes | Administer release permissions | covered |
+| `DeleteReleases` | 1024 | Yes | Delete releases | covered |
+| `ManageDeployments` | 2048 | Yes | Manage deployments | covered |
+| `ManageReleaseSettings` | 4096 | Yes | Manage release settings | covered |
 | `ManageTaskHubExtension` | 8192 | Yes | Manage TaskHub Extension | extension-scoped — not used at definition level |
 
 > **All 13 release-definition bits are Writable.** `ManageTaskHubExtension` is present in
