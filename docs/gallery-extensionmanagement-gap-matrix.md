@@ -6,6 +6,15 @@
 > **Existing resource:** `betterado_extension` (`azuredevops/internal/service/extension/resource_extension.go`)
 > **API versions:** ExtensionManagement `7.1-preview.1` · Gallery `7.1-preview.1`
 
+## Legend
+
+| Status | Meaning |
+|--------|---------|
+| `covered` | Exposed in the Terraform schema; round-trips correctly. |
+| `gap-open` | Not in schema; could be added in a follow-up. |
+| `out-of-scope` | Read-only or internal; not user-configurable via Terraform. |
+| `gap-deferred` | Intentionally skipped for this initiative; reason documented below. |
+
 ---
 
 ## 1. Boundary Resolution: `betterado_extension` vs New Resources
@@ -25,13 +34,13 @@
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `publisherId` | `publisher_id` | mapped | Required; ForceNew |
-| `extensionId` | `extension_id` | mapped | Required; ForceNew |
-| `version` | `version` | mapped | Optional+Computed |
-| `installState.flags` | `disabled` | mapped | Optional+Computed; derived from `Disabled` flag enum value |
-| `extensionName` | `extension_name` | mapped | Computed |
-| `publisherName` | `publisher_name` | mapped | Computed |
-| `scopes` | `scope` | mapped | Computed list(string) |
+| `publisherId` | `publisher_id` | `covered` | Required; ForceNew |
+| `extensionId` | `extension_id` | `covered` | Required; ForceNew |
+| `version` | `version` | `covered` | Optional+Computed |
+| `installState.flags` | `disabled` | `covered` | Optional+Computed; derived from `Disabled` flag enum value |
+| `extensionName` | `extension_name` | `covered` | Computed |
+| `publisherName` | `publisher_name` | `covered` | Computed |
+| `scopes` | `scope` | `covered` | Computed list(string) |
 
 ### 1.2 What `betterado_extension_install` Adds or Replaces
 
@@ -50,43 +59,43 @@
 
 | Endpoint | HTTP Method | SDK Method | Covered by? | Status |
 |----------|------------|-----------|-------------|--------|
-| `installedextensionsbyname/{pub}/{ext}` | GET | `GetInstalledExtensionByName` | `betterado_extension` + `betterado_extension_install` | covered |
-| `installedextensionsbyname/{pub}/{ext}[/{ver}]` | POST | `InstallExtensionByName` | `betterado_extension` + `betterado_extension_install` | covered |
-| `installedextensionsbyname/{pub}/{ext}` | DELETE | `UninstallExtensionByName` | `betterado_extension` + `betterado_extension_install` | covered |
-| `installedextensions` | GET | `GetInstalledExtensions` | data source — `betterado_marketplace_extension` (deferred; see §4.2) | deferred |
-| `installedextensions` | PATCH | `UpdateInstalledExtension` | `betterado_extension` + `betterado_extension_install` | covered |
+| `installedextensionsbyname/{pub}/{ext}` | GET | `GetInstalledExtensionByName` | `betterado_extension` + `betterado_extension_install` | `covered` |
+| `installedextensionsbyname/{pub}/{ext}[/{ver}]` | POST | `InstallExtensionByName` | `betterado_extension` + `betterado_extension_install` | `covered` |
+| `installedextensionsbyname/{pub}/{ext}` | DELETE | `UninstallExtensionByName` | `betterado_extension` + `betterado_extension_install` | `covered` |
+| `installedextensions` | GET | `GetInstalledExtensions` | data source — `betterado_marketplace_extension` (deferred; see §4.2) | `gap-deferred` |
+| `installedextensions` | PATCH | `UpdateInstalledExtension` | `betterado_extension` + `betterado_extension_install` | `covered` |
 
 ### 2.2 `InstalledExtension` Field Coverage
 
 | API Field | SDK Type | TF Attribute | `betterado_extension` | `betterado_extension_install` (WI-2) | Notes |
 |-----------|---------|-------------|----------------------|--------------------------------------|-------|
-| `publisherId` | `*string` | `publisher_id` | mapped | mapped | Required; ForceNew |
-| `extensionId` | `*string` | `extension_id` | mapped | mapped | Required; ForceNew |
-| `version` | `*string` | `version` | mapped | mapped | Optional+Computed |
-| `installState.flags` | `*ExtensionStateFlags` | `disabled` | mapped (bool derived) | mapped (bool derived) | Computed; `Disabled` enum flag |
-| `installState.lastUpdated` | `*Time` | — | missing | missing | Computed timestamp; not in shipped schema — deferred |
-| `installState.installationIssues` | `*[]InstalledExtensionStateIssue` | — | missing | missing | Read-only diagnostic; deferred |
-| `extensionName` | `*string` | `extension_name` | mapped | missing | Computed display name; not in shipped schema |
-| `publisherName` | `*string` | `publisher_name` | mapped | missing | Computed display name; not in shipped schema |
-| `scopes` | `*[]string` | `scope` | mapped | missing | Computed; not in shipped schema |
-| `baseUri` | `*string` | — | missing | missing | Internal; no TF use |
-| `contributions` | `*[]Contribution` | — | missing | missing | Internal contribution tree; no TF use |
-| `contributionTypes` | `*[]ContributionType` | — | missing | missing | Internal; no TF use |
-| `demands` | `*[]string` | — | missing | missing | Server-derived; no TF use |
-| `eventCallbacks` | `*ExtensionEventCallbackCollection` | — | missing | missing | Extension lifecycle hooks; no TF use |
-| `files` | `*[]gallery.ExtensionFile` | — | missing | missing | Gallery asset files; out of scope |
-| `flags` | `*ExtensionFlags` | — | missing | missing | Extension-level flags (BuiltIn/Trusted); Computed read-only |
-| `language` | `*string` | — | missing | missing | Language/locale; no TF use |
-| `lastPublished` | `*Time` | — | missing | missing | Gallery-side publish date; Computed |
-| `licensing` | `*ExtensionLicensing` | — | missing | missing | Licensing contributions; no TF use |
-| `manifestVersion` | `*float64` | — | missing | missing | Extension manifest version; no TF use |
-| `registrationId` | `*uuid.UUID` | — | missing | missing | Extension UUID; Computed, ForceNew not needed |
-| `restrictedTo` | `*[]string` | — | missing | missing | Contribution visibility; no TF use |
-| `serviceInstanceType` | `*uuid.UUID` | — | missing | missing | Service dependency UUID; no TF use |
-| `constraints` | `*[]ContributionConstraint` | — | missing | missing | Internal; no TF use |
-| `fallbackBaseUri` | `*string` | — | missing | missing | Internal; no TF use |
+| `publisherId` | `*string` | `publisher_id` | `covered` | `covered` | Required; ForceNew |
+| `extensionId` | `*string` | `extension_id` | `covered` | `covered` | Required; ForceNew |
+| `version` | `*string` | `version` | `covered` | `covered` | Optional+Computed |
+| `installState.flags` | `*ExtensionStateFlags` | `disabled` | `covered` (bool derived) | `covered` (bool derived) | Computed; `Disabled` enum flag |
+| `installState.lastUpdated` | `*Time` | — | `gap-deferred` | `gap-deferred` | Computed timestamp; not in shipped schema — deferred |
+| `installState.installationIssues` | `*[]InstalledExtensionStateIssue` | — | `gap-deferred` | `gap-deferred` | Read-only diagnostic; deferred |
+| `extensionName` | `*string` | `extension_name` | `covered` | `gap-open` | Computed display name; not in shipped schema |
+| `publisherName` | `*string` | `publisher_name` | `covered` | `gap-open` | Computed display name; not in shipped schema |
+| `scopes` | `*[]string` | `scope` | `covered` | `gap-open` | Computed; not in shipped schema |
+| `baseUri` | `*string` | — | `out-of-scope` | `out-of-scope` | Internal; no TF use |
+| `contributions` | `*[]Contribution` | — | `out-of-scope` | `out-of-scope` | Internal contribution tree; no TF use |
+| `contributionTypes` | `*[]ContributionType` | — | `out-of-scope` | `out-of-scope` | Internal; no TF use |
+| `demands` | `*[]string` | — | `out-of-scope` | `out-of-scope` | Server-derived; no TF use |
+| `eventCallbacks` | `*ExtensionEventCallbackCollection` | — | `out-of-scope` | `out-of-scope` | Extension lifecycle hooks; no TF use |
+| `files` | `*[]gallery.ExtensionFile` | — | `out-of-scope` | `out-of-scope` | Gallery asset files; out of scope |
+| `flags` | `*ExtensionFlags` | — | `out-of-scope` | `out-of-scope` | Extension-level flags (BuiltIn/Trusted); Computed server-assigned |
+| `language` | `*string` | — | `out-of-scope` | `out-of-scope` | Language/locale; no TF use |
+| `lastPublished` | `*Time` | — | `out-of-scope` | `out-of-scope` | Gallery-side publish date; Computed |
+| `licensing` | `*ExtensionLicensing` | — | `out-of-scope` | `out-of-scope` | Licensing contributions; no TF use |
+| `manifestVersion` | `*float64` | — | `out-of-scope` | `out-of-scope` | Extension manifest version; no TF use |
+| `registrationId` | `*uuid.UUID` | — | `out-of-scope` | `out-of-scope` | Extension UUID; Computed, ForceNew not needed |
+| `restrictedTo` | `*[]string` | — | `out-of-scope` | `out-of-scope` | Contribution visibility; no TF use |
+| `serviceInstanceType` | `*uuid.UUID` | — | `out-of-scope` | `out-of-scope` | Service dependency UUID; no TF use |
+| `constraints` | `*[]ContributionConstraint` | — | `out-of-scope` | `out-of-scope` | Internal; no TF use |
+| `fallbackBaseUri` | `*string` | — | `out-of-scope` | `out-of-scope` | Internal; no TF use |
 
-**Summary — `InstalledExtension`:** 7 mapped in `betterado_extension` · 4 mapped in `betterado_extension_install` (publisher_id, extension_id, version, disabled) · 4 missing/deferred (extension_name, publisher_name, scope, last_updated not in shipped schema) · 15 intentionally missing (read-only or internal)
+**Summary — `InstalledExtension`:** 7 covered in `betterado_extension` · 4 covered in `betterado_extension_install` (publisher_id, extension_id, version, disabled) · 4 gap-open/gap-deferred (extension_name, publisher_name, scope, last_updated not in shipped schema) · 15 intentionally out-of-scope (server-assigned or internal)
 
 ---
 
@@ -98,16 +107,16 @@ The Gallery API (`_apis/gallery`) is the **Marketplace catalogue** API. It is di
 
 | Endpoint | HTTP Method | SDK Method | Relevant to? | TF Verdict |
 |----------|------------|-----------|--------------|------------|
-| `extensions/{publisherName}/{extensionName}` | GET | `GetExtension` | `betterado_marketplace_extension` data source | **deferred** (see §4.3) |
-| `extensionquery` | POST | `QueryExtensions` | bulk marketplace lookup | **out of scope** (no TF lifecycle) |
-| `extensions` (draft/create/publish) | POST | `CreateExtension`, `CreateExtensionWithPublisher` | extension publishing | **out of scope** (per initiative) |
-| `publishers/{pub}` (CRUD) | GET/POST/PUT/DELETE | `GetPublisher`, `CreatePublisher`, etc. | publisher management | **out of scope** (per initiative) |
-| `extensions/{pub}/{ext}/reviews` | GET | `GetReviews` | marketplace reviews | **out of scope** |
-| `extensions/{pub}/{ext}/questions` | GET | `GetQuestions` | marketplace Q&A | **out of scope** |
+| `extensions/{publisherName}/{extensionName}` | GET | `GetExtension` | `betterado_marketplace_extension` data source | `gap-deferred` (see §4.3) |
+| `extensionquery` | POST | `QueryExtensions` | bulk marketplace lookup | `out-of-scope` (no TF lifecycle) |
+| `extensions` (draft/create/publish) | POST | `CreateExtension`, `CreateExtensionWithPublisher` | extension publishing | `out-of-scope` (per initiative) |
+| `publishers/{pub}` (CRUD) | GET/POST/PUT/DELETE | `GetPublisher`, `CreatePublisher`, etc. | publisher management | `out-of-scope` (per initiative) |
+| `extensions/{pub}/{ext}/reviews` | GET | `GetReviews` | marketplace reviews | `out-of-scope` |
+| `extensions/{pub}/{ext}/questions` | GET | `GetQuestions` | marketplace Q&A | `out-of-scope` |
 
 ### 3.2 `PublishedExtension` Fields (Gallery metadata)
 
-Only the fields relevant to `betterado_marketplace_extension` (a read-only data source) are assessed here:
+Only the fields relevant to `betterado_marketplace_extension` (a server-assigned data source) are assessed here:
 
 | API Field | SDK Type | Relevant TF Attribute | Verdict |
 |-----------|---------|----------------------|---------|
@@ -124,11 +133,11 @@ Only the fields relevant to `betterado_marketplace_extension` (a read-only data 
 | `categories` | `*[]string` | `categories` | in scope |
 | `tags` | `*[]string` | `tags` | in scope |
 | `flags` | `*PublishedExtensionFlags` | `flags` | in scope (Computed) |
-| `statistics` | `*[]ExtensionStatistic` | `statistics` | deferred (complex nested object; low IaC value) |
-| `sharedWith` | `*[]ExtensionShare` | — | deferred (sharing management; out of scope) |
-| `deploymentType` | `*ExtensionDeploymentTechnology` | — | deferred (internal deployment enum; no IaC value) |
-| `installationTargets` | `*[]InstallationTarget` | — | deferred (marketplace targeting; no IaC value) |
-| `presentInConflictList` | `*string` | — | out of scope (marketplace admin detail) |
+| `statistics` | `*[]ExtensionStatistic` | `statistics` | `gap-deferred` (complex nested object; low IaC value) |
+| `sharedWith` | `*[]ExtensionShare` | — | `gap-deferred` (sharing management; out of scope) |
+| `deploymentType` | `*ExtensionDeploymentTechnology` | — | `gap-deferred` (internal deployment enum; no IaC value) |
+| `installationTargets` | `*[]InstallationTarget` | — | `gap-deferred` (marketplace targeting; no IaC value) |
+| `conflictList` | `*string` | — | `out-of-scope` (marketplace admin detail; rarely populated) |
 
 ---
 
@@ -157,7 +166,7 @@ Only the fields relevant to `betterado_marketplace_extension` (a read-only data 
 
 ### 4.3 `betterado_marketplace_extension` — **DEFERRED**
 
-**What it would be:** A read-only data source for looking up Gallery metadata (`_apis/gallery/extensions/{publisher}/{extension}`) — display name, description, latest version, categories, tags, flags.
+**What it would be:** A server-assigned data source for looking up Gallery metadata (`_apis/gallery/extensions/{publisher}/{extension}`) — display name, description, latest version, categories, tags, flags.
 
 **Rationale for deferral:**
 1. The Gallery API (`_apis/gallery`) is a **public Marketplace** API. It does not require ADO organisation credentials for public extensions — it can be queried anonymously. TF data sources that call external public APIs without any state are lower priority than resources that manage infrastructure.
@@ -177,8 +186,8 @@ Per the initiative specification, the following are **explicitly out of scope** 
 | Changes to `betterado_extension` | No merge identified; existing resource continues as-is |
 | Extension development / publishing (Gallery publisher API) | No IaC lifecycle; marketplace publishing is a developer workflow |
 | Extension reviews, Q&A, statistics | Marketplace content management; not infrastructure |
-| `betterado_extension_settings` | Deferred (see §4.2) |
-| `betterado_marketplace_extension` data source | Deferred (see §4.3) |
+| `betterado_extension_settings` | `gap-deferred` (see §4.2) |
+| `betterado_marketplace_extension` data source | `gap-deferred` (see §4.3) |
 
 ---
 

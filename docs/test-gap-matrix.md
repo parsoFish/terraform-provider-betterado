@@ -12,10 +12,10 @@
 
 | Status | Meaning |
 |---|---|
-| `implement-as-resource` | Has stable Create + Update + Delete lifecycle → full Terraform resource. Idempotent; exists between `apply` runs. |
-| `implement-as-data-source` | Meaningful read but creation is external, ephemeral, or managed outside Terraform. Surfaced as `data "betterado_*"`. |
-| `read-only` | The SDK exposes only Get operations; no Create or Delete available. Not actionable by Terraform. |
-| `out-of-scope` | Execution-orchestration (queuing/running tests) or binary-payload operations explicitly excluded by the initiative; would be anti-patterns in declarative IaC. |
+| `covered` | Implemented as a Terraform resource or data source in this initiative. |
+| `gap-open` | Has stable Create + Update + Delete lifecycle but not yet built — planned for a future WI. |
+| `gap-deferred` | Meaningful read but creation is external, ephemeral, or managed outside Terraform; planned as data source in a future WI. |
+| `out-of-scope` | Server-computed join records, execution-orchestration operations, or binary-payload operations explicitly excluded; no meaningful IaC lifecycle. |
 
 ---
 
@@ -23,22 +23,22 @@
 
 | Resource type | REST endpoint(s) | SDK operations available | Status | Declarative-vs-ephemeral rationale |
 |---|---|---|---|---|
-| **Test Plan** | `_apis/test/plans/{planId}` | No plan Create/Update/Delete in legacy `test` package SDK (those operations live in `_apis/testplan/Plans` which is absent from the vendored Go SDK). Read-related: accessed indirectly via suite-level planId params. | `implement-as-resource` | Test plans are stable, named, long-lived objects — the container for all test suites and cases in a project. They have a well-defined lifecycle (create at project setup, delete when obsolete). Full CRUD is available via the modern `_apis/testplan/Plans` REST surface even though the legacy `test` package SDK doesn't expose it directly. **WI-2+ should target the testplan package.** |
-| **Test Suite** | `_apis/test/plans/{planId}/suites/{suiteId}` | `AddTestCasesToSuite`, `RemoveTestCasesFromSuiteUrl`, `UpdateSuiteTestCases`, `GetTestCaseById`, `GetTestCases` | `implement-as-resource` | Test suites are hierarchical containers under a plan (root suite, static suites, requirement-based suites, query-based suites). They are created explicitly by engineers, persist between runs, and are managed declaratively. The modern `_apis/testplan/Suites` surface provides full Create/Update/Delete CRUD. |
-| **Test Case** | `_apis/test/plans/{planId}/suites/{suiteId}/testcases/{testCaseIds}` | `AddTestCasesToSuite`, `RemoveTestCasesFromSuiteUrl`, `UpdateSuiteTestCases`, `GetTestCaseById`, `GetTestCases`, `DeleteTestCase` | `implement-as-data-source` | Test cases are Azure DevOps **work items** of type `Test Case`. The canonical way to manage them is via the Work Item Tracking API (already surfaced as `betterado_workitem`). The test SDK operations for test cases manage their *membership in suites*, not the work item itself. Expose as a data source to look up suite membership by test case ID; do not duplicate work-item management. |
-| **Test Point** | `_apis/test/plans/{planId}/suites/{suiteId}/points/{pointIds}` | `GetPoint`, `GetPoints`, `GetPointsByQuery`, `UpdateTestPoints` | `read-only` | A test point is the intersection of a test case and a configuration within a suite — it is a server-computed join record. There is no Create or Delete. `UpdateTestPoints` allows setting `outcome` and `tester`, but these are execution-time overrides, not declarative configuration. Not suitable for resource management. |
-| **Test Configuration** | `_apis/test/configurations/{configurationId}` | Not present in legacy `test` mock (lives in `_apis/testplan/Configurations` in the modern SDK). | `implement-as-resource` | Test configurations (e.g., "Chrome on Windows", "Firefox on Linux") are stable, reusable, named objects. They are created once and referenced by test plans and suites. Full CRUD is available. **WI-3+ target.** |
-| **Test Variable** | `_apis/testplan/variables/{testVariableId}` | Not present in legacy `test` mock (lives in modern testplan SDK). | `implement-as-resource` | Test variables define parameterised values used in test configurations (e.g., `Browser = {Chrome, Firefox}`). Stable, named, managed declaratively. Full CRUD available in modern API. **WI-3+ target.** |
-| **Test Run** | `_apis/test/runs/{runId}` | `CreateTestRun`, `DeleteTestRun`, `GetTestRunById`, `GetTestRuns`, `QueryTestRuns`, `UpdateTestRun`, `GetTestRunStatistics`, `GetTestRunCodeCoverage` | `implement-as-data-source` | **Test runs are ephemeral execution artifacts.** A test run is initiated by a CI pipeline (or a manual trigger) at a point in time and records a specific execution event. Creating a test run from Terraform would mean Terraform triggers live test execution — this is an anti-pattern for declarative IaC: runs are not idempotent (each `apply` would create a new run), they are not stable between plans (the run completes and cannot be "re-applied" to the same state), and their lifecycle is owned by the CI system, not the infra config. **Data source only:** allows querying recent runs by build/definition for compliance dashboards or downstream automation. |
-| **Test Result** | `_apis/test/runs/{runId}/results/{testCaseResultId}` | `AddTestResultsToTestRun`, `GetTestResultById`, `GetTestResults`, `UpdateTestResults`, `GetTestIteration`, `GetTestIterations` | `implement-as-data-source` | **Test results are ephemeral execution artifacts.** A test result is produced when a test case executes within a test run. Results are write-once execution records — they are immutable observations of what happened at a point in time. Using Terraform to create results (`AddTestResultsToTestRun`) would mean injecting synthetic execution records, which is both an anti-pattern and a data-integrity violation. Results should only be consumed (read back) for reporting or downstream gating. `UpdateTestResults` is used by test runners to finalise in-flight results — not a TF concern. **Data source only:** allows querying results for a given run. |
-| **Test Iteration / Sub-result** | `_apis/test/runs/{runId}/results/{testCaseResultId}/iterations/{iterationId}` | `GetTestIteration`, `GetTestIterations` | `read-only` | Test iterations are the per-attempt breakdown within a test result (e.g., data-driven test pass 1, pass 2, …). These are server-generated sub-records of a result and have no Create or Delete. Read-only observability artifact. |
+| **Test Plan** | `_apis/test/plans/{planId}` | No plan Create/Update/Delete in legacy `test` package SDK (those operations live in `_apis/testplan/Plans` which is absent from the vendored Go SDK). Read-related: accessed indirectly via suite-level planId params. | `gap-open` | Test plans are stable, named, long-lived objects — the container for all test suites and cases in a project. They have a well-defined lifecycle (create at project setup, delete when obsolete). Full CRUD is available via the modern `_apis/testplan/Plans` REST surface even though the legacy `test` package SDK doesn't expose it directly. **WI-2+ should target the testplan package.** |
+| **Test Suite** | `_apis/test/plans/{planId}/suites/{suiteId}` | `AddTestCasesToSuite`, `RemoveTestCasesFromSuiteUrl`, `UpdateSuiteTestCases`, `GetTestCaseById`, `GetTestCases` | `gap-open` | Test suites are hierarchical containers under a plan (root suite, static suites, requirement-based suites, query-based suites). They are created explicitly by engineers, persist between runs, and are managed declaratively. The modern `_apis/testplan/Suites` surface provides full Create/Update/Delete CRUD. |
+| **Test Case** | `_apis/test/plans/{planId}/suites/{suiteId}/testcases/{testCaseIds}` | `AddTestCasesToSuite`, `RemoveTestCasesFromSuiteUrl`, `UpdateSuiteTestCases`, `GetTestCaseById`, `GetTestCases`, `DeleteTestCase` | `gap-deferred` | Test cases are Azure DevOps **work items** of type `Test Case`. The canonical way to manage them is via the Work Item Tracking API (already surfaced as `betterado_workitem`). The test SDK operations for test cases manage their *membership in suites*, not the work item itself. Expose as a data source to look up suite membership by test case ID; do not duplicate work-item management. |
+| **Test Point** | `_apis/test/plans/{planId}/suites/{suiteId}/points/{pointIds}` | `GetPoint`, `GetPoints`, `GetPointsByQuery`, `UpdateTestPoints` | `out-of-scope` | A test point is the intersection of a test case and a configuration within a suite — it is a server-computed join record. There is no Create or Delete. `UpdateTestPoints` allows setting `outcome` and `tester`, but these are execution-time overrides, not declarative configuration. Not suitable for resource management. |
+| **Test Configuration** | `_apis/test/configurations/{configurationId}` | Not available in legacy `test` mock (lives in `_apis/testplan/Configurations` in the modern SDK). | `gap-open` | Test configurations (e.g., "Chrome on Windows", "Firefox on Linux") are stable, reusable, named objects. They are created once and referenced by test plans and suites. Full CRUD is available. **WI-3+ target.** |
+| **Test Variable** | `_apis/testplan/variables/{testVariableId}` | Not available in legacy `test` mock (lives in modern testplan SDK). | `gap-open` | Test variables define parameterised values used in test configurations (e.g., `Browser = {Chrome, Firefox}`). Stable, named, managed declaratively. Full CRUD available in modern API. **WI-3+ target.** |
+| **Test Run** | `_apis/test/runs/{runId}` | `CreateTestRun`, `DeleteTestRun`, `GetTestRunById`, `GetTestRuns`, `QueryTestRuns`, `UpdateTestRun`, `GetTestRunStatistics`, `GetTestRunCodeCoverage` | `gap-deferred` | **Test runs are ephemeral execution artifacts.** A test run is initiated by a CI pipeline (or a manual trigger) at a point in time and records a specific execution event. Creating a test run from Terraform would mean Terraform triggers live test execution — this is an anti-pattern for declarative IaC: runs are not idempotent (each `apply` would create a new run), they are not stable between plans (the run completes and cannot be "re-applied" to the same state), and their lifecycle is owned by the CI system, not the infra config. **Data source only:** allows querying recent runs by build/definition for compliance dashboards or downstream automation. |
+| **Test Result** | `_apis/test/runs/{runId}/results/{testCaseResultId}` | `AddTestResultsToTestRun`, `GetTestResultById`, `GetTestResults`, `UpdateTestResults`, `GetTestIteration`, `GetTestIterations` | `gap-deferred` | **Test results are ephemeral execution artifacts.** A test result is produced when a test case executes within a test run. Results are write-once execution records — they are immutable observations of what happened at a point in time. Using Terraform to create results (`AddTestResultsToTestRun`) would mean injecting synthetic execution records, which is both an anti-pattern and a data-integrity violation. Results should only be consumed (read back) for reporting or downstream gating. `UpdateTestResults` is used by test runners to finalise in-flight results — not a TF concern. **Data source only:** allows querying results for a given run. |
+| **Test Iteration / Sub-result** | `_apis/test/runs/{runId}/results/{testCaseResultId}/iterations/{iterationId}` | `GetTestIteration`, `GetTestIterations` | `out-of-scope` | Test iterations are the per-attempt breakdown within a test result (e.g., data-driven test pass 1, pass 2, …). These are server-generated sub-records of a result and have no Create or Delete. Observability artifact only. |
 | **Test Session** | `_apis/test/sessions` | `CreateTestSession`, `GetTestSessions`, `UpdateTestSession` | `out-of-scope` | Test sessions are exploratory-testing execution containers — they record manual, ad-hoc test sessions. They are transient execution state, not declarative infra configuration. The ADO UI is the natural lifecycle owner; managing sessions from Terraform is an anti-pattern. |
 | **Test Run Attachment** | `_apis/test/runs/{runId}/attachments/{attachmentId}` | `CreateTestRunAttachment`, `GetTestRunAttachmentContent`, `GetTestRunAttachmentZip`, `GetTestRunAttachments` | `out-of-scope` | Binary file attachments on a test run (logs, screenshots, trace files). These are binary payloads uploaded by test runners during execution. There is no Delete. They are tied to ephemeral run records. Not suitable for declarative IaC. |
 | **Test Result Attachment** | `_apis/test/runs/{runId}/results/{testCaseResultId}/attachments/{attachmentId}` | `CreateTestResultAttachment`, `CreateTestSubResultAttachment`, `GetTestResultAttachmentContent`, `GetTestResultAttachmentZip`, `GetTestResultAttachments`, `GetTestSubResultAttachmentContent`, `GetTestSubResultAttachmentZip`, `GetTestSubResultAttachments` | `out-of-scope` | Binary file attachments on a test result (same reasoning as run attachments). Uploaded by test runners at execution time. Ephemeral execution artifacts; not TF-lifecycle-relevant. |
-| **Build Code Coverage** | `_apis/test/codecoverage` | `GetBuildCodeCoverage` | `read-only` | Code-coverage summary computed by the build pipeline for a specific build. Read-only observation of CI output; no Create or Delete. |
-| **Test Run Code Coverage** | `_apis/test/runs/{runId}/codecoverage` | `GetTestRunCodeCoverage` | `read-only` | Code-coverage breakdown per test run. Same reasoning as build code coverage: CI-produced, read-only. |
-| **Result Retention Settings** | `_apis/test/resultretentionsettings` | `GetResultRetentionSettings`, `UpdateResultRetentionSettings` | `implement-as-resource` | Retention settings control how long test results and runs are kept. They are a stable, project-level configuration object with a simple Get/Update lifecycle. This is the kind of configuration that should be managed declaratively. Note: no explicit "create" or "delete" — the settings object always exists (project default); only update is needed. Implement as a singleton resource (similar to project feature flags). |
-| **Test History** | `_apis/test/results/testhistory` | `QueryTestHistory` | `read-only` | Historical trend of a test method's pass/fail rate over time — a query-oriented analytics endpoint. No Create or Delete. Read-only observability surface. |
+| **Build Code Coverage** | `_apis/test/codecoverage` | `GetBuildCodeCoverage` | `out-of-scope` | Code-coverage summary computed by the build pipeline for a specific build. Server-computed observation of CI output; no Create or Delete. |
+| **Test Run Code Coverage** | `_apis/test/runs/{runId}/codecoverage` | `GetTestRunCodeCoverage` | `out-of-scope` | Code-coverage breakdown per test run. Same reasoning as build code coverage: CI-produced, server-computed. |
+| **Result Retention Settings** | `_apis/test/resultretentionsettings` | `GetResultRetentionSettings`, `UpdateResultRetentionSettings` | `gap-open` | Retention settings control how long test results and runs are kept. They are a stable, project-level configuration object with a simple Get/Update lifecycle. This is the kind of configuration that should be managed declaratively. Note: no explicit "create" or "delete" — the settings object always exists (project default); only update is needed. Implement as a singleton resource (similar to project feature flags). |
+| **Test History** | `_apis/test/results/testhistory` | `QueryTestHistory` | `out-of-scope` | Historical trend of a test method's pass/fail rate over time — a query-oriented analytics endpoint. No Create or Delete. Server-computed observability surface. |
 
 ---
 
@@ -46,10 +46,9 @@
 
 | Status | Resource types | Count |
 |---|---|---|
-| `implement-as-resource` | Test Plan, Test Suite, Test Configuration, Test Variable, Result Retention Settings | **5** |
-| `implement-as-data-source` | Test Case (suite membership), Test Run, Test Result | **3** |
-| `read-only` | Test Point, Test Iteration / Sub-result, Build Code Coverage, Test Run Code Coverage, Test History | **5** |
-| `out-of-scope` | Test Session, Test Run Attachment, Test Result Attachment | **3** |
+| `gap-open` | Test Plan, Test Suite, Test Configuration, Test Variable, Result Retention Settings | **5** |
+| `gap-deferred` | Test Case (suite membership), Test Run, Test Result | **3** |
+| `out-of-scope` | Test Point, Test Iteration / Sub-result, Build Code Coverage, Test Run Code Coverage, Test History, Test Session, Test Run Attachment, Test Result Attachment | **8** |
 
 ---
 
@@ -110,23 +109,23 @@ Full enumeration of all `MockTestClient` methods from `azdosdkmocks/test_sdk_moc
 | SDK Method | HTTP verb | Resource type | CRUD role | WI decision |
 |---|---|---|---|---|
 | `AddTestCasesToSuite` | POST | Test Suite / Test Case membership | Associate | WI-3 (suite resource manages membership) |
-| `AddTestResultsToTestRun` | POST | Test Result | Create (CI-only) | `implement-as-data-source` — not a TF create |
+| `AddTestResultsToTestRun` | POST | Test Result | Create (CI-only) | `gap-deferred` — not a TF create |
 | `CreateTestResultAttachment` | POST | Test Result Attachment | Create | `out-of-scope` |
-| `CreateTestRun` | POST | Test Run | Create (CI-only) | `implement-as-data-source` — not a TF create |
+| `CreateTestRun` | POST | Test Run | Create (CI-only) | `gap-deferred` — not a TF create |
 | `CreateTestRunAttachment` | POST | Test Run Attachment | Create | `out-of-scope` |
 | `CreateTestSession` | POST | Test Session | Create | `out-of-scope` |
 | `CreateTestSubResultAttachment` | POST | Test Result Sub-attachment | Create | `out-of-scope` |
 | `DeleteTestCase` | DELETE | Test Case (work item) | Delete | Delegated to `betterado_workitem` |
-| `DeleteTestRun` | DELETE | Test Run | Delete (CI-only) | `implement-as-data-source` — lifecycle owned by CI |
-| `GetBuildCodeCoverage` | GET | Build Code Coverage | Read | `read-only` |
-| `GetPoint` | GET | Test Point | Read | `read-only` |
-| `GetPoints` | GET | Test Point | List | `read-only` |
-| `GetPointsByQuery` | POST (query) | Test Point | Query | `read-only` |
+| `DeleteTestRun` | DELETE | Test Run | Delete (CI-only) | `gap-deferred` — lifecycle owned by CI |
+| `GetBuildCodeCoverage` | GET | Build Code Coverage | Read | `out-of-scope` |
+| `GetPoint` | GET | Test Point | Read | `out-of-scope` |
+| `GetPoints` | GET | Test Point | List | `out-of-scope` |
+| `GetPointsByQuery` | POST (query) | Test Point | Query | `out-of-scope` |
 | `GetResultRetentionSettings` | GET | Result Retention Settings | Read | WI-5 |
-| `GetTestCaseById` | GET | Test Case (suite membership) | Read | `implement-as-data-source` |
-| `GetTestCases` | GET | Test Case (suite membership) | List | `implement-as-data-source` |
-| `GetTestIteration` | GET | Test Iteration | Read | `read-only` |
-| `GetTestIterations` | GET | Test Iteration | List | `read-only` |
+| `GetTestCaseById` | GET | Test Case (suite membership) | Read | `gap-deferred` |
+| `GetTestCases` | GET | Test Case (suite membership) | List | `gap-deferred` |
+| `GetTestIteration` | GET | Test Iteration | Read | `out-of-scope` |
+| `GetTestIterations` | GET | Test Iteration | List | `out-of-scope` |
 | `GetTestResultAttachmentContent` | GET | Test Result Attachment | Read (binary) | `out-of-scope` |
 | `GetTestResultAttachmentZip` | GET | Test Result Attachment | Read (binary zip) | `out-of-scope` |
 | `GetTestResultAttachments` | GET | Test Result Attachment | List | `out-of-scope` |
@@ -136,21 +135,21 @@ Full enumeration of all `MockTestClient` methods from `azdosdkmocks/test_sdk_moc
 | `GetTestRunAttachmentZip` | GET | Test Run Attachment | Read (binary zip) | `out-of-scope` |
 | `GetTestRunAttachments` | GET | Test Run Attachment | List | `out-of-scope` |
 | `GetTestRunById` | GET | Test Run | Read | WI-6 (data source) |
-| `GetTestRunCodeCoverage` | GET | Test Run Code Coverage | Read | `read-only` |
+| `GetTestRunCodeCoverage` | GET | Test Run Code Coverage | Read | `out-of-scope` |
 | `GetTestRunStatistics` | GET | Test Run | Read statistics | WI-6 (companion to data source) |
 | `GetTestRuns` | GET | Test Run | List | WI-6 (data source) |
 | `GetTestSessions` | GET | Test Session | List | `out-of-scope` |
 | `GetTestSubResultAttachmentContent` | GET | Test Sub-result Attachment | Read (binary) | `out-of-scope` |
 | `GetTestSubResultAttachmentZip` | GET | Test Sub-result Attachment | Read (binary zip) | `out-of-scope` |
 | `GetTestSubResultAttachments` | GET | Test Sub-result Attachment | List | `out-of-scope` |
-| `QueryTestHistory` | POST (query) | Test History | Query analytics | `read-only` |
+| `QueryTestHistory` | POST (query) | Test History | Query analytics | `out-of-scope` |
 | `QueryTestRuns` | POST (query) | Test Run | Query | WI-6 (data source filter) |
 | `RemoveTestCasesFromSuiteUrl` | DELETE | Test Suite / Test Case membership | Disassociate | WI-3 (suite resource manages membership) |
 | `UpdateResultRetentionSettings` | PATCH | Result Retention Settings | Update | WI-5 |
 | `UpdateSuiteTestCases` | PATCH | Test Suite / Test Case membership | Update | WI-3 |
-| `UpdateTestPoints` | PATCH | Test Point | Update (outcome/tester) | `read-only` (execution-time, not declarative) |
-| `UpdateTestResults` | PATCH | Test Result | Update (CI-only finalisation) | `implement-as-data-source` — not a TF update |
-| `UpdateTestRun` | PATCH | Test Run | Update (CI-only) | `implement-as-data-source` — lifecycle owned by CI |
+| `UpdateTestPoints` | PATCH | Test Point | Update (outcome/tester) | `out-of-scope` (execution-time, not declarative) |
+| `UpdateTestResults` | PATCH | Test Result | Update (CI-only finalisation) | `gap-deferred` — not a TF update |
+| `UpdateTestRun` | PATCH | Test Run | Update (CI-only) | `gap-deferred` — lifecycle owned by CI |
 | `UpdateTestSession` | PATCH | Test Session | Update | `out-of-scope` |
 
 ---

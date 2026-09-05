@@ -52,6 +52,14 @@
 | memberentitlementmanagement | betterado-inherited | 0 | 58 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
 | notification | betterado-inherited | 0 | 0 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
 | servicehook | betterado-inherited | 2 | 5 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| dashboard | betterado-inherited | 0 | 8 | v7.2 delta: Position and Widgets are the primary deferred writable fields; all server-assigned fields out-of-scope |
+| extension | betterado-inherited | 0 | 3 | v7.2 delta: installState sub-fields (lastUpdated, installationIssues, platform error flags) deferred; core install/disable/version covered |
+| gallery-extensionmanagement | betterado-inherited | 3 | 6 | v7.2 delta: betterado_extension_install (WI-2) covers core lifecycle; gallery metadata data source and extension settings deferred |
+| featuremanagement | betterado-inherited | 0 | 9 | v7.2 delta: betterado_feature_flag targets host/project scopes; user-scoped flags and feature-definition data source deferred |
+| workitemtracking | betterado-inherited | 14 | 0 | v7.2 delta: AssignedTo, History, non-parent link types, query isPublic/columns/sortColumns/filterOptions and structured clause fields deferred |
+| workitemtrackingprocess | betterado-inherited | 0 | 19 | v7.2 delta: behaviors, contribution pages/groups, inherited-page ordering, system-control overrides, and server-assigned enum fields deferred |
+| accounts-profile | betterado-inherited | 8 | 0 | v7.2 delta: Profile data source (betterado_profile) fully deferred to follow-on WI; accountOwner/accountStatus/ownerId query param open |
+| test | betterado-inherited | 5 | 3 | v7.2 delta: 5 declarative types (plan, suite, configuration, variable, retention settings) gap-open pending testplan SDK vendoring; runs/results/cases gap-deferred as data sources |
 
 ## Priority backlog
 
