@@ -49,19 +49,19 @@ SecurityRoleAssignment {
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `scope` | Route param `scopeId` (e.g. `distributedtask.project.environmentreferencerole`) | Yes | **mapped** | Required; identifies the security role scope; also read back from `role.Scope` |
-| `resource_id` | Route param `resourceId` | Yes | **mapped** | Required; `ForceNew`; scopes the assignment to a specific resource (e.g. environment ID) |
-| `identity_id` | Request body `userId` (UUID); read back from `identity.id` | Yes | **mapped** | Required; identity to assign the role to |
-| `role_name` | Request body `roleName`; read back from `role.name` | Yes | **mapped** | Required; name of the role to assign |
-| — | `identity.displayName` | No | **missing** | Read-only display name of the identity; not currently surfaced |
-| — | `identity.uniqueName` | No | **missing** | Read-only UPN/unique name of the identity; not currently surfaced |
-| — | `role.displayName` | No | **missing** | Read-only display name of the role |
-| — | `role.allowPermissions` | No | **missing** | Read-only permission bitmask granted by the role |
-| — | `role.denyPermissions` | No | **missing** | Read-only permission bitmask denied by the role |
-| — | `role.identifier` | No | **missing** | Read-only role identifier string |
-| — | `role.description` | No | **missing** | Read-only role description |
-| — | `assignment.access` | No | **missing** | Read-only: `"assigned"` vs `"inherited"`; could be useful as a computed attribute |
-| — | `assignment.accessDisplayName` | No | **missing** | Read-only display text for access type |
+| `scope` | Route param `scopeId` (e.g. `distributedtask.project.environmentreferencerole`) | Yes | covered | Required; identifies the security role scope; also read back from `role.Scope` |
+| `resource_id` | Route param `resourceId` | Yes | covered | Required; `ForceNew`; scopes the assignment to a specific resource (e.g. environment ID) |
+| `identity_id` | Request body `userId` (UUID); read back from `identity.id` | Yes | covered | Required; identity to assign the role to |
+| `role_name` | Request body `roleName`; read back from `role.name` | Yes | covered | Required; name of the role to assign |
+| — | `identity.displayName` | No | gap-open | Read-only display name of the identity; not currently surfaced |
+| — | `identity.uniqueName` | No | gap-open | Read-only UPN/unique name of the identity; not currently surfaced |
+| — | `role.displayName` | No | gap-open | Read-only display name of the role |
+| — | `role.allowPermissions` | No | gap-open | Read-only permission bitmask granted by the role |
+| — | `role.denyPermissions` | No | gap-open | Read-only permission bitmask denied by the role |
+| — | `role.identifier` | No | gap-open | Read-only role identifier string |
+| — | `role.description` | No | gap-open | Read-only role description |
+| — | `assignment.access` | No | gap-open | Read-only: `"assigned"` vs `"inherited"`; could be useful as a computed attribute |
+| — | `assignment.accessDisplayName` | No | gap-open | Read-only display text for access type |
 
 **Summary — betterado_securityrole_assignment:** 4 mapped / 0 partial / 9 missing
 
@@ -69,7 +69,7 @@ SecurityRoleAssignment {
 
 | Gap | Verdict | Rationale |
 |---|---|---|
-| All missing fields | **Resolved (omit or read-only)** | All missing fields are read-only response metadata or computed display values. None require user input. `access` / `accessDisplayName` could optionally be surfaced as computed attributes but provide negligible operational value. |
+| All absent fields | **Resolved (omit or non-writable)** | All absent fields are non-writable response metadata or computed display values. None require user input. `access` / `accessDisplayName` could optionally be surfaced as computed attributes but provide negligible operational value. |
 | `access` (assigned vs inherited) | **Deferred** | Could be surfaced as a computed field to distinguish explicit vs inherited assignments; low priority |
 
 #### Resource ID strategy
@@ -98,14 +98,14 @@ SecurityRoleDefinition {
 
 | TF field | API field | Status | Notes |
 |---|---|---|---|
-| `scope` (input) | Route param `scopeId` | **mapped** | Required input for `ListSecurityRoleDefinitions` |
-| `definitions[].name` | `name` | **mapped** | Computed |
-| `definitions[].display_name` | `displayName` | **mapped** | Computed |
-| `definitions[].allow_permissions` | `allowPermissions` | **mapped** | Computed |
-| `definitions[].deny_permissions` | `denyPermissions` | **mapped** | Computed (note: schema has `Optional` instead of `Computed` — see gap below) |
-| `definitions[].identifier` | `identifier` | **mapped** | Computed; used as set hash key |
-| `definitions[].description` | `description` | **mapped** | Computed |
-| `definitions[].scope` | `scope` | **mapped** | Computed |
+| `scope` (input) | Route param `scopeId` | covered | Required input for `ListSecurityRoleDefinitions` |
+| `definitions[].name` | `name` | covered | Computed |
+| `definitions[].display_name` | `displayName` | covered | Computed |
+| `definitions[].allow_permissions` | `allowPermissions` | covered | Computed |
+| `definitions[].deny_permissions` | `denyPermissions` | covered | Computed (note: schema has `Optional` instead of `Computed` — see gap below) |
+| `definitions[].identifier` | `identifier` | covered | Computed; used as set hash key |
+| `definitions[].description` | `description` | covered | Computed |
+| `definitions[].scope` | `scope` | covered | Computed |
 
 **Summary — betterado_securityrole_definitions:** 8 mapped / 0 partial / 0 missing ✅
 
@@ -113,13 +113,13 @@ SecurityRoleDefinition {
 
 | Issue | Verdict |
 |---|---|
-| `deny_permissions` is declared as `Optional` in the schema instead of `Computed` | **Minor bug / deferred** — this is a schema declaration error; `denyPermissions` is a server-computed bitmask returned by the API and cannot be set by the user. Should be `Computed: true`. Low impact as data sources are read-only anyway. |
+| `deny_permissions` is declared as `Optional` in the schema instead of `Computed` | **Minor bug / deferred** — this is a schema declaration error; `denyPermissions` is a server-computed bitmask returned by the API and cannot be set by the user. Should be `Computed: true`. Low impact as data sources are non-writable anyway. |
 
 ---
 
 ## 5. Overall Summary
 
-| Resource / Data Source | Mapped | Partial | Deferred (writable) | Missing (read-only) |
+| Resource / Data Source | Mapped | Partial | Deferred (writable) | Missing (non-writable) |
 |---|---|---|---|---|
 | `betterado_securityrole_assignment` | 4 | 0 | 1 (`access` as computed) | 8 |
 | `betterado_securityrole_definitions` | 8 | 0 | 0 | 0 |
@@ -129,7 +129,7 @@ SecurityRoleDefinition {
 | Gap | Resource | Decision | Rationale |
 |---|---|---|---|
 | `assignment.access` (assigned vs inherited) | `betterado_securityrole_assignment` | **Deferred** | Useful to expose as computed; medium priority future enhancement |
-| All other missing fields | all | **Resolved (omit)** | All read-only display/metadata fields; no practitioner value for IaC configuration |
+| All other absent fields | all | **Resolved (omit)** | All non-writable display/metadata fields; no practitioner value for IaC configuration |
 
 ---
 

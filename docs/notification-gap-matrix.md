@@ -51,17 +51,17 @@ The SDK `Client` interface exposes the following operations against ADO Notifica
 | `Diagnostics` | `diagnostics` | `*SubscriptionDiagnostics` | **out-of-scope** | Diagnostic tracing state; mutated only via `UpdateSubscriptionDiagnostics`. Not user-facing configuration. |
 | `ExtendedProperties` | `extendedProperties` | `*map[string]string` | **out-of-scope** | Opaque server-managed bag (context info for UI groupings). Not writable by regular callers. |
 | `Filter` | `filter` | `*ISubscriptionFilter` | **implement** | Core matching criteria. Writable via `CreateSubscription` / `UpdateSubscription`. Must be included in TF schema. Polymorphic (`ExpressionFilter`, `RoleBasedFilter`, `ActorFilter`, etc.) — see §2.3. |
-| `Flags` | `flags` | `*SubscriptionFlags` | **read-only** | Set by ADO to indicate group/contributed/team/canOptOut status. Computed attribute. |
+| `Flags` | `flags` | `*SubscriptionFlags` | out-of-scope | Set by ADO to indicate group/contributed/team/canOptOut status. Computed attribute. |
 | `Channel` | `channel` | `*ISubscriptionChannel` | **implement** | Delivery channel. Polymorphic (email HTML, email plaintext, user, group, SOAP, ServiceBus, ServiceHooks, MessageQueue). Must be in TF schema. See §2.4. |
-| `Id` | `id` | `*string` | **read-only** | Subscription identifier assigned by ADO on create. Maps to `d.SetId()`. |
-| `LastModifiedBy` | `lastModifiedBy` | `*webapi.IdentityRef` | **read-only** | Computed audit metadata — who last changed the subscription. |
-| `ModifiedDate` | `modifiedDate` | `*azuredevops.Time` | **read-only** | Computed timestamp of last modification. |
-| `Permissions` | `permissions` | `*SubscriptionPermissions` | **read-only** | Caller's effective permissions (view/edit/delete) on this subscription. Computed. |
+| `Id` | `id` | `*string` | out-of-scope | Subscription identifier assigned by ADO on create. Maps to `d.SetId()`. |
+| `LastModifiedBy` | `lastModifiedBy` | `*webapi.IdentityRef` | out-of-scope | Computed audit metadata — who last changed the subscription. |
+| `ModifiedDate` | `modifiedDate` | `*azuredevops.Time` | out-of-scope | Computed timestamp of last modification. |
+| `Permissions` | `permissions` | `*SubscriptionPermissions` | out-of-scope | Caller's effective permissions (view/edit/delete) on this subscription. Computed. |
 | `Scope` | `scope` | `*SubscriptionScope` | **implement** | Project/collection scoping for the subscription. Key for multi-project setups. See §2.5. |
 | `Status` | `status` | `*SubscriptionStatus` | **implement** | Enable/disable the subscription. Writable (enabled/disabled). Read-back reflects ADO-managed disable reasons. |
-| `StatusMessage` | `statusMessage` | `*string` | **read-only** | Accompanies `Status`; explains why ADO disabled the subscription. Computed. |
+| `StatusMessage` | `statusMessage` | `*string` | out-of-scope | Accompanies `Status`; explains why ADO disabled the subscription. Computed. |
 | `Subscriber` | `subscriber` | `*webapi.IdentityRef` | **implement** | Who receives notifications. Writable on create (defaults to calling user). Typically set to a group or team identity. |
-| `Url` | `url` | `*string` | **read-only** | REST URL of the subscription returned by ADO. Never sent by client. Computed. |
+| `Url` | `url` | `*string` | out-of-scope | REST URL of the subscription returned by ADO. Never sent by client. Computed. |
 | `UserSettings` | `userSettings` | `*SubscriptionUserSettings` | **out-of-scope** | Per-user opt-in/out settings within a group subscription; managed via `UpdateSubscriptionUserSettings` (separate endpoint). Out of scope for the main resource; could be a separate resource later. |
 
 **Summary — NotificationSubscription top-level:** 6 implement / 6 read-only / 4 out-of-scope
@@ -123,7 +123,7 @@ Controls which project's events trigger the subscription.
 | Field | JSON tag | Go type | Status | Rationale |
 |---|---|---|---|---|
 | `Id` | `id` | `*uuid.UUID` | **implement** | Project or collection GUID. Required for project-scoped subscriptions. |
-| `Name` | `name` | `*string` | **read-only** | Display name of the scope; returned by ADO, computed in TF. |
+| `Name` | `name` | `*string` | out-of-scope | Display name of the scope; returned by ADO, computed in TF. |
 | `Type` | `type` | `*string` | **implement** | Scope type string (e.g. `"project"`). Required for project-level scoping. |
 
 ---
@@ -154,7 +154,7 @@ Used only on `PATCH` (update). Accepts partial updates — only fields set are a
 | `Channel` | `channel` | implement | Optional |
 | `Scope` | `scope` | implement | Optional |
 | `Status` | `status` | implement | Optional — use to enable/disable |
-| `StatusMessage` | `statusMessage` | read-only | Not writable; set by ADO as explanation |
+| `StatusMessage` | `statusMessage` | non-writable | Not writable; set by ADO as explanation |
 | `UserSettings` | `userSettings` | out-of-scope | Per-user opt-in/out; separate concern |
 
 ---
@@ -193,7 +193,7 @@ Values returned by ADO to characterise the subscription type:
 |---|---|
 | `none` | No special flags |
 | `groupSubscription` | Subscriber is a group/team |
-| `contributedSubscription` | System-contributed (filter is read-only) |
+| `contributedSubscription` | System-contributed (filter is non-writable) |
 | `canOptOut` | Group members can opt out |
 | `teamSubscription` | Subscriber is a team |
 | `oneActorMatches` | Role-based subscription: at least one actor must match |
@@ -323,7 +323,7 @@ WI-2 must implement the following fields in the `betterado_notification_subscrip
 
 | Item | Type | Reason for deferral |
 |---|---|---|
-| `betterado_notification_subscription_template` | Data source | API is read-only; useful but not required for subscription management. Future initiative. |
+| `betterado_notification_subscription_template` | Data source | API is non-writable; useful but not required for subscription management. Future initiative. |
 | `RoleBasedFilter` channel support | Feature | Requires identity/role resolution; complex. Deferred post-MVP. |
 | `ActorFilter` channel support | Feature | Identity-specific subscriptions; deferred post-MVP. |
 | `ArtifactFilter` channel support | Feature | "Follow" subscriptions on specific artifacts; niche use case. Deferred. |

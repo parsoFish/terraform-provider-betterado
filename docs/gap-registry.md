@@ -44,6 +44,14 @@
 | git | betterado-inherited | 0 | 7 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
 | feed | betterado-extended | 5 | 1 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
 | wiki | betterado-inherited | 2 | 0 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| identity | betterado-inherited | 7 | 31 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| graph | betterado-inherited | 14 | 30 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| security | betterado-inherited | 0 | 2 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| permissions | betterado-inherited | 1 | 13 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| securityroles | betterado-extended | 9 | 0 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| memberentitlementmanagement | betterado-inherited | 0 | 58 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| notification | betterado-inherited | 0 | 0 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
+| servicehook | betterado-inherited | 2 | 5 | v7.2 delta: sourced from learn.microsoft.com; live verification pending |
 
 ## Priority backlog
 
