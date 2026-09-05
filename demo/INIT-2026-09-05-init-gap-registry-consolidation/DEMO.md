@@ -1,6 +1,6 @@
 # Gap registry: canonical vocabulary, consolidated registry, priority backlog
 
-> _Derived from `demo.json` (ADR 021). Essence:_ Gap registry: canonical vocabulary, consolidated registry, priority backlog — 6 work items delivered against 20 acceptance criteria, 2 merge-boundary gates run.
+> _Derived from `demo.json` (ADR 021). Essence:_ Gap registry: canonical vocabulary, consolidated registry, priority backlog — 6 work items delivered against 20 acceptance criteria, 1 merge-boundary gate run.
 
 ## Summary
 
@@ -10,19 +10,18 @@
 - WI-4a [complete] # WI-4a: Identity/Security tier — 8 matrix normalizations
 - WI-4b [complete] # WI-4b: Collaboration/Long-tail tier — 8 matrix normalizations
 - WI-5 [complete] # WI-5: Synthesis + metadata correction
-- Commit: `a406875fd4b751c7e7318361824aa7fc7b9755fa`
+- Commit: `ce82aeb6628d7951953256e657674e26f1248d56`
 
 ## Visual Changes
 
-### 39 files changed on this branch: brain/projects/terraform-provider-betterado/profile.md, docs/accounts-profile-gap-matrix.md, docs/api-coverage-roadmap.md, docs/approvalsandchecks-gap-matrix.md, docs/build-gap-matrix.md, docs/core-gap-matrix.md, docs/dashboard-gap-matrix.md, docs/extension-gap-matrix.md, docs/featuremanagement-gap-matrix.md, docs/feed-gap-matrix.md, docs/gallery-extensionmanagement-gap-matrix.md, docs/gap-registry.md, docs/git-gap-matrix.md, docs/graph-gap-matrix.md, docs/identity-gap-matrix.md, docs/memberentitlementmanagement-gap-matrix.md, docs/notification-gap-matrix.md, docs/permissions-gap-matrix.md, docs/pipelinesapproval-gap-matrix.md, docs/policy-gap-matrix.md, docs/release-definition-gap-matrix.md, docs/release-definition-permissions-gap-matrix.md, docs/release-folder-gap-matrix.md, docs/security-gap-matrix.md, docs/securityroles-gap-matrix.md, docs/serviceendpoint-gap-matrix.md, docs/servicehook-gap-matrix.md, docs/task-group-gap-matrix.md, docs/taskagent-gap-matrix.md, docs/test-gap-matrix.md, docs/wiki-gap-matrix.md, docs/workitemtracking-gap-matrix.md, docs/workitemtrackingprocess-gap-matrix.md, scripts/gates/gap-registry-foundation.sh, scripts/gates/gap-registry-wi2.sh, scripts/gates/gap-registry-wi3.sh, scripts/gates/gap-registry-wi4a.sh, scripts/gates/gap-registry-wi4b.sh, scripts/gates/gap-registry-wi5.sh
+### 41 files changed on this branch: brain/projects/terraform-provider-betterado/profile.md, demo/INIT-2026-09-05-init-gap-registry-consolidation/DEMO.md, demo/INIT-2026-09-05-init-gap-registry-consolidation/demo.json, docs/accounts-profile-gap-matrix.md, docs/api-coverage-roadmap.md, docs/approvalsandchecks-gap-matrix.md, docs/build-gap-matrix.md, docs/core-gap-matrix.md, docs/dashboard-gap-matrix.md, docs/extension-gap-matrix.md, docs/featuremanagement-gap-matrix.md, docs/feed-gap-matrix.md, docs/gallery-extensionmanagement-gap-matrix.md, docs/gap-registry.md, docs/git-gap-matrix.md, docs/graph-gap-matrix.md, docs/identity-gap-matrix.md, docs/memberentitlementmanagement-gap-matrix.md, docs/notification-gap-matrix.md, docs/permissions-gap-matrix.md, docs/pipelinesapproval-gap-matrix.md, docs/policy-gap-matrix.md, docs/release-definition-gap-matrix.md, docs/release-definition-permissions-gap-matrix.md, docs/release-folder-gap-matrix.md, docs/security-gap-matrix.md, docs/securityroles-gap-matrix.md, docs/serviceendpoint-gap-matrix.md, docs/servicehook-gap-matrix.md, docs/task-group-gap-matrix.md, docs/taskagent-gap-matrix.md, docs/test-gap-matrix.md, docs/wiki-gap-matrix.md, docs/workitemtracking-gap-matrix.md, docs/workitemtrackingprocess-gap-matrix.md, scripts/gates/gap-registry-foundation.sh, scripts/gates/gap-registry-wi2.sh, scripts/gates/gap-registry-wi3.sh, scripts/gates/gap-registry-wi4a.sh, scripts/gates/gap-registry-wi4b.sh, scripts/gates/gap-registry-wi5.sh
 
 
 ## Test Evidence
 
 | test | result | delta |
 |---|---|---|
-| local: go test -tags all -count=1 ./azuredevops/internal/service/servicehook/... | pass | — |
-| ci: bash -c make test && golangci-lint run ./azuredevops/... && make terrafmt-check | pass | — |
+| docs: forge gate docs /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/brain/projects/terraform-provider-betterado/profile.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/demo/INIT-2026-09-05-init-gap-registry-consolidation/DEMO.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/accounts-profile-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/api-coverage-roadmap.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/approvalsandchecks-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/build-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/core-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/dashboard-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/extension-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/featuremanagement-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/feed-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/gallery-extensionmanagement-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/gap-registry.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/git-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/graph-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/identity-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/memberentitlementmanagement-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/notification-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/permissions-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/pipelinesapproval-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/policy-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/release-definition-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/release-definition-permissions-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/release-folder-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/security-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/securityroles-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/serviceendpoint-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/servicehook-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/task-group-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/taskagent-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/test-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/wiki-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/workitemtracking-gap-matrix.md /home/parso/forge-m5-a/_worktrees/INIT-2026-09-05-init-gap-registry-consolidation/docs/workitemtrackingprocess-gap-matrix.md | pass | — |
 
 > result: **pass**/**fail** · **skip** = not run in this gate (e.g. a live test with no credentials present) — not a failure · delta **new** = test added by this change.
 
@@ -52,6 +51,8 @@
 ## Files Changed
 
 - `brain/projects/terraform-provider-betterado/profile.md`
+- `demo/INIT-2026-09-05-init-gap-registry-consolidation/DEMO.md`
+- `demo/INIT-2026-09-05-init-gap-registry-consolidation/demo.json`
 - `docs/accounts-profile-gap-matrix.md`
 - `docs/api-coverage-roadmap.md`
 - `docs/approvalsandchecks-gap-matrix.md`
@@ -92,5 +93,5 @@
 - `scripts/gates/gap-registry-wi5.sh`
 
 ```
-39 files changed, 2461 insertions(+), 1947 deletions(-)
+41 files changed, 2733 insertions(+), 1947 deletions(-)
 ```
