@@ -12,10 +12,10 @@
 
 | Status | Meaning |
 |---|---|
-| `implemented` | Field is present in the TF schema and round-trips correctly (read + write). |
-| `writable-gap` | Field is writable in the ADO API but missing or incomplete in the TF schema. |
-| `read-only` | Field is returned by the API but cannot be written; absent from TF schema is expected. |
-| `deferred` | Field is writable but intentionally excluded for this iteration; tracked for a future WI. |
+| `covered` | Field is exists in the TF schema and round-trips correctly (read + write). |
+| `gap-open` | Field is writable in the ADO API but gap-open or incomplete in the TF schema. |
+| `out-of-scope` | Field is returned by the API but cannot be written; absent from TF schema is expected. |
+| `gap-gap-deferred` | Field is writable but intentionally excluded for this iteration; tracked for a future WI. |
 
 ---
 
@@ -25,31 +25,31 @@ Source Go type: `feed.Feed` / `feed.FeedUpdate` (vendor `azuredevops/v7/feed/mod
 
 | API field | Go type | JSON key | TF attribute | Status | Notes |
 |---|---|---|---|---|---|
-| `Id` | `*uuid.UUID` | `id` | — (SetId) | `implemented` | Stored as resource ID via `d.SetId()`. |
-| `Name` | `*string` | `name` | `name` | `implemented` | Required, ForceNew. |
-| `Project` | `*ProjectReference` | `project` | `project_id` | `implemented` | Project UUID read back from `project.id` on read; written as a query param on create. |
-| `Capabilities` | `*FeedCapabilities` | `capabilities` | — | `read-only` | Enum flag computed by ADO; not settable at create time. |
-| `FullyQualifiedId` | `*string` | `fullyQualifiedId` | — | `read-only` | Computed REST navigation field. |
-| `FullyQualifiedName` | `*string` | `fullyQualifiedName` | — | `read-only` | `feedName@viewName` format; read-only REST field. |
-| `IsReadOnly` | `*bool` | `isReadOnly` | — | `read-only` | Set by ADO when feed is a view; not user-controllable. |
-| `UpstreamEnabled` | `*bool` | `upstreamEnabled` | — | `writable-gap` | Controls whether the feed fetches packages from upstream sources. Writable via `FeedUpdate.UpstreamEnabled`. |
-| `UpstreamSources` | `*[]UpstreamSource` | `upstreamSources` | — | `writable-gap` | List of upstream source definitions. Writable via `FeedUpdate.UpstreamSources`. Complex nested type — deferred to a dedicated WI. |
-| `View` | `*FeedView` | `view` | — | `read-only` | Describes the current view context; not user-settable. |
-| `ViewId` | `*uuid.UUID` | `viewId` | — | `read-only` | Resolved by ADO; not a settable field. |
-| `ViewName` | `*string` | `viewName` | — | `read-only` | Resolved by ADO; not a settable field. |
-| `BadgesEnabled` | `*bool` | `badgesEnabled` | — | `writable-gap` | Enables package badge generation. Writable via `FeedUpdate.BadgesEnabled`. |
-| `DefaultViewId` | `*uuid.UUID` | `defaultViewId` | — | `writable-gap` | UUID of the view designated as the default reader experience. Writable via `FeedUpdate.DefaultViewId`. |
-| `Description` | `*string` | `description` | — | `writable-gap` | Free-text description (≤255 chars). Writable via `FeedUpdate.Description`. |
-| `HideDeletedPackageVersions` | `*bool` | `hideDeletedPackageVersions` | — | `writable-gap` | Hides deleted/unpublished package versions from consumers. Writable via `FeedUpdate.HideDeletedPackageVersions`. |
-| `DeletedDate` | `*azuredevops.Time` | `deletedDate` | — | `read-only` | Soft-delete timestamp set by ADO. |
-| `PermanentDeletedDate` | `*azuredevops.Time` | `permanentDeletedDate` | — | `read-only` | Permanent delete timestamp set by ADO. |
-| `Permissions` | `*[]FeedPermission` | `permissions` | — | `read-only` | Inline permissions snapshot; managed separately via `betterado_feed_permission`. |
-| `ScheduledPermanentDeleteDate` | `*azuredevops.Time` | `scheduledPermanentDeleteDate` | — | `read-only` | Computed by ADO after soft-delete; not user-settable. |
-| `UpstreamEnabledChangedDate` | `*azuredevops.Time` | `upstreamEnabledChangedDate` | — | `read-only` | Tracks when `upstreamEnabled` last changed; read-only audit field. |
-| `Url` | `*string` | `url` | — | `read-only` | Base REST URL for the feed; computed by ADO. |
-| `_links` | `interface{}` | `_links` | — | `read-only` | REST navigation links; out of scope. |
-| `features.permanent_delete` | n/a | n/a | `features[].permanent_delete` | `implemented` | Provider-side control flag (not an ADO API field). Triggers `PermanentDeleteFeed` on destroy. |
-| `features.restore` | n/a | n/a | `features[].restore` | `implemented` | Provider-side control flag (not an ADO API field). Triggers `RestoreDeletedFeed` on create if the feed was soft-deleted. |
+| `Id` | `*uuid.UUID` | `id` | — (SetId) | `covered` | Stored as resource ID via `d.SetId()`. |
+| `Name` | `*string` | `name` | `name` | `covered` | Required, ForceNew. |
+| `Project` | `*ProjectReference` | `project` | `project_id` | `covered` | Project UUID read back from `project.id` on read; written as a query param on create. |
+| `Capabilities` | `*FeedCapabilities` | `capabilities` | — | `out-of-scope` | Enum flag computed by ADO; not settable at create time. |
+| `FullyQualifiedId` | `*string` | `fullyQualifiedId` | — | `out-of-scope` | Computed REST navigation field. |
+| `FullyQualifiedName` | `*string` | `fullyQualifiedName` | — | `out-of-scope` | `feedName@viewName` format; out-of-scope REST field. |
+| `IsReadOnly` | `*bool` | `isReadOnly` | — | `out-of-scope` | Set by ADO when feed is a view; not user-controllable. |
+| `UpstreamEnabled` | `*bool` | `upstreamEnabled` | — | `gap-open` | Controls whether the feed fetches packages from upstream sources. Writable via `FeedUpdate.UpstreamEnabled`. |
+| `UpstreamSources` | `*[]UpstreamSource` | `upstreamSources` | — | `gap-open` | List of upstream source definitions. Writable via `FeedUpdate.UpstreamSources`. Complex nested type — gap-deferred to a dedicated WI. |
+| `View` | `*FeedView` | `view` | — | `out-of-scope` | Describes the current view context; not user-settable. |
+| `ViewId` | `*uuid.UUID` | `viewId` | — | `out-of-scope` | Resolved by ADO; not a settable field. |
+| `ViewName` | `*string` | `viewName` | — | `out-of-scope` | Resolved by ADO; not a settable field. |
+| `BadgesEnabled` | `*bool` | `badgesEnabled` | — | `gap-open` | Enables package badge generation. Writable via `FeedUpdate.BadgesEnabled`. |
+| `DefaultViewId` | `*uuid.UUID` | `defaultViewId` | — | `gap-open` | UUID of the view designated as the default reader experience. Writable via `FeedUpdate.DefaultViewId`. |
+| `Description` | `*string` | `description` | — | `gap-open` | Free-text description (≤255 chars). Writable via `FeedUpdate.Description`. |
+| `HideDeletedPackageVersions` | `*bool` | `hideDeletedPackageVersions` | — | `gap-open` | Hides deleted/unpublished package versions from consumers. Writable via `FeedUpdate.HideDeletedPackageVersions`. |
+| `DeletedDate` | `*azuredevops.Time` | `deletedDate` | — | `out-of-scope` | Soft-delete timestamp set by ADO. |
+| `PermanentDeletedDate` | `*azuredevops.Time` | `permanentDeletedDate` | — | `out-of-scope` | Permanent delete timestamp set by ADO. |
+| `Permissions` | `*[]FeedPermission` | `permissions` | — | `out-of-scope` | Inline permissions snapshot; managed separately via `betterado_feed_permission`. |
+| `ScheduledPermanentDeleteDate` | `*azuredevops.Time` | `scheduledPermanentDeleteDate` | — | `out-of-scope` | Computed by ADO after soft-delete; not user-settable. |
+| `UpstreamEnabledChangedDate` | `*azuredevops.Time` | `upstreamEnabledChangedDate` | — | `out-of-scope` | Tracks when `upstreamEnabled` last changed; out-of-scope audit field. |
+| `Url` | `*string` | `url` | — | `out-of-scope` | Base REST URL for the feed; computed by ADO. |
+| `_links` | `interface{}` | `_links` | — | `out-of-scope` | REST navigation links; out of scope. |
+| `features.permanent_delete` | n/a | n/a | `features[].permanent_delete` | `covered` | Provider-side control flag (not an ADO API field). Triggers `PermanentDeleteFeed` on destroy. |
+| `features.restore` | n/a | n/a | `features[].restore` | `covered` | Provider-side control flag (not an ADO API field). Triggers `RestoreDeletedFeed` on create if the feed was soft-deleted. |
 
 **Summary — `betterado_feed`:** 4 implemented / 5 writable-gap / 14 read-only / 0 deferred
 
@@ -63,13 +63,13 @@ Source Go type: `feed.FeedPermission` (vendor `azuredevops/v7/feed/models.go`)
 
 | API field | Go type | JSON key | TF attribute | Status | Notes |
 |---|---|---|---|---|---|
-| `DisplayName` | `*string` | `displayName` | `display_name` | `implemented` | Optional; display name for the identity. Read back on read. |
-| `IdentityDescriptor` | `*string` | `identityDescriptor` | `identity_descriptor` | `implemented` | Required, ForceNew. Used as the lookup key when matching permissions. |
-| `IdentityId` | `*uuid.UUID` | `identityId` | `identity_id` | `implemented` | Computed. Resolved via Graph API and stored; surfaced as a read-only computed attribute. |
-| `Role` | `*FeedRole` | `role` | `role` | `implemented` | Required. Accepts `reader`, `contributor`, `administrator`, `collaborator`. |
-| `IsInheritedRole` | `*bool` | `isInheritedRole` | — | `read-only` | Set by ADO to indicate inherited vs explicitly assigned role; not user-settable. |
-| `feed_id` (key) | n/a | n/a | `feed_id` | `implemented` | Required, ForceNew. Provider key to associate the permission with a feed. |
-| `project_id` (key) | n/a | n/a | `project_id` | `implemented` | Optional, ForceNew. Required when the feed is project-scoped. |
+| `DisplayName` | `*string` | `displayName` | `display_name` | `covered` | Optional; display name for the identity. Read back on read. |
+| `IdentityDescriptor` | `*string` | `identityDescriptor` | `identity_descriptor` | `covered` | Required, ForceNew. Used as the lookup key when matching permissions. |
+| `IdentityId` | `*uuid.UUID` | `identityId` | `identity_id` | `covered` | Computed. Resolved via Graph API and stored; surfaced as a out-of-scope computed attribute. |
+| `Role` | `*FeedRole` | `role` | `role` | `covered` | Required. Accepts `reader`, `contributor`, `administrator`, `collaborator`. |
+| `IsInheritedRole` | `*bool` | `isInheritedRole` | — | `out-of-scope` | Set by ADO to indicate inherited vs explicitly assigned role; not user-settable. |
+| `feed_id` (key) | n/a | n/a | `feed_id` | `covered` | Required, ForceNew. Provider key to associate the permission with a feed. |
+| `project_id` (key) | n/a | n/a | `project_id` | `covered` | Optional, ForceNew. Required when the feed is project-scoped. |
 
 **Summary — `betterado_feed_permission`:** 6 implemented / 0 writable-gap / 1 read-only / 0 deferred
 
@@ -81,11 +81,11 @@ Source Go type: `feed.FeedRetentionPolicy` (vendor `azuredevops/v7/feed/models.g
 
 | API field | Go type | JSON key | TF attribute | Status | Notes |
 |---|---|---|---|---|---|
-| `CountLimit` | `*int` | `countLimit` | `count_limit` | `implemented` | Required. Maximum versions to retain per package type. Validated 1–5000. |
-| `DaysToKeepRecentlyDownloadedPackages` | `*int` | `daysToKeepRecentlyDownloadedPackages` | `days_to_keep_recently_downloaded_packages` | `implemented` | Required. Days to preserve a package version after its last download. Validated 1–4000. |
-| `AgeLimitInDays` | `*int` | `ageLimitInDays` | — | `deferred` | Marked as deprecated in the ADO SDK (`// This attribute is deprecated and is not honoured by retention`). Deliberately excluded. |
-| `feed_id` (key) | n/a | n/a | `feed_id` | `implemented` | Required, ForceNew. Feed the retention policy is attached to. |
-| `project_id` (key) | n/a | n/a | `project_id` | `implemented` | Optional, ForceNew. Required when the feed is project-scoped. |
+| `CountLimit` | `*int` | `countLimit` | `count_limit` | `covered` | Required. Maximum versions to retain per package type. Validated 1–5000. |
+| `DaysToKeepRecentlyDownloadedPackages` | `*int` | `daysToKeepRecentlyDownloadedPackages` | `days_to_keep_recently_downloaded_packages` | `covered` | Required. Days to preserve a package version after its last download. Validated 1–4000. |
+| `AgeLimitInDays` | `*int` | `ageLimitInDays` | — | `gap-gap-deferred` | Marked as deprecated in the ADO SDK (`// This attribute is deprecated and is not honoured by retention`). Deliberately excluded. |
+| `feed_id` (key) | n/a | n/a | `feed_id` | `covered` | Required, ForceNew. Feed the retention policy is attached to. |
+| `project_id` (key) | n/a | n/a | `project_id` | `covered` | Optional, ForceNew. Required when the feed is project-scoped. |
 
 **Summary — `betterado_feed_retention_policy`:** 4 implemented / 0 writable-gap / 0 read-only / 1 deferred (`ageLimitInDays` — deprecated by ADO)
 
@@ -97,30 +97,30 @@ Source Go type: `feed.Feed` — read-only data source. Lookup by `name` or `feed
 
 | API field | Go type | JSON key | TF attribute | Status | Notes |
 |---|---|---|---|---|---|
-| `Id` | `*uuid.UUID` | `id` | — (SetId) | `implemented` | Stored as resource ID via `d.SetId()` after lookup. |
-| `Name` | `*string` | `name` | `name` | `implemented` | Optional lookup key (conflicts with `feed_id`). Also exported on read. |
-| `Id` (returned) | `*uuid.UUID` | `id` | `feed_id` | `implemented` | Resolved UUID of the feed; exported as `feed_id` on read. |
-| `Project.Id` | `*uuid.UUID` | `project.id` | `project_id` | `implemented` | Optional lookup scope; also exported on read when the feed belongs to a project. |
-| `Capabilities` | `*FeedCapabilities` | `capabilities` | — | `read-only` | Not surfaced by data source; out of scope for a lookup data source. |
-| `FullyQualifiedId` | `*string` | `fullyQualifiedId` | — | `read-only` | Not surfaced. |
-| `FullyQualifiedName` | `*string` | `fullyQualifiedName` | — | `read-only` | Not surfaced. |
-| `IsReadOnly` | `*bool` | `isReadOnly` | — | `read-only` | Not surfaced. |
-| `UpstreamEnabled` | `*bool` | `upstreamEnabled` | — | `writable-gap` | Could usefully be exported as a computed attribute for consumers to inspect. Currently absent. |
-| `UpstreamSources` | `*[]UpstreamSource` | `upstreamSources` | — | `writable-gap` | Upstream source list could be exposed as a computed block. Currently absent. |
-| `BadgesEnabled` | `*bool` | `badgesEnabled` | — | `writable-gap` | Could be a useful computed output. Currently absent. |
-| `DefaultViewId` | `*uuid.UUID` | `defaultViewId` | — | `writable-gap` | Could be exported as a computed attribute. Currently absent. |
-| `Description` | `*string` | `description` | — | `writable-gap` | Useful metadata to expose. Currently absent. |
-| `HideDeletedPackageVersions` | `*bool` | `hideDeletedPackageVersions` | — | `writable-gap` | Could be a useful computed output. Currently absent. |
-| `Url` | `*string` | `url` | — | `read-only` | Base REST URL; not surfaced. |
-| `_links` | `interface{}` | `_links` | — | `read-only` | REST nav links; not surfaced. |
-| `DeletedDate` | `*azuredevops.Time` | `deletedDate` | — | `read-only` | Not surfaced; out of scope for a live data source. |
-| `PermanentDeletedDate` | `*azuredevops.Time` | `permanentDeletedDate` | — | `read-only` | Not surfaced. |
-| `Permissions` | `*[]FeedPermission` | `permissions` | — | `read-only` | Managed via `betterado_feed_permission`; not surfaced in data source. |
-| `ScheduledPermanentDeleteDate` | `*azuredevops.Time` | `scheduledPermanentDeleteDate` | — | `read-only` | Not surfaced. |
-| `UpstreamEnabledChangedDate` | `*azuredevops.Time` | `upstreamEnabledChangedDate` | — | `read-only` | Not surfaced. |
-| `View` | `*FeedView` | `view` | — | `read-only` | Not surfaced. |
-| `ViewId` | `*uuid.UUID` | `viewId` | — | `read-only` | Not surfaced. |
-| `ViewName` | `*string` | `viewName` | — | `read-only` | Not surfaced. |
+| `Id` | `*uuid.UUID` | `id` | — (SetId) | `covered` | Stored as resource ID via `d.SetId()` after lookup. |
+| `Name` | `*string` | `name` | `name` | `covered` | Optional lookup key (conflicts with `feed_id`). Also exported on read. |
+| `Id` (returned) | `*uuid.UUID` | `id` | `feed_id` | `covered` | Resolved UUID of the feed; exported as `feed_id` on read. |
+| `Project.Id` | `*uuid.UUID` | `project.id` | `project_id` | `covered` | Optional lookup scope; also exported on read when the feed belongs to a project. |
+| `Capabilities` | `*FeedCapabilities` | `capabilities` | — | `out-of-scope` | Not surfaced by data source; out of scope for a lookup data source. |
+| `FullyQualifiedId` | `*string` | `fullyQualifiedId` | — | `out-of-scope` | Not surfaced. |
+| `FullyQualifiedName` | `*string` | `fullyQualifiedName` | — | `out-of-scope` | Not surfaced. |
+| `IsReadOnly` | `*bool` | `isReadOnly` | — | `out-of-scope` | Not surfaced. |
+| `UpstreamEnabled` | `*bool` | `upstreamEnabled` | — | `gap-open` | Could usefully be exported as a computed attribute for consumers to inspect. Currently absent. |
+| `UpstreamSources` | `*[]UpstreamSource` | `upstreamSources` | — | `gap-open` | Upstream source list could be exposed as a computed block. Currently absent. |
+| `BadgesEnabled` | `*bool` | `badgesEnabled` | — | `gap-open` | Could be a useful computed output. Currently absent. |
+| `DefaultViewId` | `*uuid.UUID` | `defaultViewId` | — | `gap-open` | Could be exported as a computed attribute. Currently absent. |
+| `Description` | `*string` | `description` | — | `gap-open` | Useful metadata to expose. Currently absent. |
+| `HideDeletedPackageVersions` | `*bool` | `hideDeletedPackageVersions` | — | `gap-open` | Could be a useful computed output. Currently absent. |
+| `Url` | `*string` | `url` | — | `out-of-scope` | Base REST URL; not surfaced. |
+| `_links` | `interface{}` | `_links` | — | `out-of-scope` | REST nav links; not surfaced. |
+| `DeletedDate` | `*azuredevops.Time` | `deletedDate` | — | `out-of-scope` | Not surfaced; out of scope for a live data source. |
+| `PermanentDeletedDate` | `*azuredevops.Time` | `permanentDeletedDate` | — | `out-of-scope` | Not surfaced. |
+| `Permissions` | `*[]FeedPermission` | `permissions` | — | `out-of-scope` | Managed via `betterado_feed_permission`; not surfaced in data source. |
+| `ScheduledPermanentDeleteDate` | `*azuredevops.Time` | `scheduledPermanentDeleteDate` | — | `out-of-scope` | Not surfaced. |
+| `UpstreamEnabledChangedDate` | `*azuredevops.Time` | `upstreamEnabledChangedDate` | — | `out-of-scope` | Not surfaced. |
+| `View` | `*FeedView` | `view` | — | `out-of-scope` | Not surfaced. |
+| `ViewId` | `*uuid.UUID` | `viewId` | — | `out-of-scope` | Not surfaced. |
+| `ViewName` | `*string` | `viewName` | — | `out-of-scope` | Not surfaced. |
 
 **Summary — `data.betterado_feed`:** 4 implemented / 6 writable-gap / 14 read-only / 0 deferred
 

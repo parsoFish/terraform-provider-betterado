@@ -17,19 +17,19 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 | Field | ADO type | Notes |
 |---|---|---|
 | `id` | `*uuid.UUID` | Computed; set as resource ID |
-| `name` | `*string` | Mapped as `service_endpoint_name` in every resource |
-| `description` | `*string` | Mapped as `description` in every resource (base schema) |
-| `type` | `*string` | Mapped internally; not exposed directly (except in `generic_v2`) |
-| `url` | `*string` | Mapped per-resource (varies) |
-| `authorization` | `*EndpointAuthorization` | Mapped as `authorization` computed map + resource-specific fields |
+| `name` | `*string` | covered as `service_endpoint_name` in every resource |
+| `description` | `*string` | covered as `description` in every resource (base schema) |
+| `type` | `*string` | covered internally; not exposed directly (except in `generic_v2`) |
+| `url` | `*string` | covered per-resource (varies) |
+| `authorization` | `*EndpointAuthorization` | covered as `authorization` computed map + resource-specific fields |
 | `authorization.parameters` | `*map[string]string` | Type-specific credential keys flattened into resource schema |
 | `authorization.scheme` | `*string` | Set internally per resource; not exposed except in `generic_v2` |
-| `data` | `*map[string]string` | Type-specific extra data; partially exposed per resource |
+| `data` | `*map[string]string` | Type-specific extra data; incompletely exposed per resource |
 | `isReady` | `*bool` | **Missing** | Read-only; endpoint readiness status |
 | `isShared` | `*bool` | **Missing** | Read-only; whether shared across projects |
 | `owner` | `*string` | **Missing** | Read-only; `"library"` or `"agentcloud"` |
 | `createdBy` | `*webapi.IdentityRef` | **Missing** | Read-only computed metadata |
-| `serviceEndpointProjectReferences` | `*[]ServiceEndpointProjectReference` | Mapped internally; `project_id` and cross-project sharing via `shared_project_ids` in `generic_v2` only |
+| `serviceEndpointProjectReferences` | `*[]ServiceEndpointProjectReference` | covered internally; `project_id` and cross-project sharing via `shared_project_ids` in `generic_v2` only |
 | `administratorsGroup` | `*webapi.IdentityRef` | **Missing** | Deprecated; out of scope |
 | `groupScopeId` | `*uuid.UUID` | **Missing** | Deprecated; out of scope |
 | `readersGroup` | `*webapi.IdentityRef` | **Missing** | Read-only; managed by ADO |
@@ -56,14 +56,14 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | authorization.parameters key | R/O/C | Sensitive | ADO REST v7.1 field | Gap? |
 |---|---|---|---|---|---|
-| `access_key_id` | `username` | Optional | No | `authorization.parameters.username` | **mapped** |
-| `secret_access_key` | `password` | Optional | Yes | `authorization.parameters.password` | **mapped** |
-| `session_token` | `sessionToken` | Optional | Yes | `authorization.parameters.sessionToken` | **mapped** |
-| `role_to_assume` | `assumeRoleArn` | Optional | No | `authorization.parameters.assumeRoleArn` | **mapped** |
-| `role_session_name` | `roleSessionName` | Optional | No | `authorization.parameters.roleSessionName` | **mapped** |
-| `external_id` | `externalId` | Optional | No | `authorization.parameters.externalId` | **mapped** |
-| `use_oidc` | `useOIDC` | Optional | No | `authorization.parameters.useOIDC` | **mapped** |
-| *(none)* | `secret_access_key` read-back | — | — | `authorization.parameters.password` | **deferred** — credential-rotation-only; ADO does not return secrets on read; Sensitive field cannot be round-tripped |
+| `access_key_id` | `username` | Optional | No | `authorization.parameters.username` | covered |
+| `secret_access_key` | `password` | Optional | Yes | `authorization.parameters.password` | covered |
+| `session_token` | `sessionToken` | Optional | Yes | `authorization.parameters.sessionToken` | covered |
+| `role_to_assume` | `assumeRoleArn` | Optional | No | `authorization.parameters.assumeRoleArn` | covered |
+| `role_session_name` | `roleSessionName` | Optional | No | `authorization.parameters.roleSessionName` | covered |
+| `external_id` | `externalId` | Optional | No | `authorization.parameters.externalId` | covered |
+| `use_oidc` | `useOIDC` | Optional | No | `authorization.parameters.useOIDC` | covered |
+| *(none)* | `secret_access_key` read-back | — | — | `authorization.parameters.password` | gap-deferred — credential-rotation-only; ADO does not return secrets on read; Sensitive field cannot be round-tripped |
 
 **Summary:** 7 mapped / 0 partial / 1 deferred (credential-rotation-only: `secret_access_key` read-back)
 
@@ -77,16 +77,16 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `azurecr_spn_tenantid` | `authorization.parameters.tenantid` | Required | No | **mapped** |
-| `azurecr_subscription_id` | `data.subscriptionId` | Required | No | **mapped** |
-| `azurecr_subscription_name` | `data.subscriptionName` | Required | No | **mapped** |
-| `azurecr_name` | `data.registryName` | Required | No | **mapped** (ForceNew) |
-| `resource_group` | `data.resourceGroupName` | Optional | No | **mapped** (ForceNew) |
-| `credentials[].serviceprincipalid` | `authorization.parameters.serviceprincipalid` | Optional | No | **mapped** |
-| `service_endpoint_authentication_scheme` | `authorization.scheme` | Optional | No | **mapped** (Default: `"ServicePrincipal"`) |
-| `workload_identity_federation_issuer` | `authorization.parameters.workloadIdentityFederationIssuer` | Computed | No | **mapped** (read-only; set by ADO for WIF scheme) |
-| `workload_identity_federation_subject` | `authorization.parameters.workloadIdentityFederationSubject` | Computed | No | **missing** — ADO returns this for WIF scheme; **defer** (read-only; used for trust config in external IdP) |
-| *(none)* | `authorization.parameters.serviceprincipalkey` | — | Yes | **deferred** — credential-rotation-only; ADO does not return the SPN key on read |
+| `azurecr_spn_tenantid` | `authorization.parameters.tenantid` | Required | No | covered |
+| `azurecr_subscription_id` | `data.subscriptionId` | Required | No | covered |
+| `azurecr_subscription_name` | `data.subscriptionName` | Required | No | covered |
+| `azurecr_name` | `data.registryName` | Required | No | covered (ForceNew) |
+| `resource_group` | `data.resourceGroupName` | Optional | No | covered (ForceNew) |
+| `credentials[].serviceprincipalid` | `authorization.parameters.serviceprincipalid` | Optional | No | covered |
+| `service_endpoint_authentication_scheme` | `authorization.scheme` | Optional | No | covered (Default: `"ServicePrincipal"`) |
+| `workload_identity_federation_issuer` | `authorization.parameters.workloadIdentityFederationIssuer` | Computed | No | covered (out-of-scope; set by ADO for WIF scheme) |
+| `workload_identity_federation_subject` | `authorization.parameters.workloadIdentityFederationSubject` | Computed | No | gap-open — ADO returns this for WIF scheme; **defer** (out-of-scope; used for trust config in external IdP) |
+| *(none)* | `authorization.parameters.serviceprincipalkey` | — | Yes | gap-deferred — credential-rotation-only; ADO does not return the SPN key on read |
 
 **Summary:** 8 mapped / 0 partial / 2 deferred (`workload_identity_federation_subject` read-only/advisory; SPN key credential-rotation-only)
 
@@ -100,17 +100,17 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `azurerm_spn_tenantid` | `authorization.parameters.tenantid` | Required | No | **mapped** |
-| `azurerm_subscription_id` | `data.subscriptionId` | Optional | No | **mapped** |
-| `azurerm_subscription_name` | `data.subscriptionName` | Optional | No | **mapped** |
-| `azurerm_management_group_id` | `data.managementGroupId` | Optional | No | **mapped** |
-| `azurerm_management_group_name` | `data.managementGroupName` | Optional | No | **mapped** |
-| `resource_group` | `data.resourceGroupName` | Optional | No | **mapped** |
-| `credentials[].serviceprincipalid` | `authorization.parameters.serviceprincipalid` | Optional | No | **mapped** |
-| `credentials[].serviceprincipalkey` | `authorization.parameters.serviceprincipalkey` | Optional | Yes | **deferred** — credential-rotation-only; ADO does not return secrets on read |
-| `service_endpoint_authentication_scheme` | `authorization.scheme` | Optional | No | **mapped** |
-| `workload_identity_federation_issuer` | `authorization.parameters.workloadIdentityFederationIssuer` | Computed | No | **mapped** |
-| `workload_identity_federation_subject` | `authorization.parameters.workloadIdentityFederationSubject` | Computed | No | **missing** — ADO returns this for WIF scheme; **defer** (read-only advisory for trust setup) |
+| `azurerm_spn_tenantid` | `authorization.parameters.tenantid` | Required | No | covered |
+| `azurerm_subscription_id` | `data.subscriptionId` | Optional | No | covered |
+| `azurerm_subscription_name` | `data.subscriptionName` | Optional | No | covered |
+| `azurerm_management_group_id` | `data.managementGroupId` | Optional | No | covered |
+| `azurerm_management_group_name` | `data.managementGroupName` | Optional | No | covered |
+| `resource_group` | `data.resourceGroupName` | Optional | No | covered |
+| `credentials[].serviceprincipalid` | `authorization.parameters.serviceprincipalid` | Optional | No | covered |
+| `credentials[].serviceprincipalkey` | `authorization.parameters.serviceprincipalkey` | Optional | Yes | gap-deferred — credential-rotation-only; ADO does not return secrets on read |
+| `service_endpoint_authentication_scheme` | `authorization.scheme` | Optional | No | covered |
+| `workload_identity_federation_issuer` | `authorization.parameters.workloadIdentityFederationIssuer` | Computed | No | covered |
+| `workload_identity_federation_subject` | `authorization.parameters.workloadIdentityFederationSubject` | Computed | No | gap-open — ADO returns this for WIF scheme; **defer** (out-of-scope advisory for trust setup) |
 
 **Summary:** 9 mapped / 0 partial / 2 deferred (`workload_identity_federation_subject` read-only advisory; SPN key credential-rotation-only)
 
@@ -123,9 +123,9 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `org_url` | `url` | Required | No | **mapped** |
-| `release_api_url` | `data.releaseUrl` | Required | No | **mapped** |
-| `personal_access_token` | `authorization.parameters.apitoken` | Required | Yes | **deferred** — credential-rotation-only; ADO does not return PAT on read |
+| `org_url` | `url` | Required | No | covered |
+| `release_api_url` | `data.releaseUrl` | Required | No | covered |
+| `personal_access_token` | `authorization.parameters.apitoken` | Required | Yes | gap-deferred — credential-rotation-only; ADO does not return PAT on read |
 
 **Summary:** 2 mapped / 0 partial / 1 deferred (credential-rotation-only: PAT)
 
@@ -138,8 +138,8 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `connection_string` | `authorization.parameters.connectionString` | Required | Yes | **deferred** — credential-rotation-only; ADO does not return connection string on read |
-| `queue_name` | `data.queueName` | Required | No | **mapped** |
+| `connection_string` | `authorization.parameters.connectionString` | Required | Yes | gap-deferred — credential-rotation-only; ADO does not return connection string on read |
+| `queue_name` | `data.queueName` | Required | No | covered |
 
 **Summary:** 1 mapped / 0 partial / 1 deferred (credential-rotation-only: `connection_string`)
 
@@ -153,8 +153,8 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `username` | `authorization.parameters.username` | Required | No | **mapped** |
-| `password` | `authorization.parameters.password` | Required | Yes | **deferred** — credential-rotation-only; ADO does not return passwords on read |
+| `username` | `authorization.parameters.username` | Required | No | covered |
+| `password` | `authorization.parameters.password` | Required | Yes | gap-deferred — credential-rotation-only; ADO does not return passwords on read |
 
 **Summary:** 1 mapped / 0 partial / 1 deferred (credential-rotation-only: `password`)
 
@@ -167,8 +167,8 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `server_url` | `url` | Required | No | **mapped** |
-| `api_token` | `authorization.parameters.apitoken` | Required | Yes | **deferred** — credential-rotation-only; ADO does not return secrets on read |
+| `server_url` | `url` | Required | No | covered |
+| `api_token` | `authorization.parameters.apitoken` | Required | Yes | gap-deferred — credential-rotation-only; ADO does not return secrets on read |
 
 **Summary:** 1 mapped / 0 partial / 1 deferred (credential-rotation-only: `api_token`)
 
@@ -181,11 +181,11 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `server_url` | `url` | Required | No | **mapped** |
-| `api_key` | `authorization.parameters.apiKey` | Optional | Yes | **deferred** — credential-rotation-only |
-| `client_id` | `authorization.parameters.clientId` | Optional | No | **mapped** |
-| `client_secret` | `authorization.parameters.clientSecret` | Optional | Yes | **deferred** — credential-rotation-only |
-| `authorization_url` | `authorization.parameters.authorizationUrl` | Optional | No | **mapped** |
+| `server_url` | `url` | Required | No | covered |
+| `api_key` | `authorization.parameters.apiKey` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `client_id` | `authorization.parameters.clientId` | Optional | No | covered |
+| `client_secret` | `authorization.parameters.clientSecret` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `authorization_url` | `authorization.parameters.authorizationUrl` | Optional | No | covered |
 
 **Summary:** 3 mapped / 0 partial / 2 deferred (credential-rotation-only: `api_key`, `client_secret`)
 
@@ -198,11 +198,11 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `server_url` | `url` | Required | No | **mapped** |
-| `username` | `authorization.parameters.username` | Required | No | **mapped** |
-| `password` | `authorization.parameters.password` | Required | Yes | **deferred** — credential-rotation-only |
-| `team` | `authorization.parameters.team` | Optional | No | **mapped** |
-| `preset` | `authorization.parameters.preset` | Optional | No | **mapped** |
+| `server_url` | `url` | Required | No | covered |
+| `username` | `authorization.parameters.username` | Required | No | covered |
+| `password` | `authorization.parameters.password` | Required | Yes | gap-deferred — credential-rotation-only |
+| `team` | `authorization.parameters.team` | Optional | No | covered |
+| `preset` | `authorization.parameters.preset` | Optional | No | covered |
 
 **Summary:** 4 mapped / 0 partial / 1 deferred (credential-rotation-only: `password`)
 
@@ -215,13 +215,13 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `access_control_url` | `authorization.parameters.accessControlUrl` | Required | No | **mapped** |
-| `server_url` | `url` | Required | No | **mapped** |
-| `web_app_url` | `authorization.parameters.webAppUrl` | Required | No | **mapped** |
-| `account` | `authorization.parameters.account` | Required | No | **mapped** |
-| `username` | `authorization.parameters.username` | Required | No | **mapped** |
-| `password` | `authorization.parameters.password` | Required | Yes | **deferred** — credential-rotation-only |
-| `team` | `authorization.parameters.team` | Optional | No | **mapped** |
+| `access_control_url` | `authorization.parameters.accessControlUrl` | Required | No | covered |
+| `server_url` | `url` | Required | No | covered |
+| `web_app_url` | `authorization.parameters.webAppUrl` | Required | No | covered |
+| `account` | `authorization.parameters.account` | Required | No | covered |
+| `username` | `authorization.parameters.username` | Required | No | covered |
+| `password` | `authorization.parameters.password` | Required | Yes | gap-deferred — credential-rotation-only |
+| `team` | `authorization.parameters.team` | Optional | No | covered |
 
 **Summary:** 6 mapped / 0 partial / 1 deferred (credential-rotation-only: `password`)
 
@@ -234,11 +234,11 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `docker_registry` | `authorization.parameters.registry` | Required | No | **mapped** (Default: `"https://index.docker.io/v1/"`) |
-| `docker_username` | `authorization.parameters.username` | Optional | No | **mapped** |
-| `docker_password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
-| `docker_email` | `authorization.parameters.email` | Optional | No | **mapped** |
-| `registry_type` | `data.registrytype` | Required | No | **mapped** (Default: `"DockerHub"`, ForceNew) |
+| `docker_registry` | `authorization.parameters.registry` | Required | No | covered (Default: `"https://index.docker.io/v1/"`) |
+| `docker_username` | `authorization.parameters.username` | Optional | No | covered |
+| `docker_password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `docker_email` | `authorization.parameters.email` | Optional | No | covered |
+| `registry_type` | `data.registrytype` | Required | No | covered (Default: `"DockerHub"`, ForceNew) |
 
 **Summary:** 4 mapped / 0 partial / 1 deferred (credential-rotation-only: `docker_password`)
 
@@ -251,11 +251,11 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `authorization_endpoint` | `authorization.parameters.authorizationUrl` | Required | No | **mapped** |
-| `lifecycle_services_api_endpoint` | `url` | Required | No | **mapped** |
-| `client_id` | `authorization.parameters.clientId` | Required | No | **mapped** |
-| `username` | `authorization.parameters.username` | Required | No | **mapped** |
-| `password` | `authorization.parameters.password` | Required | Yes | **deferred** — credential-rotation-only |
+| `authorization_endpoint` | `authorization.parameters.authorizationUrl` | Required | No | covered |
+| `lifecycle_services_api_endpoint` | `url` | Required | No | covered |
+| `client_id` | `authorization.parameters.clientId` | Required | No | covered |
+| `username` | `authorization.parameters.username` | Required | No | covered |
+| `password` | `authorization.parameters.password` | Required | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 4 mapped / 0 partial / 1 deferred (credential-rotation-only: `password`)
 
@@ -268,8 +268,8 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `connection_url` | `url` | Required | No | **mapped** |
-| `auth_personal[].personal_access_token` | `authorization.parameters.apitoken` | Required | Yes | **deferred** — credential-rotation-only; ADO does not return PATs on read |
+| `connection_url` | `url` | Required | No | covered |
+| `auth_personal[].personal_access_token` | `authorization.parameters.apitoken` | Required | Yes | gap-deferred — credential-rotation-only; ADO does not return PATs on read |
 
 **Summary:** 1 mapped / 0 partial / 1 deferred (credential-rotation-only: PAT)
 
@@ -282,11 +282,11 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `private_key` | `authorization.parameters.privateKey` | Required | Yes | **deferred** — credential-rotation-only |
-| `token_uri` | `authorization.parameters.tokenUri` | Required | No | **mapped** |
-| `gcp_project_id` | `authorization.parameters.projectId` | Required | No | **mapped** |
-| `client_email` | `authorization.parameters.clientEmail` | Optional | No | **mapped** |
-| `scope` | `authorization.parameters.scope` | Optional | No | **mapped** |
+| `private_key` | `authorization.parameters.privateKey` | Required | Yes | gap-deferred — credential-rotation-only |
+| `token_uri` | `authorization.parameters.tokenUri` | Required | No | covered |
+| `gcp_project_id` | `authorization.parameters.projectId` | Required | No | covered |
+| `client_email` | `authorization.parameters.clientEmail` | Optional | No | covered |
+| `scope` | `authorization.parameters.scope` | Optional | No | covered |
 
 **Summary:** 4 mapped / 0 partial / 1 deferred (credential-rotation-only: `private_key`)
 
@@ -300,9 +300,9 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `server_url` | `url` | Required | No | **mapped** |
-| `username` | `authorization.parameters.username` | Optional | No | **mapped** |
-| `password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
+| `server_url` | `url` | Required | No | covered |
+| `username` | `authorization.parameters.username` | Optional | No | covered |
+| `password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 2 mapped / 0 partial / 1 deferred (credential-rotation-only: `password`)
 
@@ -315,10 +315,10 @@ The ADO Service Endpoint REST API v7.1 uses a **generic envelope** — the `Serv
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `repository_url` | `url` | Required | No | **mapped** |
-| `username` | `authorization.parameters.username` | Optional | No | **mapped** |
-| `password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
-| `enable_pipelines_access` | `data.pipelinesId` (bool-as-string) | Optional | No | **mapped** (Default: `true`) |
+| `repository_url` | `url` | Required | No | covered |
+| `username` | `authorization.parameters.username` | Optional | No | covered |
+| `password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `enable_pipelines_access` | `data.pipelinesId` (bool-as-string) | Optional | No | covered (Default: `true`) |
 
 **Summary:** 3 mapped / 0 partial / 1 deferred (credential-rotation-only: `password`)
 
@@ -333,12 +333,12 @@ This is the **escape-hatch** resource for arbitrary endpoint types not covered b
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `type` | `type` | Required | No | **mapped** (ForceNew) |
-| `server_url` | `url` | Required | No | **mapped** |
-| `authorization_scheme` | `authorization.scheme` | Required | No | **mapped** (ForceNew) |
-| `authorization_parameters` | `authorization.parameters` | Optional | Yes | **mapped** (full map, Sensitive) |
-| `data` | `data` | Optional | No | **mapped** (full map) |
-| `shared_project_ids` | `serviceEndpointProjectReferences[1..n].projectReference.id` | Optional | No | **mapped** (cross-project sharing) |
+| `type` | `type` | Required | No | covered (ForceNew) |
+| `server_url` | `url` | Required | No | covered |
+| `authorization_scheme` | `authorization.scheme` | Required | No | covered (ForceNew) |
+| `authorization_parameters` | `authorization.parameters` | Optional | Yes | covered (full map, Sensitive) |
+| `data` | `data` | Optional | No | covered (full map) |
+| `shared_project_ids` | `serviceEndpointProjectReferences[1..n].projectReference.id` | Optional | No | covered (cross-project sharing) |
 
 **Note:** `generic_v2` is the only resource that exposes `shared_project_ids` (cross-project sharing). All other resources are single-project only.
 
@@ -358,8 +358,8 @@ This is the **escape-hatch** resource for arbitrary endpoint types not covered b
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `auth_personal[].personal_access_token` | `authorization.parameters.accessToken` | Optional | Yes | **deferred** — credential-rotation-only; ADO does not return PATs on read |
-| `auth_oauth[].oauth_configuration_id` | `authorization.parameters.ConfigurationId` | Optional | No | **mapped** |
+| `auth_personal[].personal_access_token` | `authorization.parameters.accessToken` | Optional | Yes | gap-deferred — credential-rotation-only; ADO does not return PATs on read |
+| `auth_oauth[].oauth_configuration_id` | `authorization.parameters.ConfigurationId` | Optional | No | covered |
 
 **Summary:** 1 mapped / 0 partial / 1 deferred (credential-rotation-only: PAT)
 
@@ -373,9 +373,9 @@ This is the **escape-hatch** resource for arbitrary endpoint types not covered b
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Optional | No | **mapped** |
-| `auth_personal[].personal_access_token` | `authorization.parameters.accessToken` | Optional | Yes | **deferred** — credential-rotation-only; ADO does not return PATs on read |
-| `auth_oauth[].oauth_configuration_id` | `authorization.parameters.ConfigurationId` | Optional | No | **mapped** |
+| `url` | `url` | Optional | No | covered |
+| `auth_personal[].personal_access_token` | `authorization.parameters.accessToken` | Optional | Yes | gap-deferred — credential-rotation-only; ADO does not return PATs on read |
+| `auth_oauth[].oauth_configuration_id` | `authorization.parameters.ConfigurationId` | Optional | No | covered |
 
 **Summary:** 2 mapped / 0 partial / 1 deferred (credential-rotation-only: PAT)
 
@@ -389,9 +389,9 @@ This is the **escape-hatch** resource for arbitrary endpoint types not covered b
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `username` | `authorization.parameters.username` | Required | No | **mapped** |
-| `api_token` | `authorization.parameters.apitoken` | Required | Yes | **deferred** — credential-rotation-only |
+| `url` | `url` | Required | No | covered |
+| `username` | `authorization.parameters.username` | Required | No | covered |
+| `api_token` | `authorization.parameters.apitoken` | Required | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 2 mapped / 0 partial / 1 deferred (credential-rotation-only: `api_token`)
 
@@ -404,9 +404,9 @@ This is the **escape-hatch** resource for arbitrary endpoint types not covered b
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `webhook_name` | `data.webhookName` (also `name`) | Required | No | **mapped** |
-| `secret` | `authorization.parameters.secret` | Optional | Yes | **deferred** — credential-rotation-only; webhook HMAC secret not returned on read |
-| `http_header` | `data.httpHeader` | Optional | No | **mapped** |
+| `webhook_name` | `data.webhookName` (also `name`) | Required | No | covered |
+| `secret` | `authorization.parameters.secret` | Optional | Yes | gap-deferred — credential-rotation-only; webhook HMAC secret not returned on read |
+| `http_header` | `data.httpHeader` | Optional | No | covered |
 
 **Summary:** 2 mapped / 0 partial / 1 deferred (credential-rotation-only: `secret`)
 
@@ -420,10 +420,10 @@ This is the **escape-hatch** resource for arbitrary endpoint types not covered b
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `username` | `authorization.parameters.username` | Required | No | **mapped** |
-| `password` | `authorization.parameters.password` | Required | Yes | **deferred** — credential-rotation-only |
-| `accept_untrusted_certs` | `data.acceptUntrustedCerts` (bool-as-string) | Optional | No | **mapped** (Default: `false`) |
+| `url` | `url` | Required | No | covered |
+| `username` | `authorization.parameters.username` | Required | No | covered |
+| `password` | `authorization.parameters.password` | Required | Yes | gap-deferred — credential-rotation-only |
+| `accept_untrusted_certs` | `data.acceptUntrustedCerts` (bool-as-string) | Optional | No | covered (Default: `false`) |
 
 **Summary:** 3 mapped / 0 partial / 1 deferred (credential-rotation-only: `password`)
 
@@ -437,10 +437,10 @@ This is the **escape-hatch** resource for arbitrary endpoint types not covered b
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | **deferred** — credential-rotation-only |
-| `authentication_basic[].username` | `authorization.parameters.username` | Optional | Yes | **mapped** |
-| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
+| `url` | `url` | Required | No | covered |
+| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `authentication_basic[].username` | `authorization.parameters.username` | Optional | Yes | covered |
+| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 2 mapped / 0 partial / 2 deferred (credential-rotation-only: `token`, `password`)
 
@@ -454,10 +454,10 @@ This is the **escape-hatch** resource for arbitrary endpoint types not covered b
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | **deferred** — credential-rotation-only |
-| `authentication_basic[].username` | `authorization.parameters.username` | Optional | Yes | **mapped** |
-| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
+| `url` | `url` | Required | No | covered |
+| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `authentication_basic[].username` | `authorization.parameters.username` | Optional | Yes | covered |
+| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 2 mapped / 0 partial / 2 deferred (credential-rotation-only: `token`, `password`)
 
@@ -471,10 +471,10 @@ This is the **escape-hatch** resource for arbitrary endpoint types not covered b
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | **deferred** — credential-rotation-only |
-| `authentication_basic[].username` | `authorization.parameters.username` | Optional | Yes | **mapped** |
-| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
+| `url` | `url` | Required | No | covered |
+| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `authentication_basic[].username` | `authorization.parameters.username` | Optional | Yes | covered |
+| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 2 mapped / 0 partial / 2 deferred (credential-rotation-only: `token`, `password`)
 
@@ -488,10 +488,10 @@ This is the **escape-hatch** resource for arbitrary endpoint types not covered b
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | **deferred** — credential-rotation-only |
-| `authentication_basic[].username` | `authorization.parameters.username` | Optional | Yes | **mapped** |
-| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
+| `url` | `url` | Required | No | covered |
+| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `authentication_basic[].username` | `authorization.parameters.username` | Optional | Yes | covered |
+| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 2 mapped / 0 partial / 2 deferred (credential-rotation-only: `token`, `password`)
 
@@ -507,22 +507,22 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `apiserver_url` | `url` | Required | No | **mapped** |
-| `authorization_type` | `authorization.scheme` (indirectly via data) | Required | No | **mapped** |
-| `azure_subscription[].azure_environment` | `data.environment` | Optional | No | **mapped** (Default: `"AzureCloud"`) |
-| `azure_subscription[].cluster_name` | `data.clusterName` | Required (if AzureSub) | No | **mapped** |
-| `azure_subscription[].subscription_id` | `data.subscriptionId` | Required (if AzureSub) | No | **mapped** |
-| `azure_subscription[].subscription_name` | `data.subscriptionName` | Required (if AzureSub) | No | **mapped** |
-| `azure_subscription[].tenant_id` | `data.tenantId` | Required (if AzureSub) | No | **mapped** |
-| `azure_subscription[].resourcegroup_id` | `data.resourceGroupName` | Required (if AzureSub) | No | **mapped** |
-| `azure_subscription[].namespace` | `data.namespace` | Optional | No | **mapped** (Default: `"default"`) |
-| `azure_subscription[].cluster_admin` | `data.clusterAdmin` (bool-as-string) | Optional | No | **mapped** (ForceNew) |
-| `kubeconfig[].kube_config` | `authorization.parameters.kubeconfig` | Required (if Kubeconfig) | Yes | **deferred** — credential-rotation-only; kubeconfig content contains certs/tokens |
-| `kubeconfig[].cluster_context` | `data.clusterContext` | Optional/Computed | No | **mapped** |
-| `kubeconfig[].accept_untrusted_certs` | `data.acceptUntrustedCerts` | Optional | No | **mapped** |
-| `service_account[].ca_cert` | `authorization.parameters.caCert` | Required (if SA) | Yes | **deferred** — credential-rotation-only |
-| `service_account[].token` | `authorization.parameters.apitoken` | Required (if SA) | Yes | **deferred** — credential-rotation-only |
-| `service_account[].accept_untrusted_certs` | `data.acceptUntrustedCerts` | Optional | No | **mapped** |
+| `apiserver_url` | `url` | Required | No | covered |
+| `authorization_type` | `authorization.scheme` (indirectly via data) | Required | No | covered |
+| `azure_subscription[].azure_environment` | `data.environment` | Optional | No | covered (Default: `"AzureCloud"`) |
+| `azure_subscription[].cluster_name` | `data.clusterName` | Required (if AzureSub) | No | covered |
+| `azure_subscription[].subscription_id` | `data.subscriptionId` | Required (if AzureSub) | No | covered |
+| `azure_subscription[].subscription_name` | `data.subscriptionName` | Required (if AzureSub) | No | covered |
+| `azure_subscription[].tenant_id` | `data.tenantId` | Required (if AzureSub) | No | covered |
+| `azure_subscription[].resourcegroup_id` | `data.resourceGroupName` | Required (if AzureSub) | No | covered |
+| `azure_subscription[].namespace` | `data.namespace` | Optional | No | covered (Default: `"default"`) |
+| `azure_subscription[].cluster_admin` | `data.clusterAdmin` (bool-as-string) | Optional | No | covered (ForceNew) |
+| `kubeconfig[].kube_config` | `authorization.parameters.kubeconfig` | Required (if Kubeconfig) | Yes | gap-deferred — credential-rotation-only; kubeconfig content contains certs/tokens |
+| `kubeconfig[].cluster_context` | `data.clusterContext` | Optional/Computed | No | covered |
+| `kubeconfig[].accept_untrusted_certs` | `data.acceptUntrustedCerts` | Optional | No | covered |
+| `service_account[].ca_cert` | `authorization.parameters.caCert` | Required (if SA) | Yes | gap-deferred — credential-rotation-only |
+| `service_account[].token` | `authorization.parameters.apitoken` | Required (if SA) | Yes | gap-deferred — credential-rotation-only |
+| `service_account[].accept_untrusted_certs` | `data.acceptUntrustedCerts` | Optional | No | covered |
 
 **Missing writable ADO fields:**
 - `data.namespace` for `service_account` auth type — **missing**; writable; **resolve** in future WI (namespace can differ from kubeconfig default)
@@ -539,11 +539,11 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `repository_id` | `data.repositoryId` | Required | No | **mapped** |
-| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | **deferred** — credential-rotation-only |
-| `authentication_basic[].username` | `authorization.parameters.username` | Optional | No | **mapped** |
-| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
+| `url` | `url` | Required | No | covered |
+| `repository_id` | `data.repositoryId` | Required | No | covered |
+| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `authentication_basic[].username` | `authorization.parameters.username` | Optional | No | covered |
+| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 3 mapped / 0 partial / 2 deferred (credential-rotation-only: `token`, `password`)
 
@@ -556,9 +556,9 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `username` | `authorization.parameters.username` | Required | No | **mapped** |
-| `password` | `authorization.parameters.password` | Required | Yes | **deferred** — credential-rotation-only |
+| `url` | `url` | Required | No | covered |
+| `username` | `authorization.parameters.username` | Required | No | covered |
+| `password` | `authorization.parameters.password` | Required | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 2 mapped / 0 partial / 1 deferred (credential-rotation-only: `password`)
 
@@ -571,8 +571,8 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `access_token` | `authorization.parameters.apitoken` | Required | Yes | **deferred** — credential-rotation-only |
+| `url` | `url` | Required | No | covered |
+| `access_token` | `authorization.parameters.apitoken` | Required | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 1 mapped / 0 partial / 1 deferred (credential-rotation-only: `access_token`)
 
@@ -585,11 +585,11 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `feed_url` | `url` | Required | No | **mapped** |
-| `api_key` | `authorization.parameters.nugetkey` | Optional | Yes | **deferred** — credential-rotation-only |
-| `personal_access_token` | `authorization.parameters.apitoken` | Optional | Yes | **deferred** — credential-rotation-only |
-| `username` | `authorization.parameters.username` | Optional | No | **mapped** |
-| `password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
+| `feed_url` | `url` | Required | No | covered |
+| `api_key` | `authorization.parameters.nugetkey` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `personal_access_token` | `authorization.parameters.apitoken` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `username` | `authorization.parameters.username` | Optional | No | covered |
+| `password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 2 mapped / 0 partial / 3 deferred (all credential-rotation-only: `api_key`, `personal_access_token`, `password`)
 
@@ -602,9 +602,9 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `api_key` | `authorization.parameters.apikey` | Required | No | **mapped** (note: not marked Sensitive in implementation) |
-| `ignore_ssl_error` | `data.IgnoreSslError` (bool-as-string) | Optional | No | **mapped** (Default: `false`) |
+| `url` | `url` | Required | No | covered |
+| `api_key` | `authorization.parameters.apikey` | Required | No | covered (note: not marked Sensitive in implementation) |
+| `ignore_ssl_error` | `data.IgnoreSslError` (bool-as-string) | Optional | No | covered (Default: `false`) |
 
 **Note:** `api_key` should be marked `Sensitive: true` — ADO API key is a credential. Current implementation omits `Sensitive`. This is a writable gap: **resolve** (mark Sensitive).
 
@@ -620,13 +620,13 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `server_url` | `url` | Optional | No | **mapped** |
-| `accept_untrusted_certs` | `data.acceptUntrustedCerts` (bool-as-string) | Optional | No | **mapped** |
-| `certificate_authority_file` | `data.certificateAuthorityFile` | Optional | No | **mapped** |
-| `auth_basic[].username` | `authorization.parameters.username` | Optional | Yes | **mapped** |
-| `auth_basic[].password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
-| `auth_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | **deferred** — credential-rotation-only |
-| `auth_none[].kube_config` | `authorization.parameters.kubeconfig` | Optional | No | **mapped** |
+| `server_url` | `url` | Optional | No | covered |
+| `accept_untrusted_certs` | `data.acceptUntrustedCerts` (bool-as-string) | Optional | No | covered |
+| `certificate_authority_file` | `data.certificateAuthorityFile` | Optional | No | covered |
+| `auth_basic[].username` | `authorization.parameters.username` | Optional | Yes | covered |
+| `auth_basic[].password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `auth_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `auth_none[].kube_config` | `authorization.parameters.kubeconfig` | Optional | No | covered |
 
 **Summary:** 5 mapped / 0 partial / 2 deferred (credential-rotation-only: `password`, `token`)
 
@@ -640,10 +640,10 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | **deferred** — credential-rotation-only |
-| `authentication_basic[].username` | `authorization.parameters.username` | Optional | Yes | **mapped** |
-| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
+| `url` | `url` | Required | No | covered |
+| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `authentication_basic[].username` | `authorization.parameters.username` | Optional | Yes | covered |
+| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 2 mapped / 0 partial / 2 deferred (credential-rotation-only: `token`, `password`)
 
@@ -657,10 +657,10 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | **deferred** — credential-rotation-only |
-| `authentication_basic[].username` | `authorization.parameters.username` | Optional | Yes | **mapped** |
-| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
+| `url` | `url` | Required | No | covered |
+| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `authentication_basic[].username` | `authorization.parameters.username` | Optional | Yes | covered |
+| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 2 mapped / 0 partial / 2 deferred (credential-rotation-only: `token`, `password`)
 
@@ -673,8 +673,8 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `organization_name` | `data.organization` (or derived from `url`) | Required | No | **mapped** |
-| `auth_personal[].personal_access_token` | `authorization.parameters.apitoken` | Required | Yes | **deferred** — credential-rotation-only; ADO does not return PATs on read |
+| `organization_name` | `data.organization` (or derived from `url`) | Required | No | covered |
+| `auth_personal[].personal_access_token` | `authorization.parameters.apitoken` | Required | Yes | gap-deferred — credential-rotation-only; ADO does not return PATs on read |
 
 **Summary:** 1 mapped / 0 partial / 1 deferred (credential-rotation-only: PAT)
 
@@ -688,19 +688,19 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `cluster_endpoint` | `url` | Required | No | **mapped** |
-| `certificate[].server_certificate_lookup` | `data.serverCertThumbprint` or `data.serverCertCommonName` (mode) | Required | No | **mapped** |
-| `certificate[].server_certificate_thumbprint` | `data.serverCertThumbprint` | Optional | No | **mapped** |
-| `certificate[].server_certificate_common_name` | `data.serverCertCommonName` | Optional | No | **mapped** |
-| `certificate[].client_certificate` | `authorization.parameters.certificate` | Required | Yes | **deferred** — credential-rotation-only |
-| `certificate[].client_certificate_password` | `authorization.parameters.certificatepassword` | Optional | Yes | **deferred** — credential-rotation-only |
-| `azure_active_directory[].server_certificate_lookup` | `data.serverCertThumbprint` or `data.serverCertCommonName` (mode) | Required | No | **mapped** |
-| `azure_active_directory[].server_certificate_thumbprint` | `data.serverCertThumbprint` | Optional | No | **mapped** |
-| `azure_active_directory[].server_certificate_common_name` | `data.serverCertCommonName` | Optional | No | **mapped** |
-| `azure_active_directory[].username` | `authorization.parameters.username` | Required | No | **mapped** |
-| `azure_active_directory[].password` | `authorization.parameters.password` | Required | Yes | **deferred** — credential-rotation-only |
-| `none[].unsecured` | `data.unsecured` (bool-as-string) | Optional | No | **mapped** |
-| `none[].cluster_spn` | `data.clusterSpn` | Optional | No | **mapped** |
+| `cluster_endpoint` | `url` | Required | No | covered |
+| `certificate[].server_certificate_lookup` | `data.serverCertThumbprint` or `data.serverCertCommonName` (mode) | Required | No | covered |
+| `certificate[].server_certificate_thumbprint` | `data.serverCertThumbprint` | Optional | No | covered |
+| `certificate[].server_certificate_common_name` | `data.serverCertCommonName` | Optional | No | covered |
+| `certificate[].client_certificate` | `authorization.parameters.certificate` | Required | Yes | gap-deferred — credential-rotation-only |
+| `certificate[].client_certificate_password` | `authorization.parameters.certificatepassword` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `azure_active_directory[].server_certificate_lookup` | `data.serverCertThumbprint` or `data.serverCertCommonName` (mode) | Required | No | covered |
+| `azure_active_directory[].server_certificate_thumbprint` | `data.serverCertThumbprint` | Optional | No | covered |
+| `azure_active_directory[].server_certificate_common_name` | `data.serverCertCommonName` | Optional | No | covered |
+| `azure_active_directory[].username` | `authorization.parameters.username` | Required | No | covered |
+| `azure_active_directory[].password` | `authorization.parameters.password` | Required | Yes | gap-deferred — credential-rotation-only |
+| `none[].unsecured` | `data.unsecured` (bool-as-string) | Optional | No | covered |
+| `none[].cluster_spn` | `data.clusterSpn` | Optional | No | covered |
 
 **Summary:** 10 mapped / 0 partial / 3 deferred (credential-rotation-only: `client_certificate`, `client_certificate_password`, `password`)
 
@@ -713,8 +713,8 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `server_url` | `url` | Required | No | **mapped** |
-| `api_token` | `authorization.parameters.apitoken` | Required | Yes | **deferred** — credential-rotation-only |
+| `server_url` | `url` | Required | No | covered |
+| `api_token` | `authorization.parameters.apitoken` | Required | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 1 mapped / 0 partial / 1 deferred (credential-rotation-only: `api_token`)
 
@@ -727,7 +727,7 @@ This is the most complex endpoint type — it supports three mutually-exclusive 
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `token` | `authorization.parameters.apitoken` | Required | Yes | **deferred** — credential-rotation-only |
+| `token` | `authorization.parameters.apitoken` | Required | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 0 mapped / 0 partial / 1 deferred (credential-rotation-only: `token`)
 
@@ -742,8 +742,8 @@ Note: `url` is hardcoded to `"https://sonarcloud.io"` in the implementation; not
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `token` | `authorization.parameters.apitoken` | Required | Yes | **deferred** — credential-rotation-only |
+| `url` | `url` | Required | No | covered |
+| `token` | `authorization.parameters.apitoken` | Required | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 1 mapped / 0 partial / 1 deferred (credential-rotation-only: `token`)
 
@@ -756,11 +756,11 @@ Note: `url` is hardcoded to `"https://sonarcloud.io"` in the implementation; not
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `host` | `data.Host` | Required | No | **mapped** |
-| `username` | `authorization.parameters.username` | Required | No | **mapped** |
-| `port` | `data.Port` (int-as-string) | Optional | No | **mapped** (Default: `22`) |
-| `password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
-| `private_key` | `authorization.parameters.privatekey` | Optional | Yes | **deferred** — credential-rotation-only |
+| `host` | `data.Host` | Required | No | covered |
+| `username` | `authorization.parameters.username` | Required | No | covered |
+| `port` | `data.Port` (int-as-string) | Optional | No | covered (Default: `22`) |
+| `password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `private_key` | `authorization.parameters.privatekey` | Optional | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 3 mapped / 0 partial / 2 deferred (credential-rotation-only: `password`, `private_key`)
 
@@ -774,10 +774,10 @@ Note: `url` is hardcoded to `"https://sonarcloud.io"` in the implementation; not
 
 | TF attribute | REST field | R/O/C | Sensitive | Gap? |
 |---|---|---|---|---|
-| `url` | `url` | Required | No | **mapped** |
-| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | **deferred** — credential-rotation-only |
-| `authentication_basic[].username` | `authorization.parameters.username` | Optional | No | **mapped** |
-| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | **deferred** — credential-rotation-only |
+| `url` | `url` | Required | No | covered |
+| `authentication_token[].token` | `authorization.parameters.apitoken` | Optional | Yes | gap-deferred — credential-rotation-only |
+| `authentication_basic[].username` | `authorization.parameters.username` | Optional | No | covered |
+| `authentication_basic[].password` | `authorization.parameters.password` | Optional | Yes | gap-deferred — credential-rotation-only |
 
 **Summary:** 2 mapped / 0 partial / 2 deferred (credential-rotation-only: `token`, `password`)
 
@@ -791,7 +791,7 @@ Only `betterado_serviceendpoint_generic_v2` exposes `shared_project_ids` (cross-
 
 | Gap | Writable? | Verdict |
 |---|---|---|
-| `isShared` (read-only flag) | No | **Defer** — read-only computed; can be inferred from the presence of `shared_project_ids` |
+| `isShared` (out-of-scope flag) | No | **Defer** — out-of-scope computed; can be inferred from the presence of `shared_project_ids` |
 | `shared_project_ids` on non-generic resources | Yes | **Deferred** — cross-project sharing is supported by the ADO API but not exposed in any typed resource; recommend adding `shared_project_ids` to all resources in a future WI |
 
 ### 2.2 `isReady` (endpoint readiness)
@@ -800,7 +800,7 @@ The SDK `ServiceEndpoint.IsReady` field indicates whether the endpoint passed it
 
 | Gap | Writable? | Verdict |
 |---|---|---|
-| `is_ready` computed attribute | No | **Defer** — read-only; useful as a data-source attribute for consumers that need to assert readiness. Not a TF lifecycle concern. |
+| `is_ready` computed attribute | No | **Defer** — out-of-scope; useful as a data-source attribute for consumers that need to assert readiness. Not a TF lifecycle concern. |
 
 ### 2.3 `workload_identity_federation_subject` (Azure resources)
 
@@ -808,7 +808,7 @@ Both `betterado_serviceendpoint_azurerm` and `betterado_serviceendpoint_azurecr`
 
 | Gap | Writable? | Verdict |
 |---|---|---|
-| `workload_identity_federation_subject` on `azurerm` | No (computed by ADO) | **Defer** — read-only; useful for configuring trust in the external IdP. Recommend adding as Computed in a future WI. |
+| `workload_identity_federation_subject` on `azurerm` | No (computed by ADO) | **Defer** — out-of-scope; useful for configuring trust in the external IdP. Recommend adding as Computed in a future WI. |
 | `workload_identity_federation_subject` on `azurecr` | No (computed by ADO) | **Defer** — same rationale |
 
 ### 2.4 Octopus Deploy `api_key` Sensitive flag
@@ -817,7 +817,7 @@ Both `betterado_serviceendpoint_azurerm` and `betterado_serviceendpoint_azurecr`
 
 | Gap | Writable? | Verdict |
 |---|---|---|
-| `api_key` missing `Sensitive: true` | Yes (schema fix) | **Resolve** in a future WI — mark `Sensitive: true` to prevent credential leakage in TF state/plan output |
+| `api_key` lacks `Sensitive: true` | Yes (schema fix) | **Resolve** in a future WI — mark `Sensitive: true` to prevent credential leakage in TF state/plan output |
 
 ### 2.5 Kubernetes `namespace` for ServiceAccount auth
 
@@ -913,7 +913,7 @@ The following fields are **explicitly deferred** across all endpoint types becau
 | `data_serviceendpoint_azurerm.go` | `azurerm` | `azurerm_spn_tenantid`, `azurerm_subscription_id`, `azurerm_subscription_name`, `azurerm_management_group_id`, `azurerm_management_group_name`, `service_endpoint_authentication_scheme` |
 | `data_serviceendpoint_bitbucket.go` | `bitbucket` | `username` |
 | `data_serviceendpoint_dockerregistry.go` | `dockerregistry` | `docker_registry`, `docker_username`, `docker_email`, `registry_type` |
-| `data_serviceendpoint_generic_v2.go` | any (`generic_v2`) | `type`, `server_url`, `authorization_scheme`, `authorization_parameters` (read-only), `data`, `shared_project_ids` |
+| `data_serviceendpoint_generic_v2.go` | any (`generic_v2`) | `type`, `server_url`, `authorization_scheme`, `authorization_parameters` (out-of-scope), `data`, `shared_project_ids` |
 | `data_serviceendpoint_github.go` | `github` | `auth_oauth[].oauth_configuration_id` |
 | `data_serviceendpoint_npm.go` | `npm` | `url` |
 | `data_serviceendpoint_sonarcloud.go` | `sonarcloud` | *(none beyond base)* |
@@ -962,7 +962,7 @@ The following endpoint types have a resource but **no corresponding data source*
 
 ### 5.1 Per-Resource Summary
 
-| Resource | Mapped | Deferred (cred-rotation) | Deferred (read-only) | Missing-writable | Quality gaps |
+| Resource | covered | Deferred (cred-rotation) | Deferred (out-of-scope) | gap-open | Quality gaps |
 |---|---|---|---|---|---|
 | `aws` | 7 | 1 | 0 | 0 | 0 |
 | `azurecr` | 8 | 1 | 1 | 0 | 0 |
@@ -995,7 +995,7 @@ The following endpoint types have a resource but **no corresponding data source*
 | `nexus` | 2 | 1 | 0 | 0 | 0 |
 | `npm` | 1 | 1 | 0 | 0 | 0 |
 | `nuget` | 2 | 3 | 0 | 0 | 0 |
-| `octopus_deploy` | 3 | 0 | 0 | 0 | 1 (`api_key` missing Sensitive) |
+| `octopus_deploy` | 3 | 0 | 0 | 0 | 1 (`api_key` lacks Sensitive flag) |
 | `openshift` | 5 | 2 | 0 | 0 | 0 |
 | `argocd` | 2 | 2 | 0 | 0 | 0 |
 | `artifactory` | 2 | 2 | 0 | 0 | 0 |
