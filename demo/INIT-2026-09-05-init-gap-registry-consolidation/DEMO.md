@@ -10,7 +10,7 @@
 - WI-4a [complete] # WI-4a: Identity/Security tier — 8 matrix normalizations
 - WI-4b [complete] # WI-4b: Collaboration/Long-tail tier — 8 matrix normalizations
 - WI-5 [complete] # WI-5: Synthesis + metadata correction
-- Commit: `6ca0d0f247dfcc6044d6c3904323a92ff8467648`
+- Commit: `b5d83a8f3a425e00bdd664c2d0568742a74295d1`
 
 ## Visual Changes
 
