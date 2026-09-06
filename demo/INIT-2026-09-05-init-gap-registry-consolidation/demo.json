@@ -3,7 +3,7 @@
   "essence": "Gap registry: canonical vocabulary, consolidated registry, priority backlog — 6 work items delivered against 20 acceptance criteria, 1 merge-boundary gate run.",
   "project": "terraform-provider-betterado",
   "initiativeId": "INIT-2026-09-05-init-gap-registry-consolidation",
-  "changedRef": "51f95ad16f7ae61f96705bae84fa655df6359767",
+  "changedRef": "6ca0d0f247dfcc6044d6c3904323a92ff8467648",
   "checkpoints": [
     {
       "label": "Changed files",
@@ -42,7 +42,7 @@
       "WI-4b [complete] # WI-4b: Collaboration/Long-tail tier — 8 matrix normalizations",
       "WI-5 [complete] # WI-5: Synthesis + metadata correction"
     ],
-    "commitSha": "51f95ad16f7ae61f96705bae84fa655df6359767"
+    "commitSha": "6ca0d0f247dfcc6044d6c3904323a92ff8467648"
   },
   "testEvidence": [
     {
