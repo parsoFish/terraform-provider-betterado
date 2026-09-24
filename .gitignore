@@ -9,7 +9,8 @@ bin/
 # (work-items/, verdicts, etc.) must never land in a PR; the two committed
 # config files (.forge/project.json, .forge/quality_gate_cmd) are
 # force-tracked via `git add -f` so they survive this ignore.
-.forge/
+.forge/work-items/
+.forge/.create-complete
 AGENT.md
 PROMPT.md
 fix_plan.md
