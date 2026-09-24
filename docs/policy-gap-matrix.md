@@ -69,7 +69,7 @@ All branch policy resources inherit the base scope block from `genBasePolicyReso
 | Valid duration (minutes) | `validDuration` | `settings[0].valid_duration` | full | Optional, default `720` |
 | Filename patterns | `filenamePatterns` | `settings[0].filename_patterns` | full | Optional list of strings |
 
-**Coverage summary:** 6 / 6 settings fields mapped ✅
+**Coverage summary:** 6 / 6 settings fields covered
 
 ---
 
@@ -92,7 +92,7 @@ All branch policy resources inherit the base scope block from `genBasePolicyReso
 | Enforce team member count | `enforceTeamMemberCount` | — | none | ADO field not surfaced; rarely used in TF workflows |
 | Allow completion if approved by non-required reviewers | `allowCompletionWithRejectsOrWaitsFromNonRequiredReviewers` | — | none | ADO field not surfaced; niche scenario |
 
-**Coverage summary:** 8 / 10 settings fields mapped (2 missing: niche ADO-only fields)
+**Coverage summary:** 8 / 10 settings fields covered (2 gap-open: niche ADO-only fields)
 
 ---
 
@@ -110,7 +110,7 @@ All branch policy resources inherit the base scope block from `genBasePolicyReso
 | Creator vote counts | `creatorVoteCounts` | `settings[0].submitter_can_vote` | full | Optional, default `false` |
 | Minimum approver count | `minimumApproverCount` | `settings[0].minimum_number_of_reviewers` | full | Optional, default `1` |
 
-**Coverage summary:** 5 / 5 settings fields mapped ✅
+**Coverage summary:** 5 / 5 settings fields covered
 
 ---
 
@@ -126,7 +126,7 @@ This policy has no type-specific settings beyond the common `scope` block. The A
 |---|---|---|---|---|
 | *(scope only — no additional settings)* | — | — | full | No extra fields; policy presence + scope is the full configuration |
 
-**Coverage summary:** 0 additional fields (policy is toggle-only) ✅
+**Coverage summary:** 0 additional fields (policy is toggle-only)
 
 ---
 
@@ -143,7 +143,7 @@ This policy has no type-specific settings beyond the common `scope` block. The A
 | Allow no fast-forward | `allowNoFastForward` | `settings[0].allow_basic_no_fast_forward` | full | Optional, default `false` |
 | Allow rebase with merge commit | `allowRebaseMerge` | `settings[0].allow_rebase_with_merge` | full | Optional, default `false` |
 
-**Coverage summary:** 4 / 4 settings fields mapped ✅
+**Coverage summary:** 4 / 4 settings fields covered
 
 ---
 
@@ -161,9 +161,9 @@ This policy has no type-specific settings beyond the common `scope` block. The A
 | Invalidate on source update | `invalidateOnSourceUpdate` | `settings[0].invalidate_on_update` | full | Optional, default `false` |
 | Default display name | `defaultDisplayName` | `settings[0].display_name` | full | Optional, default `""` |
 | Filename patterns | `filenamePatterns` | `settings[0].filename_patterns` | full | Optional list of strings |
-| Policy applicability (0=default, 1=conditional) | `policyApplicability` | `settings[0].applicability` | full | Optional; mapped as `"default"` or `"conditional"` |
+| Policy applicability (0=default, 1=conditional) | `policyApplicability` | `settings[0].applicability` | full | Optional; stored as `"default"` or `"conditional"` |
 
-**Coverage summary:** 7 / 7 settings fields mapped ✅
+**Coverage summary:** 7 / 7 settings fields covered
 
 ---
 
@@ -179,7 +179,7 @@ This policy has no type-specific settings beyond the common `scope` block.
 |---|---|---|---|---|
 | *(scope only — no additional settings)* | — | — | full | No extra fields; policy presence + scope is the full configuration |
 
-**Coverage summary:** 0 additional fields (policy is toggle-only) ✅
+**Coverage summary:** 0 additional fields (policy is toggle-only)
 
 ---
 
@@ -230,7 +230,7 @@ All repository policy resources share these base attributes from `genBasePolicyR
 |---|---|---|---|---|
 | Author email patterns | `authorEmailPatterns` | `author_email_patterns` | full | Required list of glob patterns |
 
-**Coverage summary:** 1 / 1 settings fields mapped ✅
+**Coverage summary:** 1 / 1 settings fields covered
 
 ---
 
@@ -244,7 +244,7 @@ All repository policy resources share these base attributes from `genBasePolicyR
 |---|---|---|---|---|
 | Filename patterns | `filenamePatterns` | `filepath_patterns` | full | Required list of path glob patterns |
 
-**Coverage summary:** 1 / 1 settings fields mapped ✅
+**Coverage summary:** 1 / 1 settings fields covered
 
 ---
 
@@ -258,7 +258,7 @@ All repository policy resources share these base attributes from `genBasePolicyR
 |---|---|---|---|---|
 | Enforce consistent case | `enforceConsistentCase` | `enforce_consistent_case` | full | Required bool |
 
-**Coverage summary:** 1 / 1 settings fields mapped ✅
+**Coverage summary:** 1 / 1 settings fields covered
 
 ---
 
@@ -274,7 +274,7 @@ This policy has no type-specific settings beyond the common base schema (enablin
 |---|---|---|---|---|
 | *(base schema only — no additional settings)* | — | — | full | Policy presence + `enabled`/`blocking` is the full configuration |
 
-**Coverage summary:** 0 additional fields (policy is toggle-only) ✅
+**Coverage summary:** 0 additional fields (policy is toggle-only)
 
 ---
 
@@ -286,10 +286,10 @@ This policy has no type-specific settings beyond the common base schema (enablin
 
 | API settings field | ADO JSON key | betterado attribute | Coverage | Notes |
 |---|---|---|---|---|
-| Maximum git blob size (bytes) | `maximumGitBlobSizeInBytes` | `max_file_size` | full | Required int (MB); mapped as MB, converted to bytes internally. Valid: 1, 2, 5, 10, 50, 100, 200 |
+| Maximum git blob size (bytes) | `maximumGitBlobSizeInBytes` | `max_file_size` | full | Required int (MB); stored as MB, converted to bytes internally. Valid: 1, 2, 5, 10, 50, 100, 200 |
 | Use uncompressed size | `useUncompressedSize` | — | none | ADO field; not exposed. Defaults to `false` in API |
 
-**Coverage summary:** 1 / 2 settings fields mapped (1 missing: `useUncompressedSize` — rarely used default)
+**Coverage summary:** 1 / 2 settings fields covered (1 gap-open: `useUncompressedSize` — rarely used default)
 
 ---
 
@@ -303,7 +303,7 @@ This policy has no type-specific settings beyond the common base schema (enablin
 |---|---|---|---|---|
 | Maximum path length | `maxPathLength` | `max_path_length` | full | Required int |
 
-**Coverage summary:** 1 / 1 settings fields mapped ✅
+**Coverage summary:** 1 / 1 settings fields covered
 
 ---
 
@@ -313,7 +313,7 @@ This policy has no type-specific settings beyond the common base schema (enablin
 |---|---|---|
 | Credential scanning | `e67ae10f-cf9a-40bc-8e66-6b3a8216956e` | `azuredevops_repository_policy_check_credentials` *(deprecated)* |
 
-**Coverage: partial (deprecated)** — The betterado resource `azuredevops_repository_policy_check_credentials` exists but carries a `DeprecationMessage`: _"This feature has been deprecated and cannot be created."_ New deployments should not use this resource. No additional settings fields are mapped beyond the common base.
+**Coverage: gap-open (deprecated)** — The betterado resource `azuredevops_repository_policy_check_credentials` exists but carries a `DeprecationMessage`: _"This feature has been deprecated and cannot be created."_ New deployments should not use this resource. No additional settings fields are surfaced beyond the common base.
 
 ---
 
@@ -324,7 +324,7 @@ This policy has no type-specific settings beyond the common base schema (enablin
 | ADO Policy Type | Policy Type UUID | betterado resource | Coverage |
 |---|---|---|---|
 | Build Validation | `0609b952-…-e00a01b2c241` | `azuredevops_branch_policy_build_validation` | **full** |
-| Minimum number of reviewers | `fa4e907d-…-4906e5d171dd` | `azuredevops_branch_policy_min_reviewers` | **full** (2 niche fields missing) |
+| Minimum number of reviewers | `fa4e907d-…-4906e5d171dd` | `azuredevops_branch_policy_min_reviewers` | **full** (2 niche fields gap-open) |
 | Required reviewer (auto-reviewers) | `fd2167ab-…-39368250530e` | `azuredevops_branch_policy_auto_reviewers` | **full** |
 | Comment requirements | `c6a1889d-…-9e46bb6b0df2` | `azuredevops_branch_policy_comment_resolution` | **full** |
 | Merge strategy | `fa4e907d-…-4916e5d171ab` | `azuredevops_branch_policy_merge_strategy` | **full** |
@@ -341,9 +341,9 @@ This policy has no type-specific settings beyond the common base schema (enablin
 | File path validation | `51c78909-…-c647091e3c61` | `azuredevops_repository_policy_file_path_patterns` | **full** |
 | Case enforcement | `7ed39669-…-a08b4da0fcce` | `azuredevops_repository_policy_case_enforcement` | **full** |
 | Reserved names | `db2b9b4c-…-01541d19f36b` | `azuredevops_repository_policy_reserved_names` | **full** |
-| Max file size | `2e26e725-…-978563c34a80` | `azuredevops_repository_policy_max_file_size` | **partial** (`useUncompressedSize` missing) |
+| Max file size | `2e26e725-…-978563c34a80` | `azuredevops_repository_policy_max_file_size` | **gap-open** (`useUncompressedSize` gap-open) |
 | Max path length | `001a79cf-…-bac40ee5ead8` | `azuredevops_repository_policy_max_path_length` | **full** |
-| Credential scanning | `e67ae10f-…-6b3a8216956e` | `azuredevops_repository_policy_check_credentials` | **partial** (deprecated resource) |
+| Credential scanning | `e67ae10f-…-6b3a8216956e` | `azuredevops_repository_policy_check_credentials` | **gap-open** (deprecated resource) |
 
 ### 3.3 Gap Verdicts
 

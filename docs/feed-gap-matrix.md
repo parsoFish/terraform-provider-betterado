@@ -12,8 +12,8 @@
 
 | Status | Meaning |
 |---|---|
-| `implemented` | Field is present in the TF schema and round-trips correctly (read + write). |
-| `writable-gap` | Field is writable in the ADO API but missing or incomplete in the TF schema. |
+| `covered` | Field is in the TF schema and round-trips correctly (read + write). |
+| `writable-gap` | Field is writable in the ADO API but absent or incomplete in the TF schema. |
 | `read-only` | Field is returned by the API but cannot be written; absent from TF schema is expected. |
 | `deferred` | Field is writable but intentionally excluded for this iteration; tracked for a future WI. |
 
@@ -25,9 +25,9 @@ Source Go type: `feed.Feed` / `feed.FeedUpdate` (vendor `azuredevops/v7/feed/mod
 
 | API field | Go type | JSON key | TF attribute | Status | Notes |
 |---|---|---|---|---|---|
-| `Id` | `*uuid.UUID` | `id` | — (SetId) | `implemented` | Stored as resource ID via `d.SetId()`. |
-| `Name` | `*string` | `name` | `name` | `implemented` | Required, ForceNew. |
-| `Project` | `*ProjectReference` | `project` | `project_id` | `implemented` | Project UUID read back from `project.id` on read; written as a query param on create. |
+| `Id` | `*uuid.UUID` | `id` | — (SetId) | `covered` | Stored as resource ID via `d.SetId()`. |
+| `Name` | `*string` | `name` | `name` | `covered` | Required, ForceNew. |
+| `Project` | `*ProjectReference` | `project` | `project_id` | `covered` | Project UUID read back from `project.id` on read; written as a query param on create. |
 | `Capabilities` | `*FeedCapabilities` | `capabilities` | — | `read-only` | Enum flag computed by ADO; not settable at create time. |
 | `FullyQualifiedId` | `*string` | `fullyQualifiedId` | — | `read-only` | Computed REST navigation field. |
 | `FullyQualifiedName` | `*string` | `fullyQualifiedName` | — | `read-only` | `feedName@viewName` format; read-only REST field. |
@@ -48,10 +48,10 @@ Source Go type: `feed.Feed` / `feed.FeedUpdate` (vendor `azuredevops/v7/feed/mod
 | `UpstreamEnabledChangedDate` | `*azuredevops.Time` | `upstreamEnabledChangedDate` | — | `read-only` | Tracks when `upstreamEnabled` last changed; read-only audit field. |
 | `Url` | `*string` | `url` | — | `read-only` | Base REST URL for the feed; computed by ADO. |
 | `_links` | `interface{}` | `_links` | — | `read-only` | REST navigation links; out of scope. |
-| `features.permanent_delete` | n/a | n/a | `features[].permanent_delete` | `implemented` | Provider-side control flag (not an ADO API field). Triggers `PermanentDeleteFeed` on destroy. |
-| `features.restore` | n/a | n/a | `features[].restore` | `implemented` | Provider-side control flag (not an ADO API field). Triggers `RestoreDeletedFeed` on create if the feed was soft-deleted. |
+| `features.permanent_delete` | n/a | n/a | `features[].permanent_delete` | `covered` | Provider-side control flag (not an ADO API field). Triggers `PermanentDeleteFeed` on destroy. |
+| `features.restore` | n/a | n/a | `features[].restore` | `covered` | Provider-side control flag (not an ADO API field). Triggers `RestoreDeletedFeed` on create if the feed was soft-deleted. |
 
-**Summary — `betterado_feed`:** 4 implemented / 5 writable-gap / 14 read-only / 0 deferred
+**Summary — `betterado_feed`:** 4 covered / 5 writable-gap / 14 read-only / 0 deferred
 
 *Note: `UpstreamSources` is marked `writable-gap` rather than `deferred` because it is a key ADO feed feature; its complex nested structure warrants a dedicated WI.*
 
@@ -63,15 +63,15 @@ Source Go type: `feed.FeedPermission` (vendor `azuredevops/v7/feed/models.go`)
 
 | API field | Go type | JSON key | TF attribute | Status | Notes |
 |---|---|---|---|---|---|
-| `DisplayName` | `*string` | `displayName` | `display_name` | `implemented` | Optional; display name for the identity. Read back on read. |
-| `IdentityDescriptor` | `*string` | `identityDescriptor` | `identity_descriptor` | `implemented` | Required, ForceNew. Used as the lookup key when matching permissions. |
-| `IdentityId` | `*uuid.UUID` | `identityId` | `identity_id` | `implemented` | Computed. Resolved via Graph API and stored; surfaced as a read-only computed attribute. |
-| `Role` | `*FeedRole` | `role` | `role` | `implemented` | Required. Accepts `reader`, `contributor`, `administrator`, `collaborator`. |
+| `DisplayName` | `*string` | `displayName` | `display_name` | `covered` | Optional; display name for the identity. Read back on read. |
+| `IdentityDescriptor` | `*string` | `identityDescriptor` | `identity_descriptor` | `covered` | Required, ForceNew. Used as the lookup key when matching permissions. |
+| `IdentityId` | `*uuid.UUID` | `identityId` | `identity_id` | `covered` | Computed. Resolved via Graph API and stored; surfaced as a read-only computed attribute. |
+| `Role` | `*FeedRole` | `role` | `role` | `covered` | Required. Accepts `reader`, `contributor`, `administrator`, `collaborator`. |
 | `IsInheritedRole` | `*bool` | `isInheritedRole` | — | `read-only` | Set by ADO to indicate inherited vs explicitly assigned role; not user-settable. |
-| `feed_id` (key) | n/a | n/a | `feed_id` | `implemented` | Required, ForceNew. Provider key to associate the permission with a feed. |
-| `project_id` (key) | n/a | n/a | `project_id` | `implemented` | Optional, ForceNew. Required when the feed is project-scoped. |
+| `feed_id` (key) | n/a | n/a | `feed_id` | `covered` | Required, ForceNew. Provider key to associate the permission with a feed. |
+| `project_id` (key) | n/a | n/a | `project_id` | `covered` | Optional, ForceNew. Required when the feed is project-scoped. |
 
-**Summary — `betterado_feed_permission`:** 6 implemented / 0 writable-gap / 1 read-only / 0 deferred
+**Summary — `betterado_feed_permission`:** 6 covered / 0 writable-gap / 1 read-only / 0 deferred
 
 ---
 
@@ -81,13 +81,13 @@ Source Go type: `feed.FeedRetentionPolicy` (vendor `azuredevops/v7/feed/models.g
 
 | API field | Go type | JSON key | TF attribute | Status | Notes |
 |---|---|---|---|---|---|
-| `CountLimit` | `*int` | `countLimit` | `count_limit` | `implemented` | Required. Maximum versions to retain per package type. Validated 1–5000. |
-| `DaysToKeepRecentlyDownloadedPackages` | `*int` | `daysToKeepRecentlyDownloadedPackages` | `days_to_keep_recently_downloaded_packages` | `implemented` | Required. Days to preserve a package version after its last download. Validated 1–4000. |
+| `CountLimit` | `*int` | `countLimit` | `count_limit` | `covered` | Required. Maximum versions to retain per package type. Validated 1–5000. |
+| `DaysToKeepRecentlyDownloadedPackages` | `*int` | `daysToKeepRecentlyDownloadedPackages` | `days_to_keep_recently_downloaded_packages` | `covered` | Required. Days to preserve a package version after its last download. Validated 1–4000. |
 | `AgeLimitInDays` | `*int` | `ageLimitInDays` | — | `deferred` | Marked as deprecated in the ADO SDK (`// This attribute is deprecated and is not honoured by retention`). Deliberately excluded. |
-| `feed_id` (key) | n/a | n/a | `feed_id` | `implemented` | Required, ForceNew. Feed the retention policy is attached to. |
-| `project_id` (key) | n/a | n/a | `project_id` | `implemented` | Optional, ForceNew. Required when the feed is project-scoped. |
+| `feed_id` (key) | n/a | n/a | `feed_id` | `covered` | Required, ForceNew. Feed the retention policy is attached to. |
+| `project_id` (key) | n/a | n/a | `project_id` | `covered` | Optional, ForceNew. Required when the feed is project-scoped. |
 
-**Summary — `betterado_feed_retention_policy`:** 4 implemented / 0 writable-gap / 0 read-only / 1 deferred (`ageLimitInDays` — deprecated by ADO)
+**Summary — `betterado_feed_retention_policy`:** 4 covered / 0 writable-gap / 0 read-only / 1 deferred (`ageLimitInDays` — deprecated by ADO)
 
 ---
 
@@ -97,10 +97,10 @@ Source Go type: `feed.Feed` — read-only data source. Lookup by `name` or `feed
 
 | API field | Go type | JSON key | TF attribute | Status | Notes |
 |---|---|---|---|---|---|
-| `Id` | `*uuid.UUID` | `id` | — (SetId) | `implemented` | Stored as resource ID via `d.SetId()` after lookup. |
-| `Name` | `*string` | `name` | `name` | `implemented` | Optional lookup key (conflicts with `feed_id`). Also exported on read. |
-| `Id` (returned) | `*uuid.UUID` | `id` | `feed_id` | `implemented` | Resolved UUID of the feed; exported as `feed_id` on read. |
-| `Project.Id` | `*uuid.UUID` | `project.id` | `project_id` | `implemented` | Optional lookup scope; also exported on read when the feed belongs to a project. |
+| `Id` | `*uuid.UUID` | `id` | — (SetId) | `covered` | Stored as resource ID via `d.SetId()` after lookup. |
+| `Name` | `*string` | `name` | `name` | `covered` | Optional lookup key (conflicts with `feed_id`). Also exported on read. |
+| `Id` (returned) | `*uuid.UUID` | `id` | `feed_id` | `covered` | Resolved UUID of the feed; exported as `feed_id` on read. |
+| `Project.Id` | `*uuid.UUID` | `project.id` | `project_id` | `covered` | Optional lookup scope; also exported on read when the feed belongs to a project. |
 | `Capabilities` | `*FeedCapabilities` | `capabilities` | — | `read-only` | Not surfaced by data source; out of scope for a lookup data source. |
 | `FullyQualifiedId` | `*string` | `fullyQualifiedId` | — | `read-only` | Not surfaced. |
 | `FullyQualifiedName` | `*string` | `fullyQualifiedName` | — | `read-only` | Not surfaced. |
@@ -122,7 +122,7 @@ Source Go type: `feed.Feed` — read-only data source. Lookup by `name` or `feed
 | `ViewId` | `*uuid.UUID` | `viewId` | — | `read-only` | Not surfaced. |
 | `ViewName` | `*string` | `viewName` | — | `read-only` | Not surfaced. |
 
-**Summary — `data.betterado_feed`:** 4 implemented / 6 writable-gap / 14 read-only / 0 deferred
+**Summary — `data.betterado_feed`:** 4 covered / 6 writable-gap / 14 read-only / 0 deferred
 
 *Note: the `writable-gap` items in this data source are computed-only gaps (the API only returns them; the data source does not expose them as computed attributes). They are flagged `writable-gap` because they carry actionable information that callers could use and because the gap parallels the resource gaps.*
 

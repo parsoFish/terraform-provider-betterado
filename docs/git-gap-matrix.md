@@ -18,22 +18,22 @@
 | API field | ADO Go type | TF schema attribute | TF status | Writable? | Notes |
 |---|---|---|---|---|---|
 | `id` | `*uuid.UUID` | (resource ID via `d.SetId()`) | computed-only | No | Set as resource ID; not a schema attribute |
-| `name` | `*string` | `name` | implemented | Yes | Required; case-insensitive diff suppression |
-| `defaultBranch` | `*string` | `default_branch` | implemented | Yes | Optional+Computed |
-| `isDisabled` | `*bool` | `disabled` | implemented | Yes | Optional, default `false` |
-| `isFork` | `*bool` | `is_fork` | implemented | No | Computed only |
+| `name` | `*string` | `name` | covered | Yes | Required; case-insensitive diff suppression |
+| `defaultBranch` | `*string` | `default_branch` | covered | Yes | Optional+Computed |
+| `isDisabled` | `*bool` | `disabled` | covered | Yes | Optional, default `false` |
+| `isFork` | `*bool` | `is_fork` | covered | No | Computed only |
 | `isInMaintenance` | `*bool` | — | deferred | No | Read-only flag; not relevant for TF lifecycle; **Rationale:** maintenance mode is set by ADO internally, not via TF config |
-| `remoteUrl` | `*string` | `remote_url` | implemented | No | Computed |
-| `size` | `*uint64` | `size` | implemented | No | Computed |
-| `sshUrl` | `*string` | `ssh_url` | implemented | No | Computed |
-| `url` | `*string` | `url` | implemented | No | Computed |
-| `webUrl` | `*string` | `web_url` | implemented | No | Computed |
+| `remoteUrl` | `*string` | `remote_url` | covered | No | Computed |
+| `size` | `*uint64` | `size` | covered | No | Computed |
+| `sshUrl` | `*string` | `ssh_url` | covered | No | Computed |
+| `url` | `*string` | `url` | covered | No | Computed |
+| `webUrl` | `*string` | `web_url` | covered | No | Computed |
 | `validRemoteUrls` | `*[]string` | — | N/A | No | Read-only; list of valid clone URLs; informational only, no TF use case |
-| `parentRepository` | `*GitRepositoryRef` | `parent_repository_id` | implemented | Yes | Optional; only the UUID is stored, not the full nested struct; used during fork creation |
-| `project` | `*core.TeamProjectReference` | `project_id` | implemented | Yes | Required; ForceNew; UUID stored as string |
+| `parentRepository` | `*GitRepositoryRef` | `parent_repository_id` | covered | Yes | Optional; only the UUID is stored, not the full nested struct; used during fork creation |
+| `project` | `*core.TeamProjectReference` | `project_id` | covered | Yes | Required; ForceNew; UUID stored as string |
 | `_links` | `interface{}` | — | N/A | No | Read-only REST navigation links; out of scope |
 
-**Summary — betterado_git_repository:** 10 implemented / 0 deferred-writable / 3 N/A (all read-only or internal) / 1 deferred-readonly
+**Summary — betterado_git_repository:** 10 covered / 0 deferred-writable / 3 N/A (all read-only or internal) / 1 deferred-readonly
 
 ---
 
@@ -43,13 +43,13 @@ The `initialization` block is a TF-only creation artifact; no direct ADO API fie
 
 | TF attribute | TF status | Notes |
 |---|---|---|
-| `initialization` (block) | implemented | Exactly one block required (`SizeBetween(1,1)` validator). |
-| `initialization.init_type` | implemented | Required; OneOf `Clean` / `Fork` / `Import` / `Uninitialized`; RequiresReplace (changes force resource recreation). |
-| `initialization.source_type` | implemented | Optional; OneOf `Git`; RequiredWith `source_url`; RequiresReplace. |
-| `initialization.source_url` | implemented | Optional; HTTP/HTTPS URL of the remote to import from; RequiredWith `source_type`; RequiresReplace. |
-| `initialization.service_connection_id` | implemented | Optional; auth for private remote; RequiredWith `source_url`+`source_type`; ConflictsWith `username`/`password`. |
-| `initialization.username` | implemented | Optional; basic auth username; RequiredWith `source_url`+`source_type`; ConflictsWith `service_connection_id`. |
-| `initialization.password` | implemented | Optional; `WriteOnly: true` — value is not stored in state; `Sensitive: true` — masked in CLI output; RequiredWith `source_url`+`source_type`; ConflictsWith `service_connection_id`. |
+| `initialization` (block) | covered | Exactly one block required (`SizeBetween(1,1)` validator). |
+| `initialization.init_type` | covered | Required; OneOf `Clean` / `Fork` / `Import` / `Uninitialized`; RequiresReplace (changes force resource recreation). |
+| `initialization.source_type` | covered | Optional; OneOf `Git`; RequiredWith `source_url`; RequiresReplace. |
+| `initialization.source_url` | covered | Optional; HTTP/HTTPS URL of the remote to import from; RequiredWith `source_type`; RequiresReplace. |
+| `initialization.service_connection_id` | covered | Optional; auth for private remote; RequiredWith `source_url`+`source_type`; ConflictsWith `username`/`password`. |
+| `initialization.username` | covered | Optional; basic auth username; RequiredWith `source_url`+`source_type`; ConflictsWith `service_connection_id`. |
+| `initialization.password` | covered | Optional; `WriteOnly: true` — value is not stored in state; `Sensitive: true` — masked in CLI output; RequiredWith `source_url`+`source_type`; ConflictsWith `service_connection_id`. |
 
 **Note on `password` state-persistence:** In the framework resource, `password` has `WriteOnly: true`, matching the SDKv2 `WriteOnly: true` behaviour. The value is passed through to ADO on Create (via a temporary service-endpoint or UsernamePassword auth), but Terraform does not persist it in the state file after `apply`. Subsequent plan/apply cycles will see `password = null` in state; this is expected and correct.
 
@@ -60,16 +60,16 @@ The `initialization` block is a TF-only creation artifact; no direct ADO API fie
 > Source: `azuredevops/internal/service/git/resource_git_repository_branch.go`
 > SDK structs: `GitRef` (models.go line 1795), `GitBranchStats` (line 512), `GitRefUpdate` (line 1832)
 
-### 2.1 Branch — implemented attributes
+### 2.1 Branch — covered attributes
 
 | API field / concept | ADO Go type | TF schema attribute | TF status | Writable? | Notes |
 |---|---|---|---|---|---|
-| `name` (branch short name) | `*string` from `GitRef.Name` | `name` | implemented | Yes | Required; ForceNew; stored without `refs/heads/` prefix |
-| (parent repository) | n/a | `repository_id` | implemented | Yes | Required; ForceNew; identifies the repo |
-| `commit.commitId` from `GitBranchStats.Commit` | `*string` | `last_commit_id` | implemented | No | Computed; last commit SHA on the branch |
-| `ref_branch` (creation source) | n/a | `ref_branch` | implemented | Yes | ForceNew; short branch name to branch from |
-| `ref_tag` (creation source) | n/a | `ref_tag` | implemented | Yes | ForceNew; tag name to branch from |
-| `ref_commit_id` (creation source) | n/a | `ref_commit_id` | implemented | Yes | ForceNew; specific commit SHA to branch from |
+| `name` (branch short name) | `*string` from `GitRef.Name` | `name` | covered | Yes | Required; ForceNew; stored without `refs/heads/` prefix |
+| (parent repository) | n/a | `repository_id` | covered | Yes | Required; ForceNew; identifies the repo |
+| `commit.commitId` from `GitBranchStats.Commit` | `*string` | `last_commit_id` | covered | No | Computed; last commit SHA on the branch |
+| `ref_branch` (creation source) | n/a | `ref_branch` | covered | Yes | ForceNew; short branch name to branch from |
+| `ref_tag` (creation source) | n/a | `ref_tag` | covered | Yes | ForceNew; tag name to branch from |
+| `ref_commit_id` (creation source) | n/a | `ref_commit_id` | covered | Yes | ForceNew; specific commit SHA to branch from |
 
 ### 2.2 GitRef — fields not surfaced
 
@@ -84,7 +84,7 @@ The `initialization` block is a TF-only creation artifact; no direct ADO API fie
 | `statuses` | `*[]GitStatus` | N/A | No | Build/deployment status badges; read-only |
 | `url` | `*string` | N/A | No | REST URL for the ref; read-only |
 
-**Summary — betterado_git_repository_branch:** 6 implemented / 1 deferred-writable / 7 N/A or read-only
+**Summary — betterado_git_repository_branch:** 6 covered / 1 deferred-writable / 7 N/A or read-only
 
 ---
 
@@ -97,8 +97,8 @@ The `initialization` block is a TF-only creation artifact; no direct ADO API fie
 
 | API field | ADO Go type | TF schema attribute | TF status | Writable? | Notes |
 |---|---|---|---|---|---|
-| `path` | `*string` | `file` | implemented | Yes | Required; ForceNew |
-| `content` | `*string` | `content` | implemented | Yes | Required; file body |
+| `path` | `*string` | `file` | covered | Yes | Required; ForceNew |
+| `content` | `*string` | `content` | covered | Yes | Required; file body |
 | `commitId` | `*string` | — | N/A | No | Used internally to fetch committer metadata; not exposed as attribute |
 | `_links` | `interface{}` | — | N/A | No | Read-only REST nav links |
 | `contentMetadata` | `*FileContentMetadata` | — | N/A | No | MIME-type / encoding metadata; read-only |
@@ -114,19 +114,19 @@ The `initialization` block is a TF-only creation artifact; no direct ADO API fie
 
 | API field | ADO Go type | TF schema attribute | TF status | Writable? | Notes |
 |---|---|---|---|---|---|
-| `committer.name` | `*string` | `committer_name` | implemented | Yes | Optional+Computed |
-| `committer.email` | `*string` | `committer_email` | implemented | Yes | Optional+Computed |
-| `author.name` | `*string` | `author_name` | implemented | Yes | Optional+Computed |
-| `author.email` | `*string` | `author_email` | implemented | Yes | Optional+Computed |
-| `comment` | `*string` | `commit_message` | implemented | Yes | Optional+Computed |
+| `committer.name` | `*string` | `committer_name` | covered | Yes | Optional+Computed |
+| `committer.email` | `*string` | `committer_email` | covered | Yes | Optional+Computed |
+| `author.name` | `*string` | `author_name` | covered | Yes | Optional+Computed |
+| `author.email` | `*string` | `author_email` | covered | Yes | Optional+Computed |
+| `comment` | `*string` | `commit_message` | covered | Yes | Optional+Computed |
 
 ### 3.3 Repo-file-specific TF attributes (no direct API field)
 
 | TF attribute | TF status | Notes |
 |---|---|---|
-| `repository_id` | implemented | Required; ForceNew; identifies the repository |
-| `branch` | implemented | Optional; ForceNew; target branch (default `refs/heads/master`) |
-| `overwrite_on_create` | implemented | Optional; controls behavior when file already exists |
+| `repository_id` | covered | Required; ForceNew; identifies the repository |
+| `branch` | covered | Optional; ForceNew; target branch (default `refs/heads/master`) |
+| `overwrite_on_create` | covered | Optional; controls behavior when file already exists |
 
 ### 3.4 GitCommitRef — fields not surfaced
 
@@ -144,7 +144,7 @@ The `initialization` block is a TF-only creation artifact; no direct ADO API fie
 | `url` | `*string` | N/A | N/A | REST URL; read-only |
 | `workItems` | `*[]webapi.ResourceRef` | N/A | No | Linked work items; read-only |
 
-**Summary — betterado_git_repository_file:** 8 implemented / 0 deferred-writable / many N/A (all read-only)
+**Summary — betterado_git_repository_file:** 8 covered / 0 deferred-writable / many N/A (all read-only)
 
 ---
 
@@ -157,31 +157,31 @@ The `initialization` block is a TF-only creation artifact; no direct ADO API fie
 
 | TF attribute | TF status | Notes |
 |---|---|---|
-| `project_id` | implemented | Optional; filter by project UUID |
-| `name` | implemented | Optional; filter by repo name (case-insensitive) |
-| `include_hidden` | implemented | Optional; include disabled repos (default `false`) |
+| `project_id` | covered | Optional; filter by project UUID |
+| `name` | covered | Optional; filter by repo name (case-insensitive) |
+| `include_hidden` | covered | Optional; include disabled repos (default `false`) |
 
 ### 4.2 Repositories list — per-element fields
 
 | API field | ADO Go type | TF attribute (in `repositories[]`) | TF status | Notes |
 |---|---|---|---|---|
-| `id` | `*uuid.UUID` | `id` | implemented | Computed |
-| `name` | `*string` | `name` | implemented | Computed |
-| `defaultBranch` | `*string` | `default_branch` | implemented | Computed |
-| `isDisabled` | `*bool` | `disabled` | implemented | Computed |
-| `remoteUrl` | `*string` | `remote_url` | implemented | Computed |
-| `sshUrl` | `*string` | `ssh_url` | implemented | Computed |
-| `url` | `*string` | `url` | implemented | Computed |
-| `webUrl` | `*string` | `web_url` | implemented | Computed |
-| `size` | `*uint64` | `size` | implemented | Computed |
-| `project.id` | `*uuid.UUID` | `project_id` | implemented | Computed |
+| `id` | `*uuid.UUID` | `id` | covered | Computed |
+| `name` | `*string` | `name` | covered | Computed |
+| `defaultBranch` | `*string` | `default_branch` | covered | Computed |
+| `isDisabled` | `*bool` | `disabled` | covered | Computed |
+| `remoteUrl` | `*string` | `remote_url` | covered | Computed |
+| `sshUrl` | `*string` | `ssh_url` | covered | Computed |
+| `url` | `*string` | `url` | covered | Computed |
+| `webUrl` | `*string` | `web_url` | covered | Computed |
+| `size` | `*uint64` | `size` | covered | Computed |
+| `project.id` | `*uuid.UUID` | `project_id` | covered | Computed |
 | `isFork` | `*bool` | — | deferred | **Rationale:** not yet surfaced in the list element schema; low demand for fork detection in bulk list context |
 | `isInMaintenance` | `*bool` | — | N/A | Read-only; ADO internal |
 | `parentRepository` | `*GitRepositoryRef` | — | N/A | Not useful in a list data source |
 | `validRemoteUrls` | `*[]string` | — | N/A | Informational; not useful in TF |
 | `_links` | `interface{}` | — | N/A | Read-only REST nav links |
 
-**Summary — betterado_git_repositories (data):** 10 implemented / 1 deferred / 4 N/A
+**Summary — betterado_git_repositories (data):** 10 covered / 1 deferred / 4 N/A
 
 ---
 
@@ -195,27 +195,27 @@ The `initialization` block is a TF-only creation artifact; no direct ADO API fie
 
 | TF attribute | TF status | Notes |
 |---|---|---|
-| `name` | implemented | Required; repo name (case-insensitive) |
-| `project_id` | implemented | Required; project UUID |
+| `name` | covered | Required; repo name (case-insensitive) |
+| `project_id` | covered | Required; project UUID |
 
 ### 5.2 Computed output fields
 
 | API field | ADO Go type | TF attribute | TF status | Notes |
 |---|---|---|---|---|
-| `defaultBranch` | `*string` | `default_branch` | implemented | Computed |
-| `isDisabled` | `*bool` | `disabled` | implemented | Computed |
-| `isFork` | `*bool` | `is_fork` | implemented | Computed |
-| `remoteUrl` | `*string` | `remote_url` | implemented | Computed |
-| `size` | `*uint64` | `size` | implemented | Computed |
-| `sshUrl` | `*string` | `ssh_url` | implemented | Computed |
-| `url` | `*string` | `url` | implemented | Computed |
-| `webUrl` | `*string` | `web_url` | implemented | Computed |
+| `defaultBranch` | `*string` | `default_branch` | covered | Computed |
+| `isDisabled` | `*bool` | `disabled` | covered | Computed |
+| `isFork` | `*bool` | `is_fork` | covered | Computed |
+| `remoteUrl` | `*string` | `remote_url` | covered | Computed |
+| `size` | `*uint64` | `size` | covered | Computed |
+| `sshUrl` | `*string` | `ssh_url` | covered | Computed |
+| `url` | `*string` | `url` | covered | Computed |
+| `webUrl` | `*string` | `web_url` | covered | Computed |
 | `isInMaintenance` | `*bool` | — | N/A | Read-only; ADO internal; no TF use case |
 | `parentRepository` | `*GitRepositoryRef` | — | deferred | **Rationale:** parent repo UUID is useful for fork detection workflows; low priority for data source but worth adding in a future WI |
 | `validRemoteUrls` | `*[]string` | — | N/A | Informational only |
 | `_links` | `interface{}` | — | N/A | Read-only REST nav links |
 
-**Summary — betterado_git_repository (data):** 8 implemented / 1 deferred / 3 N/A
+**Summary — betterado_git_repository (data):** 8 covered / 1 deferred / 3 N/A
 
 ---
 
@@ -228,17 +228,17 @@ The `initialization` block is a TF-only creation artifact; no direct ADO API fie
 
 | TF attribute | TF status | Notes |
 |---|---|---|
-| `repository_id` | implemented | Required |
-| `file` | implemented | Required; file path |
-| `branch` | implemented | Optional; `ExactlyOneOf` with `tag` |
-| `tag` | implemented | Optional; `ExactlyOneOf` with `branch` |
+| `repository_id` | covered | Required |
+| `file` | covered | Required; file path |
+| `branch` | covered | Optional; `ExactlyOneOf` with `tag` |
+| `tag` | covered | Optional; `ExactlyOneOf` with `branch` |
 
 ### 6.2 Computed output fields
 
 | API field | ADO Go type | TF attribute | TF status | Notes |
 |---|---|---|---|---|
-| `content` | `*string` | `content` | implemented | Computed |
-| `comment` (from `GitCommitRef`) | `*string` | `last_commit_message` | implemented | Computed |
+| `content` | `*string` | `content` | covered | Computed |
+| `comment` (from `GitCommitRef`) | `*string` | `last_commit_message` | covered | Computed |
 | `committer.name` | `*string` | — | deferred | **Rationale:** committer identity is useful for auditing; low complexity to add; worth a future WI |
 | `committer.email` | `*string` | — | deferred | Same rationale as `committer.name` |
 | `author.name` | `*string` | — | deferred | Same rationale |
@@ -254,7 +254,7 @@ The `initialization` block is a TF-only creation artifact; no direct ADO API fie
 | `objectId` | `*string` | — | N/A | Git blob SHA; read-only |
 | `originalObjectId` | `*string` | — | N/A | Pre-rename blob SHA |
 
-**Summary — betterado_git_repository_file (data):** 6 implemented / 5 deferred (all read-informational) / 9 N/A
+**Summary — betterado_git_repository_file (data):** 6 covered / 5 deferred (all read-informational) / 9 N/A
 
 ---
 

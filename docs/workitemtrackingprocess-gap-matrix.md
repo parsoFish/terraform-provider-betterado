@@ -11,7 +11,7 @@ Each table covers one resource or data source. Columns:
 | `field` | Terraform schema attribute name |
 | `api_field` | Corresponding JSON field in the ADO REST API (read/write model) |
 | `api_writable` | `yes` = writable via POST/PATCH; `no` = read-only from API; `—` = not on API object |
-| `in_schema` | `yes` = present in the TF schema; `no` = absent |
+| `in_schema` | `yes` = in the TF schema; `no` = absent |
 | `gap_action` | `resolved` = gap closed in this initiative; `defer` = out of scope for now (with rationale); `n/a-computed` = field is server-assigned, computed-only by design |
 
 ---
@@ -257,7 +257,7 @@ Each table covers one resource or data source. Columns:
 | `control_type` | `controlType` | no | yes (Computed) | n/a-computed |
 | `inherited` | `inherited` | no | yes (Computed) | n/a-computed |
 | `overridden` | `overridden` | no | yes (Computed) | n/a-computed |
-| *(height)* | `height` | yes | no | defer — control-level `height` (separate from contribution height) is only relevant for HTML controls; the contribution block's `height` is already supported; low priority |
+| *(height)* | `height` | yes | no | defer — control-level `height` (separate from contribution height) is only relevant for HTML controls; the contribution block's `height` is already available; low priority |
 
 ---
 
@@ -388,7 +388,7 @@ Each table covers one resource or data source. Columns:
 
 ## Summary of Deferred Gaps
 
-| resource/data-source | missing field | rationale |
+| resource/data-source | gap-open field | rationale |
 |---|---|---|
 | `resource_process` | `projects` | Only relevant with `expand=projects`; surfaced in the data source |
 | `resource_workitemtype` | `behaviors` | Separate sub-resource endpoint; separate WI |

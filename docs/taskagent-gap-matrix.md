@@ -12,12 +12,12 @@
 > through the mux provider as of v1.3.0.
 >
 > Status key:
-> - `mapped` = fully round-trippable (read + write or Computed where appropriate)
-> - `partial` = readable but not writable (or present but not all sub-fields surfaced)
-> - `missing` = present in the ADO API but absent from the TF schema entirely
+> - `covered` = fully round-trippable (acceptance-tested) (read + write or Computed where appropriate)
+> - `gap-open` = readable but not fully writable
+> - `gap-open` = exists in the ADO API but absent from the TF schema
 >
-> **Writable gaps deferred** notes list un-mapped writable API fields that are
-> intentionally not implemented in this iteration and will be tackled in a
+> **Writable gaps deferred** notes list un-covered writable API fields that are
+> intentionally not added in this iteration and will be tackled in a
 > follow-up WI.
 
 ---
@@ -28,18 +28,18 @@ API endpoint: `GET/POST/PUT/DELETE _apis/distributedtask/pools/{poolId}` (TaskAg
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` | `name` | mapped | Required string |
-| `poolType` | `pool_type` | mapped | Optional string (Automation\|Deployment), ForceNew |
-| `autoProvision` | `auto_provision` | mapped | Optional bool, default false |
-| `autoUpdate` | `auto_update` | mapped | Optional bool, default true; requires two-step create |
-| `id` | _(SetId)_ | mapped | Computed, server-assigned int |
-| `isHosted` | — | missing | Read-only bool; not useful to manage in TF |
-| `isLegacy` | — | missing | Read-only bool; informational only |
-| `size` | — | missing | Computed (count of agents); informational |
-| `agentCloudId` | — | missing | Int; links to agent cloud config — deferred (see below) |
-| `targetSize` | — | missing | Elastic-pool-only; managed via `elastic_pool` resource |
-| `properties` | — | missing | Server-managed metadata map |
-| `createdOn` | — | missing | Datetime, server-assigned |
+| `name` | `name` | covered | Required string |
+| `poolType` | `pool_type` | covered | Optional string (Automation\|Deployment), ForceNew |
+| `autoProvision` | `auto_provision` | covered | Optional bool, default false |
+| `autoUpdate` | `auto_update` | covered | Optional bool, default true; requires two-step create |
+| `id` | _(SetId)_ | covered | Computed, server-assigned int |
+| `isHosted` | — | out-of-scope | Read-only bool; not useful to manage in TF |
+| `isLegacy` | — | out-of-scope | Read-only bool; informational only |
+| `size` | — | out-of-scope | Computed (count of agents); informational |
+| `agentCloudId` | — | out-of-scope | Int; links to agent cloud config — deferred (see below) |
+| `targetSize` | — | out-of-scope | Elastic-pool-only; managed via `elastic_pool` resource |
+| `properties` | — | out-of-scope | Server-managed metadata map |
+| `createdOn` | — | out-of-scope | Datetime, server-assigned |
 
 **Writable gaps deferred:**
 - `agentCloudId` — Integer linking to a registered agent cloud (Azure VMSS cloud config). Writable at create time. Not surfaced because no `agent_cloud` resource exists in this provider yet; deferred to a future WI.
@@ -52,14 +52,14 @@ API endpoint: `GET/POST/DELETE _apis/distributedtask/queues/{queueId}` (TaskAgen
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` | `name` | mapped | Optional/Computed string; conflicts with `agent_pool_id` |
-| `pool.id` | `agent_pool_id` | mapped | Optional/Computed int; ForceNew; conflicts with `name` |
-| `projectId` | `project_id` | mapped | Required UUID; ForceNew |
-| `id` | _(SetId)_ | mapped | Computed, server-assigned int |
-| `authorizePipelines` | — | missing | Bool; whether pipelines are auto-authorised — set to `false` at create; writable gap deferred (see below) |
-| `pool.name` | — | partial | Read back from pool reference; resolved server-side |
-| `pool.isHosted` | — | missing | Read-only bool on the embedded pool reference |
-| `pool.poolType` | — | missing | Read-only string on the embedded pool reference |
+| `name` | `name` | covered | Optional/Computed string; conflicts with `agent_pool_id` |
+| `pool.id` | `agent_pool_id` | covered | Optional/Computed int; ForceNew; conflicts with `name` |
+| `projectId` | `project_id` | covered | Required UUID; ForceNew |
+| `id` | _(SetId)_ | covered | Computed, server-assigned int |
+| `authorizePipelines` | — | out-of-scope | Bool; whether pipelines are auto-authorised — set to `false` at create; writable gap deferred (see below) |
+| `pool.name` | — | gap-open | Read back from pool reference; resolved server-side |
+| `pool.isHosted` | — | out-of-scope | Read-only bool on the embedded pool reference |
+| `pool.poolType` | — | out-of-scope | Read-only string on the embedded pool reference |
 
 **Writable gaps deferred:**
 - `authorizePipelines` — hard-coded to `false` at create; not surfaced as a TF attribute. Deferred: adding it would be an enhancement WI.
@@ -72,15 +72,15 @@ API endpoint: `GET/POST/PUT/DELETE _apis/distributedtask/deploymentgroups/{deplo
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` | `name` | mapped | Required string |
-| `description` | `description` | mapped | Optional string, default "" |
-| `pool.id` | `pool_id` | mapped | Optional int, Computed, ForceNew; server creates pool if absent |
-| `machineCount` | `machine_count` | mapped | Computed int (count of machines) |
-| `project.id` | `project_id` | mapped | Required UUID, ForceNew |
-| `id` | _(SetId)_ | mapped | Computed, server-assigned int |
-| `machines` | — | missing | List of registered agents; informational, not managed by TF |
-| `tags` | — | missing | List of string tags on the group — deferred (see below) |
-| `poolId` (at create) | `pool_id` | partial | Passed as `DeploymentGroupCreateParameter.PoolId`; read back as `Pool.Id`. Cannot be updated once set (ForceNew). |
+| `name` | `name` | covered | Required string |
+| `description` | `description` | covered | Optional string, default "" |
+| `pool.id` | `pool_id` | covered | Optional int, Computed, ForceNew; server creates pool if absent |
+| `machineCount` | `machine_count` | covered | Computed int (count of machines) |
+| `project.id` | `project_id` | covered | Required UUID, ForceNew |
+| `id` | _(SetId)_ | covered | Computed, server-assigned int |
+| `machines` | — | out-of-scope | List of registered agents; informational, not managed by TF |
+| `tags` | — | out-of-scope | List of string tags on the group — deferred (see below) |
+| `poolId` (at create) | `pool_id` | gap-open | Passed as `DeploymentGroupCreateParameter.PoolId`; read back as `Pool.Id`. Cannot be updated once set (ForceNew). |
 
 **Writable gaps deferred:**
 - `tags` — Deployment group supports a list of string labels (used for targeting in release pipelines). Not surfaced in the current schema. Deferred to a follow-up WI.
@@ -95,23 +95,23 @@ API endpoints:
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` (pool) | `name` | mapped | Required string (set on the underlying TaskAgentPool) |
-| `azureId` | `azure_resource_id` | mapped | Required string (Azure VMSS resource ID) |
-| `serviceEndpointId` | `service_endpoint_id` | mapped | Required UUID |
-| `serviceEndpointScope` | `service_endpoint_scope` | mapped | Required UUID (project ID for the endpoint) |
-| `desiredIdle` | `desired_idle` | mapped | Required int |
-| `maxCapacity` | `max_capacity` | mapped | Required int |
-| `recycleAfterEachUse` | `recycle_after_each_use` | mapped | Optional bool, default false |
-| `agentInteractiveUI` | `agent_interactive_ui` | mapped | Optional bool, default false |
-| `timeToLiveMinutes` | `time_to_live_minutes` | mapped | Optional int, default 30 |
-| `autoProvision` (pool) | `auto_provision` | mapped | Optional bool, default false |
-| `autoUpdate` (pool) | `auto_update` | mapped | Optional bool, default true |
-| `projectId` (create) | `project_id` | mapped | Optional UUID; scopes pool to a project |
-| `poolId` | _(SetId)_ | mapped | Computed, server-assigned int |
-| `osType` | — | missing | Enum (Windows/Linux) — deferred (see below) |
-| `maxSavedNodeCount` | — | missing | Int; warm-spare agent count — deferred |
-| `desiredSize` (computed) | — | missing | Computed current size; read-only |
-| `sizingAttempts` (computed) | — | missing | Read-only counter |
+| `name` (pool) | `name` | covered | Required string (set on the underlying TaskAgentPool) |
+| `azureId` | `azure_resource_id` | covered | Required string (Azure VMSS resource ID) |
+| `serviceEndpointId` | `service_endpoint_id` | covered | Required UUID |
+| `serviceEndpointScope` | `service_endpoint_scope` | covered | Required UUID (project ID for the endpoint) |
+| `desiredIdle` | `desired_idle` | covered | Required int |
+| `maxCapacity` | `max_capacity` | covered | Required int |
+| `recycleAfterEachUse` | `recycle_after_each_use` | covered | Optional bool, default false |
+| `agentInteractiveUI` | `agent_interactive_ui` | covered | Optional bool, default false |
+| `timeToLiveMinutes` | `time_to_live_minutes` | covered | Optional int, default 30 |
+| `autoProvision` (pool) | `auto_provision` | covered | Optional bool, default false |
+| `autoUpdate` (pool) | `auto_update` | covered | Optional bool, default true |
+| `projectId` (create) | `project_id` | covered | Optional UUID; scopes pool to a project |
+| `poolId` | _(SetId)_ | covered | Computed, server-assigned int |
+| `osType` | — | out-of-scope | Enum (Windows/Linux) — deferred (see below) |
+| `maxSavedNodeCount` | — | out-of-scope | Int; warm-spare agent count — deferred |
+| `desiredSize` (computed) | — | out-of-scope | Computed current size; read-only |
+| `sizingAttempts` (computed) | — | out-of-scope | Read-only counter |
 
 **Writable gaps deferred:**
 - `osType` — Enum (`windows`, `linux`) that constrains the agent image. Not surfaced. Deferred to a follow-up WI.
@@ -125,17 +125,17 @@ API endpoint: `GET/POST/PUT/DELETE _apis/distributedtask/environments/{environme
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` | `name` | mapped | Required string (validated by `validate.EnvironmentName`) |
-| `description` | `description` | mapped | Optional string, default "" |
-| `project.id` | `project_id` | mapped | Required UUID, ForceNew |
-| `id` | _(SetId)_ | mapped | Computed, server-assigned int |
-| `createdOn` | — | missing | Datetime, server-assigned |
-| `lastModifiedOn` | — | missing | Datetime, server-assigned |
-| `createdBy` | — | missing | IdentityRef, server-assigned |
-| `lastModifiedBy` | — | missing | IdentityRef, server-assigned |
-| `resources` | — | missing | List of resources (Kubernetes, VMs); managed by separate `environment_resource_kubernetes` resource |
+| `name` | `name` | covered | Required string (validated by `validate.EnvironmentName`) |
+| `description` | `description` | covered | Optional string, default "" |
+| `project.id` | `project_id` | covered | Required UUID, ForceNew |
+| `id` | _(SetId)_ | covered | Computed, server-assigned int |
+| `createdOn` | — | out-of-scope | Datetime, server-assigned |
+| `lastModifiedOn` | — | out-of-scope | Datetime, server-assigned |
+| `createdBy` | — | out-of-scope | IdentityRef, server-assigned |
+| `lastModifiedBy` | — | out-of-scope | IdentityRef, server-assigned |
+| `resources` | — | out-of-scope | List of resources (Kubernetes, VMs); managed by separate `environment_resource_kubernetes` resource |
 
-**Writable gaps deferred:** None — all user-settable fields are mapped. The `resources` association is handled by the dedicated `environment_resource_kubernetes` resource.
+**Writable gaps deferred:** None — all user-settable fields are covered. The `resources` association is handled by the dedicated `environment_resource_kubernetes` resource.
 
 ---
 
@@ -145,20 +145,20 @@ API endpoint: `POST _apis/distributedtask/environments/{environmentId}/providers
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` | `name` | mapped | Required string, ForceNew |
-| `namespace` | `namespace` | mapped | Required string, ForceNew |
-| `clusterName` | `cluster_name` | mapped | Optional string, default "", ForceNew |
-| `serviceEndpointId` | `service_endpoint_id` | mapped | Required UUID, ForceNew |
-| `tags` | `tags` | mapped | Optional set(string), ForceNew |
-| `environmentReference.id` | `environment_id` | mapped | Required int, ForceNew |
-| `project.id` | `project_id` | mapped | Required UUID, ForceNew |
-| `id` | _(SetId)_ | mapped | Computed, server-assigned int |
-| `type` | — | missing | Always "kubernetes"; implicit, not configurable |
-| `version` | — | missing | Read-only; set by server on provisioning |
-| `createdOn` | — | missing | Datetime, server-assigned |
-| `lastModifiedOn` | — | missing | Datetime, server-assigned |
+| `name` | `name` | covered | Required string, ForceNew |
+| `namespace` | `namespace` | covered | Required string, ForceNew |
+| `clusterName` | `cluster_name` | covered | Optional string, default "", ForceNew |
+| `serviceEndpointId` | `service_endpoint_id` | covered | Required UUID, ForceNew |
+| `tags` | `tags` | covered | Optional set(string), ForceNew |
+| `environmentReference.id` | `environment_id` | covered | Required int, ForceNew |
+| `project.id` | `project_id` | covered | Required UUID, ForceNew |
+| `id` | _(SetId)_ | covered | Computed, server-assigned int |
+| `type` | — | out-of-scope | Always "kubernetes"; implicit, not configurable |
+| `version` | — | out-of-scope | Read-only; set by server on provisioning |
+| `createdOn` | — | out-of-scope | Datetime, server-assigned |
+| `lastModifiedOn` | — | out-of-scope | Datetime, server-assigned |
 
-**Writable gaps deferred:** None — all user-settable fields are mapped. The resource is create/delete only (no Update handler) which matches the ADO API limitation — all attributes are ForceNew.
+**Writable gaps deferred:** None — all user-settable fields are covered. The resource is create/delete only (no Update handler) which matches the ADO API limitation — all attributes are ForceNew.
 
 ---
 
@@ -170,37 +170,37 @@ API endpoint: `GET/POST/PUT/DELETE _apis/distributedtask/variablegroups/{groupId
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` | `name` | mapped | Required string |
-| `description` | `description` | mapped | Optional string, default "" |
-| `type` | — | partial | Implicitly `"Vsts"` for plain groups, `"AzureKeyVault"` when `key_vault` is set; not exposed as explicit attribute |
-| `id` | _(SetId)_ | mapped | Computed, server-assigned int |
-| `project references` | `project_id` | mapped | Required UUID, ForceNew; stored as `VariableGroupProjectReferences` |
-| `authorized` (pipeline access) | `allow_access` | mapped | Optional bool, default false; managed via `Build.AuthorizeProjectResources` |
-| `variables` | `variable` block | mapped | Required set(object) — see Variable table |
-| `providerData` (key vault) | `key_vault` block | mapped | Optional list(object), max 1 — see Key Vault table |
+| `name` | `name` | covered | Required string |
+| `description` | `description` | covered | Optional string, default "" |
+| `type` | — | gap-open | Implicitly `"Vsts"` for plain groups, `"AzureKeyVault"` when `key_vault` is set; not exposed as explicit attribute |
+| `id` | _(SetId)_ | covered | Computed, server-assigned int |
+| `project references` | `project_id` | covered | Required UUID, ForceNew; stored as `VariableGroupProjectReferences` |
+| `authorized` (pipeline access) | `allow_access` | covered | Optional bool, default false; managed via `Build.AuthorizeProjectResources` |
+| `variables` | `variable` block | covered | Required set(object) — see Variable table |
+| `providerData` (key vault) | `key_vault` block | covered | Optional list(object), max 1 — see Key Vault table |
 
 ### Variable Sub-Fields (`variable` set element)
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `value` (plain) | `value` | mapped | Optional string; conflicts with `key_vault` |
-| `isSecret` | `is_secret` | mapped | Optional bool, default false; conflicts with `key_vault` |
-| `value` (secret) | `secret_value` | mapped | Optional string, Sensitive; conflicts with `key_vault` |
-| `contentType` (KV) | `content_type` | mapped | Computed string; Key Vault only |
-| `enabled` (KV) | `enabled` | mapped | Computed bool; Key Vault only |
-| `expires` (KV) | `expires` | mapped | Computed string; Key Vault only |
+| `value` (plain) | `value` | covered | Optional string; conflicts with `key_vault` |
+| `isSecret` | `is_secret` | covered | Optional bool, default false; conflicts with `key_vault` |
+| `value` (secret) | `secret_value` | covered | Optional string, Sensitive; conflicts with `key_vault` |
+| `contentType` (KV) | `content_type` | covered | Computed string; Key Vault only |
+| `enabled` (KV) | `enabled` | covered | Computed bool; Key Vault only |
+| `expires` (KV) | `expires` | covered | Computed string; Key Vault only |
 
 ### Key Vault Sub-Fields (`key_vault` block)
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `vault` | `name` | mapped | Required string (Key Vault name) |
-| `serviceEndpointId` | `service_endpoint_id` | mapped | Required UUID |
-| `lastRefreshedOn` | — | missing | Datetime; auto-set to `time.Now()` on create |
-| _(search depth)_ | `search_depth` | mapped | Provider-only pagination control (not an API field); defaults to 20 |
+| `vault` | `name` | covered | Required string (Key Vault name) |
+| `serviceEndpointId` | `service_endpoint_id` | covered | Required UUID |
+| `lastRefreshedOn` | — | out-of-scope | Datetime; auto-set to `time.Now()` on create |
+| _(search depth)_ | `search_depth` | covered | Provider-only pagination control (not an API field); defaults to 20 |
 
 **Writable gaps deferred:**
-- `type` as explicit attribute — currently inferred from whether `key_vault` is present. Surfacing it explicitly would be a cosmetic enhancement; deferred.
+- `type` as explicit attribute — currently inferred from whether `key_vault` is listed. Surfacing it explicitly would be a cosmetic enhancement; deferred.
 
 ---
 
@@ -210,13 +210,13 @@ API endpoint: Operates via `GET/PUT _apis/distributedtask/variablegroups/{groupI
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `project.id` | `project_id` | mapped | Required UUID, ForceNew |
-| _(group reference)_ | `variable_group_id` | mapped | Required string (int), ForceNew |
-| _(variable key)_ | `name` | mapped | Required string, ForceNew |
-| `value` (plain) | `value` | mapped | Optional string; ExactlyOneOf with `secret_value` |
-| `isSecret` + `value` | `secret_value` | mapped | Optional string, Sensitive; ExactlyOneOf with `value` |
+| `project.id` | `project_id` | covered | Required UUID, ForceNew |
+| _(group reference)_ | `variable_group_id` | covered | Required string (int), ForceNew |
+| _(variable key)_ | `name` | covered | Required string, ForceNew |
+| `value` (plain) | `value` | covered | Optional string; ExactlyOneOf with `secret_value` |
+| `isSecret` + `value` | `secret_value` | covered | Optional string, Sensitive; ExactlyOneOf with `value` |
 
-**Writable gaps deferred:** None — this resource manages exactly one variable's value/secret within a group. All relevant fields are mapped.
+**Writable gaps deferred:** None — this resource manages exactly one variable's value/secret within a group. All relevant fields are covered.
 
 ---
 
@@ -228,55 +228,55 @@ API endpoint: `GET _apis/distributedtask/taskgroups/{taskGroupId}` (TaskGroup)
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `id` | `id` (input) | mapped | Required UUID string (lookup key) |
-| `name` | `name` | mapped | Computed string |
-| `friendlyName` | `friendly_name` | mapped | Computed string |
-| `description` | `description` | mapped | Computed string |
-| `category` | `category` | mapped | Computed string |
-| `author` | `author` | mapped | Computed string |
-| `iconUrl` | `icon_url` | mapped | Computed string |
-| `instanceNameFormat` | `instance_name_format` | mapped | Computed string |
-| `runsOn` | `runs_on` | mapped | Computed list(string) |
-| `version` | `version` block | mapped | Computed list(object): major/minor/patch/is_test |
-| `inputs` | `input` block | mapped | Computed list(object) — see Input table |
-| `tasks` | `task` block | mapped | Computed list(object) — see Task table |
-| `revision` | `revision` | mapped | Computed int |
-| `definitionType` | `definition_type` | mapped | Computed string |
+| `id` | `id` (input) | covered | Required UUID string (lookup key) |
+| `name` | `name` | covered | Computed string |
+| `friendlyName` | `friendly_name` | covered | Computed string |
+| `description` | `description` | covered | Computed string |
+| `category` | `category` | covered | Computed string |
+| `author` | `author` | covered | Computed string |
+| `iconUrl` | `icon_url` | covered | Computed string |
+| `instanceNameFormat` | `instance_name_format` | covered | Computed string |
+| `runsOn` | `runs_on` | covered | Computed list(string) |
+| `version` | `version` block | covered | Computed list(object): major/minor/patch/is_test |
+| `inputs` | `input` block | covered | Computed list(object) — see Input table |
+| `tasks` | `task` block | covered | Computed list(object) — see Task table |
+| `revision` | `revision` | covered | Computed int |
+| `definitionType` | `definition_type` | covered | Computed string |
 
 ### Input Sub-Fields (`input` block)
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` | `name` | mapped | Computed string |
-| `label` | `label` | mapped | Computed string |
-| `type` | `type` | mapped | Computed string |
-| `defaultValue` | `default_value` | mapped | Computed string |
-| `required` | `required` | mapped | Computed bool |
-| `helpMarkDown` | `help_markdown` | mapped | Computed string |
-| `groupName` | `group_name` | mapped | Computed string |
-| `options` | `options` | mapped | Computed map(string) |
-| `visibleRule` | `visible_rule` | mapped | Computed string |
-| `properties` | `properties` | mapped | Computed map(string) |
-| `aliases` | `aliases` | mapped | Computed list(string) |
+| `name` | `name` | covered | Computed string |
+| `label` | `label` | covered | Computed string |
+| `type` | `type` | covered | Computed string |
+| `defaultValue` | `default_value` | covered | Computed string |
+| `required` | `required` | covered | Computed bool |
+| `helpMarkDown` | `help_markdown` | covered | Computed string |
+| `groupName` | `group_name` | covered | Computed string |
+| `options` | `options` | covered | Computed map(string) |
+| `visibleRule` | `visible_rule` | covered | Computed string |
+| `properties` | `properties` | covered | Computed map(string) |
+| `aliases` | `aliases` | covered | Computed list(string) |
 
 ### Task Step Sub-Fields (`task` block)
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `displayName` | `display_name` | mapped | Computed string |
-| `task.id` | `task_id` | mapped | Computed UUID string |
-| `task.versionSpec` | `task_version` | mapped | Computed string |
-| `task.definitionType` | `task_definition_type` | mapped | Computed string |
-| `enabled` | `enabled` | mapped | Computed bool |
-| `alwaysRun` | `always_run` | mapped | Computed bool |
-| `continueOnError` | `continue_on_error` | mapped | Computed bool |
-| `condition` | `condition` | mapped | Computed string |
-| `timeoutInMinutes` | `timeout_in_minutes` | mapped | Computed int |
-| `retryCountOnTaskFailure` | `retry_count_on_task_failure` | mapped | Computed int |
-| `inputs` | `inputs` | mapped | Computed map(string) |
-| `environment` | `environment` | mapped | Computed map(string) |
+| `displayName` | `display_name` | covered | Computed string |
+| `task.id` | `task_id` | covered | Computed UUID string |
+| `task.versionSpec` | `task_version` | covered | Computed string |
+| `task.definitionType` | `task_definition_type` | covered | Computed string |
+| `enabled` | `enabled` | covered | Computed bool |
+| `alwaysRun` | `always_run` | covered | Computed bool |
+| `continueOnError` | `continue_on_error` | covered | Computed bool |
+| `condition` | `condition` | covered | Computed string |
+| `timeoutInMinutes` | `timeout_in_minutes` | covered | Computed int |
+| `retryCountOnTaskFailure` | `retry_count_on_task_failure` | covered | Computed int |
+| `inputs` | `inputs` | covered | Computed map(string) |
+| `environment` | `environment` | covered | Computed map(string) |
 
-**Writable gaps deferred:** N/A — this is a data source (read-only); all relevant fields are mapped.
+**Writable gaps deferred:** N/A — this is a data source (read-only); all relevant fields are covered.
 
 ---
 
@@ -286,50 +286,50 @@ API endpoint: `GET _apis/distributedtask/taskgroups/{taskGroupId}` (TaskGroup)
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` | `name` | mapped | Required string (lookup key) |
-| `poolType` | `pool_type` | mapped | Computed string |
-| `autoProvision` | `auto_provision` | mapped | Computed bool |
-| `autoUpdate` | `auto_update` | mapped | Computed bool |
-| `id` | _(SetId)_ | mapped | Computed int |
+| `name` | `name` | covered | Required string (lookup key) |
+| `poolType` | `pool_type` | covered | Computed string |
+| `autoProvision` | `auto_provision` | covered | Computed bool |
+| `autoUpdate` | `auto_update` | covered | Computed bool |
+| `id` | _(SetId)_ | covered | Computed int |
 
 ### `betterado_agent_pools` (data source — list all pools)
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `[].name` | `agent_pools[].name` | mapped | Computed string |
-| `[].id` | `agent_pools[].id` | mapped | Computed int |
-| `[].poolType` | `agent_pools[].pool_type` | mapped | Computed string |
-| `[].autoProvision` | `agent_pools[].auto_provision` | mapped | Computed bool |
-| `[].autoUpdate` | `agent_pools[].auto_update` | mapped | Computed bool |
+| `[].name` | `agent_pools[].name` | covered | Computed string |
+| `[].id` | `agent_pools[].id` | covered | Computed int |
+| `[].poolType` | `agent_pools[].pool_type` | covered | Computed string |
+| `[].autoProvision` | `agent_pools[].auto_provision` | covered | Computed bool |
+| `[].autoUpdate` | `agent_pools[].auto_update` | covered | Computed bool |
 
 ### `betterado_agent_queue` (data source)
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` | `name` | mapped | Required string (lookup key) |
-| `projectId` | `project_id` | mapped | Required UUID |
-| `pool.id` | `agent_pool_id` | mapped | Computed int |
-| `id` | _(SetId)_ | mapped | Computed int |
+| `name` | `name` | covered | Required string (lookup key) |
+| `projectId` | `project_id` | covered | Required UUID |
+| `pool.id` | `agent_pool_id` | covered | Computed int |
+| `id` | _(SetId)_ | covered | Computed int |
 
 ### `betterado_environment` (data source)
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `id` | `environment_id` | mapped | Optional int (lookup by ID); AtLeastOneOf with `name` |
-| `name` | `name` | mapped | Optional/Computed string (lookup by name); AtLeastOneOf with `environment_id` |
-| `description` | `description` | mapped | Computed string |
-| `project.id` | `project_id` | mapped | Required UUID |
+| `id` | `environment_id` | covered | Optional int (lookup by ID); AtLeastOneOf with `name` |
+| `name` | `name` | covered | Optional/Computed string (lookup by name); AtLeastOneOf with `environment_id` |
+| `description` | `description` | covered | Computed string |
+| `project.id` | `project_id` | covered | Required UUID |
 
 ### `betterado_variable_group` (data source)
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `name` | `name` | mapped | Required string (lookup key) |
-| `description` | `description` | mapped | Computed string |
-| `project_id` | `project_id` | mapped | Required UUID |
-| `authorized` | `allow_access` | mapped | Computed bool |
-| `variables` | `variable` set | mapped | Computed set(object): name/value/secret_value/is_secret/content_type/enabled/expires |
-| `providerData` | `key_vault` block | mapped | Computed list(object): name/service_endpoint_id |
+| `name` | `name` | covered | Required string (lookup key) |
+| `description` | `description` | covered | Computed string |
+| `project_id` | `project_id` | covered | Required UUID |
+| `authorized` | `allow_access` | covered | Computed bool |
+| `variables` | `variable` set | covered | Computed set(object): name/value/secret_value/is_secret/content_type/enabled/expires |
+| `providerData` | `key_vault` block | covered | Computed list(object): name/service_endpoint_id |
 
 ---
 
@@ -349,7 +349,7 @@ API endpoint: `GET _apis/distributedtask/taskgroups/{taskGroupId}` (TaskGroup)
 
 12 `ValidateFunc` entries from the merge-base SDKv2 schemas were **not** ported to
 framework `Validators:` in this initiative. They are recorded here as deferred gaps
-for a follow-up WI. All other behaviour is identical; the missing validators only
+for a follow-up WI. All other behaviour is identical; the absent validators only
 reduce eagerness of plan-time input checking.
 
 | Resource | Attribute | SDKv2 ValidateFunc | Status |

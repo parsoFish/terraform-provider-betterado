@@ -15,7 +15,7 @@ This matrix compares every field returned by the ADO Identity REST API v7.1 (as 
 The Identity API uses the `Identity` struct (distinct from the Graph API's `GraphGroup` / `GraphUser` structs). It is accessible via `clients.IdentityClient` (wraps `ReadIdentity`, `ReadIdentities`, `ListGroups`).
 
 Coverage status values:
-- **supported** — field is present in the TF schema and correctly wired
+- **covered** — field is covered in the TF schema and correctly wired
 - **gap** — field is in the API response but absent from the TF schema (and would be useful to expose)
 - **deferred** — field is in the API response but intentionally excluded (with rationale)
 
@@ -54,11 +54,11 @@ Looks up a single identity group by `name` + `project_id` using `IdentityClient.
 
 | Field path (API JSON key) | Go SDK field | TF schema attribute | Status | Notes |
 |---|---|---|---|---|
-| _(input: group name)_ | `ProviderDisplayName *string` | `name` | **supported** | Required lookup input |
-| _(input: project UUID)_ | _(ListGroups ScopeIds param)_ | `project_id` | **supported** | Required input |
-| `id` | `Id *uuid.UUID` | _(resource ID via d.SetId)_ | **supported** | Set as resource ID (`d.SetId(targetGroup.Id.String())`) |
-| `descriptor` | `Descriptor *string` | `descriptor` | **supported** | Computed; the legacy identity descriptor |
-| `subjectDescriptor` | `SubjectDescriptor *string` | `subject_descriptor` | **supported** | Computed; the Graph subject descriptor (use for cross-referencing with Graph API) |
+| _(input: group name)_ | `ProviderDisplayName *string` | `name` | **covered** | Required lookup input |
+| _(input: project UUID)_ | _(ListGroups ScopeIds param)_ | `project_id` | **covered** | Required input |
+| `id` | `Id *uuid.UUID` | _(resource ID via d.SetId)_ | **covered** | Set as resource ID (`d.SetId(targetGroup.Id.String())`) |
+| `descriptor` | `Descriptor *string` | `descriptor` | **covered** | Computed; the legacy identity descriptor |
+| `subjectDescriptor` | `SubjectDescriptor *string` | `subject_descriptor` | **covered** | Computed; the Graph subject descriptor (use for cross-referencing with Graph API) |
 | `providerDisplayName` | `ProviderDisplayName *string` | _(absent as output)_ | **gap** | Display name not exposed as a read-back attribute; implement in this initiative |
 | `isActive` | `IsActive *bool` | _(absent)_ | **gap** | Active/inactive flag; implement in this initiative |
 | `isContainer` | `IsContainer *bool` | _(absent)_ | **gap** | Always `true` for groups; implement in this initiative (useful disambiguation) |
@@ -73,7 +73,7 @@ Looks up a single identity group by `name` + `project_id` using `IdentityClient.
 | `socialDescriptor` | `SocialDescriptor *string` | _(absent)_ | **deferred** | MSA social descriptor; rarely relevant for group identity |
 | `uniqueUserId` | `UniqueUserId *int` | _(absent)_ | **deferred** | Internal user ID; not useful in TF |
 
-**Summary — `betterado_identity_group` data source:** 5 supported / 3 gaps (implement in this initiative) / 10 deferred
+**Summary — `betterado_identity_group` data source:** 5 covered / 3 gaps (implement in this initiative) / 10 deferred
 
 ---
 
@@ -85,16 +85,16 @@ Lists all identity groups in a project using `IdentityClient.ListGroups` + `Iden
 
 | Attribute | Status | Notes |
 |---|---|---|
-| `project_id` | **supported** | Optional filter; scopes to project |
+| `project_id` | **covered** | Optional filter; scopes to project |
 
 **Per-group attributes in `groups[]` set:**
 
 | Field path (API JSON key) | Go SDK field | TF schema attribute (`groups[]`) | Status | Notes |
 |---|---|---|---|---|
-| `id` | `Id *uuid.UUID` | `id` | **supported** | Computed; UUID of the identity group |
-| `providerDisplayName` | `ProviderDisplayName *string` | `name` | **supported** | Computed display name |
-| `descriptor` | `Descriptor *string` | `descriptor` | **supported** | Computed legacy identity descriptor |
-| `subjectDescriptor` | `SubjectDescriptor *string` | `subject_descriptor` | **supported** | Computed Graph subject descriptor |
+| `id` | `Id *uuid.UUID` | `id` | **covered** | Computed; UUID of the identity group |
+| `providerDisplayName` | `ProviderDisplayName *string` | `name` | **covered** | Computed display name |
+| `descriptor` | `Descriptor *string` | `descriptor` | **covered** | Computed legacy identity descriptor |
+| `subjectDescriptor` | `SubjectDescriptor *string` | `subject_descriptor` | **covered** | Computed Graph subject descriptor |
 | `isActive` | `IsActive *bool` | _(absent)_ | **gap** | Active flag per group; implement in this initiative |
 | `isContainer` | `IsContainer *bool` | _(absent)_ | **gap** | Container flag (always true for groups); implement in this initiative |
 | `memberIds` | `MemberIds *[]uuid.UUID` | _(absent)_ | **deferred** | Member UUID list; consumers should use membership data sources |
@@ -108,7 +108,7 @@ Lists all identity groups in a project using `IdentityClient.ListGroups` + `Iden
 | `socialDescriptor` | `SocialDescriptor *string` | _(absent)_ | **deferred** | MSA social descriptor; low value |
 | `uniqueUserId` | `UniqueUserId *int` | _(absent)_ | **deferred** | Internal user ID; not useful in TF |
 
-**Summary — `betterado_identity_groups` data source:** 5 supported / 2 gaps (implement in this initiative) / 9 deferred
+**Summary — `betterado_identity_groups` data source:** 5 covered / 2 gaps (implement in this initiative) / 9 deferred
 
 ---
 
@@ -118,11 +118,11 @@ Looks up a single identity user by `name` + optional `search_filter` using `Iden
 
 | Field path (API JSON key) | Go SDK field | TF schema attribute | Status | Notes |
 |---|---|---|---|---|
-| _(input: user name)_ | `ProviderDisplayName *string` (used for search) | `name` | **supported** | Required lookup input |
-| _(input: search filter)_ | _(ReadIdentities SearchFilter param)_ | `search_filter` | **supported** | Optional; `"General"` (default), `"AccountName"`, `"DisplayName"`, `"MailAddress"` |
-| `id` | `Id *uuid.UUID` | _(resource ID via d.SetId)_ | **supported** | Set as resource ID (`d.SetId(targetUser.Id.String())`) |
-| `descriptor` | `Descriptor *string` | `descriptor` | **supported** | Computed; the legacy identity descriptor |
-| `subjectDescriptor` | `SubjectDescriptor *string` | `subject_descriptor` | **supported** | Computed; the Graph subject descriptor |
+| _(input: user name)_ | `ProviderDisplayName *string` (used for search) | `name` | **covered** | Required lookup input |
+| _(input: search filter)_ | _(ReadIdentities SearchFilter param)_ | `search_filter` | **covered** | Optional; `"General"` (default), `"AccountName"`, `"DisplayName"`, `"MailAddress"` |
+| `id` | `Id *uuid.UUID` | _(resource ID via d.SetId)_ | **covered** | Set as resource ID (`d.SetId(targetUser.Id.String())`) |
+| `descriptor` | `Descriptor *string` | `descriptor` | **covered** | Computed; the legacy identity descriptor |
+| `subjectDescriptor` | `SubjectDescriptor *string` | `subject_descriptor` | **covered** | Computed; the Graph subject descriptor |
 | `providerDisplayName` | `ProviderDisplayName *string` | _(absent as output)_ | **gap** | Display name used for lookup but not returned as attribute; implement in this initiative |
 | `isActive` | `IsActive *bool` | _(absent)_ | **gap** | Active/inactive flag; implement in this initiative |
 | `customDisplayName` | `CustomDisplayName *string` | _(absent)_ | **deferred** | Custom override display name; rarely set; low value |
@@ -137,7 +137,7 @@ Looks up a single identity user by `name` + optional `search_filter` using `Iden
 | `socialDescriptor` | `SocialDescriptor *string` | _(absent)_ | **deferred** | MSA social descriptor; low value |
 | `uniqueUserId` | `UniqueUserId *int` | _(absent)_ | **deferred** | Internal user ID; not useful in TF |
 
-**Summary — `betterado_identity_user` data source:** 5 supported / 2 gaps (implement in this initiative) / 11 deferred
+**Summary — `betterado_identity_user` data source:** 5 covered / 2 gaps (implement in this initiative) / 11 deferred
 
 ---
 
