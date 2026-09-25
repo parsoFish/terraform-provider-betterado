@@ -8,8 +8,8 @@
 
 | Status | Meaning |
 |--------|---------|
-| **mapped** | Exposed in the Terraform schema; round-trips correctly. |
-| **missing** | Not in schema; could be added in a follow-up. |
+| covered | Exposed in the Terraform schema; round-trips correctly. |
+| gap-open | Not in schema; could be added in a follow-up. |
 | **server-computed** | Read-only; set by the ADO service; deferred (see rationale). |
 | **writable-deferred** | Writable by the API but explicitly deferred (see rationale). |
 
@@ -19,21 +19,21 @@
 
 | ADO SDK Field | JSON key | Type | Schema Status | Writable | Notes |
 |---------------|----------|------|--------------|----------|-------|
-| `Links` | `_links` | `interface{}` | missing | no | Internal HAL links; read-only navigation metadata. Deferred — no user value. |
-| `DashboardScope` | `dashboardScope` | `*DashboardScope` | missing | no | Derived from whether `team_id` is set. The API infers scope; not user-settable directly. Deferred. |
-| `Description` | `description` | `*string` | **mapped** | yes | Exposed as `description` (Optional, Computed). |
-| `ETag` | `eTag` | `*string` | missing | no | Server-managed concurrency token. Deferred — not meaningful to Terraform users. |
-| `GroupId` | `groupId` | `*uuid.UUID` | **mapped** (read) | no | Returned as `team_id` on read when team-scoped. Not user-settable directly. |
-| `Id` | `id` | `*uuid.UUID` | **mapped** | no | Exposed as `id` (Computed). Set by service at creation time. |
-| `LastAccessedDate` | `lastAccessedDate` | `*azuredevops.Time` | missing | no | Server-computed timestamp. Deferred — no user value. |
-| `ModifiedBy` | `modifiedBy` | `*uuid.UUID` | missing | no | Server-computed identity. Deferred — no user value. |
-| `ModifiedDate` | `modifiedDate` | `*azuredevops.Time` | missing | no | Server-computed timestamp. Deferred — no user value. |
-| `Name` | `name` | `*string` | **mapped** | yes | Exposed as `name` (Required). |
-| `OwnerId` | `ownerId` | `*uuid.UUID` | **mapped** | no | Exposed as `owner_id` (Computed). Set by service at creation time. |
-| `Position` | `position` | `*int` | missing | yes | **writable-deferred**: Position of the dashboard within a dashboard group. Deferred — ordering is typically managed manually in the ADO UI. Will be added in a follow-up WI if demanded. |
-| `RefreshInterval` | `refreshInterval` | `*int` | **mapped** | yes | Exposed as `refresh_interval` (Optional, Computed). Valid values: `0` (disabled), `5` (minutes). |
-| `Url` | `url` | `*string` | missing | no | Server-provided resource URL. Deferred — not useful in Terraform config. |
-| `Widgets` | `widgets` | `*[]Widget` | missing | yes | **writable-deferred**: Dashboard widget configuration. Widgets are a complex nested structure. Deferred to a future WI (`betterado_dashboard_widget` or an embedded block) due to the significant schema complexity and the high risk of breaking idempotency with server-side widget ordering. |
+| `Links` | `_links` | `interface{}` | gap-deferred | no | Internal HAL links; read-only navigation metadata. Deferred — no user value. |
+| `DashboardScope` | `dashboardScope` | `*DashboardScope` | gap-deferred | no | Derived from whether `team_id` is set. The API infers scope; not user-settable directly. Deferred. |
+| `Description` | `description` | `*string` | covered | yes | Exposed as `description` (Optional, Computed). |
+| `ETag` | `eTag` | `*string` | gap-deferred | no | Server-managed concurrency token. Deferred — not meaningful to Terraform users. |
+| `GroupId` | `groupId` | `*uuid.UUID` | covered (read) | no | Returned as `team_id` on read when team-scoped. Not user-settable directly. |
+| `Id` | `id` | `*uuid.UUID` | covered | no | Exposed as `id` (Computed). Set by service at creation time. |
+| `LastAccessedDate` | `lastAccessedDate` | `*azuredevops.Time` | gap-deferred | no | Server-computed timestamp. Deferred — no user value. |
+| `ModifiedBy` | `modifiedBy` | `*uuid.UUID` | gap-deferred | no | Server-computed identity. Deferred — no user value. |
+| `ModifiedDate` | `modifiedDate` | `*azuredevops.Time` | gap-deferred | no | Server-computed timestamp. Deferred — no user value. |
+| `Name` | `name` | `*string` | covered | yes | Exposed as `name` (Required). |
+| `OwnerId` | `ownerId` | `*uuid.UUID` | covered | no | Exposed as `owner_id` (Computed). Set by service at creation time. |
+| `Position` | `position` | `*int` | gap-open | yes | **writable-deferred**: Position of the dashboard within a dashboard group. Deferred — ordering is typically managed manually in the ADO UI. Will be added in a follow-up WI if demanded. |
+| `RefreshInterval` | `refreshInterval` | `*int` | covered | yes | Exposed as `refresh_interval` (Optional, Computed). Valid values: `0` (disabled), `5` (minutes). |
+| `Url` | `url` | `*string` | gap-deferred | no | Server-provided resource URL. Deferred — not useful in Terraform config. |
+| `Widgets` | `widgets` | `*[]Widget` | gap-open | yes | **writable-deferred**: Dashboard widget configuration. Widgets are a complex nested structure. Deferred to a future WI (`betterado_dashboard_widget` or an embedded block) due to the significant schema complexity and the high risk of breaking idempotency with server-side widget ordering. |
 
 ---
 

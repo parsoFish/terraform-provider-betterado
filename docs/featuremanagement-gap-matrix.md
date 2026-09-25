@@ -42,7 +42,7 @@ All methods are marked `[Preview API]` at version `7.1-preview.1`.
 | `defaultState` | `*bool` | No | Computed (read-only) | True if the feature is enabled by default when no scope override exists. |
 | `defaultValueRules` | `*[]ContributedFeatureValueRule` | No | Not in scope | Internal handler list for computing default values; never user-writeable. |
 | `overrideRules` | `*[]ContributedFeatureValueRule` | No | Not in scope | Rules that override user state before it is read; server-internal. |
-| `scopes` | `*[]ContributedFeatureSettingScope` | No | Computed (read-only) | Array of `{settingScope, userScoped}` pairs describing where the feature can be scoped. Present as a data-source attribute to let callers verify supported scopes. |
+| `scopes` | `*[]ContributedFeatureSettingScope` | No | Computed (read-only) | Array of `{settingScope, userScoped}` pairs describing where the feature can be scoped. Present as a data-source attribute to let callers verify available scopes. |
 | `tags` | `*[]string` | No | Computed (read-only) | ADO-supplied classification tags; read-only. |
 | `featureProperties` | `*map[string]interface{}` | No | Not in scope | Opaque extra properties; rarely populated and not stable across ADO versions. |
 | `featureStateChangedListeners` | `*[]ContributedFeatureListener` | No | Not in scope | Server-side side-effect handlers; internal only. |
@@ -124,7 +124,7 @@ The `ContributedFeatureEnabledValue` enum has three values:
 | **Resource type** | Composite "all project features as a map" | Single feature-state tuple |
 | **Endpoint used** | `QueryFeatureStates` (batch POST) for reads; `SetFeatureStateForScope` for writes | `GetFeatureStateForScope` for reads; `SetFeatureStateForScope` or `SetFeatureState` for writes |
 | **Feature IDs managed** | Fixed hardcoded set of 5: `ms.vss-work.agile`, `ms.vss-code.version-control`, `ms.vss-build.pipelines`, `ms.vss-test-web.test`, `ms.azure-artifacts.feature` | Any valid feature contribution ID |
-| **Scopes supported** | Project-scoped only (`userScope="host"`, `scopeName="project"`) | Host-wide or project-scoped (user-scoped out of scope — §6.2) |
+| **Scopes available** | Project-scoped only (`userScope="host"`, `scopeName="project"`) | Host-wide or project-scoped (user-scoped out of scope — §6.2) |
 | **Terraform identity** | `project_id` as resource ID — one resource manages all 5 features for a project | `<feature_id>/<user_scope>[/<scope_name>/<scope_value>]` as composite ID — one resource per feature×scope |
 | **User-facing attribute** | `features = { boards = "enabled", pipelines = "disabled", … }` map | `feature_id`, `user_scope`, `scope_name`, `scope_value`, `state` flat attributes |
 | **Destroy behaviour** | Re-enables all managed features (reset to `enabled`) | Resets state to `undefined` (defer to default) |
