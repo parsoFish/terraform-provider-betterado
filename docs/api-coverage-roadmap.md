@@ -1,11 +1,8 @@
 # betterado — API-coverage roadmap (north star + first initiative)
 
-> **Status: parked plan.** Written 2026-05-31 from the forge onboarding session.
-> Pick this up **after** the forge-hardening refinement (forge `docs/known-gaps.md`
-> §2026-05-31 — PM faithfulness, gate auto-derivation, PR hygiene, unifier cost),
-> then convert the Release initiative below into a forge manifest and run it
-> roadmap-scale. This is intentionally ONE initiative detailed as the template,
-> not the whole roadmap.
+> **Status: active.** Written 2026-05-31; updated 2026-09-25 (INIT-2026-09-25-gap-registry-and-matrix-normalization WI-5).
+> FEAT-1 and FEAT-2 shipped. FEAT-4 data sources shipped. FEAT-3 (environment template) not-started.
+> The Release initiative below served as the template; subsequent initiatives ran roadmap-scale.
 
 ## North star
 
@@ -69,7 +66,7 @@ because it's the fork's reason to exist and already has partial substrate.
 
 **Features (dependency-ordered):**
 
-- **FEAT-1 — `release_definition`: complete the substrate.** `depends_on: []`
+- **FEAT-1 — `release_definition`: complete the substrate.** `depends_on: []` **[status: shipped]**
   - WI: 5-test unit substrate `resource_release_definition_test.go` (the item
     deferred from the 2026-05-31 onboarding run). Gate:
     `go test -tags all -run ^TestReleaseDefinition ./azuredevops/internal/service/release/`.
@@ -79,15 +76,15 @@ because it's the fork's reason to exist and already has partial substrate.
   - WI: schema parity audit vs the 7.2 Release Definitions schema (gates,
     approvalOptions, properties, tags) + docs/example refresh.
 
-- **FEAT-2 — `release_folder`: new resource.** `depends_on: [FEAT-1]`
+- **FEAT-2 — `release_folder`: new resource.** `depends_on: [FEAT-1]` **[status: shipped]**
   - WIs: schema + expand/flatten + provider registration → CRUD + 5 unit tests →
     acceptance test + docs/example. (This was the old roadmap's INIT-02.)
 
-- **FEAT-3 — `release_definition_environment_template`: new resource.** `depends_on: [FEAT-1]`
+- **FEAT-3 — `release_definition_environment_template`: new resource.** `depends_on: [FEAT-1]` **[status: not-started]**
   - Create/read/delete only (templates are immutable → no Update; major fields
     ForceNew). WIs: schema → CRD + unit tests → acceptance + docs.
 
-- **FEAT-4 — read surface as data sources.** `depends_on: [FEAT-1]`
+- **FEAT-4 — read surface as data sources.** `depends_on: [FEAT-1]` **[status: shipped]**
   - `data.betterado_release_definition` (by id/name) and
     `data.betterado_release_definitions` (list). WIs: schema + read + unit tests →
     docs.

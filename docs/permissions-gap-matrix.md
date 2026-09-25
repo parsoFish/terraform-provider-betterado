@@ -53,11 +53,11 @@ The token is built by calling `CreateClassificationNodeSecurityToken` which reso
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `project_id` | Used as `Project` param in `GetClassificationNode` | Yes | **mapped** | Required; `ForceNew` |
-| `path` | Path segments resolved to node IDs for token construction | Yes | **mapped** | Optional; `ForceNew`; default `""` = root area node |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited from base schema) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited from base schema) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited from base schema) |
+| `project_id` | Used as `Project` param in `GetClassificationNode` | Yes | covered | Required; `ForceNew` |
+| `path` | Path segments resolved to node IDs for token construction | Yes | covered | Optional; `ForceNew`; default `""` = root area node |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited from base schema) |
+| `replace` | `merge` flag | Yes | covered | (inherited from base schema) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited from base schema) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag for the ACL token; not currently exposed |
 
 **Summary:** 5 mapped / 0 partial / 1 deferred-writable (`InheritPermissions`)
@@ -84,11 +84,11 @@ Built by fetching the build definition (`BuildClient.GetDefinition`) to resolve 
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `project_id` | `Project` param in `GetDefinition`; part of token | Yes | **mapped** | Required; `ForceNew` |
-| `build_definition_id` | `DefinitionId` param in `GetDefinition`; part of token | Yes | **mapped** | Required; `ForceNew` |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited) |
+| `project_id` | `Project` param in `GetDefinition`; part of token | Yes | covered | Required; `ForceNew` |
+| `build_definition_id` | `DefinitionId` param in `GetDefinition`; part of token | Yes | covered | Required; `ForceNew` |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited) |
+| `replace` | `merge` flag | Yes | covered | (inherited) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag; not exposed |
 
 **Summary:** 5 mapped / 0 partial / 1 deferred-writable
@@ -113,11 +113,11 @@ Built by calling `BuildClient.GetFolders` to validate the folder exists, then co
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `project_id` | Part of token | Yes | **mapped** | Required; `ForceNew` |
-| `path` | Folder path validated via `GetFolders`; part of token | Yes | **mapped** | Required; `ForceNew` |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited) |
+| `project_id` | Part of token | Yes | covered | Required; `ForceNew` |
+| `path` | Folder path validated via `GetFolders`; part of token | Yes | covered | Required; `ForceNew` |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited) |
+| `replace` | `merge` flag | Yes | covered | (inherited) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag; not exposed |
 
 **Summary:** 5 mapped / 0 partial / 1 deferred-writable
@@ -144,12 +144,12 @@ Branch path segments after `refs/heads/` are UTF-16LE hex-encoded via `converter
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `project_id` | Part of token | Yes | **mapped** | Required; `ForceNew` |
-| `repository_id` | Part of token | Yes | **mapped** | Optional; `ForceNew` |
-| `branch_name` | Part of token (after UTF-16LE encoding) | Yes | **mapped** | Optional; `ForceNew`; requires `repository_id` |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited) |
+| `project_id` | Part of token | Yes | covered | Required; `ForceNew` |
+| `repository_id` | Part of token | Yes | covered | Optional; `ForceNew` |
+| `branch_name` | Part of token (after UTF-16LE encoding) | Yes | covered | Optional; `ForceNew`; requires `repository_id` |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited) |
+| `replace` | `merge` flag | Yes | covered | (inherited) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag; not exposed |
 
 **Summary:** 6 mapped / 0 partial / 1 deferred-writable
@@ -176,11 +176,11 @@ vstfs:///Classification/Node/{rootNodeId}[
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `project_id` | `Project` param in `GetClassificationNode` | Yes | **mapped** | Required; `ForceNew` |
-| `path` | Iteration path segments resolved to node IDs | Yes | **mapped** | Optional; `ForceNew`; default `""` = root iteration node |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited) |
+| `project_id` | `Project` param in `GetClassificationNode` | Yes | covered | Required; `ForceNew` |
+| `path` | Iteration path segments resolved to node IDs | Yes | covered | Optional; `ForceNew`; default `""` = root iteration node |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited) |
+| `replace` | `merge` flag | Yes | covered | (inherited) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag; not exposed |
 
 **Summary:** 5 mapped / 0 partial / 1 deferred-writable
@@ -205,10 +205,10 @@ This token scopes permissions to the entire library (all variable groups and sec
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `project_id` | Part of token | Yes | **mapped** | Required; `ForceNew` |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited) |
+| `project_id` | Part of token | Yes | covered | Required; `ForceNew` |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited) |
+| `replace` | `merge` flag | Yes | covered | (inherited) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag; not exposed |
 
 **Summary:** 4 mapped / 0 partial / 1 deferred-writable
@@ -231,10 +231,10 @@ $PROJECT:vstfs:///Classification/TeamProject/{project_id}
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `project_id` | Part of token | Yes | **mapped** | Required; `ForceNew` |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited) |
+| `project_id` | Part of token | Yes | covered | Required; `ForceNew` |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited) |
+| `replace` | `merge` flag | Yes | covered | (inherited) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag; not exposed |
 
 **Summary:** 4 mapped / 0 partial / 1 deferred-writable
@@ -258,11 +258,11 @@ endpoints/{project_id}/{serviceendpoint_id}
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `project_id` | Part of token | Yes | **mapped** | Required; `ForceNew` |
-| `serviceendpoint_id` | Part of token (optional; scopes to a specific endpoint) | Yes | **mapped** | Optional; `ForceNew` |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited) |
+| `project_id` | Part of token | Yes | covered | Required; `ForceNew` |
+| `serviceendpoint_id` | Part of token (optional; scopes to a specific endpoint) | Yes | covered | Optional; `ForceNew` |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited) |
+| `replace` | `merge` flag | Yes | covered | (inherited) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag; not exposed |
 
 **Summary:** 5 mapped / 0 partial / 1 deferred-writable
@@ -288,10 +288,10 @@ When `project_id` is not set, the token scopes to all service hooks (collection-
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `project_id` | Part of token | Yes | **mapped** | Optional; `ForceNew` |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited) |
+| `project_id` | Part of token | Yes | covered | Optional; `ForceNew` |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited) |
+| `replace` | `merge` flag | Yes | covered | (inherited) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag; not exposed |
 
 **Summary:** 4 mapped / 0 partial / 1 deferred-writable
@@ -315,10 +315,10 @@ When `project_id` is not set, the token scopes to all service hooks (collection-
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `project_id` | Part of token | Yes | **mapped** | Optional; `ForceNew` |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited) |
+| `project_id` | Part of token | Yes | covered | Optional; `ForceNew` |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited) |
+| `replace` | `merge` flag | Yes | covered | (inherited) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag; not exposed |
 
 **Summary:** 4 mapped / 0 partial / 1 deferred-writable
@@ -343,11 +343,11 @@ Scopes permissions to a specific variable group within the Library namespace.
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `project_id` | Part of token | Yes | **mapped** | Required; `ForceNew` |
-| `variable_group_id` | Part of token | Yes | **mapped** | Required; `ForceNew` |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited) |
+| `project_id` | Part of token | Yes | covered | Required; `ForceNew` |
+| `variable_group_id` | Part of token | Yes | covered | Required; `ForceNew` |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited) |
+| `replace` | `merge` flag | Yes | covered | (inherited) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag; not exposed |
 
 **Summary:** 5 mapped / 0 partial / 1 deferred-writable
@@ -373,11 +373,11 @@ The path is resolved to a list of query/folder GUIDs by traversing the `WorkItem
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `project_id` | Part of token | Yes | **mapped** | Required; `ForceNew` |
-| `path` | Resolved via `GetQuery` traversal to folder GUIDs; part of token | Yes | **mapped** | Optional; `ForceNew`; default `""` = Shared Queries root |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited) |
+| `project_id` | Part of token | Yes | covered | Required; `ForceNew` |
+| `path` | Resolved via `GetQuery` traversal to folder GUIDs; part of token | Yes | covered | Optional; `ForceNew`; default `""` = Shared Queries root |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited) |
+| `replace` | `merge` flag | Yes | covered | (inherited) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag; not exposed |
 
 **Summary:** 5 mapped / 0 partial / 1 deferred-writable
@@ -403,10 +403,10 @@ The token is built by calling `WorkItemTrackingProcessClient.GetProcessByItsId` 
 
 | TF field | API field | Writable? | Status | Notes |
 |---|---|---|---|---|
-| `process_id` | `ProcessTypeId` param in `GetProcessByItsId`; part of token | Yes | **mapped** | Required; `ForceNew` |
-| `principal` | `AccessControlEntry.Descriptor` | Yes | **mapped** | (inherited) |
-| `replace` | `merge` flag | Yes | **mapped** | (inherited) |
-| `permissions` | Allow/Deny bitmask | Yes | **mapped** | (inherited) |
+| `process_id` | `ProcessTypeId` param in `GetProcessByItsId`; part of token | Yes | covered | Required; `ForceNew` |
+| `principal` | `AccessControlEntry.Descriptor` | Yes | covered | (inherited) |
+| `replace` | `merge` flag | Yes | covered | (inherited) |
+| `permissions` | Allow/Deny bitmask | Yes | covered | (inherited) |
 | — | `AccessControlList.InheritPermissions` | Yes | **deferred** | Inheritance flag; not exposed |
 
 **Summary:** 4 mapped / 0 partial / 1 deferred-writable
@@ -415,7 +415,7 @@ The token is built by calling `WorkItemTrackingProcessClient.GetProcessByItsId` 
 
 ## 3. Overall Summary
 
-| Resource | Namespace | Namespace UUID | Resource-specific fields | Deferred-writable | Total mapped |
+| Resource | Namespace | Namespace UUID | Resource-specific fields | Deferred-writable | Total covered |
 |---|---|---|---|---|---|
 | `betterado_area_permissions` | CSS | `83e28ad4-…` | `project_id`, `path` | `InheritPermissions` | 5 |
 | `betterado_build_definition_permissions` | Build | `33344d9c-…` | `project_id`, `build_definition_id` | `InheritPermissions` | 5 |

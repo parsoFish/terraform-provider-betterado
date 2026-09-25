@@ -25,13 +25,13 @@
 
 | API Field | TF Attribute | Status | Notes |
 |-----------|-------------|--------|-------|
-| `publisherId` | `publisher_id` | mapped | Required; ForceNew |
-| `extensionId` | `extension_id` | mapped | Required; ForceNew |
-| `version` | `version` | mapped | Optional+Computed |
-| `installState.flags` | `disabled` | mapped | Optional+Computed; derived from `Disabled` flag enum value |
-| `extensionName` | `extension_name` | mapped | Computed |
-| `publisherName` | `publisher_name` | mapped | Computed |
-| `scopes` | `scope` | mapped | Computed list(string) |
+| `publisherId` | `publisher_id` | covered | Required; ForceNew |
+| `extensionId` | `extension_id` | covered | Required; ForceNew |
+| `version` | `version` | covered | Optional+Computed |
+| `installState.flags` | `disabled` | covered | Optional+Computed; derived from `Disabled` flag enum value |
+| `extensionName` | `extension_name` | covered | Computed |
+| `publisherName` | `publisher_name` | covered | Computed |
+| `scopes` | `scope` | covered | Computed list(string) |
 
 ### 1.2 What `betterado_extension_install` Adds or Replaces
 
@@ -60,31 +60,31 @@
 
 | API Field | SDK Type | TF Attribute | `betterado_extension` | `betterado_extension_install` (WI-2) | Notes |
 |-----------|---------|-------------|----------------------|--------------------------------------|-------|
-| `publisherId` | `*string` | `publisher_id` | mapped | mapped | Required; ForceNew |
-| `extensionId` | `*string` | `extension_id` | mapped | mapped | Required; ForceNew |
-| `version` | `*string` | `version` | mapped | mapped | Optional+Computed |
-| `installState.flags` | `*ExtensionStateFlags` | `disabled` | mapped (bool derived) | mapped (bool derived) | Computed; `Disabled` enum flag |
-| `installState.lastUpdated` | `*Time` | — | missing | missing | Computed timestamp; not in shipped schema — deferred |
-| `installState.installationIssues` | `*[]InstalledExtensionStateIssue` | — | missing | missing | Read-only diagnostic; deferred |
-| `extensionName` | `*string` | `extension_name` | mapped | missing | Computed display name; not in shipped schema |
-| `publisherName` | `*string` | `publisher_name` | mapped | missing | Computed display name; not in shipped schema |
-| `scopes` | `*[]string` | `scope` | mapped | missing | Computed; not in shipped schema |
-| `baseUri` | `*string` | — | missing | missing | Internal; no TF use |
-| `contributions` | `*[]Contribution` | — | missing | missing | Internal contribution tree; no TF use |
-| `contributionTypes` | `*[]ContributionType` | — | missing | missing | Internal; no TF use |
-| `demands` | `*[]string` | — | missing | missing | Server-derived; no TF use |
-| `eventCallbacks` | `*ExtensionEventCallbackCollection` | — | missing | missing | Extension lifecycle hooks; no TF use |
-| `files` | `*[]gallery.ExtensionFile` | — | missing | missing | Gallery asset files; out of scope |
-| `flags` | `*ExtensionFlags` | — | missing | missing | Extension-level flags (BuiltIn/Trusted); Computed read-only |
-| `language` | `*string` | — | missing | missing | Language/locale; no TF use |
-| `lastPublished` | `*Time` | — | missing | missing | Gallery-side publish date; Computed |
-| `licensing` | `*ExtensionLicensing` | — | missing | missing | Licensing contributions; no TF use |
-| `manifestVersion` | `*float64` | — | missing | missing | Extension manifest version; no TF use |
-| `registrationId` | `*uuid.UUID` | — | missing | missing | Extension UUID; Computed, ForceNew not needed |
-| `restrictedTo` | `*[]string` | — | missing | missing | Contribution visibility; no TF use |
-| `serviceInstanceType` | `*uuid.UUID` | — | missing | missing | Service dependency UUID; no TF use |
-| `constraints` | `*[]ContributionConstraint` | — | missing | missing | Internal; no TF use |
-| `fallbackBaseUri` | `*string` | — | missing | missing | Internal; no TF use |
+| `publisherId` | `*string` | `publisher_id` | covered | covered | Required; ForceNew |
+| `extensionId` | `*string` | `extension_id` | covered | covered | Required; ForceNew |
+| `version` | `*string` | `version` | covered | covered | Optional+Computed |
+| `installState.flags` | `*ExtensionStateFlags` | `disabled` | covered (bool derived) | covered (bool derived) | Computed; `Disabled` enum flag |
+| `installState.lastUpdated` | `*Time` | — | gap-deferred | gap-deferred | Computed timestamp; not in shipped schema — deferred |
+| `installState.installationIssues` | `*[]InstalledExtensionStateIssue` | — | gap-deferred | gap-deferred | Read-only diagnostic; deferred |
+| `extensionName` | `*string` | `extension_name` | covered | gap-deferred | Computed display name; not in shipped schema |
+| `publisherName` | `*string` | `publisher_name` | covered | gap-deferred | Computed display name; not in shipped schema |
+| `scopes` | `*[]string` | `scope` | covered | gap-deferred | Computed; not in shipped schema |
+| `baseUri` | `*string` | — | gap-deferred | gap-deferred | Internal; no TF use |
+| `contributions` | `*[]Contribution` | — | gap-deferred | gap-deferred | Internal contribution tree; no TF use |
+| `contributionTypes` | `*[]ContributionType` | — | gap-deferred | gap-deferred | Internal; no TF use |
+| `demands` | `*[]string` | — | gap-deferred | gap-deferred | Server-derived; no TF use |
+| `eventCallbacks` | `*ExtensionEventCallbackCollection` | — | gap-deferred | gap-deferred | Extension lifecycle hooks; no TF use |
+| `files` | `*[]gallery.ExtensionFile` | — | gap-deferred | gap-deferred | Gallery asset files; out of scope |
+| `flags` | `*ExtensionFlags` | — | gap-deferred | gap-deferred | Extension-level flags (BuiltIn/Trusted); Computed read-only |
+| `language` | `*string` | — | gap-deferred | gap-deferred | Language/locale; no TF use |
+| `lastPublished` | `*Time` | — | gap-deferred | gap-deferred | Gallery-side publish date; Computed |
+| `licensing` | `*ExtensionLicensing` | — | gap-deferred | gap-deferred | Licensing contributions; no TF use |
+| `manifestVersion` | `*float64` | — | gap-deferred | gap-deferred | Extension manifest version; no TF use |
+| `registrationId` | `*uuid.UUID` | — | gap-deferred | gap-deferred | Extension UUID; Computed, ForceNew not needed |
+| `restrictedTo` | `*[]string` | — | gap-deferred | gap-deferred | Contribution visibility; no TF use |
+| `serviceInstanceType` | `*uuid.UUID` | — | gap-deferred | gap-deferred | Service dependency UUID; no TF use |
+| `constraints` | `*[]ContributionConstraint` | — | gap-deferred | gap-deferred | Internal; no TF use |
+| `fallbackBaseUri` | `*string` | — | gap-deferred | gap-deferred | Internal; no TF use |
 
 **Summary — `InstalledExtension`:** 7 mapped in `betterado_extension` · 4 mapped in `betterado_extension_install` (publisher_id, extension_id, version, disabled) · 4 missing/deferred (extension_name, publisher_name, scope, last_updated not in shipped schema) · 15 intentionally missing (read-only or internal)
 

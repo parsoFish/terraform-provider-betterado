@@ -17,6 +17,15 @@ ENHANCEMENTS:
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-09-25
+
+### Added
+
+- `docs/gap-registry.md` — consolidated registry of all 31 ADO API surface areas ranked by provider implementation priority (tiers 1–8).
+- Normalised gap-matrix vocabulary across all long-tail tier-8 area matrices (`docs/*-gap-matrix.md`): canonical `implemented`/`read-only`/`gap`/`out-of-scope` status labels applied consistently.
+- `docs/profile-corrections.md` — corrections patch for net-new table and stat line in the accounts/profile coverage analysis.
+- Updated `docs/api-coverage-roadmap.md` with verified FEAT-1/2/3/4 statuses.
+
 ## [3.0.0] - 2026-07-11
 
 ### BREAKING CHANGES
