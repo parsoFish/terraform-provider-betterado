@@ -48,14 +48,14 @@ Stub table — WI-2 through WI-4b fill the data cells.
 | memberentitlementmanagement | | | | |
 | notification | | | | |
 | servicehook | | | | |
-| dashboard | | | | |
-| extension | | | | |
-| gallery-extensionmanagement | | | | |
-| featuremanagement | | | | |
-| workitemtracking | | | | |
-| workitemtrackingprocess | | | | |
-| accounts-profile | | | | |
-| test | | | | |
+| dashboard | betterado-inherited | `betterado_dashboard` | 2 | 7 |
+| extension | betterado-inherited | `betterado_extension` | 0 | 16 |
+| gallery-extensionmanagement | betterado-inherited | `betterado_extension` | 0 | 21 |
+| featuremanagement | betterado-inherited | `betterado_project_features`, `betterado_feature_flag` (planned) | 0 | 0 |
+| workitemtracking | betterado-inherited | `betterado_workitem`, `betterado_workitemtracking_field`, `betterado_workitemquery`, `betterado_workitemquery_folder`, `data.betterado_area`, `data.betterado_iteration` | 23 | 30 |
+| workitemtrackingprocess | betterado-inherited | 12 resource types (`betterado_workitemtrackingprocess_*`) | 0 | 0 |
+| accounts-profile | betterado-inherited | `data.betterado_accounts`, `data.betterado_profile` (planned) | 12 | 0 |
+| test | betterado-inherited | planned: `betterado_test_plan`, `betterado_test_suite`, `betterado_test_configuration`, `betterado_test_variable`, `betterado_test_result_retention_settings`, `data.betterado_test_run`, `data.betterado_test_result` | 0 | 0 |
 
 ## Release + Pipeline tier
 
@@ -373,6 +373,119 @@ Stub table — WI-2 through WI-4b fill the data cells.
   - `betterado_servicehook_storage_queue_pipelines.checkedInBy` — TFVC check-in identity filter; not in schema (complexity-then)
 **Gap-deferred count:** 1
   - `betterado_servicehook_storage_queue_pipelines.sasToken` — SAS token auth; not in schema; write-only secret (complexity-then)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+## Long-tail tier
+
+### dashboard
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_dashboard` (resource)
+**Gap-open count:** 2
+  - `betterado_dashboard.position` — dashboard ordering within a group; writable via API but deferred (complexity-then)
+  - `betterado_dashboard.widgets` — widget configuration; deeply nested structure; deferred to dedicated WI (complexity-then)
+**Gap-deferred count:** 7
+  - `_links` — read-only HAL navigation links (non-declarative-forever)
+  - `dashboardScope` — API-inferred from team_id; not user-settable (non-declarative-forever)
+  - `eTag` — server-managed concurrency token (non-declarative-forever)
+  - `lastAccessedDate`, `modifiedBy`, `modifiedDate` — server-computed timestamps/identity (non-declarative-forever)
+  - `url` — server-provided resource URL (non-declarative-forever)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### extension
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_extension` (resource)
+**Gap-open count:** 0
+**Gap-deferred count:** 16
+  - `baseUri`, `constraints`, `contributions`, `contributionTypes`, `demands`, `eventCallbacks`, `fallbackBaseUri`, `files`, `flags`, `language`, `lastPublished`, `licensing`, `manifestVersion`, `registrationId`, `restrictedTo`, `serviceInstanceType` — all read-only ADO manifest metadata; no Terraform IaC value (non-declarative-forever)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### gallery-extensionmanagement
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_extension` (resource)
+**Gap-open count:** 0
+**Gap-deferred count:** 21
+  - `installState.lastUpdated`, `installState.installationIssues` — read-only diagnostic metadata (non-declarative-forever)
+  - `extensionName`, `publisherName`, `scopes` — computed display fields; not in shipped schema (complexity-then)
+  - `baseUri`, `contributions`, `contributionTypes`, `demands`, `eventCallbacks`, `files`, `flags`, `language`, `lastPublished`, `licensing`, `manifestVersion`, `registrationId`, `restrictedTo`, `serviceInstanceType`, `constraints`, `fallbackBaseUri` — read-only ADO manifest metadata (non-declarative-forever)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### featuremanagement
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_project_features` (resource, existing), `betterado_feature_flag` (resource, planned)
+**Gap-open count:** 0
+**Gap-deferred count:** 0
+  - All remaining ContributedFeature metadata fields (`defaultValueRules`, `overrideRules`, `featureProperties`, `featureStateChangedListeners`, `includeAsClaim`, `order`, `serviceInstanceType`, `_links`) are internal server-side fields; not TF-relevant (non-declarative-forever)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### workitemtracking
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_workitem` (resource), `betterado_workitemtracking_field` (resource), `betterado_workitemquery` (resource), `betterado_workitemquery_folder` (resource), `betterado_area` (data source), `betterado_iteration` (data source)
+**Gap-open count:** 23
+  - `betterado_workitem.relations` — arbitrary link types (child, related, remote); deferred (complexity-then)
+  - `betterado_workitem.System.AssignedTo` — assignee identity; deferred (complexity-then)
+  - `betterado_workitem.System.History` — comment/history entry; deferred (complexity-then)
+  - `betterado_workitem.System.Reason` — computed transition reason; not directly settable (complexity-then)
+  - `betterado_workitem.System.BoardColumn`, `System.BoardLane` — board-level concerns outside WI scope (complexity-then)
+  - `betterado_workitemtracking_field.isPicklistSuggested` — computed backward-compat attribute; deferred (complexity-then)
+  - `betterado_workitemquery.path`, `isPublic`, `isDeleted`, `queryType`, `queryRecursionOption`, `clauses`, `linkClauses`, `sourceClauses`, `targetClauses`, `columns`, `sortColumns`, `filterOptions` — query structural fields; deferred (complexity-then)
+  - `betterado_workitemquery_folder.path`, `isPublic`, `isDeleted` — folder structural fields; deferred (complexity-then)
+**Gap-deferred count:** 30
+  - `betterado_workitem.commentVersionRef`, `System.CreatedBy`, `System.CreatedDate`, `System.ChangedBy`, `System.ChangedDate`, `System.CommentCount`, `System.TeamProject` — server-computed metadata (non-declarative-forever)
+  - `betterado_workitemquery.isInvalidSyntax`, `createdBy`, `createdDate`, `lastModifiedBy`, `lastModifiedDate`, `lastExecutedBy`, `lastExecutedDate` — server-computed metadata (non-declarative-forever)
+  - `betterado_workitemquery_folder.hasChildren`, `children`, `createdBy`, `createdDate`, `lastModifiedBy`, `lastModifiedDate` — server-computed metadata (non-declarative-forever)
+  - `betterado_area.attributes`, `id` (integer), `betterado_iteration.attributes`, `id` (integer) — derived/integer node IDs; deferred (non-declarative-forever)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### workitemtrackingprocess
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_workitemtrackingprocess_process` (resource), `betterado_workitemtrackingprocess_workitemtype` (resource), `betterado_workitemtrackingprocess_state` (resource), `betterado_workitemtrackingprocess_inherited_state` (resource), `betterado_workitemtrackingprocess_rule` (resource), `betterado_workitemtrackingprocess_field` (resource), `betterado_workitemtrackingprocess_list` (resource), `betterado_workitemtrackingprocess_page` (resource), `betterado_workitemtrackingprocess_inherited_page` (resource), `betterado_workitemtrackingprocess_group` (resource), `betterado_workitemtrackingprocess_control` (resource), `betterado_workitemtrackingprocess_inherited_control` (resource)
+**Gap-open count:** 0
+**Gap-deferred count:** 0
+  - `betterado_workitemtrackingprocess_control.height` (top-level, HTML controls only) and `betterado_workitemtrackingprocess_group.contribution`, `is_contribution`, `height` — low-demand deferred fields tracked in matrix (complexity-then)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### accounts-profile
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `data.betterado_accounts` (data source), `data.betterado_profile` (data source, planned)
+**Gap-open count:** 12
+  - `data.betterado_accounts`: `accountOwner`, `accountStatus`, `ownerId` query param — deferred; low consumer demand (complexity-then)
+  - `data.betterado_profile`: entire Profile API data source not yet implemented; deferred to follow-on WI — `id`, `coreRevision`, `revision`, `profileState`, `coreAttributes` (incl. `DisplayName`, `EmailAddress`, `PublicAlias`), `applicationContainer`, `timeStamp` (complexity-then)
+**Gap-deferred count:** 0
+  - `createdBy`, `createdDate`, `lastUpdatedBy`, `lastUpdatedDate`, `namespaceId`, `newCollectionId`, `hasMoved`, `properties`, `statusReason` — audit/migration/internal fields; not IaC-relevant (out-of-scope-forever)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### test
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_test_plan` (resource, planned), `betterado_test_suite` (resource, planned), `betterado_test_configuration` (resource, planned), `betterado_test_variable` (resource, planned), `betterado_test_result_retention_settings` (resource, planned), `data.betterado_test_run` (data source, planned), `data.betterado_test_result` (data source, planned)
+**Gap-open count:** 0
+**Gap-deferred count:** 0
+  - Test Run, Test Result, Test Iteration — ephemeral execution artifacts; data-source-only (non-declarative-forever)
+  - Test Session, Test Run/Result Attachments — execution-orchestration/binary payloads; out of scope (out-of-scope-forever)
+  - Test Point — server-computed join record; read-only (non-declarative-forever)
 **v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
 
 ---

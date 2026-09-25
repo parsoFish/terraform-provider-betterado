@@ -6,12 +6,10 @@
 
 ## Legend
 
-| Status | Meaning |
-|--------|---------|
-| covered | Exposed in the Terraform schema; round-trips correctly. |
-| gap-open | Not in schema; could be added in a follow-up. |
-| **server-computed** | Read-only; set by the ADO service; deferred (see rationale). |
-| **writable-deferred** | Writable by the API but explicitly deferred (see rationale). |
+- **covered** — Exposed in the Terraform schema; round-trips correctly.
+- **gap-open** — Not in schema; writable field that could be added in a follow-up.
+- **gap-deferred** — Not in schema; read-only server-computed field; deferred permanently.
+- **out-of-scope** — Explicitly excluded from Terraform management.
 
 ---
 

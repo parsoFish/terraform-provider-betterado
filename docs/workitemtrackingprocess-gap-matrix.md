@@ -388,7 +388,7 @@ Each table covers one resource or data source. Columns:
 
 ## Summary of Deferred Gaps
 
-| resource/data-source | gap-open field | rationale |
+| resource/data-source | deferred field | rationale |
 |---|---|---|
 | `resource_process` | `projects` | Only relevant with `expand=projects`; surfaced in the data source |
 | `resource_workitemtype` | `behaviors` | Separate sub-resource endpoint; separate WI |
