@@ -492,4 +492,56 @@ Stub table — WI-2 through WI-4b fill the data cells.
 
 ## Priority backlog
 
-Populated by WI-5.
+Synthesised from all 31 normalized gap matrices (INIT-2026-09-25). Items are grouped by operator value and implementation effort.
+
+### Tier 1 — betterado net-new resource gaps (highest priority)
+
+These are writable fields on betterado's own surfaces that are not yet modelled. Implementing them directly expands the fork's unique value over upstream.
+
+- **task-group/icon_url**: Icon URL shown in the ADO UI for the task group. Writable field present in Create/Update API payloads. [complexity: low]
+- **task-group/input[].visible_rule**: Conditional visibility expression for a task input (`input.visibleRule`). Used in UI to show/hide inputs based on other values. [complexity: medium]
+- **task-group/input[].properties**: Opaque key/value metadata map on a task input (`input.properties`). Rarely needed but API-complete parity. [complexity: low]
+- **task-group/input[].aliases**: Alternative input names (`input.aliases`). Rarely set; useful for task-group authoring completeness. [complexity: low]
+- **release_definition_environment_template**: `betterado_release_definition_environment_template` resource — not yet implemented. Provides create/read/delete for reusable stage templates. [complexity: high]
+
+### Tier 2 — high-value upstream gaps (widely-used inherited resources)
+
+Fields on upstream-inherited resources that have measurable operator utility. Implementing these improves parity with what operators expect from a complete ADO provider.
+
+- **build/triggers — build_completion_trigger**: Build-completion trigger (`buildCompletionTrigger`) not yet migrated to the schema. Allows chaining pipelines. [complexity: medium]
+- **build/triggers — schedules**: Scheduled build trigger (`schedulesTrigger`) not migrated. Commonly needed for nightly builds. [complexity: medium]
+- **build/properties — connectedServiceId / reportBuildStatus**: Two property-bag keys writable via the Build Definitions API that are not yet surfaced as top-level schema attributes. [complexity: low]
+- **dashboard/widgets**: Widget configuration block for dashboards. Deeply nested structure; deferred due to idempotency risk with server-side widget ordering. [complexity: high]
+- **dashboard/position**: Position of a dashboard within a dashboard group. Ordering field; low operator urgency. [complexity: low]
+- **serviceendpoint/workload_identity_federation_subject**: Computed field returned by ADO for workload identity federation scheme. Read-only; needed for external IdP trust configuration. [complexity: low]
+- **servicehook/commentPattern**: Subscription filter for comment-pattern events. Not in schema; blocks modelling GitHub comment triggers. [complexity: medium]
+- **servicehook/checkedInBy**: Subscription filter by committer identity. Not in schema; blocks precise TFVC trigger configuration. [complexity: low]
+- **policy/useUncompressedSize** (`max_file_size`): Missing policy option that controls whether the file-size check uses compressed or uncompressed size. Single bool field. [complexity: low]
+- **workitemtracking/System.AssignedTo**: Assignee field on work items. High operator demand; deferred from the migration initiative. [complexity: medium]
+- **workitemtracking/System.History**: Comment/history entry write. Append-only; needs special handling to avoid perpetual diff. [complexity: medium]
+- **workitemtracking/relations**: Writable link management (child, related, remote links). Deferred from migration; high complexity. [complexity: high]
+- **accounts-profile/coreAttributes — display_name, email, public_alias**: Three top-level computed strings from the `coreAttributes` bag. Useful for data-source enrichment; `betterado_profile` data source not yet implemented. [complexity: medium]
+
+### Tier 3 — low-value computed-field gaps (gap-deferred read-only fields)
+
+Server-generated, read-only fields that are intentionally deferred. Low ROI: they cannot be set by the operator and serve no planning purpose in Terraform state. Implement only if a downstream data-consumer explicitly needs them.
+
+- **release_definition/createdBy**: Read-only identity reference; computed by ADO on create. [complexity: low]
+- **release_definition/modifiedBy**: Read-only identity reference; computed by ADO on every update. [complexity: low]
+- **release_definition/createdOn**: Read-only timestamp. [complexity: low]
+- **release_definition/modifiedOn**: Read-only timestamp. [complexity: low]
+- **release_definition/lastRelease**: Read-only reference to the most recent release run. [complexity: low]
+- **release_definition/isDeleted**: Read-only soft-delete state. [complexity: low]
+- **release_definition/source**: Read-only enum indicating how the definition was created (ibiza, restApi). [complexity: low]
+- **release_definition/projectReference**: Read-only nested struct; project tracked as `project_id` string. [complexity: low]
+- **release_definition/properties**: Opaque property bag; typically empty. [complexity: low]
+- **release_definition/environment[].badgeUrl**: Read-only URL computed by ADO. [complexity: low]
+- **release_definition/environment[].currentRelease**: Read-only reference to current release run for the stage. [complexity: low]
+- **release_definition/environment[].deployStep**: Read-only internal gate step ID. [complexity: low]
+- **release_definition/deploy_phase[].refName**: Internal reference name; read-only. [complexity: low]
+- **release_definition/pre/post_deploy_approval[].approver[].isNotificationOn**: Read-only computed bool. [complexity: low]
+- **release_definition/pre/post_deploy_approval[].approver[].id (step id)**: Internal step ID distinct from approver UUID; read-only. [complexity: low]
+- **release_definition/artifact[].isRetained**: Set by release runtime; read-only from definition perspective. [complexity: low]
+- **release_definition/pre/post_deployment_gates[].id**: Read-only step ID assigned by ADO. [complexity: low]
+- **release_definition/triggers[schedule].branchFilters**: ADO does not return branchFilters for schedule triggers in GET response; intentionally excluded. [complexity: low]
+- **workitemtracking/System.Reason, System.BoardColumn, System.BoardLane**: Computed transition/board state fields; not directly settable in most workflows. [complexity: low]
