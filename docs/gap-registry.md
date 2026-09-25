@@ -267,6 +267,116 @@ Stub table — WI-2 through WI-4b fill the data cells.
 
 ---
 
+## Identity / Security tier
+
+### identity
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `data.betterado_identity_group`, `data.betterado_identity_groups`, `data.betterado_identity_user`
+**Gap-open count:** 0
+**Gap-deferred count:** 0
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### graph
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_group` (resource + data source), `betterado_descriptor`, `betterado_group_membership`, `data.betterado_groups`, `betterado_service_principal`, `betterado_storage_key`, `betterado_user`, `data.betterado_users`
+**Gap-open count:** 0
+**Gap-deferred count:** 0
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### security
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_security_permissions` (resource), `data.betterado_security_namespace`, `data.betterado_security_namespace_token`, `data.betterado_security_namespaces`
+**Gap-open count:** 0
+**Gap-deferred count:** 14
+  - `AccessControlList.IncludeExtendedInfo` — read-only query flag; not a schema field (non-declarative-forever)
+  - `DataspaceCategory` — read-only namespace metadata; no TF consumer value (non-declarative-forever)
+  - `ElementLength` — read-only internal separator config (non-declarative-forever)
+  - `ExtensionType` — read-only plugin extension type string (non-declarative-forever)
+  - `IsRemotable` — read-only boolean; low IaC value (non-declarative-forever)
+  - `ReadPermission`, `WritePermission` — read-only bitmasks (non-declarative-forever)
+  - `SeparatorValue`, `StructureValue`, `SystemBitMask`, `UseTokenTranslator` — read-only internal config (non-declarative-forever)
+  - `Actions[].NamespaceId` — read-only backlink; redundant (non-declarative-forever)
+  - 3 additional read-only internal bookkeeping fields (non-declarative-forever)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### permissions
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_area_permissions`, `betterado_build_definition_permissions`, `betterado_build_folder_permissions`, `betterado_git_permissions`, `betterado_iteration_permissions`, `betterado_library_permissions`, `betterado_project_permissions`, `betterado_serviceendpoint_permissions`, `betterado_servicehook_permissions`, `betterado_tagging_permissions`, `betterado_variable_group_permissions`, `betterado_workitemquery_permissions`, `betterado_workitemtrackingprocess_process_permissions`
+**Gap-open count:** 0
+**Gap-deferred count:** 0
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### securityroles
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_securityrole_assignment` (resource), `data.betterado_securityrole_definitions`
+**Gap-open count:** 0
+**Gap-deferred count:** 11
+  - `identity.displayName`, `identity.uniqueName` — read-only identity display fields (non-declarative-forever)
+  - `role.displayName`, `role.identifier`, `role.description` — read-only role metadata (non-declarative-forever)
+  - `role.allowPermissions`, `role.denyPermissions` — read-only bitmasks (non-declarative-forever)
+  - `assignment.access`, `assignment.accessDisplayName` — read-only assignment metadata; negligible IaC value (non-declarative-forever)
+  - 2 summary/resolved rows
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### memberentitlementmanagement
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_user_entitlement` (resource), `betterado_group_entitlement` (resource), `betterado_service_principal_entitlement` (resource)
+**Gap-open count:** 3
+  - `betterado_user_entitlement.user` — nested GraphUser sub-object not yet exposed (complexity-then)
+  - `betterado_group_entitlement.group` — nested GraphGroup sub-object not yet exposed (complexity-then)
+  - `betterado_service_principal_entitlement.servicePrincipal` — nested GraphServicePrincipal sub-object not yet exposed (complexity-then)
+**Gap-deferred count:** 58
+  - `dateCreated`, `lastAccessedDate` — read-only timestamps (non-declarative-forever)
+  - `groupAssignments` — read-only group membership aggregate (non-declarative-forever)
+  - `projectEntitlements` — complex nested project-level entitlements; deferred for dedicated WI (complexity-then)
+  - `extensions` — deprecated extension licenses (non-declarative-forever)
+  - `accessLevel.assignmentSource`, `accessLevel.licenseDisplayName`, `accessLevel.status`, `accessLevel.statusMessage` — read-only access level metadata (non-declarative-forever)
+  - `accessLevel.msdnLicenseType` — legacy MSDN license; deferred (complexity-then)
+  - 52 additional read-only GraphUser/GraphGroup/GraphServicePrincipal sub-fields (displayName, url, legacyDescriptor, subjectKind, domain, mailAddress, directoryAlias, isDeletedInOrigin, metaType, _links, applicationId, etc.) across all three entitlement types (non-declarative-forever)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### notification
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_notification_subscription` (planned; WI-2 of initiative INIT-2026-07-01-new-api-notification)
+**Gap-open count:** 0
+**Gap-deferred count:** 0
+  - 15 fields marked `**implement**` in matrix pending WI-2 of parent initiative (not yet gap-open; tracked in matrix)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### servicehook
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_servicehook_storage_queue_pipelines` (resource), `betterado_servicehook_webhook_tfs` (resource)
+**Gap-open count:** 2
+  - `betterado_servicehook_webhook_tfs.commentPattern` — TFVC comment filter; not in schema (complexity-then)
+  - `betterado_servicehook_storage_queue_pipelines.checkedInBy` — TFVC check-in identity filter; not in schema (complexity-then)
+**Gap-deferred count:** 1
+  - `betterado_servicehook_storage_queue_pipelines.sasToken` — SAS token auth; not in schema; write-only secret (complexity-then)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
 ## Priority backlog
 
 Populated by WI-5.
