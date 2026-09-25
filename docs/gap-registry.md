@@ -164,6 +164,109 @@ Stub table — WI-2 through WI-4b fill the data cells.
 
 ---
 
+## Infrastructure tier
+
+### serviceendpoint
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_serviceendpoint_aws`, `betterado_serviceendpoint_azurecr`, `betterado_serviceendpoint_azurerm`, `betterado_serviceendpoint_azuredevops`, `betterado_serviceendpoint_azure_service_bus`, `betterado_serviceendpoint_bitbucket`, `betterado_serviceendpoint_black_duck`, `betterado_serviceendpoint_checkmarx_one`, `betterado_serviceendpoint_checkmarx_sast`, `betterado_serviceendpoint_checkmarx_sca`, `betterado_serviceendpoint_dockerregistry`, `betterado_serviceendpoint_dynamic_lifecycle_services`, `betterado_serviceendpoint_externaltfs`, `betterado_serviceendpoint_gcp_terraform`, `betterado_serviceendpoint_generic`, `betterado_serviceendpoint_generic_git`, `betterado_serviceendpoint_generic_v2`, `betterado_serviceendpoint_github`, `betterado_serviceendpoint_github_enterprise`, `betterado_serviceendpoint_gitlab`, `betterado_serviceendpoint_incomingwebhook`, `betterado_serviceendpoint_jenkins`, `betterado_serviceendpoint_jfrog_artifactory_v2`, `betterado_serviceendpoint_jfrog_distribution_v2`, `betterado_serviceendpoint_jfrog_platform_v2`, `betterado_serviceendpoint_jfrog_xray_v2`, `betterado_serviceendpoint_kubernetes`, `betterado_serviceendpoint_maven`, `betterado_serviceendpoint_nexus`, `betterado_serviceendpoint_npm`, `betterado_serviceendpoint_nuget`, `betterado_serviceendpoint_octopus`, `betterado_serviceendpoint_openshift`, `betterado_serviceendpoint_argocd`, `betterado_serviceendpoint_artifactory`, `betterado_serviceendpoint_runpipeline`, `betterado_serviceendpoint_servicefabric`, `betterado_serviceendpoint_snyk`, `betterado_serviceendpoint_sonarcloud`, `betterado_serviceendpoint_sonarqube`, `betterado_serviceendpoint_ssh`, `betterado_serviceendpoint_visualstudiomarketplace` (resources); data sources per-type
+**Gap-open count:** 2
+**Gap-deferred count:** 5
+  - `workload_identity_federation_subject` on `azurerm` and `azurecr` — ADO returns this read-only for WIF scheme; Computed attribute absent (non-declarative-forever)
+  - `isShared` flag and `shared_project_ids` on non-generic resources — cross-project sharing not exposed on typed resources (complexity-then)
+  - `is_ready` — endpoint readiness not surfaced as Computed attribute (complexity-then)
+  - `api_key` `Sensitive: true` absent on Octopus Deploy endpoint — credential leakage risk; schema fix needed (complexity-then)
+  - Kubernetes ServiceAccount `namespace` — absent from `service_account` auth block (complexity-then)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### core
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_project`, `betterado_project_features`, `betterado_project_pipeline_settings`, `betterado_project_tags`, `betterado_team`, `betterado_team_administrators`, `betterado_team_members` (resources)
+**Gap-open count:** 0
+**Gap-deferred count:** 5
+  - `betterado_project.abbreviation` — short project abbreviation; low IaC demand (complexity-then)
+  - `betterado_project_pipeline_settings.disableClassicBuildPipelineCreation` — policy enforcement field; follow-on WI (complexity-then)
+  - `betterado_project_pipeline_settings.disableClassicReleasePipelineCreation` — same category (complexity-then)
+  - `betterado_project_pipeline_settings.enforceNoAccessToSecretsFromForks` — security-hardening field; follow-on WI (complexity-then)
+  - `betterado_project_pipeline_settings.isCommentRequiredForPullRequest` — lower-priority policy field (complexity-then)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### build
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_build_definition` (resource), `betterado_build_folder` (resource), `betterado_pipeline_authorization` (resource), `betterado_resource_authorization` (resource, deprecated), `data.betterado_build_definition` (data source)
+**Gap-open count:** 3
+**Gap-deferred count:** 5
+  - `variable_groups` — complex int-set type; not migrated to framework schema this iteration (complexity-then)
+  - `build_completion_trigger` — complex nested trigger; not migrated (complexity-then)
+  - `schedules` — timezone-list trigger block; not migrated (complexity-then)
+  - `jobs` (OtherGit only) — large nested block; not migrated (complexity-then)
+  - `features` list wrapper — replaced by `skip_first_run` top-level attribute; wrapper omitted (complexity-then)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### policy
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `azuredevops_branch_policy_build_validation`, `azuredevops_branch_policy_min_reviewers`, `azuredevops_branch_policy_auto_reviewers`, `azuredevops_branch_policy_comment_resolution`, `azuredevops_branch_policy_merge_strategy`, `azuredevops_branch_policy_status_check`, `azuredevops_branch_policy_work_item_linking`, `azuredevops_repository_policy_author_email_patterns`, `azuredevops_repository_policy_file_path_patterns`, `azuredevops_repository_policy_case_enforcement`, `azuredevops_repository_policy_reserved_names`, `azuredevops_repository_policy_max_file_size`, `azuredevops_repository_policy_max_path_length`, `azuredevops_repository_policy_check_credentials` (resources)
+**Gap-open count:** 2
+**Gap-deferred count:** 3
+  - `min_reviewers.enforceTeamMemberCount` — niche field; not exposed (complexity-then)
+  - `min_reviewers.allowCompletionWithRejectsOrWaitsFromNonRequiredReviewers` — niche edge case; safely defaulted by ADO (complexity-then)
+  - `max_file_size.useUncompressedSize` — ADO defaults to false; no user demand identified (complexity-then)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### git
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_git_repository` (resource), `betterado_git_repository_branch` (resource), `betterado_git_repository_file` (resource), `betterado_git_repositories` (data source), `betterado_git_repository` (data source)
+**Gap-open count:** 0
+**Gap-deferred count:** 4
+  - `betterado_git_repository.isInMaintenance` — ADO-internal read-only flag; not user-configurable (non-declarative-forever)
+  - `betterado_git_repository_branch.isLocked` — admin-only branch lock; rarely managed declaratively (complexity-then)
+  - `data.betterado_git_repositories.isFork` — fork detection in bulk list; low demand (complexity-then)
+  - `data.betterado_git_repository.parentRepository` — parent repo for fork detection; low priority for data source (complexity-then)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### feed
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_feed` (resource), `betterado_feed_permission` (resource), `betterado_feed_retention_policy` (resource), `data.betterado_feed` (data source)
+**Gap-open count:** 0
+**Gap-deferred count:** 11
+  - `betterado_feed.upstream_enabled` — single bool writable via FeedUpdate; high value (complexity-then)
+  - `betterado_feed.upstream_sources` — complex nested block; dedicated WI warranted (complexity-then)
+  - `betterado_feed.description` — string; low effort follow-on (complexity-then)
+  - `betterado_feed.hide_deleted_package_versions` — single bool; low risk (complexity-then)
+  - `betterado_feed.badges_enabled` — single bool; low risk (complexity-then)
+  - `betterado_feed.default_view_id` — UUID; needs view lookup support (complexity-then)
+  - `data.betterado_feed`: 5 computed-attribute gaps mirroring resource writable gaps above (upstream_enabled, upstream_sources, badges_enabled, default_view_id, description) (complexity-then)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
+### wiki
+
+**Classification:** betterado-inherited
+**Resources/Data sources:** `betterado_wiki` (resource), `betterado_wiki_page` (resource)
+**Gap-open count:** 0
+**Gap-deferred count:** 2
+  - `betterado_wiki.properties` — freeform key/value map; low IaC adoption; open tracking issue (complexity-then)
+  - `betterado_wiki_page.order` — sibling page ordering; causes plan drift on every read; limited IaC value (complexity-then)
+**v7.2 delta:** sourced from cached ADO SDK vendor source; live verification pending
+
+---
+
 ## Priority backlog
 
 Populated by WI-5.
