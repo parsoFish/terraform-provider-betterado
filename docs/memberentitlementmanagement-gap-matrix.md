@@ -23,7 +23,7 @@ The `UserEntitlement` struct embeds `EntitlementBase` fields and adds a `User` (
 | `lastAccessedDate` | `LastAccessedDate *azuredevops.Time` | _(not exposed)_ | no (readonly) | gap-deferred |
 | `projectEntitlements` | `ProjectEntitlements *[]ProjectEntitlement` | _(not exposed)_ | yes | gap-deferred |
 | `extensions` | `Extensions *[]Extension` | _(not exposed; deprecated)_ | yes | gap-deferred |
-| `user` | `User *graph.GraphUser` | _(nested — see §1c)_ | partial | covered |
+| `user` | `User *graph.GraphUser` | _(nested — see §1c)_ | gap-open | covered |
 
 ### 1b. `accessLevel` (`licensing.AccessLevel`) sub-fields
 
@@ -67,7 +67,7 @@ The `GroupEntitlement` struct holds a group identity (`GraphGroup`), a license r
 | ADO REST field (`json` tag) | SDK Go struct field | Terraform attribute | Writable? | Gap status |
 |---|---|---|---|---|
 | `extensionRules` | `ExtensionRules *[]Extension` | _(not exposed; deprecated)_ | yes | gap-deferred |
-| `group` | `Group *graph.GraphGroup` | _(nested — see §2b)_ | partial | covered |
+| `group` | `Group *graph.GraphGroup` | _(nested — see §2b)_ | gap-open | covered |
 | `id` | `Id *uuid.UUID` | resource ID (implicit) | yes (create only) | covered |
 | `lastExecuted` | `LastExecuted *azuredevops.Time` | _(not exposed)_ | no (readonly) | gap-deferred |
 | `licenseRule` | `LicenseRule *licensing.AccessLevel` | _(nested — see §2c)_ | yes | covered |
@@ -121,7 +121,7 @@ The `ServicePrincipalEntitlement` struct embeds `EntitlementBase` fields and add
 | `id` | `Id *uuid.UUID` | resource ID (implicit) | yes (create only) | covered |
 | `lastAccessedDate` | `LastAccessedDate *azuredevops.Time` | _(not exposed)_ | no (readonly) | gap-deferred |
 | `projectEntitlements` | `ProjectEntitlements *[]ProjectEntitlement` | _(not exposed)_ | yes | gap-deferred |
-| `servicePrincipal` | `ServicePrincipal *graph.GraphServicePrincipal` | _(nested — see §3c)_ | partial | covered |
+| `servicePrincipal` | `ServicePrincipal *graph.GraphServicePrincipal` | _(nested — see §3c)_ | gap-open | covered |
 
 ### 3b. `accessLevel` (`licensing.AccessLevel`) sub-fields
 
